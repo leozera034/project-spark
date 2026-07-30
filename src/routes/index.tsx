@@ -77,7 +77,6 @@ function Index() {
           width: 24px;
           height: 24px;
           border-radius: 9999px;
-          background: radial-gradient(circle at 30% 30%, #a5f3fc, #06b6dismissed);
           background: radial-gradient(circle at 30% 30%, #a5f3fc, #0891b2);
           box-shadow: 0 0 60px 20px rgba(6, 182, 212, 0.45);
           transform: translate(-50%, -50%);
