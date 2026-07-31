@@ -26,6 +26,7 @@ import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
+import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
@@ -175,6 +176,11 @@ const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => LojaRoute,
+} as any)
+const PedidoSplatRoute = PedidoSplatRouteImport.update({
+  id: '/pedido/$',
+  path: '/pedido/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
   id: '/',
@@ -541,6 +547,7 @@ export interface FileRoutesByFullPath {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -619,6 +626,7 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
@@ -697,6 +705,7 @@ export interface FileRoutesById {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -782,6 +791,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -860,6 +870,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$'
     | '/admin'
     | '/preview'
     | '/loja/$slug/acompanhar'
@@ -937,6 +948,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -1020,6 +1032,7 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
+  PedidoSplatRoute: typeof PedidoSplatRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
   ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
@@ -1144,6 +1157,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/loja/$slug'
       preLoaderRoute: typeof LojaSlugRouteRouteImport
       parentRoute: typeof LojaRoute
+    }
+    '/pedido/$': {
+      id: '/pedido/$'
+      path: '/pedido/$'
+      fullPath: '/pedido/$'
+      preLoaderRoute: typeof PedidoSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/preview/': {
       id: '/preview/'
@@ -1881,6 +1901,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
+  PedidoSplatRoute: PedidoSplatRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
   ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }
