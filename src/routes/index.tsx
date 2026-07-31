@@ -8,17 +8,17 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Pediu Aqui — cardapio digital e pedidos para o comercio local" },
+      { title: "Pediu Aqui — cardápio digital e pedidos para o comércio local" },
       {
         name: "description",
         content:
-          "Pediu Aqui e a plataforma de cardapio digital, pedidos e entregas para o comercio local. Cada loja com seu proprio espaco, seus produtos e seus entregadores.",
+          "Pediu Aqui é a plataforma de cardápio digital, pedidos e entregas para o comércio local. Cada loja com seu próprio espaço, seus produtos e seus entregadores.",
       },
-      { property: "og:title", content: "Pediu Aqui — cardapio digital e pedidos" },
+      { property: "og:title", content: "Pediu Aqui — cardápio digital e pedidos" },
       {
         property: "og:description",
         content:
-          "Cardapio digital, pedidos e entregas para o comercio local, com isolamento total por loja.",
+          "Cardápio digital, pedidos e entregas para o comércio local, com isolamento total por loja.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -28,8 +28,8 @@ export const Route = createFileRoute("/")({
 
 const pillars = [
   {
-    title: "Cardapio digital proprio",
-    text: "Cada loja tem seu endereco, seus produtos, suas variacoes e suas regras de entrega.",
+    title: "Cardápio digital próprio",
+    text: "Cada loja tem seu endereço, seus produtos, suas variações e suas regras de entrega.",
   },
   {
     title: "Pedido sem cadastro",
@@ -37,7 +37,7 @@ const pillars = [
   },
   {
     title: "Entrega da propria loja",
-    text: "Os entregadores pertencem a loja e enxergam somente as entregas dela.",
+    text: "Os entregadores pertencem à loja e enxergam somente as entregas dela.",
   },
 ];
 
@@ -61,7 +61,7 @@ function Index() {
               O pedido do bairro, organizado de ponta a ponta.
             </h1>
             <p className="mt-6 max-w-2xl text-lg opacity-80">
-              Pediu Aqui e a plataforma de cardapio digital, pedidos e entregas do comercio local.
+              Pediu Aqui é a plataforma de cardápio digital, pedidos e entregas do comércio local.
               Cada loja opera isolada, com seus produtos, seus clientes e seus entregadores.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
@@ -91,7 +91,7 @@ function Index() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
           <BrandLogo tone="monochrome" className="h-6 opacity-70" />
-          <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comercio local</p>
+          <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comércio local</p>
         </div>
       </footer>
     </div>

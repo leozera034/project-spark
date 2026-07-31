@@ -53,7 +53,7 @@ export function BrandLogo({
   );
 }
 
-/** Somente o simbolo. Use em espacos reduzidos, avatares e icones de aplicativo. */
+/** Somente o simbolo. Use em espaços reduzidos, avatares e icones de aplicativo. */
 export function BrandSymbol({
   tone = "carbon-teal",
   className,

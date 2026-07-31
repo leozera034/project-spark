@@ -19,7 +19,7 @@ export const Route = createFileRoute("/design-system")({
       {
         name: "description",
         content:
-          "Galeria oficial da identidade Pediu Aqui: marca, paleta carbono e teal, tipografia, espacamento, elevacao e componentes de interface.",
+          "Galeria oficial da identidade Pediu Aqui: marca, paleta carbono e teal, tipografia, espacamento, elevação e componentes de interface.",
       },
       { property: "og:title", content: "Design System | Pediu Aqui" },
       {
@@ -82,9 +82,9 @@ const surfaceScale = [
 
 const feedbackScale = [
   { name: "Sucesso", token: "bg-success", className: "bg-success" },
-  { name: "Atencao", token: "bg-warning", className: "bg-warning" },
+  { name: "Atenção", token: "bg-warning", className: "bg-warning" },
   { name: "Erro", token: "bg-danger", className: "bg-danger" },
-  { name: "Informacao", token: "bg-info", className: "bg-info" },
+  { name: "Informação", token: "bg-info", className: "bg-info" },
 ];
 
 const typeScale = [
@@ -119,7 +119,7 @@ const assets = [
   { label: "Master", src: "/brand/pediu-aqui-master.svg", dark: false },
   { label: "Horizontal carbono", src: "/brand/logo-horizontal-carbon.svg", dark: false },
   { label: "Horizontal branco", src: "/brand/logo-horizontal-white.svg", dark: true },
-  { label: "Horizontal monocromatico", src: "/brand/logo-horizontal-monochrome.svg", dark: false },
+  { label: "Horizontal monocromático", src: "/brand/logo-horizontal-monochrome.svg", dark: false },
   { label: "Vertical carbono", src: "/brand/logo-stacked-carbon.svg", dark: false },
   { label: "Vertical branco", src: "/brand/logo-stacked-white.svg", dark: true },
 ];
@@ -143,15 +143,15 @@ function DesignSystemPage() {
             Design System e Kit de Marca
           </h1>
           <p className="mt-4 max-w-2xl text-base text-muted-foreground">
-            Referencia unica de identidade visual do Pediu Aqui. Todo componente da plataforma usa
-            estes tokens. Nenhuma cor crua e permitida no codigo de interface.
+            Referência única de identidade visual do Pediu Aqui. Todo componente da plataforma usa
+            estes tokens. Nenhuma cor crua é permitida no código de interface.
           </p>
         </div>
 
         <Section
           id="marca"
           title="Marca"
-          description="O simbolo e a letra P construida em geometria constante, com uma faixa horizontal que representa o pedido em movimento. Todos os arquivos derivam de um unico SVG master."
+          description="O símbolo é a letra P construída em geometria constante, com uma faixa horizontal que representa o pedido em movimento. Todos os arquivos derivam de um único SVG master."
         >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {assets.map((asset) => (
@@ -192,18 +192,18 @@ function DesignSystemPage() {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle className="text-base">Uso correto</CardTitle>
-              <CardDescription>Regras obrigatorias para qualquer aplicacao.</CardDescription>
+              <CardDescription>Regras obrigatórias para qualquer aplicação.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
               <ul className="space-y-2 text-muted-foreground">
-                <li>Area de respiro minima igual a largura da haste do simbolo.</li>
-                <li>Tamanho minimo: 24px de altura para o simbolo, 20px para o bloco horizontal.</li>
-                <li>Em fundo escuro, usar a versao branca; em impressao de uma cor, a monocromatica.</li>
+                <li>Área de respiro mínima igual à largura da haste do símbolo.</li>
+                <li>Tamanho mínimo: 24px de altura para o símbolo, 20px para o bloco horizontal.</li>
+                <li>Em fundo escuro, usar a versão branca; em impressão de uma cor, a monocromática.</li>
               </ul>
               <ul className="space-y-2 text-muted-foreground">
-                <li>Nao aplicar sombra, contorno, gradiente, 3D ou brilho.</li>
-                <li>Nao distorcer, rotacionar, recolorir nem recompor o bloco.</li>
-                <li>Nao usar o wordmark sozinho quando o simbolo ainda nao apareceu na tela.</li>
+                <li>Não aplicar sombra, contorno, gradiente, 3D ou brilho.</li>
+                <li>Não distorcer, rotacionar, recolorir nem recompor o bloco.</li>
+                <li>Não usar o wordmark sozinho quando o símbolo ainda não apareceu na tela.</li>
               </ul>
             </CardContent>
           </Card>
@@ -212,7 +212,7 @@ function DesignSystemPage() {
         <Section
           id="cores"
           title="Cores"
-          description="Carbono profundo como base institucional e teal como unica cor de acao. Roxo, laranja, vermelho decorativo, neon e gradientes chamativos sao proibidos."
+          description="Carbono profundo como base institucional e teal como única cor de ação. Roxo, laranja, vermelho decorativo, neon e gradientes chamativos são proibidos."
         >
           <div className="space-y-8">
             <div>
@@ -227,7 +227,7 @@ function DesignSystemPage() {
             </div>
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                Superficies
+                Superfícies
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {surfaceScale.map((c) => (
@@ -251,7 +251,7 @@ function DesignSystemPage() {
         <Section
           id="tipografia"
           title="Tipografia"
-          description="Inter em toda a plataforma. Hierarquia curta e alto contraste, pensada para leitura rapida em celular e para publico idoso."
+          description="Inter em toda a plataforma. Hierarquia curta e alto contraste, pensada para leitura rápida em celular e para público idoso."
         >
           <div className="space-y-5">
             {typeScale.map((t) => (
@@ -267,13 +267,13 @@ function DesignSystemPage() {
 
         <Section
           id="espacamento"
-          title="Espacamento, raios e elevacao"
-          description="Escala de 4px, raio base de 12px e tres niveis de elevacao. Sombras sao discretas e nunca coloridas."
+          title="Espaçamento, raios e elevação"
+          description="Escala de 4px, raio base de 12px e três níveis de elevação. Sombras são discretas e nunca coloridas."
         >
           <div className="grid gap-8 lg:grid-cols-3">
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                Espacamento
+                Espaçamento
               </h3>
               <div className="space-y-2">
                 {spacing.map((s) => (
@@ -301,7 +301,7 @@ function DesignSystemPage() {
             </div>
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                Elevacao
+                Elevação
               </h3>
               <div className="space-y-4">
                 {["shadow-e1", "shadow-e2", "shadow-e3"].map((s) => (
@@ -320,13 +320,13 @@ function DesignSystemPage() {
         <Section
           id="componentes"
           title="Componentes"
-          description="Estados visuais base da interface. Alvos de toque de 48px sao usados em fluxos de cliente e de entregador."
+          description="Estados visuais base da interface. Alvos de toque de 48px são usados em fluxos de cliente e de entregador."
         >
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Botoes</CardTitle>
-                <CardDescription>Acao principal sempre em teal.</CardDescription>
+                <CardTitle className="text-base">Botões</CardTitle>
+                <CardDescription>Ação principal sempre em teal.</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button variant="brand">Fazer pedido</Button>
@@ -346,7 +346,7 @@ function DesignSystemPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Estados do pedido</CardTitle>
-                <CardDescription>Vocabulario visual da maquina de estados.</CardDescription>
+                <CardDescription>Vocabulário visual da máquina de estados.</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 {orderStates.map((s) => (
@@ -360,7 +360,7 @@ function DesignSystemPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Campos</CardTitle>
-                <CardDescription>Rotulos sempre visiveis, nunca apenas placeholder.</CardDescription>
+                <CardDescription>Rótulos sempre visíveis, nunca apenas placeholder.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -372,7 +372,7 @@ function DesignSystemPage() {
                   <Input id="ds-tel" inputMode="tel" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ds-obs">Observacao</Label>
+                  <Label htmlFor="ds-obs">Observação</Label>
                   <Textarea id="ds-obs" placeholder="Sem cebola, por favor" />
                 </div>
                 <Separator />
@@ -385,8 +385,8 @@ function DesignSystemPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Cartao de conteudo</CardTitle>
-                <CardDescription>Padrao usado em produtos e pedidos.</CardDescription>
+                <CardTitle className="text-base">Cartão de conteúdo</CardTitle>
+                <CardDescription>Padrão usado em produtos e pedidos.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-surface-muted p-4">
@@ -397,8 +397,8 @@ function DesignSystemPage() {
                   <Badge variant="warning">Em preparo</Badge>
                 </div>
                 <div className="rounded-lg bg-carbon p-4 text-carbon-foreground">
-                  <p className="text-sm font-medium">Superficie carbono</p>
-                  <p className="text-sm opacity-80">Usada em cabecalhos e no app do entregador.</p>
+                  <p className="text-sm font-medium">Superfície carbono</p>
+                  <p className="text-sm opacity-80">Usada em cabeçalhos e no app do entregador.</p>
                 </div>
               </CardContent>
             </Card>
@@ -408,7 +408,7 @@ function DesignSystemPage() {
         <Section
           id="tema-escuro"
           title="Tema escuro"
-          description="Todos os tokens tem par no tema escuro. O bloco abaixo aplica a classe dark isoladamente."
+          description="Todos os tokens têm par no tema escuro. O bloco abaixo aplica a classe dark isoladamente."
         >
           <div className="dark rounded-xl border border-border bg-background p-6 text-foreground">
             <div className="flex flex-wrap items-center gap-4">
@@ -419,7 +419,7 @@ function DesignSystemPage() {
               <Button variant="outline">Contorno</Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Contraste verificado para texto principal e secundario.
+              Contraste verificado para texto principal e secundário.
             </p>
           </div>
         </Section>
