@@ -351,7 +351,7 @@ export type PublicPriceResult = {
   total?: number;
   unit_price?: number;
   options_total?: number;
-  detail?: Record<string, unknown>;
+  breakdown?: string | null;
 };
 
 export async function computePublicPrice(input: PriceInput): Promise<PublicPriceResult> {
@@ -380,6 +380,6 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
     total: Number(result.total ?? result.total_amount ?? 0),
     unit_price: Number(result.unit_price ?? result.base_price ?? 0),
     options_total: Number(result.options_total ?? 0),
-    detail: result,
+    breakdown: typeof result.summary === "string" ? result.summary : null,
   };
 }
