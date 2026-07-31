@@ -54,39 +54,31 @@ function StoreHome() {
           </div>
 
           <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="flex items-start gap-2">
-              <Clock aria-hidden="true" className="mt-0.5 size-4 text-muted-foreground" />
-              <div>
-                <dt className="text-sm font-medium text-foreground">Entrega em {store.etaDelivery}</dt>
-                <dd className="text-sm text-muted-foreground">
-                  Retirada pronta em {store.etaPickup}
-                </dd>
-              </div>
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-2">
+              <Clock aria-hidden="true" className="row-span-2 mt-0.5 size-4 text-muted-foreground" />
+              <dt className="text-sm font-medium text-foreground">Entrega em {store.etaDelivery}</dt>
+              <dd className="text-sm text-muted-foreground">
+                Retirada pronta em {store.etaPickup}
+              </dd>
             </div>
-            <div className="flex items-start gap-2">
-              <StoreIcon aria-hidden="true" className="mt-0.5 size-4 text-muted-foreground" />
-              <div>
-                <dt className="text-sm font-medium text-foreground">
-                  Aberta das {store.opensAt} às {store.closesAt}
-                </dt>
-                <dd className="text-sm text-muted-foreground">Todos os dias</dd>
-              </div>
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-2">
+              <StoreIcon aria-hidden="true" className="row-span-2 mt-0.5 size-4 text-muted-foreground" />
+              <dt className="text-sm font-medium text-foreground">
+                Aberta das {store.opensAt} às {store.closesAt}
+              </dt>
+              <dd className="text-sm text-muted-foreground">Todos os dias</dd>
             </div>
-            <div className="flex items-start gap-2">
-              <ShoppingBasket aria-hidden="true" className="mt-0.5 size-4 text-muted-foreground" />
-              <div>
-                <dt className="text-sm font-medium text-foreground">Entrega e retirada</dt>
-                <dd className="text-sm text-muted-foreground">
-                  Você escolhe como receber no próximo passo
-                </dd>
-              </div>
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-2">
+              <ShoppingBasket aria-hidden="true" className="row-span-2 mt-0.5 size-4 text-muted-foreground" />
+              <dt className="text-sm font-medium text-foreground">Entrega e retirada</dt>
+              <dd className="text-sm text-muted-foreground">
+                Você escolhe como receber no próximo passo
+              </dd>
             </div>
-            <div className="flex items-start gap-2">
-              <MapPin aria-hidden="true" className="mt-0.5 size-4 text-muted-foreground" />
-              <div>
-                <dt className="text-sm font-medium text-foreground">{store.address}</dt>
-                <dd className="text-sm text-muted-foreground">Telefone {store.phone}</dd>
-              </div>
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-2">
+              <MapPin aria-hidden="true" className="row-span-2 mt-0.5 size-4 text-muted-foreground" />
+              <dt className="text-sm font-medium text-foreground">{store.address}</dt>
+              <dd className="text-sm text-muted-foreground">Telefone {store.phone}</dd>
             </div>
           </dl>
         </section>
