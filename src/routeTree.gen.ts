@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const PreviewRoute = PreviewRouteImport.update({
   path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LojaMercadoAuroraRoute = LojaMercadoAuroraRouteImport.update({
+  id: '/mercado-aurora',
+  path: '/mercado-aurora',
+  getParentRoute: () => LojaRoute,
+} as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -44,36 +50,52 @@ const PreviewIndexRoute = PreviewIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
   '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
   '/preview': typeof PreviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
   '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/loja' | '/preview' | '/preview/'
+  fullPaths:
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora'
+    | '/preview/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design-system' | '/loja' | '/preview'
-  id: '__root__' | '/' | '/design-system' | '/loja' | '/preview' | '/preview/'
+  to: '/' | '/design-system' | '/loja' | '/loja/mercado-aurora' | '/preview'
+  id:
+    | '__root__'
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora'
+    | '/preview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
-  LojaRoute: typeof LojaRoute
+  LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
 }
 
@@ -107,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loja/mercado-aurora': {
+      id: '/loja/mercado-aurora'
+      path: '/mercado-aurora'
+      fullPath: '/loja/mercado-aurora'
+      preLoaderRoute: typeof LojaMercadoAuroraRouteImport
+      parentRoute: typeof LojaRoute
+    }
     '/preview/': {
       id: '/preview/'
       path: '/'
@@ -116,6 +145,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LojaRouteChildren {
+  LojaMercadoAuroraRoute: typeof LojaMercadoAuroraRoute
+}
+
+const LojaRouteChildren: LojaRouteChildren = {
+  LojaMercadoAuroraRoute: LojaMercadoAuroraRoute,
+}
+
+const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
 interface PreviewRouteChildren {
   PreviewIndexRoute: typeof PreviewIndexRoute
@@ -131,7 +170,7 @@ const PreviewRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
-  LojaRoute: LojaRoute,
+  LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
 }
 export const routeTree = rootRouteImport
