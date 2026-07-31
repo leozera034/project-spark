@@ -88,8 +88,10 @@ export const Route = createFileRoute("/")({
         }),
       },
     ],
-  }),
+    };
+  },
 });
+
 
 
 const pillars = [
