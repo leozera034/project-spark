@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/admin")({
   component: () => (
@@ -26,6 +27,8 @@ function AdminLayout() {
     <div className="min-h-screen bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 lg:px-8">
         <BrandLogo lockup="horizontal" className="h-7 w-auto" />
+        <div className="flex items-center gap-3">
+        <ThemeToggle />
         <Button
           variant="outline"
           size="sm"
@@ -35,6 +38,7 @@ function AdminLayout() {
         >
           Sair
         </Button>
+        </div>
       </header>
       <Outlet />
     </div>

@@ -20,6 +20,7 @@ import {
   type PublicOrderTracking,
 } from "@/lib/tracking-contracts";
 import { useOrderTracking } from "@/storefront/tracking/useOrderTracking";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/pedido/$token")({
   head: () => ({
@@ -88,10 +89,11 @@ function TrackingPage() {
         ) : (
           <Store className="size-8 text-muted-foreground" />
         )}
-        <div>
+        <div className="min-w-0">
           <p className="text-sm text-muted-foreground">Pedido na loja</p>
-          <p className="font-semibold">{data.store.name}</p>
+          <p className="truncate font-semibold">{data.store.name}</p>
         </div>
+        <ThemeToggle className="ml-auto" />
       </header>
 
       <section className="mt-6 panel p-4">

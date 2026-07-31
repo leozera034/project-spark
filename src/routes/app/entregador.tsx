@@ -5,6 +5,7 @@ import { BrandSymbol } from "@/components/brand/BrandLogo";
 import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/app/entregador")({
   component: () => (
@@ -26,6 +27,8 @@ function CourierAppLayout() {
     <div className="min-h-screen bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 lg:px-8">
         <BrandSymbol className="h-8 w-auto" />
+        <div className="flex items-center gap-3">
+        <ThemeToggle />
         <Button
           variant="outline"
           onClick={() =>
@@ -34,6 +37,7 @@ function CourierAppLayout() {
         >
           Sair
         </Button>
+        </div>
       </header>
       <Outlet />
     </div>

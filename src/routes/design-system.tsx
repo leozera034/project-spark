@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/design-system")({
   component: DesignSystemPage,
@@ -130,7 +131,11 @@ function DesignSystemPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <BrandLogo className="h-7 sm:h-8" />
-          <Badge variant="brandSoft">Fase 02</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="brandSoft">Fase 02</Badge>
+            <ThemeToggle variant="segmented" className="hidden sm:inline-flex" />
+            <ThemeToggle className="sm:hidden" />
+          </div>
         </div>
       </header>
 
