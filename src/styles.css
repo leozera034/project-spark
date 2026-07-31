@@ -88,6 +88,11 @@
   --color-surface-muted: var(--surface-muted);
   --color-surface-raised: var(--surface-raised);
   --color-border-strong: var(--border-strong);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-highlight-soft-foreground: var(--highlight-soft-foreground);
+
 
   /* --- estados de pedido e feedback --- */
   --color-success: var(--success);
