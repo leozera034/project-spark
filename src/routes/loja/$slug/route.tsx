@@ -12,6 +12,8 @@ import {
 } from "@/storefront/customer/customer-wizard.context";
 import { CartProvider } from "@/storefront/cart/cart.context";
 import { fetchStorefront } from "@/lib/storefront.functions";
+import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
+
 
 const searchSchema = z.object({
   /** Produto aberto na folha de montagem. */
