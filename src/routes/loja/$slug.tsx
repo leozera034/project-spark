@@ -3,7 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
 import { z } from "zod";
 
+import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
+import {
+  CustomerWizardProvider,
+  useCustomerWizard,
+} from "@/storefront/customer/customer-wizard.context";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,8 +59,27 @@ export const Route = createFileRoute("/loja/$slug")({
       body="O endereço acessado não corresponde a nenhuma loja ativa."
     />
   ),
-  component: StorefrontPage,
+  component: StorefrontRoute,
 });
+
+/**
+ * O wizard sempre precede o cardápio: sem contexto confirmado nesta sessão,
+ * a loja não é exibida para pedido.
+ */
+function StorefrontRoute() {
+  const { slug } = Route.useParams();
+  return (
+    <CustomerWizardProvider slug={slug}>
+      <StorefrontGate />
+    </CustomerWizardProvider>
+  );
+}
+
+function StorefrontGate() {
+  const { orderingContext } = useCustomerWizard();
+  if (!orderingContext) return <CustomerWizard />;
+  return <StorefrontPage />;
+}
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   return (
@@ -115,6 +140,8 @@ function StorefrontPage() {
         } as React.CSSProperties
       }
     >
+      <OrderingContextBar />
+
       <header className="relative">
         {settings.cover_url ? (
           <img

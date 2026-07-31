@@ -406,3 +406,35 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** ativar produto, desativar variação, arquivar grupo ou desvincular grupo passam pela mesma checagem antes de concluir.
 - **Riscos evitados:** cardápio com item impossível de comprar; pedido sem preço definido.
 - **Status:** aprovada
+
+### D-053 — Endereço público da loja é /loja/{slug}
+- **Data:** 2026-07-30
+- **Decisão:** o cardápio público do MVP responde em `/loja/{slug}`; `$slug` é apenas a sintaxe de parâmetro do roteador e nunca aparece na URL final.
+- **Motivo:** fechar a Q-002 sem depender de domínio próprio nem de subdomínio por loja.
+- **Consequência:** o slug é validado por expressão regular antes de qualquer consulta; slug inválido ou inexistente devolve resposta neutra.
+- **Riscos evitados:** enumeração de lojas por mensagens diferentes; link quebrado com parâmetro literal.
+- **Status:** aprovada
+
+### D-054 — Cliente sem conta, com dados apenas no aparelho
+- **Data:** 2026-07-30
+- **Decisão:** o cliente não cria conta, não informa senha, telefone, CPF ou e-mail. Primeiro nome e endereços ficam somente no armazenamento local do próprio aparelho, com chave isolada por slug.
+- **Motivo:** reduzir atrito na jornada e evitar guardar dado pessoal no servidor antes de existir pedido.
+- **Consequência:** o servidor recebe apenas modalidade, identificador de bairro e versão de configuração. Nada de nome ou endereço em requisição, URL, log ou métrica.
+- **Riscos evitados:** vazamento de dado pessoal; mistura de dados entre lojas no mesmo navegador.
+- **Status:** aprovada
+
+### D-055 — Endereço salvo é sugestão, nunca confirmação
+- **Data:** 2026-07-30
+- **Decisão:** toda jornada exige confirmação explícita da modalidade e do endereço. Selecionar um endereço salvo apenas o destaca; a confirmação acontece em tela própria, com opções de editar, escolher outro, cadastrar novo ou mudar para retirada.
+- **Motivo:** entrega no endereço errado é o erro mais caro da operação.
+- **Consequência:** a confirmação é guardada como impressão digital de modalidade, endereço, bairro e versão da configuração da loja. Qualquer alteração invalida a confirmação e devolve o cliente à etapa de revisão.
+- **Riscos evitados:** pedido enviado para endereço antigo; taxa cobrada com base em bairro desatualizado.
+- **Status:** aprovada
+
+### D-056 — Armazenamento local tratado como entrada não confiável
+- **Data:** 2026-07-30
+- **Decisão:** todo conteúdo lido do aparelho passa por validação de esquema antes de uso, com descarte de chaves perigosas e de registros corrompidos, e com funcionamento em memória quando o armazenamento estiver indisponível.
+- **Motivo:** o conteúdo local pode ser editado pelo próprio usuário ou por outra aba.
+- **Consequência:** dado inválido é descartado em silêncio e a jornada recomeça na etapa correspondente, sem erro técnico visível.
+- **Riscos evitados:** poluição de protótipo; travamento por dado malformado; confirmação forjada.
+- **Status:** aprovada
