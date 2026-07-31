@@ -677,7 +677,8 @@ export type Database = {
           eta_minutes: number
           id: string
           is_active: boolean
-          min_order_amount: number
+          is_archived: boolean
+          min_order_amount: number | null
           name: string
           notes: string | null
           sort_order: number
@@ -690,7 +691,8 @@ export type Database = {
           eta_minutes?: number
           id?: string
           is_active?: boolean
-          min_order_amount?: number
+          is_archived?: boolean
+          min_order_amount?: number | null
           name: string
           notes?: string | null
           sort_order?: number
@@ -703,7 +705,8 @@ export type Database = {
           eta_minutes?: number
           id?: string
           is_active?: boolean
-          min_order_amount?: number
+          is_archived?: boolean
+          min_order_amount?: number | null
           name?: string
           notes?: string | null
           sort_order?: number
@@ -1189,6 +1192,8 @@ export type Database = {
       }
       payment_methods: {
         Row: {
+          available_for_delivery: boolean
+          available_for_pickup: boolean
           created_at: string
           id: string
           instructions: string | null
@@ -1201,6 +1206,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available_for_delivery?: boolean
+          available_for_pickup?: boolean
           created_at?: string
           id?: string
           instructions?: string | null
@@ -1213,6 +1220,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available_for_delivery?: boolean
+          available_for_pickup?: boolean
           created_at?: string
           id?: string
           instructions?: string | null
@@ -1599,10 +1608,12 @@ export type Database = {
           brand_primary: string
           closed_message: string | null
           courier_can_accept: boolean
+          cover_path: string | null
           cover_url: string | null
           created_at: string
           default_prep_minutes: number
           description: string | null
+          logo_path: string | null
           logo_url: string | null
           manual_override_open: boolean | null
           min_order_amount: number
@@ -1618,10 +1629,12 @@ export type Database = {
           brand_primary?: string
           closed_message?: string | null
           courier_can_accept?: boolean
+          cover_path?: string | null
           cover_url?: string | null
           created_at?: string
           default_prep_minutes?: number
           description?: string | null
+          logo_path?: string | null
           logo_url?: string | null
           manual_override_open?: boolean | null
           min_order_amount?: number
@@ -1637,10 +1650,12 @@ export type Database = {
           brand_primary?: string
           closed_message?: string | null
           courier_can_accept?: boolean
+          cover_path?: string | null
           cover_url?: string | null
           created_at?: string
           default_prep_minutes?: number
           description?: string | null
+          logo_path?: string | null
           logo_url?: string | null
           manual_override_open?: boolean | null
           min_order_amount?: number
@@ -1961,6 +1976,8 @@ export type Database = {
       }
       get_my_auth_context: { Args: never; Returns: Json }
       get_my_authorization_context: { Args: never; Returns: Json }
+      normalize_label: { Args: { _value: string }; Returns: string }
+      normalize_store_slug: { Args: { _value: string }; Returns: string }
     }
     Enums: {
       app_permission:
