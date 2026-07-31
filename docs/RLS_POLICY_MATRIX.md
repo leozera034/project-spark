@@ -1,7 +1,16 @@
 # Matriz de Políticas RLS — Pediu Aqui (Fase 06)
 
-> Escopo desta fase: **isolamento por loja**. A matriz fina de permissões por cargo
-> (quem pode aceitar pedido, quem edita cardápio, quem cancela) é da **Fase 07**.
+> ⚠️ **Documento parcialmente superado pela Fase 07.**
+> As seções 3 e 4 descreviam acessos que foram removidos por antecipação de escopo.
+> Veja `docs/PHASE_06_SCOPE_AUDIT.md` para o que foi retirado e
+> `docs/AUTHORIZATION_MATRIX.md` para a matriz vigente de papéis por ação.
+> Permanecem válidos os princípios de isolamento (seção 1), o schema `private`
+> (seção 2) e a decisão sobre acompanhamento por token (seção 5).
+>
+> Estado vigente das policies: leitura do próprio perfil e papéis, dados
+> institucionais da própria loja, catálogo interno da própria loja e próprio
+> cadastro de entregador. Nenhuma escrita e nenhum acesso `anon`.
+
 
 ## 1. Princípios
 
