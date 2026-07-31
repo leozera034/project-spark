@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { fetchStorefront } from "@/lib/storefront.functions";
+import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
+
 
 const searchSchema = z.object({
   produto: z.string().uuid().optional(),
