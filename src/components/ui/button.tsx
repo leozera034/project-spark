@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        brand: "bg-brand text-brand-foreground shadow-e1 hover:bg-brand-strong",
+        brandSoft: "bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/70",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
           "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
@@ -21,8 +23,12 @@ const buttonVariants = cva(
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
+        /** Alvo de toque minimo de 48px para uso em campo e por publico idoso. */
+        touch: "h-12 rounded-lg px-6 text-base",
         icon: "h-9 w-9",
+        iconTouch: "h-12 w-12 rounded-lg",
       },
+
     },
     defaultVariants: {
       variant: "default",
