@@ -50,7 +50,7 @@ export function useOrderTracking(token: string | null): TrackingState {
         setError("not_found");
       } else {
         failuresRef.current += 1;
-        setError(result.error);
+        setError(result.error === "rate_limited" ? "rate_limited" : "unavailable");
       }
     } finally {
       runningRef.current = false;
