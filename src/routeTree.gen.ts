@@ -26,6 +26,7 @@ import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loj
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as PreviewLojaIndexRouteImport } from './routes/preview/loja/index'
 import { Route as PreviewLojaCardapioRouteImport } from './routes/preview/loja/cardapio'
+import { Route as PreviewLojaConfiguracoesRouteImport } from './routes/preview/loja/configuracoes'
 import { Route as PreviewLojaCozinhaRouteImport } from './routes/preview/loja/cozinha'
 import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/loja/entregadores'
 import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
@@ -126,6 +127,12 @@ const PreviewLojaCardapioRoute = PreviewLojaCardapioRouteImport.update({
   path: '/cardapio',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
+const PreviewLojaConfiguracoesRoute =
+  PreviewLojaConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => PreviewLojaRoute,
+  } as any)
 const PreviewLojaCozinhaRoute = PreviewLojaCozinhaRouteImport.update({
   id: '/cozinha',
   path: '/cozinha',
@@ -180,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
     | '/preview/loja/equipe'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
     | '/preview/loja/equipe'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
     | '/preview/loja/equipe'
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewLojaCardapioRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
+    '/preview/loja/configuracoes': {
+      id: '/preview/loja/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/preview/loja/configuracoes'
+      preLoaderRoute: typeof PreviewLojaConfiguracoesRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
     '/preview/loja/cozinha': {
       id: '/preview/loja/cozinha'
       path: '/cozinha'
@@ -539,6 +559,7 @@ const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
 interface PreviewLojaRouteChildren {
   PreviewLojaCardapioRoute: typeof PreviewLojaCardapioRoute
+  PreviewLojaConfiguracoesRoute: typeof PreviewLojaConfiguracoesRoute
   PreviewLojaCozinhaRoute: typeof PreviewLojaCozinhaRoute
   PreviewLojaEntregadoresRoute: typeof PreviewLojaEntregadoresRoute
   PreviewLojaEquipeRoute: typeof PreviewLojaEquipeRoute
@@ -549,6 +570,7 @@ interface PreviewLojaRouteChildren {
 
 const PreviewLojaRouteChildren: PreviewLojaRouteChildren = {
   PreviewLojaCardapioRoute: PreviewLojaCardapioRoute,
+  PreviewLojaConfiguracoesRoute: PreviewLojaConfiguracoesRoute,
   PreviewLojaCozinhaRoute: PreviewLojaCozinhaRoute,
   PreviewLojaEntregadoresRoute: PreviewLojaEntregadoresRoute,
   PreviewLojaEquipeRoute: PreviewLojaEquipeRoute,
