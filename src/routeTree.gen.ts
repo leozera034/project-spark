@@ -14,6 +14,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
@@ -74,6 +75,11 @@ const PreviewRoute = PreviewRouteImport.update({
 const RecuperarAcessoRoute = RecuperarAcessoRouteImport.update({
   id: '/recuperar-acesso',
   path: '/recuperar-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarAdminRoute = EntrarAdminRouteImport.update({
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -316,6 +323,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/preview'
     | '/recuperar-acesso'
+    | '/redefinir-senha'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/recuperar-acesso'
+    | '/redefinir-senha'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -482,6 +493,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/preview'
     | '/recuperar-acesso'
+    | '/redefinir-senha'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -526,6 +538,7 @@ export interface RootRouteChildren {
   LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
@@ -566,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-acesso'
       fullPath: '/recuperar-acesso'
       preLoaderRoute: typeof RecuperarAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar/admin': {
@@ -950,6 +970,7 @@ const rootRouteChildren: RootRouteChildren = {
   LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
   RecuperarAcessoRoute: RecuperarAcessoRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
