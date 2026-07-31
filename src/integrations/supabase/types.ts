@@ -2438,6 +2438,7 @@ export type Database = {
         Returns: Json
       }
       storefront_catalog: { Args: { _slug: string }; Returns: Json }
+      storefront_fulfillment: { Args: { _slug: string }; Returns: Json }
       storefront_normalize_slug: { Args: { _slug: string }; Returns: string }
       storefront_price: {
         Args: {
@@ -2454,6 +2455,15 @@ export type Database = {
         Returns: Json
       }
       storefront_store: { Args: { _slug: string }; Returns: Json }
+      storefront_validate_fulfillment: {
+        Args: {
+          _configuration_version?: string
+          _delivery_area_id?: string
+          _fulfillment_type: string
+          _slug: string
+        }
+        Returns: Json
+      }
       update_catalog_category: {
         Args: {
           _description: string
