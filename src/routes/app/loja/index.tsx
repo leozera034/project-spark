@@ -41,6 +41,15 @@ function StoreHome() {
           </dd>
         </div>
       </dl>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to="/app/loja/cardapio">Gerenciar cardápio</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/app/loja/configuracoes/dados">Configurações da loja</Link>
+        </Button>
+      </div>
     </main>
+
   );
 }
