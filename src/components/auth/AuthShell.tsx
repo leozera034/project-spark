@@ -20,7 +20,7 @@ export function AuthShell({
     <main className="flex min-h-screen flex-col bg-background px-4 py-8">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <Link to="/" className="mb-8 inline-flex" aria-label="Pediu Aqui, ir para o início">
-          <BrandLogo variant="horizontal" className="h-8 w-auto" />
+          <BrandLogo lockup="horizontal" className="h-8 w-auto" />
         </Link>
 
         <h1
