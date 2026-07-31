@@ -1,6 +1,6 @@
 import opentype from 'opentype.js';
-const f = opentype.loadSync('/tmp/fonts/Inter-Bold.ttf');
-console.log(f.names.fullName, f.unitsPerEm);
-const p = f.getPath('Pediu Aqui', 0, 0, 100);
-console.log(p.toPathData(2).slice(0,120));
-const bb = p.getBoundingBox(); console.log(bb);
+import fs from 'node:fs';
+for (const n of ['Inter-Bold','Inter-SemiBold','Inter-Regular']) {
+  const f = opentype.parse(fs.readFileSync(`/tmp/fonts/${n}.ttf`).buffer);
+  console.log(n, JSON.stringify(f.names.fontFamily), JSON.stringify(f.names.fontSubfamily), f.unitsPerEm);
+}
