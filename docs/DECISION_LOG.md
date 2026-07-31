@@ -356,3 +356,21 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** edição sobre dado desatualizado é recusada com aviso de recarregar, sem sobrescrever silenciosamente.
 - **Riscos evitados:** perda de alteração de outro operador; ordem instável no cardápio.
 - **Status:** aprovada
+
+### D-047 — Pizza com vários sabores é regra configurável do grupo de opções
+- **Data:** 2026-07-31
+- **Decisão:** o preço de um item com frações (meio a meio e afins) segue uma regra escolhida pela loja no grupo de sabores ou no produto: `highest_price` (cobra o sabor mais caro) ou `average_price` (média proporcional às frações). Sem tabela ou motor específico de pizza.
+- **Motivo:** o mesmo motor genérico de opções precisa resolver sabores, adicionais, seleções, quantidades e preços para qualquer segmento.
+- **Consequência:** o grupo de opções ganha um campo de regra de precificação por fração; o cálculo final é sempre refeito no banco no momento do pedido.
+- **Riscos evitados:** motor paralelo só para pizzaria; divergência entre preço mostrado e preço cobrado.
+- **Status:** aprovada
+- **Questão relacionada:** Q-005
+
+### D-048 — Venda por peso no MVP é peso exato ou embalagem fixa
+- **Data:** 2026-07-31
+- **Decisão:** produtos vendidos por peso oferecem apenas opções previamente definidas (por exemplo 250 g, 500 g, 1 kg ou embalagem fechada). Não existe preço estimado nem ajuste de valor depois que o pedido é feito.
+- **Motivo:** total determinístico, preço congelado e checkout confiável valem mais que flexibilidade de balança nesta primeira versão.
+- **Consequência:** o modelo de produto permanece genérico com unidade, quantidade e peso; nada de tabela por segmento. Ajuste posterior de peso fica para fase futura.
+- **Riscos evitados:** cobrança surpresa para o cliente; total que muda depois do fechamento; recálculo inseguro fora do banco.
+- **Status:** aprovada
+- **Questão relacionada:** Q-017

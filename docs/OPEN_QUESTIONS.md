@@ -43,8 +43,9 @@ Status possíveis: `aberta`, `em análise`, `respondida`.
 - **Impacto:** motor de preço do catálogo genérico.
 - **Fase limite:** 10.
 - **Opções:** maior preço entre os sabores; média dos sabores; configurável por loja.
-- **Recomendação preliminar:** nenhuma registrada.
-- **Status:** aberta
+- **Resposta:** configurável pela loja, com duas regras controladas (`highest_price` e `average_price`), definidas no grupo de opções/produto, sem tabela específica de pizza.
+- **Decisão:** D-047.
+- **Status:** respondida
 
 ### Q-006 — Pedido agendado no MVP ou pós-MVP
 - **Contexto:** encomendas e agendamentos são comuns em padarias e confeitarias.
@@ -139,5 +140,6 @@ Status possíveis: `aberta`, `em análise`, `respondida`.
 - **Impacto:** cálculo de preço, congelamento de valores, conferência na entrega.
 - **Fase limite:** 10.
 - **Opções:** preço estimado com ajuste na loja; peso fixo por embalagem; não suportar no MVP.
-- **Recomendação preliminar:** nenhuma registrada.
-- **Status:** aberta
+- **Resposta:** no MVP só existe peso exato ou embalagem fixa escolhida na hora do pedido, sem ajuste de valor depois.
+- **Decisão:** D-048.
+- **Status:** respondida
