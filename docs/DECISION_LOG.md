@@ -486,3 +486,27 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** o checkout da Fase 14 cria apenas pedidos imediatos; agendamento entra em fase própria pós-MVP com máquina de estados dedicada.
 - **Riscos evitados:** promessa não cumprida ao cliente; observação ignorada pela operação; estado de pedido ambíguo.
 - **Status:** aprovada
+
+### D-063 — A criação do pedido é uma única transação no servidor
+- **Data:** 2026-07-31
+- **Decisão:** cliente, endereço, pedido, itens, opções e histórico são gravados por uma única função transacional no banco, executável apenas pela role de serviço. O navegador nunca escreve nessas tabelas.
+- **Motivo:** pedido pela metade é pior do que pedido recusado.
+- **Consequência:** qualquer falha desfaz tudo; a resposta é sempre pedido criado por completo ou motivo explícito de recusa.
+- **Riscos evitados:** pedido sem itens; item órfão; total gravado antes da validação.
+- **Status:** aprovada
+
+### D-064 — Nenhum valor exibido no checkout é aceito como verdade
+- **Data:** 2026-07-31
+- **Decisão:** no envio, cada linha é recalculada pelo motor canônico, a taxa vem da validação de atendimento e o pedido mínimo é reavaliado. O corpo enviado carrega apenas identificadores, quantidades e escolhas.
+- **Motivo:** preço na mão do navegador é preço manipulável.
+- **Consequência:** o cliente pode ver uma recusa por mudança de preço ou item indisponível no momento do envio.
+- **Riscos evitados:** pedido com preço adulterado; venda abaixo do mínimo; taxa de entrega forjada.
+- **Status:** aprovada
+
+### D-065 — Idempotência com verificação de conteúdo
+- **Data:** 2026-07-31
+- **Decisão:** cada tentativa de envio carrega uma chave de idempotência por loja. Reenvio com o mesmo conteúdo devolve o pedido já criado; reenvio da mesma chave com conteúdo diferente é recusado.
+- **Motivo:** conexão instável e toque duplo no botão são a regra, não a exceção.
+- **Consequência:** o pedido é criado uma única vez; a numeração sequencial por loja é protegida por trava.
+- **Riscos evitados:** pedido duplicado; número de pedido repetido; chave reaproveitada para outro carrinho.
+- **Status:** aprovada
