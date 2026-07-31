@@ -140,7 +140,9 @@ function StorefrontPage() {
         } as React.CSSProperties
       }
     >
-      <header className="relative">
+      <OrderingContextBar />
+
+      <header className="relative">-
         {settings.cover_url ? (
           <img
             src={settings.cover_url}
