@@ -2712,6 +2712,8 @@ export type Database = {
         | "platform.billing.register_payment"
         | "platform.audit.view"
         | "platform.support.open_context"
+        | "orders.complete_pickup"
+        | "orders.view_history"
       app_role:
         | "admin_plataforma"
         | "proprietario"
@@ -2952,6 +2954,8 @@ export const Constants = {
         "platform.billing.register_payment",
         "platform.audit.view",
         "platform.support.open_context",
+        "orders.complete_pickup",
+        "orders.view_history",
       ],
       app_role: [
         "admin_plataforma",
