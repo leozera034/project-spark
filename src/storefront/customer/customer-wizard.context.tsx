@@ -657,7 +657,7 @@ export function CustomerWizardProvider({ slug, children }: { slug: string; child
       setStep,
       slug,
       startNewAddress,
-      status(step),
+      step,
       storageAvailable,
       submitName,
       updateDraft,
@@ -665,9 +665,4 @@ export function CustomerWizardProvider({ slug, children }: { slug: string; child
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-/** Identidade estável da etapa (evita recriar o contexto sem necessidade). */
-function status(step: CustomerWizardStep): string {
-  return step;
 }
