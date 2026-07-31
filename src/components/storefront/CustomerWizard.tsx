@@ -92,7 +92,7 @@ function StepShell({
           <div className="flex-1">{footer}</div>
         </div>
       </div>
-    </section>
+    </main>
 
   );
 }
