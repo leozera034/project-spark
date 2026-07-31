@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { Store } from "lucide-react";
 import { z } from "zod";
 
