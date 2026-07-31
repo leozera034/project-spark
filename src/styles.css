@@ -249,6 +249,12 @@
   --info-foreground: oklch(0.1659 0.0163 226.88);
   --info-soft: oklch(0.3 0.06 248.8);
 
+  --highlight: oklch(0.8 0.148 74);
+  --highlight-foreground: oklch(0.1659 0.0163 226.88);
+  --highlight-soft: oklch(0.3 0.055 74);
+  --highlight-soft-foreground: oklch(0.86 0.1 78);
+
+
   --chart-1: oklch(0.7896 0.134 180.24);
   --chart-2: oklch(0.8534 0.1073 181.98);
   --chart-3: oklch(0.6223 0.018 211.06);
