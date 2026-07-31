@@ -2134,6 +2134,16 @@ export type Database = {
           store_id: string
         }[]
       }
+      calculate_product_configuration_preview: {
+        Args: {
+          _product_id: string
+          _quantity?: number
+          _selections?: Json
+          _store_id: string
+          _variant_id?: string
+        }
+        Returns: Json
+      }
       check_store_slug_availability: {
         Args: { _slug: string; _store_id: string }
         Returns: Json
@@ -2380,6 +2390,10 @@ export type Database = {
           _notes: string
           _store_id: string
         }
+        Returns: Json
+      }
+      validate_product_configuration: {
+        Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
     }
