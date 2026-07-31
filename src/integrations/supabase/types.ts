@@ -2465,6 +2465,7 @@ export type Database = {
         }
         Returns: Json
       }
+      list_my_kitchen_orders: { Args: { _store_id?: string }; Returns: Json }
       list_my_store_orders: {
         Args: {
           _cursor?: string
