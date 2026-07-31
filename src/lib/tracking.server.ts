@@ -54,7 +54,7 @@ export async function loadOrderTracking(
     const db = await admin();
     const { data, error } = await db.rpc("storefront_order_tracking", {
       _token_hash: tokenHash,
-      _known_version: knownVersion,
+      _known_version: knownVersion ?? undefined,
     });
     if (error) throw error;
     payload = (data ?? null) as Record<string, unknown> | null;
