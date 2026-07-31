@@ -1,106 +1,33 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
-import { z } from "zod";
 
-import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import { CartBar } from "@/components/storefront/CartBar";
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
-import {
-  CustomerWizardProvider,
-  useCustomerWizard,
-} from "@/storefront/customer/customer-wizard.context";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { fetchStorefront } from "@/lib/storefront.functions";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
 
+const parentRoute = getRouteApi("/loja/$slug");
 
-const searchSchema = z.object({
-  produto: z.string().uuid().optional(),
+export const Route = createFileRoute("/loja/$slug/")({
+  component: StorefrontPage,
 });
-
-export const Route = createFileRoute("/loja/$slug")({
-  validateSearch: searchSchema,
-  loader: async ({ params }) => fetchStorefront({ data: { slug: params.slug } }),
-  head: ({ loaderData, params }) => {
-    const name = loaderData?.store.store.name ?? "Cardápio digital";
-    const city = loaderData?.store.store.city;
-    const description =
-      loaderData?.store.settings.description ??
-      `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
-    const title = `${name} · Cardápio online`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "robots", content: "index,follow" },
-      ],
-      links: [{ rel: "canonical", href: `/loja/${params.slug}` }],
-    };
-  },
-  errorComponent: () => (
-    <CenteredMessage
-      title="Cardápio indisponível"
-      body="Não conseguimos carregar esta loja agora. Tente novamente em instantes."
-    />
-  ),
-  notFoundComponent: () => (
-    <CenteredMessage
-      title="Loja não encontrada"
-      body="O endereço acessado não corresponde a nenhuma loja ativa."
-    />
-  ),
-  component: StorefrontRoute,
-});
-
-/**
- * O wizard sempre precede o cardápio: sem contexto confirmado nesta sessão,
- * a loja não é exibida para pedido.
- */
-function StorefrontRoute() {
-  const { slug } = Route.useParams();
-  return (
-    <CustomerWizardProvider slug={slug}>
-      <StorefrontGate />
-    </CustomerWizardProvider>
-  );
-}
-
-function StorefrontGate() {
-  const { orderingContext } = useCustomerWizard();
-  if (!orderingContext) return <CustomerWizard />;
-  return <StorefrontPage />;
-}
-
-function CenteredMessage({ title, body }: { title: string; body: string }) {
-  return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <Store className="size-10 text-muted-foreground" />
-      <h1 className="text-xl font-semibold">{title}</h1>
-      <p className="text-sm text-muted-foreground">{body}</p>
-    </main>
-  );
-}
 
 function StorefrontPage() {
-  const { store: storePayload, catalog } = Route.useLoaderData() as {
+  const { store: storePayload, catalog } = parentRoute.useLoaderData() as {
     store: PublicStorePayload;
     catalog: PublicCatalog;
   };
 
-  const { slug } = Route.useParams();
-  const { produto } = Route.useSearch();
+  const { slug } = parentRoute.useParams();
+  const { produto, linha } = parentRoute.useSearch();
 
-  const navigate = useNavigate({ from: Route.fullPath });
+  const navigate = useNavigate();
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -127,12 +54,13 @@ function StorefrontPage() {
   const todayHours = hours.filter((h) => h.weekday === new Date().getDay());
 
   const openProduct = (id: string) =>
-    navigate({ search: { produto: id }, replace: false });
-  const closeProduct = () => navigate({ search: {}, replace: true });
+    navigate({ to: "/loja/$slug", params: { slug }, search: { produto: id } });
+  const closeProduct = () =>
+    navigate({ to: "/loja/$slug", params: { slug }, search: {}, replace: true });
 
   return (
     <main
-      className="min-h-svh bg-background pb-16"
+      className="min-h-svh bg-background pb-28"
       style={
         {
           "--brand": settings.brand_primary,
@@ -340,6 +268,8 @@ function StorefrontPage() {
         </footer>
       </div>
 
+      <CartBar slug={slug} />
+
       <Sheet open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
         <SheetContent
           side="bottom"
@@ -353,6 +283,7 @@ function StorefrontPage() {
               slug={slug}
               productId={produto}
               storeOpen={isOpen}
+              editLineId={linha ?? null}
               onClose={closeProduct}
             />
           ) : null}

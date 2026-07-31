@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { UNIT_LABELS, brl } from "@/components/storefront/format";
+import { CART_MESSAGES } from "@/storefront/cart/cart.errors";
+import { useCart } from "@/storefront/cart/cart.context";
 import type { PublicProductDetail } from "@/lib/storefront.server";
 
 type Selection = { option_group_id: string; option_item_id: string; quantity: number };
@@ -19,6 +21,8 @@ type Props = {
   slug: string;
   productId: string;
   storeOpen: boolean;
+  /** Quando presente, a montagem substitui esta linha do carrinho. */
+  editLineId?: string | null;
   onClose: () => void;
 };
 
@@ -43,7 +47,15 @@ async function fetchPrice(slug: string, body: unknown) {
   }>;
 }
 
-export function ProductConfigurator({ slug, productId, storeOpen, onClose }: Props) {
+export function ProductConfigurator({
+  slug,
+  productId,
+  storeOpen,
+  editLineId = null,
+  onClose,
+}: Props) {
+  const cart = useCart();
+  const [cartError, setCartError] = useState<string | null>(null);
   const { data, isPending, isError } = useQuery({
     queryKey: ["storefront-product", slug, productId],
     queryFn: () => fetchProduct(slug, productId),
@@ -57,12 +69,32 @@ export function ProductConfigurator({ slug, productId, storeOpen, onClose }: Pro
 
   useEffect(() => {
     if (!data) return;
+    const editing = editLineId
+      ? (cart.lines.find((line) => line.lineId === editLineId) ?? null)
+      : null;
+
+    if (editing && editing.productId === data.product.id) {
+      setVariantId(editing.variantId);
+      setSelections(
+        editing.selections.map((s) => ({
+          option_group_id: s.option_group_id,
+          option_item_id: s.option_item_id,
+          quantity: s.quantity,
+        })),
+      );
+      setQuantity(editing.quantity);
+      setNotes(editing.notes ?? "");
+      return;
+    }
+
     const fallback = data.variants.find((v) => v.is_default) ?? data.variants[0] ?? null;
     setVariantId(fallback?.id ?? null);
     setSelections([]);
     setQuantity(Math.max(data.product.minimum_quantity, data.product.quantity_step));
     setNotes("");
-  }, [data]);
+    // `cart.lines` só é lido na abertura; mudanças posteriores não resetam a tela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, editLineId]);
 
   const groups = data?.option_groups ?? [];
 
@@ -143,6 +175,50 @@ export function ProductConfigurator({ slug, productId, storeOpen, onClose }: Pro
       }
       return [...prev, { option_group_id: groupId, option_item_id: itemId, quantity: next }];
     });
+
+  const submit = () => {
+    if (!data || !price?.ok) return;
+
+    const variant = data.variants.find((v) => v.id === variantId) ?? null;
+    const itemName = (groupId: string, itemId: string) =>
+      data.option_groups
+        .find((g) => g.id === groupId)
+        ?.items.find((i) => i.id === itemId)?.name ?? "";
+
+    const input = {
+      productId: data.product.id,
+      productNameSnapshot: data.product.name,
+      variantId: variant?.id ?? null,
+      variantNameSnapshot: variant?.name ?? null,
+      selections: selections.map((s) => ({
+        ...s,
+        nameSnapshot: itemName(s.option_group_id, s.option_item_id),
+      })),
+      quantity,
+      notes: notes.trim() ? notes.trim().slice(0, 280) : null,
+      saleMode: data.product.sale_mode,
+      unitLabel: data.product.measurement_unit,
+      minimumQuantity: data.product.minimum_quantity,
+      quantityStep: data.product.quantity_step,
+      maxQuantity: data.product.max_quantity,
+      // Apenas o último valor conhecido: o carrinho recotiza no servidor.
+      lastKnownUnitPrice: price.unit_price ?? 0,
+      lastKnownTotal: price.total ?? 0,
+    };
+
+    if (editLineId) {
+      cart.replaceLine(editLineId, input);
+      onClose();
+      return;
+    }
+
+    const result = cart.addLine(input);
+    if (!result) {
+      setCartError(CART_MESSAGES.limitReached);
+      return;
+    }
+    onClose();
+  };
 
   if (isPending) {
     return (
@@ -434,8 +510,12 @@ export function ProductConfigurator({ slug, productId, storeOpen, onClose }: Pro
             Falta escolher: {pendingGroups.map((g) => g.name).join(", ")}
           </p>
         ) : null}
+        {cartError ? (
+          <p className="text-center text-xs text-destructive">{cartError}</p>
+        ) : null}
         <Button
           className="h-12 w-full text-base"
+          onClick={submit}
           disabled={!isComplete || !storeOpen || product.is_sold_out || pricing || !price?.ok}
         >
           {pricing ? (
@@ -446,7 +526,8 @@ export function ProductConfigurator({ slug, productId, storeOpen, onClose }: Pro
             "Loja fechada"
           ) : isComplete && price?.ok ? (
             <>
-              Continuar · <span className="tabular-nums">{brl(price.total ?? 0)}</span>
+              {editLineId ? "Salvar alterações" : "Adicionar"} ·{" "}
+              <span className="tabular-nums">{brl(price.total ?? 0)}</span>
             </>
           ) : (
             "Complete as escolhas"
