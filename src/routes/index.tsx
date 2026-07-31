@@ -1,193 +1,99 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+
+import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "Pediu Aqui — cardapio digital e pedidos para o comercio local" },
+      {
+        name: "description",
+        content:
+          "Pediu Aqui e a plataforma de cardapio digital, pedidos e entregas para o comercio local. Cada loja com seu proprio espaco, seus produtos e seus entregadores.",
+      },
+      { property: "og:title", content: "Pediu Aqui — cardapio digital e pedidos" },
+      {
+        property: "og:description",
+        content:
+          "Cardapio digital, pedidos e entregas para o comercio local, com isolamento total por loja.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
 });
 
+const pillars = [
+  {
+    title: "Cardapio digital proprio",
+    text: "Cada loja tem seu endereco, seus produtos, suas variacoes e suas regras de entrega.",
+  },
+  {
+    title: "Pedido sem cadastro",
+    text: "O cliente informa apenas o primeiro nome e o telefone. Sem senha, sem e-mail, sem atrito.",
+  },
+  {
+    title: "Entrega da propria loja",
+    text: "Os entregadores pertencem a loja e enxergam somente as entregas dela.",
+  },
+];
+
 function Index() {
-  const orbitCount = 12;
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950">
-      {/* Grid de fundo sutil */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-20"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      {/* Centro da órbita */}
-      <div className="orbit-center">
-        {/* Núcleo pulsante */}
-        <div className="nucleus" />
-
-        {/* Anel externo */}
-        <div className="ring ring-1" />
-        <div className="ring ring-2" />
-
-        {/* Bolinhas orbitando */}
-        {Array.from({ length: orbitCount }).map((_, i) => (
-          <div
-            key={i}
-            className="orbiter"
-            style={{
-              animationDelay: `${(i * -2.5) / orbitCount}s`,
-              transform: `rotate(${(i * 360) / orbitCount}deg)`,
-            }}
-          >
-            <div
-              className="orbiter-ball"
-              style={{
-                animationDelay: `${(i * -0.4) / orbitCount}s`,
-              }}
-            />
-          </div>
-        ))}
-
-        {/* Bolinha principal com rastro */}
-        <div className="main-ball-wrapper">
-          <div className="main-ball" />
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="trail-dot"
-              style={{
-                animationDelay: `${-0.08 * (i + 1)}s`,
-                opacity: 1 - i * 0.1,
-              }}
-            />
-          ))}
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <BrandLogo className="h-7 sm:h-8" />
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/design-system">Design system</Link>
+          </Button>
         </div>
-      </div>
+      </header>
 
-      <style>{`
-        .orbit-center {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 0;
-          height: 0;
-        }
+      <main>
+        <section className="bg-carbon text-carbon-foreground">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+            <Badge variant="brand">Fase 02 · identidade visual</Badge>
+            <h1 className="mt-6 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
+              O pedido do bairro, organizado de ponta a ponta.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg opacity-80">
+              Pediu Aqui e a plataforma de cardapio digital, pedidos e entregas do comercio local.
+              Cada loja opera isolada, com seus produtos, seus clientes e seus entregadores.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Button asChild variant="brand" size="touch">
+                <Link to="/design-system">Ver o design system</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
-        .nucleus {
-          position: absolute;
-          width: 24px;
-          height: 24px;
-          border-radius: 9999px;
-          background: radial-gradient(circle at 30% 30%, #a5f3fc, #0891b2);
-          box-shadow: 0 0 60px 20px rgba(6, 182, 212, 0.45);
-          transform: translate(-50%, -50%);
-          animation: pulse 2.4s ease-in-out infinite;
-        }
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            {pillars.map((pillar) => (
+              <article
+                key={pillar.title}
+                className="rounded-xl border border-border bg-surface p-6 shadow-e1"
+              >
+                <BrandSymbol tone="teal" className="size-8" />
+                <h2 className="mt-5 text-lg font-semibold">{pillar.title}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{pillar.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
 
-        .ring {
-          position: absolute;
-          border-radius: 9999px;
-          border: 1px solid rgba(34, 211, 238, 0.25);
-          transform: translate(-50%, -50%);
-        }
-
-        .ring-1 {
-          width: 220px;
-          height: 220px;
-          animation: spin 10s linear infinite;
-        }
-
-        .ring-2 {
-          width: 340px;
-          height: 340px;
-          border-color: rgba(167, 139, 250, 0.2);
-          animation: spin 16s linear infinite reverse;
-        }
-
-        .orbiter {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 0;
-          height: 0;
-          transform-origin: 0 0;
-          animation: orbit 8s linear infinite;
-        }
-
-        .orbiter-ball {
-          position: absolute;
-          top: -110px;
-          left: -6px;
-          width: 12px;
-          height: 12px;
-          border-radius: 9999px;
-          background: #22d3ee;
-          box-shadow: 0 0 16px #22d3ee;
-          animation: orbiter-pulse 1.6s ease-in-out infinite alternate;
-        }
-
-        .main-ball-wrapper {
-          position: absolute;
-          width: 0;
-          height: 0;
-          animation: lissajous 10s ease-in-out infinite;
-        }
-
-        .main-ball {
-          position: absolute;
-          width: 32px;
-          height: 32px;
-          border-radius: 9999px;
-          background: radial-gradient(circle at 30% 30%, #f0abfc, #c026d3);
-          box-shadow: 0 0 40px 12px rgba(192, 38, 211, 0.55);
-          transform: translate(-50%, -50%);
-          animation: ball-scale 1.8s ease-in-out infinite alternate;
-        }
-
-        .trail-dot {
-          position: absolute;
-          width: 16px;
-          height: 16px;
-          border-radius: 9999px;
-          background: rgba(240, 171, 252, 0.55);
-          transform: translate(-50%, -50%);
-          animation: lissajous 10s ease-in-out infinite;
-          filter: blur(2px);
-        }
-
-        @keyframes pulse {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
-          50% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
-        }
-
-        @keyframes spin {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @keyframes orbit {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes orbiter-pulse {
-          from { transform: scale(0.7); opacity: 0.6; }
-          to { transform: scale(1.2); opacity: 1; }
-        }
-
-        @keyframes lissajous {
-          0% { transform: translate(-50%, -50%) translate(0, 0); }
-          20% { transform: translate(-50%, -50%) translate(160px, -90px); }
-          40% { transform: translate(-50%, -50%) translate(0, -180px); }
-          60% { transform: translate(-50%, -50%) translate(-160px, -90px); }
-          80% { transform: translate(-50%, -50%) translate(0, 90px); }
-          100% { transform: translate(-50%, -50%) translate(0, 0); }
-        }
-
-        @keyframes ball-scale {
-          from { transform: translate(-50%, -50%) scale(0.85); }
-          to { transform: translate(-50%, -50%) scale(1.15); }
-        }
-      `}</style>
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
+          <BrandLogo tone="monochrome" className="h-6 opacity-70" />
+          <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comercio local</p>
+        </div>
+      </footer>
     </div>
   );
 }
