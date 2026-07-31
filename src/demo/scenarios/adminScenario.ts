@@ -15,5 +15,3 @@ export const adminScenario: DemoScenario = {
     "Usuários, auditoria e suporte",
   ],
 };
-
-export const allScenarios = [adminScenario];
