@@ -352,7 +352,11 @@ function CartPage() {
       {cart.itemCount > 0 ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur">
           <div className="mx-auto max-w-3xl space-y-2">
-            <Button className="h-13 w-full justify-between px-4 text-base" disabled={!cart.canCheckout}>
+            <Button
+              className="h-13 w-full justify-between px-4 text-base"
+              disabled={!cart.canCheckout}
+              onClick={() => navigate({ to: "/loja/$slug/checkout", params: { slug } })}
+            >
               <span>
                 {loading
                   ? "Recalculando…"
@@ -365,8 +369,10 @@ function CartPage() {
               <span className="tabular-nums">{brl(cart.total)}</span>
             </Button>
             <p className="text-center text-[11px] text-muted-foreground">
-              O checkout chega na próxima etapa. Nenhum pedido foi enviado ainda.
+              Telefone e forma de pagamento são confirmados na próxima tela. Nenhum pedido foi
+              enviado ainda.
             </p>
+
           </div>
         </div>
       ) : null}
