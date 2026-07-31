@@ -393,6 +393,8 @@
 /* --- trilhos horizontais (categorias, filtros) --- */
 @utility rail {
   display: flex;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
