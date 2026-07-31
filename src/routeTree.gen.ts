@@ -17,6 +17,7 @@ import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
+import { Route as AppEntregadorRouteImport } from './routes/app/entregador'
 import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
@@ -94,6 +95,11 @@ const SemAcessoRoute = SemAcessoRouteImport.update({
 const TrocarSenhaInicialRoute = TrocarSenhaInicialRouteImport.update({
   id: '/trocar-senha-inicial',
   path: '/trocar-senha-inicial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppEntregadorRoute = AppEntregadorRouteImport.update({
+  id: '/app/entregador',
+  path: '/app/entregador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppLojaRoute = AppLojaRouteImport.update({
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/entregador': typeof AppEntregadorRoute
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/entregador': typeof AppEntregadorRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/entregador': typeof AppEntregadorRoute
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
@@ -448,6 +457,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/entregador'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -538,6 +549,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
@@ -587,6 +599,7 @@ export interface RootRouteChildren {
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SemAcessoRoute: typeof SemAcessoRoute
   TrocarSenhaInicialRoute: typeof TrocarSenhaInicialRoute
+  AppEntregadorRoute: typeof AppEntregadorRoute
   AppLojaRoute: typeof AppLojaRouteWithChildren
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
@@ -649,6 +662,13 @@ declare module '@tanstack/react-router' {
       path: '/trocar-senha-inicial'
       fullPath: '/trocar-senha-inicial'
       preLoaderRoute: typeof TrocarSenhaInicialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/entregador': {
+      id: '/app/entregador'
+      path: '/app/entregador'
+      fullPath: '/app/entregador'
+      preLoaderRoute: typeof AppEntregadorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/loja': {
@@ -1061,6 +1081,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SemAcessoRoute: SemAcessoRoute,
   TrocarSenhaInicialRoute: TrocarSenhaInicialRoute,
+  AppEntregadorRoute: AppEntregadorRoute,
   AppLojaRoute: AppLojaRouteWithChildren,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
