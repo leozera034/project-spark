@@ -34,13 +34,15 @@ FOREIGN KEY (<pai>_id, store_id) REFERENCES public.<pai>(id, store_id)
 
 ## 3. Estado dos GRANTs nesta fase
 
+> Atualizado na Fase 06.
+
 | Papel | Acesso |
 | --- | --- |
-| `anon` | nenhum (revogado explicitamente) |
-| `authenticated` | nenhum (revogado explicitamente) |
+| `anon` | leitura do catálogo público e de lojas ativas; em `stores` o `GRANT` é **por coluna** e exclui `document`, `legal_name` e `email` |
+| `authenticated` | leitura da própria loja; escrita restrita a `proprietario`/`gerente`; identidade própria; entregador limitado às próprias entregas |
 | `service_role` | total (uso interno de servidor) |
 
-Na Fase 06 os grants serão abertos **tabela a tabela**, sempre acompanhados de policy correspondente. É proibido um `GRANT ALL` genérico.
+Os grants foram abertos **tabela a tabela**, sempre acompanhados da policy correspondente. Continua proibido um `GRANT ALL` genérico para `anon` ou `authenticated`. A matriz completa está em `docs/RLS_POLICY_MATRIX.md`.
 
 ## 4. Regras de escrita de migrations
 
