@@ -118,67 +118,84 @@ function EditarProduto() {
         </Alert>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Imagem do produto</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center gap-4">
-          <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-24" />
-          {canUpdate ? (
-            <div className="space-y-2">
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={(event) => {
-                  void handleFile(event.target.files?.[0]);
-                  event.target.value = "";
-                }}
-              />
-              <Button variant="outline" disabled={uploading} onClick={() => fileInput.current?.click()}>
-                {uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <ImagePlus className="mr-2 h-4 w-4" />
-                )}
-                Enviar imagem
-              </Button>
-              <p className="text-xs text-muted-foreground">PNG, JPG ou WebP de até 5 MB.</p>
-              {product.image_path ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isBusy}
-                  onClick={() =>
-                    void run(async () => {
-                      const previous = product.image_path;
-                      const updated = await setProductImage(storeId!, product.id, null);
-                      await removeCatalogImage(previous);
-                      refresh();
-                      void productQuery.refetch();
-                      return updated;
-                    }, "Imagem removida.")
-                  }
-                >
-                  Remover imagem
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="dados">
+        <TabsList>
+          <TabsTrigger value="dados">Dados e imagem</TabsTrigger>
+          <TabsTrigger value="avancado">Configuração avançada</TabsTrigger>
+        </TabsList>
 
-      <ProductForm
-        categories={categories.filter((c) => !c.is_archived)}
-        values={values}
-        onChange={setValues}
-        onSubmit={() => void submit()}
-        onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
-        submitting={isBusy || !canUpdate}
-        showStatusFields={false}
-        submitLabel="Salvar alterações"
-      />
+        <TabsContent value="dados" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Imagem do produto</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-4">
+              <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-24" />
+              {canUpdate ? (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(event) => {
+                      void handleFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    disabled={uploading}
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ImagePlus className="mr-2 h-4 w-4" />
+                    )}
+                    Enviar imagem
+                  </Button>
+                  <p className="text-xs text-muted-foreground">PNG, JPG ou WebP de até 5 MB.</p>
+                  {product.image_path ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isBusy}
+                      onClick={() =>
+                        void run(async () => {
+                          const previous = product.image_path;
+                          const updated = await setProductImage(storeId!, product.id, null);
+                          await removeCatalogImage(previous);
+                          refresh();
+                          void productQuery.refetch();
+                          return updated;
+                        }, "Imagem removida.")
+                      }
+                    >
+                      Remover imagem
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <ProductForm
+            categories={categories.filter((c) => !c.is_archived)}
+            values={values}
+            onChange={setValues}
+            onSubmit={() => void submit()}
+            onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
+            submitting={isBusy || !canUpdate}
+            showStatusFields={false}
+            submitLabel="Salvar alterações"
+          />
+        </TabsContent>
+
+        <TabsContent value="avancado" className="mt-4">
+          <ProductBuilder productId={product.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
