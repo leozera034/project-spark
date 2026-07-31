@@ -61,6 +61,7 @@ import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pe
 import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
 import { Route as AppLojaCardapioIndexRouteImport } from './routes/app/loja/cardapio/index'
 import { Route as AppLojaCardapioCategoriasRouteImport } from './routes/app/loja/cardapio/categorias'
+import { Route as AppLojaCardapioOpcoesRouteImport } from './routes/app/loja/cardapio/opcoes'
 import { Route as AppLojaConfiguracoesIndexRouteImport } from './routes/app/loja/configuracoes/index'
 import { Route as AppLojaConfiguracoesAtendimentoRouteImport } from './routes/app/loja/configuracoes/atendimento'
 import { Route as AppLojaConfiguracoesBairrosRouteImport } from './routes/app/loja/configuracoes/bairros'
@@ -344,6 +345,11 @@ const AppLojaCardapioCategoriasRoute =
     path: '/categorias',
     getParentRoute: () => AppLojaCardapioRoute,
   } as any)
+const AppLojaCardapioOpcoesRoute = AppLojaCardapioOpcoesRouteImport.update({
+  id: '/opcoes',
+  path: '/opcoes',
+  getParentRoute: () => AppLojaCardapioRoute,
+} as any)
 const AppLojaConfiguracoesIndexRoute =
   AppLojaConfiguracoesIndexRouteImport.update({
     id: '/',
@@ -469,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
+  '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -525,6 +532,7 @@ export interface FileRoutesByTo {
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
+  '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -592,6 +600,7 @@ export interface FileRoutesById {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
+  '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -660,6 +669,7 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/app/loja/cardapio/categorias'
+    | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -716,6 +726,7 @@ export interface FileRouteTypes {
     | '/preview/entregador'
     | '/preview/loja'
     | '/app/loja/cardapio/categorias'
+    | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -782,6 +793,7 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/app/loja/cardapio/categorias'
+    | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -1180,6 +1192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioCategoriasRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/cardapio/opcoes': {
+      id: '/app/loja/cardapio/opcoes'
+      path: '/opcoes'
+      fullPath: '/app/loja/cardapio/opcoes'
+      preLoaderRoute: typeof AppLojaCardapioOpcoesRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
     '/app/loja/configuracoes/': {
       id: '/app/loja/configuracoes/'
       path: '/'
@@ -1412,6 +1431,7 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
 
 interface AppLojaCardapioRouteChildren {
   AppLojaCardapioCategoriasRoute: typeof AppLojaCardapioCategoriasRoute
+  AppLojaCardapioOpcoesRoute: typeof AppLojaCardapioOpcoesRoute
   AppLojaCardapioIndexRoute: typeof AppLojaCardapioIndexRoute
   AppLojaCardapioProdutosIdRoute: typeof AppLojaCardapioProdutosIdRoute
   AppLojaCardapioProdutosNovoRoute: typeof AppLojaCardapioProdutosNovoRoute
@@ -1420,6 +1440,7 @@ interface AppLojaCardapioRouteChildren {
 
 const AppLojaCardapioRouteChildren: AppLojaCardapioRouteChildren = {
   AppLojaCardapioCategoriasRoute: AppLojaCardapioCategoriasRoute,
+  AppLojaCardapioOpcoesRoute: AppLojaCardapioOpcoesRoute,
   AppLojaCardapioIndexRoute: AppLojaCardapioIndexRoute,
   AppLojaCardapioProdutosIdRoute: AppLojaCardapioProdutosIdRoute,
   AppLojaCardapioProdutosNovoRoute: AppLojaCardapioProdutosNovoRoute,
