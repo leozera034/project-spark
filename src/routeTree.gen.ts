@@ -15,6 +15,7 @@ import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
+import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
@@ -80,6 +81,11 @@ const RecuperarAcessoRoute = RecuperarAcessoRouteImport.update({
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
   id: '/redefinir-senha',
   path: '/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrocarSenhaInicialRoute = TrocarSenhaInicialRouteImport.update({
+  id: '/trocar-senha-inicial',
+  path: '/trocar-senha-inicial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarAdminRoute = EntrarAdminRouteImport.update({
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -365,6 +373,7 @@ export interface FileRoutesById {
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -411,6 +420,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/recuperar-acesso'
     | '/redefinir-senha'
+    | '/trocar-senha-inicial'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/recuperar-acesso'
     | '/redefinir-senha'
+    | '/trocar-senha-inicial'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/recuperar-acesso'
     | '/redefinir-senha'
+    | '/trocar-senha-inicial'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -539,6 +551,7 @@ export interface RootRouteChildren {
   PreviewRoute: typeof PreviewRouteWithChildren
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
+  TrocarSenhaInicialRoute: typeof TrocarSenhaInicialRoute
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       path: '/redefinir-senha'
       fullPath: '/redefinir-senha'
       preLoaderRoute: typeof RedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocar-senha-inicial': {
+      id: '/trocar-senha-inicial'
+      path: '/trocar-senha-inicial'
+      fullPath: '/trocar-senha-inicial'
+      preLoaderRoute: typeof TrocarSenhaInicialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar/admin': {
@@ -971,6 +991,7 @@ const rootRouteChildren: RootRouteChildren = {
   PreviewRoute: PreviewRouteWithChildren,
   RecuperarAcessoRoute: RecuperarAcessoRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
+  TrocarSenhaInicialRoute: TrocarSenhaInicialRoute,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
