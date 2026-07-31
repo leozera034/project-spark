@@ -17,6 +17,7 @@ import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
+import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
@@ -92,6 +93,11 @@ const SemAcessoRoute = SemAcessoRouteImport.update({
 const TrocarSenhaInicialRoute = TrocarSenhaInicialRouteImport.update({
   id: '/trocar-senha-inicial',
   path: '/trocar-senha-inicial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppLojaRoute = AppLojaRouteImport.update({
+  id: '/app/loja',
+  path: '/app/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarAdminRoute = EntrarAdminRouteImport.update({
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/loja': typeof AppLojaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/loja': typeof AppLojaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/app/loja': typeof AppLojaRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -565,6 +577,7 @@ export interface RootRouteChildren {
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SemAcessoRoute: typeof SemAcessoRoute
   TrocarSenhaInicialRoute: typeof TrocarSenhaInicialRoute
+  AppLojaRoute: typeof AppLojaRoute
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
@@ -626,6 +639,13 @@ declare module '@tanstack/react-router' {
       path: '/trocar-senha-inicial'
       fullPath: '/trocar-senha-inicial'
       preLoaderRoute: typeof TrocarSenhaInicialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/loja': {
+      id: '/app/loja'
+      path: '/app/loja'
+      fullPath: '/app/loja'
+      preLoaderRoute: typeof AppLojaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar/admin': {
@@ -1013,6 +1033,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SemAcessoRoute: SemAcessoRoute,
   TrocarSenhaInicialRoute: TrocarSenhaInicialRoute,
+  AppLojaRoute: AppLojaRoute,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
