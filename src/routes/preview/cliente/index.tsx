@@ -21,7 +21,7 @@ function StoreHome() {
 
   return (
     <div className="min-h-screen">
-      <div
+      <header
         className="px-4 pb-16 pt-10 text-center"
         style={{ backgroundColor: store.theme.surfaceHero }}
       >
@@ -30,7 +30,7 @@ function StoreHome() {
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-white">{store.name}</h1>
         <p className="mt-2 text-sm text-white/80">{store.tagline}</p>
-      </div>
+      </header>
 
       <main className="mx-auto -mt-10 max-w-3xl px-4">
         <section className="rounded-2xl border border-border bg-surface p-5 shadow-e2">

@@ -242,9 +242,9 @@
   --warning: oklch(0.78 0.135 75);
   --warning-foreground: oklch(0.1659 0.0163 226.88);
   --warning-soft: oklch(0.3 0.055 75);
-  --danger: oklch(0.6683 0.1712 25.5);
+  --danger: oklch(0.702 0.163 25.5);
   --danger-foreground: oklch(0.1659 0.0163 226.88);
-  --danger-soft: oklch(0.3 0.07 25.5);
+  --danger-soft: oklch(0.29 0.065 25.5);
   --info: oklch(0.7 0.116 248.8);
   --info-foreground: oklch(0.1659 0.0163 226.88);
   --info-soft: oklch(0.3 0.06 248.8);

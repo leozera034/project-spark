@@ -15,8 +15,10 @@ export function SkipToContent() {
       if (main && main.id !== "conteudo") main.id = "conteudo";
     };
     apply();
-    const timer = window.setTimeout(apply, 120);
-    return () => window.clearTimeout(timer);
+    // rotas que montam o <main> depois da hidratacao (wizard, gates)
+    const observer = new MutationObserver(apply);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [pathname]);
 
   return (
