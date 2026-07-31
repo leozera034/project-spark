@@ -31,13 +31,14 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Conclusão:** jornadas principais navegáveis em mobile e desktop.
 - **Proibido:** banco, escrita real, autenticação, realtime.
 
-## Fase 04 — Arquitetura do banco
+## Fase 04 — Arquitetura do banco — CONCLUÍDA
 - **Objetivo:** modelagem física das entidades, chaves, índices, enums e migrations iniciais no Supabase próprio.
 - **Dependências:** 01, 03.
 - **Áreas:** DB.
 - **Riscos:** modelo específico de alimentação; falta de `store_id`; ausência de GRANTs.
 - **Conclusão:** migrations aplicadas e documentadas, com catálogo genérico validado nos cinco modelos.
 - **Proibido:** telas conectadas, dados reais, lógica de pedidos.
+- **Resultado:** 30 tabelas, 13 enums, FKs compostas por `(id, store_id)`, RLS habilitada e forçada sem policies, seed determinístico de 5 modelos e asserções estruturais aprovadas. Documentado em `docs/DATABASE_ARCHITECTURE.md` e `docs/DATABASE_MIGRATION_GUIDE.md`. Backend confirmado como exclusivo do Pediu Aqui (schema `public` vazio antes da primeira migration).
 
 ## Fase 05 — Autenticação
 - **Objetivo:** login de lojista e entregador, sessão persistente, recuperação de acesso.

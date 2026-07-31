@@ -188,3 +188,43 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** novas cores exigem token em `:root` e `.dark` e registro em `@theme inline`.
 - **Riscos evitados:** deriva visual; quebra do tema escuro; contraste insuficiente.
 - **Status:** aprovada
+
+### D-024 — Isolamento estrutural por chave estrangeira composta
+- **Data:** 2026-07-30
+- **Decisão:** toda tabela operacional possui `store_id` e `UNIQUE (id, store_id)`; todo relacionamento interno usa FK composta `(pai_id, store_id) → (id, store_id)`.
+- **Motivo:** o isolamento entre lojas não pode depender apenas de RLS ou de filtro de aplicação.
+- **Consequência:** vincular registro de outra loja passa a ser impossível no nível do banco, mesmo com policy mal escrita.
+- **Riscos evitados:** vazamento entre lojas; produto ou grupo de opções cruzado; pedido apontando para bairro de outro tenant.
+- **Status:** aprovada
+
+### D-025 — Entidades globais sem `store_id` artificial
+- **Data:** 2026-07-30
+- **Decisão:** `plans` e `user_profiles` permanecem globais; apenas `user_roles` liga usuário e loja.
+- **Motivo:** não distorcer a modelagem para forçar simetria.
+- **Consequência:** o acesso a entidades globais será protegido por verificação de papel de administrador, não por `store_id`.
+- **Riscos evitados:** duplicação de planos por loja; modelagem confusa.
+- **Status:** aprovada
+
+### D-026 — Negação por padrão na Fase 04
+- **Data:** 2026-07-30
+- **Decisão:** RLS habilitada e forçada em todas as tabelas de `public`, com zero policies, `REVOKE ALL` de `anon` e `authenticated` e `GRANT` somente ao papel de serviço.
+- **Motivo:** nenhuma tela está conectada nesta fase; qualquer acesso aberto seria exposição gratuita.
+- **Consequência:** o linter reporta "RLS sem policy" como informativo — esse é o estado desejado até a Fase 06.
+- **Riscos evitados:** tabela publicamente legível; `GRANT` apressado sem policy correspondente.
+- **Status:** aprovada
+
+### D-027 — Token público de acompanhamento criptograficamente aleatório
+- **Data:** 2026-07-30
+- **Decisão:** `orders.public_tracking_token` usa `gen_random_bytes(24)` em hexadecimal, com restrição de unicidade.
+- **Motivo:** o acompanhamento é acessível sem login e não pode ser enumerável.
+- **Consequência:** o token nunca deriva de telefone, número do pedido, data ou sequência.
+- **Riscos evitados:** varredura de pedidos de terceiros; exposição de dados do cliente.
+- **Status:** aprovada
+
+### D-028 — Preços e endereço congelados no pedido
+- **Data:** 2026-07-30
+- **Decisão:** `orders`, `order_items` e `order_item_options` guardam nome, preço e opções no momento da compra, além de snapshot do endereço e do bairro.
+- **Motivo:** alteração posterior de catálogo ou de taxa não pode reescrever o histórico.
+- **Consequência:** o backend recalcula tudo na criação e grava os valores; o cliente nunca envia preço confiável.
+- **Riscos evitados:** manipulação de preço; divergência de relatório; contestação de valor.
+- **Status:** aprovada
