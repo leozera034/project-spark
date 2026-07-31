@@ -51,7 +51,7 @@ export function VariantPricesCard({
 
   async function save() {
     if (!storeId) return;
-    const prices = [];
+    const prices: VariantOptionPrice[] = [];
     for (const [key, raw] of Object.entries(draft)) {
       if (raw.trim() === "") continue;
       const value = parsePriceInput(raw);
