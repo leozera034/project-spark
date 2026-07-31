@@ -15,6 +15,7 @@ import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
+import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
 import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
 import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
@@ -25,6 +26,7 @@ import { Route as LojaMercadoAuroraCheckoutRouteImport } from './routes/loja/mer
 import { Route as LojaMercadoAuroraConfirmacaoRouteImport } from './routes/loja/mercado-aurora/confirmacao'
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
+import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
 import { Route as PreviewEntregadorIndexRouteImport } from './routes/preview/entregador/index'
 import { Route as PreviewEntregadorHistoricoRouteImport } from './routes/preview/entregador/historico'
 import { Route as PreviewEntregadorRotaRouteImport } from './routes/preview/entregador/rota'
@@ -67,6 +69,11 @@ const LojaMercadoAuroraRoute = LojaMercadoAuroraRouteImport.update({
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewAdminRoute = PreviewAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => PreviewRoute,
 } as any)
 const PreviewEntregadorRoute = PreviewEntregadorRouteImport.update({
@@ -126,6 +133,11 @@ const LojaMercadoAuroraModalidadeRoute =
     path: '/modalidade',
     getParentRoute: () => LojaMercadoAuroraRoute,
   } as any)
+const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
 const PreviewEntregadorIndexRoute = PreviewEntregadorIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -202,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
+  '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
@@ -222,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin/': typeof PreviewAdminIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -249,6 +263,7 @@ export interface FileRoutesByTo {
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin': typeof PreviewAdminIndexRoute
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -261,6 +276,7 @@ export interface FileRoutesById {
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
+  '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
@@ -281,6 +297,7 @@ export interface FileRoutesById {
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin/': typeof PreviewAdminIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -294,6 +311,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/preview'
     | '/loja/mercado-aurora'
+    | '/preview/admin'
     | '/preview/entregador'
     | '/preview/loja'
     | '/preview/'
@@ -314,6 +332,7 @@ export interface FileRouteTypes {
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
     | '/loja/mercado-aurora/'
+    | '/preview/admin/'
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
@@ -341,6 +360,7 @@ export interface FileRouteTypes {
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
     | '/loja/mercado-aurora'
+    | '/preview/admin'
     | '/preview/entregador'
     | '/preview/loja'
     | '/loja/mercado-aurora/endereco/novo'
@@ -352,6 +372,7 @@ export interface FileRouteTypes {
     | '/loja'
     | '/preview'
     | '/loja/mercado-aurora'
+    | '/preview/admin'
     | '/preview/entregador'
     | '/preview/loja'
     | '/preview/'
@@ -372,6 +393,7 @@ export interface FileRouteTypes {
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
     | '/loja/mercado-aurora/'
+    | '/preview/admin/'
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
@@ -427,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/preview/'
       preLoaderRoute: typeof PreviewIndexRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/admin': {
+      id: '/preview/admin'
+      path: '/admin'
+      fullPath: '/preview/admin'
+      preLoaderRoute: typeof PreviewAdminRouteImport
       parentRoute: typeof PreviewRoute
     }
     '/preview/entregador': {
@@ -498,6 +527,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/loja/mercado-aurora/modalidade'
       preLoaderRoute: typeof LojaMercadoAuroraModalidadeRouteImport
       parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/preview/admin/': {
+      id: '/preview/admin/'
+      path: '/'
+      fullPath: '/preview/admin/'
+      preLoaderRoute: typeof PreviewAdminIndexRouteImport
+      parentRoute: typeof PreviewAdminRoute
     }
     '/preview/entregador/': {
       id: '/preview/entregador/'
@@ -632,6 +668,18 @@ const LojaRouteChildren: LojaRouteChildren = {
 
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
+interface PreviewAdminRouteChildren {
+  PreviewAdminIndexRoute: typeof PreviewAdminIndexRoute
+}
+
+const PreviewAdminRouteChildren: PreviewAdminRouteChildren = {
+  PreviewAdminIndexRoute: PreviewAdminIndexRoute,
+}
+
+const PreviewAdminRouteWithChildren = PreviewAdminRoute._addFileChildren(
+  PreviewAdminRouteChildren,
+)
+
 interface PreviewEntregadorRouteChildren {
   PreviewEntregadorHistoricoRoute: typeof PreviewEntregadorHistoricoRoute
   PreviewEntregadorRotaRoute: typeof PreviewEntregadorRotaRoute
@@ -674,12 +722,14 @@ const PreviewLojaRouteWithChildren = PreviewLojaRoute._addFileChildren(
 )
 
 interface PreviewRouteChildren {
+  PreviewAdminRoute: typeof PreviewAdminRouteWithChildren
   PreviewEntregadorRoute: typeof PreviewEntregadorRouteWithChildren
   PreviewLojaRoute: typeof PreviewLojaRouteWithChildren
   PreviewIndexRoute: typeof PreviewIndexRoute
 }
 
 const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewAdminRoute: PreviewAdminRouteWithChildren,
   PreviewEntregadorRoute: PreviewEntregadorRouteWithChildren,
   PreviewLojaRoute: PreviewLojaRouteWithChildren,
   PreviewIndexRoute: PreviewIndexRoute,
