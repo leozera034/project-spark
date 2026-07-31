@@ -76,6 +76,7 @@ import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app
 import { Route as PreviewClienteEnderecoIndexRouteImport } from './routes/preview/cliente/endereco/index'
 import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview/cliente/endereco/novo'
 import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
+import { Route as ApiPublicStorefrontSlugPagamentosRouteImport } from './routes/api/public/storefront/$slug/pagamentos'
 import { Route as ApiPublicStorefrontSlugPrecoRouteImport } from './routes/api/public/storefront/$slug/preco'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
@@ -436,6 +437,12 @@ const ApiPublicStorefrontSlugAtendimentoRoute =
     path: '/atendimento',
     getParentRoute: () => ApiPublicStorefrontSlugRoute,
   } as any)
+const ApiPublicStorefrontSlugPagamentosRoute =
+  ApiPublicStorefrontSlugPagamentosRouteImport.update({
+    id: '/pagamentos',
+    path: '/pagamentos',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
 const ApiPublicStorefrontSlugPrecoRoute =
   ApiPublicStorefrontSlugPrecoRouteImport.update({
     id: '/preco',
@@ -547,6 +554,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -612,6 +620,7 @@ export interface FileRoutesByTo {
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -689,6 +698,7 @@ export interface FileRoutesById {
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -767,6 +777,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes'
     | '/preview/cliente/endereco'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -908,6 +920,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -1406,6 +1419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteImport
       parentRoute: typeof ApiPublicStorefrontSlugRoute
     }
+    '/api/public/storefront/$slug/pagamentos': {
+      id: '/api/public/storefront/$slug/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/api/public/storefront/$slug/pagamentos'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugPagamentosRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
     '/api/public/storefront/$slug/preco': {
       id: '/api/public/storefront/$slug/preco'
       path: '/preco'
@@ -1695,6 +1715,7 @@ const ApiPublicStorefrontSlugAtendimentoRouteWithChildren =
 
 interface ApiPublicStorefrontSlugRouteChildren {
   ApiPublicStorefrontSlugAtendimentoRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  ApiPublicStorefrontSlugPagamentosRoute: typeof ApiPublicStorefrontSlugPagamentosRoute
   ApiPublicStorefrontSlugPrecoRoute: typeof ApiPublicStorefrontSlugPrecoRoute
   ApiPublicStorefrontSlugCarrinhoCotacaoRoute: typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
@@ -1704,6 +1725,8 @@ const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren
   {
     ApiPublicStorefrontSlugAtendimentoRoute:
       ApiPublicStorefrontSlugAtendimentoRouteWithChildren,
+    ApiPublicStorefrontSlugPagamentosRoute:
+      ApiPublicStorefrontSlugPagamentosRoute,
     ApiPublicStorefrontSlugPrecoRoute: ApiPublicStorefrontSlugPrecoRoute,
     ApiPublicStorefrontSlugCarrinhoCotacaoRoute:
       ApiPublicStorefrontSlugCarrinhoCotacaoRoute,
