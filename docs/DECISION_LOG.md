@@ -316,3 +316,43 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** suporte trabalha com contexto institucional e não com dado pessoal do consumidor.
 - **Riscos evitados:** exposição indevida de dado pessoal; risco legal.
 - **Status:** aprovada
+
+### D-042 — Configurações da loja só mudam por RPC verificada
+- **Data:** 2026-07-31
+- **Decisão:** toda alteração de dados, identidade, horários, atendimento, bairros e pagamentos passa por função do banco que valida permissão, versão e conteúdo. Nenhuma escrita direta em tabela pelo cliente.
+- **Motivo:** validação de formulário não é validação de negócio.
+- **Consequência:** o `store_id` enviado pela interface é sempre reconferido contra o vínculo real do usuário.
+- **Riscos evitados:** alteração de configuração de outra loja; gravação de valor inválido.
+- **Status:** aprovada
+
+### D-043 — Arquivamento em vez de exclusão no catálogo
+- **Data:** 2026-07-31
+- **Decisão:** categorias e produtos nunca são apagados pela interface; eles são arquivados e podem ser restaurados.
+- **Motivo:** itens de catálogo serão referenciados por pedidos históricos.
+- **Consequência:** todas as listagens filtram arquivados por padrão e o estado arquivado bloqueia edição.
+- **Riscos evitados:** perda de histórico; referência quebrada em pedido antigo.
+- **Status:** aprovada
+
+### D-044 — Produto simples exige categoria da própria loja
+- **Data:** 2026-07-31
+- **Decisão:** todo produto pertence obrigatoriamente a uma categoria e a validação de pertencimento acontece no banco, com chave composta por loja.
+- **Motivo:** categoria é a unidade de organização do cardápio e o ponto natural de vazamento entre lojas.
+- **Consequência:** não existe produto órfão nem produto apontando para categoria de outra loja.
+- **Riscos evitados:** mistura de catálogo entre lojas; item invisível no cardápio.
+- **Status:** aprovada
+
+### D-045 — Imagens do catálogo em espaço privado por loja
+- **Data:** 2026-07-31
+- **Decisão:** o bucket `store-catalog` é privado, organizado por `{store_id}/categories|products/{id}/arquivo`, e o acesso administrativo usa apenas endereços temporários.
+- **Motivo:** endereço público permanente vaza conteúdo e permite varredura.
+- **Consequência:** a referência guardada no banco é o caminho interno, nunca uma URL. A troca de imagem só apaga a anterior depois de gravar a nova.
+- **Riscos evitados:** acesso a imagem de outra loja; link permanente indexável; perda de imagem em falha parcial.
+- **Status:** aprovada
+
+### D-046 — Ordenação e concorrência explícitas no catálogo
+- **Data:** 2026-07-31
+- **Decisão:** a ordem de categorias e produtos é um campo próprio reordenado em lote, e toda edição envia a versão que o usuário estava vendo.
+- **Motivo:** duas pessoas editando o mesmo cardápio é cenário comum na operação.
+- **Consequência:** edição sobre dado desatualizado é recusada com aviso de recarregar, sem sobrescrever silenciosamente.
+- **Riscos evitados:** perda de alteração de outro operador; ordem instável no cardápio.
+- **Status:** aprovada
