@@ -510,3 +510,27 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** o pedido é criado uma única vez; a numeração sequencial por loja é protegida por trava.
 - **Riscos evitados:** pedido duplicado; número de pedido repetido; chave reaproveitada para outro carrinho.
 - **Status:** aprovada
+
+### D-066 — O token de acompanhamento só existe em hash no banco
+- **Data:** 2026-07-31
+- **Decisão:** o banco guarda apenas o SHA-256 do token de acompanhamento (`orders.tracking_token_hash`, único). O token bruto é devolvido uma única vez, no momento da criação do pedido, e um gatilho impede que ele volte a ser persistido.
+- **Motivo:** o link de acompanhamento é a credencial do cliente; vazamento de backup, dump ou log não pode virar acesso a pedidos.
+- **Consequência:** um reenvio idempotente cujo primeiro retorno se perdeu não recupera o link; o cliente ainda vê número, totais e situação pelo comprovante local.
+- **Riscos evitados:** enumeração a partir de dump; token em log de banco; reuso de token exposto.
+- **Status:** aprovada
+
+### D-067 — O status interno nunca chega ao cliente
+- **Data:** 2026-07-31
+- **Decisão:** o banco traduz o enum operacional para um código público estável (`received`, `confirmed`, `preparing`, `out_for_delivery`, `ready_for_pickup`, `delivered`, `picked_up`, `declined`, `canceled`) e o navegador escolhe o texto humano a partir desse código.
+- **Motivo:** o enum interno é detalhe de operação e vai mudar; ele não pode virar contrato público.
+- **Consequência:** mudanças na operação não quebram a tela pública nem revelam a fila interna da loja.
+- **Riscos evitados:** vazamento de organização interna; acoplamento do cliente ao schema.
+- **Status:** aprovada
+
+### D-068 — Acompanhamento por polling com versão de status
+- **Data:** 2026-07-31
+- **Decisão:** o acompanhamento usa polling consciente de visibilidade, enviando a versão conhecida do status. Sem mudança, a resposta é apenas `changed: false`. Estado final encerra o polling.
+- **Motivo:** Realtime público exigiria abrir o banco ao anônimo; polling barato resolve o MVP sem essa superfície.
+- **Consequência:** a atualização leva de 12 a 30 segundos; aba oculta ou aparelho offline não consultam.
+- **Riscos evitados:** canal Realtime aberto ao anônimo; tráfego desnecessário; consumo de bateria.
+- **Status:** aprovada

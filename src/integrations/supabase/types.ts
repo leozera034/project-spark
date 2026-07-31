@@ -1127,7 +1127,7 @@ export type Database = {
           payment_method_kind: string | null
           payment_method_label: string | null
           payment_needs_change: boolean
-          public_tracking_token: string
+          public_tracking_token: string | null
           ready_at: string | null
           rejection_reason: string | null
           request_hash: string | null
@@ -1135,6 +1135,7 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           total_amount: number
+          tracking_token_hash: string | null
           updated_at: string
         }
         Insert: {
@@ -1166,7 +1167,7 @@ export type Database = {
           payment_method_kind?: string | null
           payment_method_label?: string | null
           payment_needs_change?: boolean
-          public_tracking_token?: string
+          public_tracking_token?: string | null
           ready_at?: string | null
           rejection_reason?: string | null
           request_hash?: string | null
@@ -1174,6 +1175,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           total_amount?: number
+          tracking_token_hash?: string | null
           updated_at?: string
         }
         Update: {
@@ -1205,7 +1207,7 @@ export type Database = {
           payment_method_kind?: string | null
           payment_method_label?: string | null
           payment_needs_change?: boolean
-          public_tracking_token?: string
+          public_tracking_token?: string | null
           ready_at?: string | null
           rejection_reason?: string | null
           request_hash?: string | null
@@ -1213,6 +1215,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           total_amount?: number
+          tracking_token_hash?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2467,6 +2470,10 @@ export type Database = {
       storefront_catalog: { Args: { _slug: string }; Returns: Json }
       storefront_fulfillment: { Args: { _slug: string }; Returns: Json }
       storefront_normalize_slug: { Args: { _slug: string }; Returns: string }
+      storefront_order_tracking: {
+        Args: { _known_version?: string; _token_hash: string }
+        Returns: Json
+      }
       storefront_payment_methods: {
         Args: { _fulfillment_type?: string; _slug: string }
         Returns: Json

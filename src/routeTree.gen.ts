@@ -25,6 +25,7 @@ import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
+import { Route as PedidoTokenRouteImport } from './routes/pedido/$token'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
@@ -81,6 +82,7 @@ import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes
 import { Route as ApiPublicStorefrontSlugPagamentosRouteImport } from './routes/api/public/storefront/$slug/pagamentos'
 import { Route as ApiPublicStorefrontSlugPedidosRouteImport } from './routes/api/public/storefront/$slug/pedidos'
 import { Route as ApiPublicStorefrontSlugPrecoRouteImport } from './routes/api/public/storefront/$slug/preco'
+import { Route as ApiPublicStorefrontPedidoStatusRouteImport } from './routes/api/public/storefront/pedido/status'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
@@ -167,6 +169,11 @@ const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => LojaRoute,
+} as any)
+const PedidoTokenRoute = PedidoTokenRouteImport.update({
+  id: '/pedido/$token',
+  path: '/pedido/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
   id: '/',
@@ -468,6 +475,12 @@ const ApiPublicStorefrontSlugPrecoRoute =
     path: '/preco',
     getParentRoute: () => ApiPublicStorefrontSlugRoute,
   } as any)
+const ApiPublicStorefrontPedidoStatusRoute =
+  ApiPublicStorefrontPedidoStatusRouteImport.update({
+    id: '/api/public/storefront/pedido/status',
+    path: '/api/public/storefront/pedido/status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppLojaCardapioProdutosIndexRoute =
   AppLojaCardapioProdutosIndexRouteImport.update({
     id: '/produtos/',
@@ -521,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$token': typeof PedidoTokenRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -578,6 +592,7 @@ export interface FileRoutesByFullPath {
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
@@ -596,6 +611,7 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$token': typeof PedidoTokenRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -647,6 +663,7 @@ export interface FileRoutesByTo {
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
@@ -671,6 +688,7 @@ export interface FileRoutesById {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/pedido/$token': typeof PedidoTokenRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -728,6 +746,7 @@ export interface FileRoutesById {
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
@@ -753,6 +772,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$token'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -810,6 +830,7 @@ export interface FileRouteTypes {
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
@@ -828,6 +849,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$token'
     | '/admin'
     | '/preview'
     | '/loja/$slug/carrinho'
@@ -879,6 +901,7 @@ export interface FileRouteTypes {
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
@@ -902,6 +925,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/pedido/$token'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -959,6 +983,7 @@ export interface FileRouteTypes {
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
@@ -982,7 +1007,9 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
+  PedidoTokenRoute: typeof PedidoTokenRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
+  ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1098,6 +1125,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/loja/$slug'
       preLoaderRoute: typeof LojaSlugRouteRouteImport
       parentRoute: typeof LojaRoute
+    }
+    '/pedido/$token': {
+      id: '/pedido/$token'
+      path: '/pedido/$token'
+      fullPath: '/pedido/$token'
+      preLoaderRoute: typeof PedidoTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/preview/': {
       id: '/preview/'
@@ -1491,6 +1525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontSlugPrecoRouteImport
       parentRoute: typeof ApiPublicStorefrontSlugRoute
     }
+    '/api/public/storefront/pedido/status': {
+      id: '/api/public/storefront/pedido/status'
+      path: '/api/public/storefront/pedido/status'
+      fullPath: '/api/public/storefront/pedido/status'
+      preLoaderRoute: typeof ApiPublicStorefrontPedidoStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/loja/cardapio/produtos/': {
       id: '/app/loja/cardapio/produtos/'
       path: '/produtos'
@@ -1818,7 +1859,9 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
+  PedidoTokenRoute: PedidoTokenRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
+  ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
