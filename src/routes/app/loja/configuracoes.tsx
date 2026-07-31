@@ -49,7 +49,7 @@ function ConfiguracoesLayout() {
 
   if (selectionRequired) {
     return (
-      <main className="mx-auto w-full max-w-2xl px-4 py-10">
+      <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <h1 className="text-xl font-semibold text-foreground">Escolha a loja</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Sua conta tem acesso a mais de uma loja. Selecione qual deseja configurar.

@@ -73,7 +73,7 @@ function AdminLayout() {
 
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 border-b border-border bg-surface">
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="iconTouch" className="lg:hidden" aria-label="Abrir menu">
@@ -97,7 +97,7 @@ function AdminLayout() {
             </div>
           </header>
 
-          <main className="px-4 py-6">
+          <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <Outlet />
           </main>
         </div>

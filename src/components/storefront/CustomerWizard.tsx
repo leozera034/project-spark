@@ -43,7 +43,7 @@ function StepShell({
 
   return (
     <section className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
-      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8">
+      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8 sm:max-w-lg sm:px-6 sm:pt-12">
         {progress ? (
           <p
             className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft-foreground"
@@ -56,7 +56,7 @@ function StepShell({
           id="wizard-title"
           ref={headingRef}
           tabIndex={-1}
-          className="mt-3 text-[28px] font-semibold leading-tight tracking-tight outline-none rise-in"
+          className="mt-3 text-[26px] font-semibold leading-tight sm:text-3xl tracking-tight outline-none rise-in"
         >
           {title}
         </h1>
@@ -67,7 +67,7 @@ function StepShell({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex max-w-md gap-3">
+        <div className="mx-auto flex w-full max-w-md gap-3 sm:max-w-lg">
           {onBack ? (
             <Button
               variant="outline"

@@ -88,7 +88,7 @@ function StorefrontPage() {
         )}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
 
-        <div className="relative mx-auto max-w-3xl px-4">
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <div className="-mt-12 flex items-end gap-4 rise-in">
             {settings.logo_url ? (
               <img
@@ -192,7 +192,7 @@ function StorefrontPage() {
       </div>
 
 
-      <div className="mx-auto max-w-3xl px-4">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
           <div className="panel mt-8 px-6 py-16 text-center">
             <ShoppingBag className="mx-auto size-8 text-muted-foreground" />
