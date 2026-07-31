@@ -735,40 +735,61 @@ export type Database = {
       option_groups: {
         Row: {
           allow_quantity: boolean
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          is_active: boolean
+          is_archived: boolean
           is_required: boolean
           max_selections: number
           min_selections: number
           name: string
+          portion_count: number | null
+          price_effect: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type: Database["public"]["Enums"]["option_selection_type"]
+          sort_order: number
           store_id: string
           updated_at: string
         }
         Insert: {
           allow_quantity?: boolean
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean
           max_selections?: number
           min_selections?: number
           name: string
+          portion_count?: number | null
+          price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
+          sort_order?: number
           store_id: string
           updated_at?: string
         }
         Update: {
           allow_quantity?: boolean
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean
           max_selections?: number
           min_selections?: number
           name?: string
+          portion_count?: number | null
+          price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
+          sort_order?: number
           store_id?: string
           updated_at?: string
         }
@@ -785,9 +806,11 @@ export type Database = {
       option_items: {
         Row: {
           additional_price: number
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          is_archived: boolean
           is_available: boolean
           max_quantity: number
           name: string
@@ -798,9 +821,11 @@ export type Database = {
         }
         Insert: {
           additional_price?: number
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           max_quantity?: number
           name: string
@@ -811,9 +836,11 @@ export type Database = {
         }
         Update: {
           additional_price?: number
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           max_quantity?: number
           name?: string
@@ -1302,8 +1329,11 @@ export type Database = {
       }
       product_option_groups: {
         Row: {
+          archived_at: string | null
           created_at: string
           id: string
+          is_active: boolean
+          is_archived: boolean
           is_required: boolean | null
           max_selections: number | null
           min_selections: number | null
@@ -1314,8 +1344,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean | null
           max_selections?: number | null
           min_selections?: number | null
@@ -1326,8 +1359,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean | null
           max_selections?: number | null
           min_selections?: number | null
@@ -1361,13 +1397,79 @@ export type Database = {
           },
         ]
       }
-      product_variants: {
+      product_variant_option_item_prices: {
         Row: {
           created_at: string
           id: string
+          option_item_id: string
+          price: number
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_item_id: string
+          price: number
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_item_id?: string
+          price?: number
+          product_id?: string
+          product_variant_id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvoip_item_fk"
+            columns: ["option_item_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "option_items"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvoip_product_fk"
+            columns: ["product_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvoip_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvoip_variant_fk"
+            columns: ["product_variant_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id", "store_id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          is_archived: boolean
           is_available: boolean
           is_default: boolean
           name: string
+          package_quantity: number | null
+          package_unit: Database["public"]["Enums"]["measurement_unit"] | null
           price: number
           product_id: string
           sku: string | null
@@ -1376,11 +1478,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
           name: string
+          package_quantity?: number | null
+          package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
           price: number
           product_id: string
           sku?: string | null
@@ -1389,11 +1495,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
           name?: string
+          package_quantity?: number | null
+          package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
           price?: number
           product_id?: string
           sku?: string | null
@@ -1438,10 +1548,12 @@ export type Database = {
           is_featured: boolean
           is_sold_out: boolean
           max_quantity: number | null
+          measurement_unit: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity: number
           name: string
           pricing_unit: Database["public"]["Enums"]["pricing_unit"]
           quantity_step: number
+          sale_mode: Database["public"]["Enums"]["product_sale_mode"]
           sort_order: number
           store_id: string
           unit_label: string | null
@@ -1466,10 +1578,12 @@ export type Database = {
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
           quantity_step?: number
+          sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
           store_id: string
           unit_label?: string | null
@@ -1494,10 +1608,12 @@ export type Database = {
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name?: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
           quantity_step?: number
+          sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
           store_id?: string
           unit_label?: string | null
