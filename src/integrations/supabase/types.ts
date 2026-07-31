@@ -1961,6 +1961,10 @@ export type Database = {
       }
     }
     Functions: {
+      archive_store_neighborhood: {
+        Args: { _archived: boolean; _id: string; _store_id: string }
+        Returns: Json
+      }
       authorize_courier_reset: {
         Args: { _actor_user_id: string; _courier_id: string }
         Returns: {
@@ -1969,6 +1973,14 @@ export type Database = {
           store_id: string
         }[]
       }
+      check_store_slug_availability: {
+        Args: { _slug: string; _store_id: string }
+        Returns: Json
+      }
+      clear_store_asset: {
+        Args: { _slot: string; _store_id: string }
+        Returns: Json
+      }
       complete_my_initial_password_change: { Args: never; Returns: boolean }
       courier_completed_deliveries_count: {
         Args: { _courier_id: string; _store_id: string }
@@ -1976,8 +1988,111 @@ export type Database = {
       }
       get_my_auth_context: { Args: never; Returns: Json }
       get_my_authorization_context: { Args: never; Returns: Json }
+      get_my_store_configuration: {
+        Args: { _store_id?: string }
+        Returns: Json
+      }
+      get_store_operational_preview: {
+        Args: { _store_id?: string }
+        Returns: Json
+      }
+      list_my_stores: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      reorder_store_neighborhoods: {
+        Args: { _ids: string[]; _store_id: string }
+        Returns: Json
+      }
+      reorder_store_payment_methods: {
+        Args: { _ids: string[]; _store_id: string }
+        Returns: Json
+      }
+      replace_store_hours: {
+        Args: { _expected_updated_at?: string; _hours: Json; _store_id: string }
+        Returns: Json
+      }
+      update_store_payment_method: {
+        Args: {
+          _available_for_delivery: boolean
+          _available_for_pickup: boolean
+          _id: string
+          _instructions: string
+          _is_active: boolean
+          _label: string
+          _needs_change: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_store_profile: {
+        Args: {
+          _closed_message: string
+          _description: string
+          _document: string
+          _email: string
+          _expected_updated_at?: string
+          _legal_name: string
+          _name: string
+          _phone: string
+          _store_id: string
+          _timezone: string
+          _welcome_message: string
+          _whatsapp: string
+        }
+        Returns: Json
+      }
+      update_store_service_settings: {
+        Args: {
+          _accepts_delivery: boolean
+          _accepts_pickup: boolean
+          _auto_open_by_hours: boolean
+          _default_prep_minutes: number
+          _expected_updated_at?: string
+          _min_order_amount: number
+          _sound_alert_enabled: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_store_slug: {
+        Args: {
+          _expected_updated_at?: string
+          _slug: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_store_theme: {
+        Args: {
+          _brand_accent: string
+          _brand_primary: string
+          _cover_path?: string
+          _expected_updated_at?: string
+          _logo_path?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      upsert_store_neighborhood: {
+        Args: {
+          _delivery_fee: number
+          _eta_minutes: number
+          _id: string
+          _is_active: boolean
+          _min_order_amount: number
+          _name: string
+          _notes: string
+          _store_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_permission:
