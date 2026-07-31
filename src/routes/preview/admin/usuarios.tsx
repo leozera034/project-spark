@@ -6,7 +6,55 @@ import { SectionTitle } from "@/components/demo/States";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { demoAdminUsers } from "@/demo/data/demoUsers";
+import type { DemoAdminUser } from "@/demo/types/demo";
+
+const demoAdminUsers: DemoAdminUser[] = [
+  {
+    id: "au-1",
+    name: "Rita Aurora",
+    environment: "loja",
+    storeName: "Mercado Aurora",
+    role: "Proprietária",
+    active: true,
+    lastAccess: "hoje, 11:40",
+  },
+  {
+    id: "au-2",
+    name: "Caio Menezes",
+    environment: "loja",
+    storeName: "Mercado Aurora",
+    role: "Atendente",
+    active: true,
+    lastAccess: "hoje, 10:12",
+  },
+  {
+    id: "au-3",
+    name: "Dan Oliveira",
+    environment: "entregador",
+    storeName: "Mercado Aurora",
+    role: "Entregador",
+    active: true,
+    lastAccess: "hoje, 11:05",
+  },
+  {
+    id: "au-4",
+    name: "Vera Lopes",
+    environment: "loja",
+    storeName: "Padaria Estrela",
+    role: "Gerente",
+    active: false,
+    lastAccess: "ontem, 18:22",
+  },
+  {
+    id: "au-5",
+    name: "Equipe Pediu Aqui",
+    environment: "administrador",
+    storeName: "Plataforma",
+    role: "Administração",
+    active: true,
+    lastAccess: "hoje, 09:00",
+  },
+];
 import { demoHead } from "@/demo/utils/head";
 
 export const Route = createFileRoute("/preview/admin/usuarios")({
