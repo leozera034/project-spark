@@ -8,7 +8,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   component: Index,
-  head: () => ({
+  loader: async () => ({ origin: await getSiteOrigin() }),
+  head: ({ loaderData }) => {
+    const origin = loaderData?.origin ?? "";
+    const ogImage = absoluteUrl(origin, OG_IMAGE_PATH);
+    const canonical = absoluteUrl(origin, "/");
+    return {
+
     meta: [
       { title: "Pediu Aqui — cardápio digital e pedidos para o comércio de bairro" },
       {
