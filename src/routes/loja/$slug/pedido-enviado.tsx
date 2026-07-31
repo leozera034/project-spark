@@ -133,17 +133,9 @@ function OrderSentPage() {
       </div>
 
       {order.trackingToken ? (
-        <Button asChild className="mt-6 w-full">
-          <Link to="/pedido/$token" params={{ token: order.trackingToken }}>
-            Acompanhar pedido
-          </Link>
-        </Button>
+        <TrackingLinkActions slug={slug} token={order.trackingToken} />
       ) : null}
 
-      <p className="mt-4 text-xs text-muted-foreground">
-        Guarde o link de acompanhamento: ele mostra a situação do pedido sem precisar de conta ou
-        senha.
-      </p>
 
       <Button asChild variant="outline" className="mt-3 w-full">
         <Link to="/loja/$slug" params={{ slug }}>
