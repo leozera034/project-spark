@@ -283,6 +283,17 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* midia fluida: nunca estoura o container */
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+    height: auto;
   }
 
   body {
@@ -292,6 +303,18 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-wrap: break-word;
+  }
+
+  /* alvos de toque confortaveis em telas sensiveis */
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    a[href],
+    summary,
+    label[for] {
+      touch-action: manipulation;
+    }
   }
 
   h1,
@@ -367,3 +390,32 @@
   }
 }
 
+/* --- trilhos horizontais (categorias, filtros) --- */
+@utility rail {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@utility rail-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- padding lateral progressivo --- */
+@utility page-x {
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
