@@ -9,7 +9,7 @@ import { useDemo } from "@/demo/state/useDemo";
 import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/endereco/")({
+export const Route = createFileRoute("/preview/cliente/endereco/")({
   head: demoHead(
     "Confirmar endereço — Mercado Aurora",
     "Confirme, edite ou troque o endereço de entrega antes de escolher os produtos.",
@@ -27,7 +27,7 @@ function AddressConfirmation() {
     <div className="flex min-h-screen flex-col">
       <StoreStepHeader
         title="Endereço de entrega"
-        backTo="/loja/mercado-aurora/modalidade"
+        backTo="/preview/cliente/modalidade"
         step={3}
         totalSteps={4}
       />
@@ -63,13 +63,13 @@ function AddressConfirmation() {
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <Button asChild variant="outline" size="touch" className="w-full">
-            <Link to="/loja/mercado-aurora/endereco/novo">Editar este endereço</Link>
+            <Link to="/preview/cliente/endereco/novo">Editar este endereço</Link>
           </Button>
           <Button asChild variant="outline" size="touch" className="w-full">
-            <Link to="/loja/mercado-aurora/endereco/novo">Escolher outro endereço</Link>
+            <Link to="/preview/cliente/endereco/novo">Escolher outro endereço</Link>
           </Button>
           <Button asChild variant="outline" size="touch" className="w-full">
-            <Link to="/loja/mercado-aurora/endereco/novo">Cadastrar novo endereço</Link>
+            <Link to="/preview/cliente/endereco/novo">Cadastrar novo endereço</Link>
           </Button>
           <Button
             variant="ghost"
@@ -78,7 +78,7 @@ function AddressConfirmation() {
             onClick={() => {
               updateCustomer({ fulfillment: "retirada", address: null, addressConfirmed: false });
               toast.info("Modalidade alterada para retirada na loja.");
-              void navigate({ to: "/loja/mercado-aurora/cardapio" });
+              void navigate({ to: "/preview/cliente/cardapio" });
             }}
           >
             Alterar para retirada
@@ -94,7 +94,7 @@ function AddressConfirmation() {
           className="h-13 w-full text-base"
           onClick={() => {
             updateCustomer({ address, addressConfirmed: true });
-            void navigate({ to: "/loja/mercado-aurora/cardapio" });
+            void navigate({ to: "/preview/cliente/cardapio" });
           }}
         >
           Confirmar endereço

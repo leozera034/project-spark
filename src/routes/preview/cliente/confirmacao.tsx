@@ -8,7 +8,7 @@ import { useDemo } from "@/demo/state/useDemo";
 import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/confirmacao")({
+export const Route = createFileRoute("/preview/cliente/confirmacao")({
   head: demoHead(
     "Pedido recebido — Mercado Aurora",
     "Confirmação do pedido com número, previsão e resumo dos itens.",
@@ -83,7 +83,7 @@ function Confirmation() {
         </section>
 
         <Button asChild size="touch" variant="brand" className="mt-5 h-13 w-full text-base">
-          <Link to="/loja/mercado-aurora/acompanhamento">Acompanhar pedido</Link>
+          <Link to="/preview/cliente/acompanhamento">Acompanhar pedido</Link>
         </Button>
         <StoreFooter />
       </StorePage>

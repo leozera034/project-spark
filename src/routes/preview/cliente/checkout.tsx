@@ -12,7 +12,7 @@ import type { PaymentMethod } from "@/demo/types/demo";
 import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/checkout")({
+export const Route = createFileRoute("/preview/cliente/checkout")({
   head: demoHead(
     "Checkout — Mercado Aurora",
     "Revise a entrega, escolha a forma de pagamento e confirme o pedido.",
@@ -43,7 +43,7 @@ function Checkout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <StoreStepHeader title="Finalizar pedido" backTo="/loja/mercado-aurora/carrinho" step={4} totalSteps={4} />
+      <StoreStepHeader title="Finalizar pedido" backTo="/preview/cliente/carrinho" step={4} totalSteps={4} />
       <StorePage className="flex-1">
         <section className="rounded-xl border border-border bg-surface p-4">
           <h2 className="text-base font-semibold text-foreground">Seus dados</h2>
@@ -160,7 +160,7 @@ function Checkout() {
           disabled={!customer.paymentMethod || customer.cart.length === 0}
           onClick={() => {
             placeOrder();
-            void navigate({ to: "/loja/mercado-aurora/confirmacao" });
+            void navigate({ to: "/preview/cliente/confirmacao" });
           }}
         >
           Confirmar pedido

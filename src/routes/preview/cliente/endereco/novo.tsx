@@ -11,7 +11,7 @@ import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 import type { DemoAddress } from "@/demo/types/demo";
 
-export const Route = createFileRoute("/loja/mercado-aurora/endereco/novo")({
+export const Route = createFileRoute("/preview/cliente/endereco/novo")({
   head: demoHead(
     "Novo endereço — Mercado Aurora",
     "Cadastro de endereço em etapas simples, uma decisão por tela.",
@@ -58,14 +58,14 @@ function NewAddress() {
       },
       addressConfirmed: true,
     });
-    void navigate({ to: "/loja/mercado-aurora/cardapio" });
+    void navigate({ to: "/preview/cliente/cardapio" });
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       <StoreStepHeader
         title="Novo endereço"
-        backTo="/loja/mercado-aurora/endereco"
+        backTo="/preview/cliente/endereco"
         step={step}
         totalSteps={TOTAL}
       />
@@ -258,7 +258,7 @@ function NewAddress() {
             className="h-13"
             onClick={() => {
               if (step === 1) {
-                void navigate({ to: "/loja/mercado-aurora/endereco" });
+                void navigate({ to: "/preview/cliente/endereco" });
               } else {
                 setStep((current) => current - 1);
               }

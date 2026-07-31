@@ -13,7 +13,7 @@ import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 import type { DemoProduct } from "@/demo/types/demo";
 
-export const Route = createFileRoute("/loja/mercado-aurora/cardapio")({
+export const Route = createFileRoute("/preview/cliente/cardapio")({
   head: demoHead(
     "Cardápio — Mercado Aurora",
     "Padaria, refeições, bebidas, mercearia e sobremesas do Mercado Aurora.",
@@ -73,7 +73,7 @@ function Menu() {
             </p>
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link to="/loja/mercado-aurora">Início</Link>
+            <Link to="/preview/cliente">Início</Link>
           </Button>
         </div>
 
@@ -184,7 +184,7 @@ function Menu() {
       {cartCount > 0 ? (
         <StickyAction>
           <Button asChild size="touch" variant="brand" className="h-13 w-full justify-between text-base">
-            <Link to="/loja/mercado-aurora/carrinho">
+            <Link to="/preview/cliente/carrinho">
               <span className="flex items-center gap-2">
                 <ShoppingBag aria-hidden="true" />
                 Ver carrinho · {cartCount}

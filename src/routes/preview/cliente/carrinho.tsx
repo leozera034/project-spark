@@ -9,7 +9,7 @@ import { useDemo } from "@/demo/state/useDemo";
 import { formatBRL } from "@/demo/utils/format";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/carrinho")({
+export const Route = createFileRoute("/preview/cliente/carrinho")({
   head: demoHead(
     "Carrinho — Mercado Aurora",
     "Revise os itens, as observações e o total antes de finalizar o pedido.",
@@ -29,7 +29,7 @@ function Cart() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <StoreStepHeader title="Seu carrinho" backTo="/loja/mercado-aurora/cardapio" />
+      <StoreStepHeader title="Seu carrinho" backTo="/preview/cliente/cardapio" />
       <StorePage className="flex-1">
         {customer.cart.length === 0 ? (
           <EmptyState
@@ -122,7 +122,7 @@ function Cart() {
             ) : null}
 
             <Button asChild variant="ghost" size="touch" className="mt-4 w-full">
-              <Link to="/loja/mercado-aurora/cardapio">Continuar comprando</Link>
+              <Link to="/preview/cliente/cardapio">Continuar comprando</Link>
             </Button>
           </>
         )}
@@ -141,7 +141,7 @@ function Cart() {
             {belowMinimum ? (
               <span>Pedido mínimo não atingido</span>
             ) : (
-              <Link to="/loja/mercado-aurora/checkout">Continuar para o checkout</Link>
+              <Link to="/preview/cliente/checkout">Continuar para o checkout</Link>
             )}
           </Button>
         </StickyAction>
