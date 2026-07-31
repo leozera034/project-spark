@@ -45,10 +45,8 @@ export async function fetchOrders(
   storeId: string | null,
   filters: OrderListFilters,
 ): Promise<{ orders: StoreOrderListItem[]; nextCursor: { createdAt: string; id: string } | null }> {
-  const payload = unwrap<{
-    orders?: StoreOrderListItem[];
-    nextCursor?: { createdAt: string; id: string } | null;
-  }>(
+  const limit = filters.limit ?? 30;
+  const payload = unwrap<{ orders?: StoreOrderListItem[] }>(
     await rpc("list_my_store_orders", {
       _store_id: storeId,
       _statuses: filters.statuses ?? null,
@@ -57,13 +55,21 @@ export async function fetchOrders(
       _delayed_only: filters.delayedOnly ?? false,
       _from: filters.from ?? null,
       _to: filters.to ?? null,
-      _limit: filters.limit ?? 30,
+      _limit: limit,
       _cursor: filters.cursor?.createdAt ?? null,
       _cursor_id: filters.cursor?.id ?? null,
     }),
   );
-  return { orders: payload.orders ?? [], nextCursor: payload.nextCursor ?? null };
+  const orders = payload.orders ?? [];
+  // O servidor devolve no máximo `limit` linhas ordenadas por data desc:
+  // a página seguinte parte da última linha recebida.
+  const last = orders.length === limit ? orders[orders.length - 1] : null;
+  return {
+    orders,
+    nextCursor: last ? { createdAt: last.createdAt, id: last.id } : null,
+  };
 }
+
 
 export async function fetchOrderDetail(
   storeId: string | null,
