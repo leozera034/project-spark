@@ -10,17 +10,17 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Pediu Aqui — cardápio digital e pedidos para o comércio local" },
+      { title: "Pediu Aqui — cardápio digital e pedidos para o comércio de bairro" },
       {
         name: "description",
         content:
-          "Pediu Aqui é a plataforma de cardápio digital, pedidos e entregas para o comércio local. Cada loja com seu próprio espaço, seus produtos e seus entregadores.",
+          "Cardápio digital, pedidos e entregas no seu próprio nome. Seus clientes pedem em poucos toques, sem app e sem cadastro — e cada venda continua sendo sua, do começo ao fim.",
       },
-      { property: "og:title", content: "Pediu Aqui — cardápio digital e pedidos" },
+      { property: "og:title", content: "Pediu Aqui — venda mais no seu próprio cardápio digital" },
       {
         property: "og:description",
         content:
-          "Cardápio digital, pedidos e entregas para o comércio local, com isolamento total por loja.",
+          "Monte seu cardápio digital, receba pedidos pelo WhatsApp do bairro e organize suas entregas em um só lugar.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,16 +30,16 @@ export const Route = createFileRoute("/")({
 
 const pillars = [
   {
-    title: "Cardápio digital próprio",
-    text: "Cada loja tem seu endereço, seus produtos, suas variações e suas regras de entrega.",
+    title: "Sua loja, seu nome, suas regras",
+    text: "Você recebe um endereço só seu, com sua marca, seus produtos e suas taxas. Nada de disputar espaço com concorrente na mesma vitrine.",
   },
   {
-    title: "Pedido sem cadastro",
-    text: "O cliente informa apenas o primeiro nome e o telefone. Sem senha, sem e-mail, sem atrito.",
+    title: "Menos desistência no meio do caminho",
+    text: "O cliente pede com o primeiro nome e o telefone. Sem app, sem senha, sem e-mail: menos passos até o pedido cair para você.",
   },
   {
-    title: "Entrega da propria loja",
-    text: "Os entregadores pertencem à loja e enxergam somente as entregas dela.",
+    title: "Entrega no seu controle",
+    text: "Seus entregadores são seus. Cada um enxerga apenas as entregas da sua loja e você acompanha tudo em tempo real, do aceite à porta do cliente.",
   },
 ];
 
@@ -62,25 +62,26 @@ function Index() {
         <section className="bg-carbon text-carbon-foreground">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
             <Reveal as="span" className="inline-block">
-              <Badge variant="brand">Fase 02 · identidade visual</Badge>
+              <Badge variant="brand">Feito para o comércio de bairro</Badge>
             </Reveal>
             <Reveal
               as="h1"
               delay={80}
               className="mt-6 max-w-3xl text-[clamp(2rem,7vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight"
             >
-              O pedido do bairro, organizado de ponta a ponta.
+              Seu cardápio online, seus pedidos, seus clientes.
             </Reveal>
             <Reveal as="p" delay={160} className="mt-6 max-w-2xl text-base opacity-80 sm:text-lg">
-              Pediu Aqui é a plataforma de cardápio digital, pedidos e entregas do comércio local.
-              Cada loja opera isolada, com seus produtos, seus clientes e seus entregadores.
+              Chega de anotar pedido no papel e perder venda por mensagem sem resposta. No Pediu
+              Aqui você monta o cardápio, recebe os pedidos organizados e entrega com a sua própria
+              equipe — sem comissão sobre a sua clientela.
             </Reveal>
             <Reveal
               delay={240}
               className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap"
             >
               <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
-                <Link to="/design-system">Ver o design system</Link>
+                <Link to="/design-system">Quero minha loja online</Link>
               </Button>
             </Reveal>
           </div>
@@ -110,7 +111,9 @@ function Index() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
           <BrandLogo className="h-6 opacity-70" />
-          <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comércio local</p>
+          <p className="text-xs text-muted-foreground">
+            Pediu Aqui · a plataforma de pedidos do comércio de bairro
+          </p>
         </div>
       </footer>
     </div>
