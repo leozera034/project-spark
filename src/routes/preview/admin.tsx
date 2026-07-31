@@ -15,6 +15,7 @@ import { BrandSymbol } from "@/components/brand/BrandLogo";
 import { BackToPreview, DemoBanner } from "@/components/demo/DemoBanner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/preview/admin")({
   component: AdminLayout,
@@ -90,10 +91,11 @@ function AdminLayout() {
                   <BackToPreview className="mt-4 justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground" />
                 </SheetContent>
               </Sheet>
-              <div>
-                <p className="text-base font-semibold text-foreground">Painel administrativo</p>
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-foreground">Painel administrativo</p>
                 <p className="text-xs text-muted-foreground">Ambiente fictício · acesso interno</p>
               </div>
+              <ThemeToggle className="ml-auto" />
             </div>
           </header>
 

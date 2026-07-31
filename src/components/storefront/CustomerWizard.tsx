@@ -16,6 +16,7 @@ import { WIZARD_MESSAGES } from "@/storefront/customer/customer-wizard.errors";
 import { isAddressStep, nextAddressStep, progressLabel } from "@/storefront/customer/customer-wizard.machine";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/customer-wizard.types";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const PRIMARY =
   "tappable h-13 min-h-[52px] w-full rounded-xl text-base shadow-e1 active:scale-[0.99]";
@@ -44,6 +45,9 @@ function StepShell({
   return (
     <section className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
       <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8 sm:max-w-lg sm:px-6 sm:pt-12">
+        <div className="mb-4 flex justify-end">
+          <ThemeToggle />
+        </div>
         {progress ? (
           <p
             className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft-foreground"

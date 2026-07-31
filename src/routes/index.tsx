@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -47,9 +48,12 @@ function Index() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <BrandLogo className="h-7 sm:h-8" />
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/design-system">Design system</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/design-system">Design system</Link>
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -90,7 +94,7 @@ function Index() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
-          <BrandLogo tone="monochrome" className="h-6 opacity-70" />
+          <BrandLogo className="h-6 opacity-70" />
           <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comércio local</p>
         </div>
       </footer>

@@ -6,6 +6,7 @@ import { BackToPreview, DemoBanner } from "@/components/demo/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useDemo } from "@/demo/state/useDemo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/preview/entregador")({
   component: CourierLayout,
@@ -26,12 +27,13 @@ function CourierLayout() {
       <DemoBanner />
       <header className="sticky top-0 z-20 border-b border-border bg-surface">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
-          <BrandSymbol tone="carbon-teal" className="size-8" />
+          <BrandSymbol className="size-8" />
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-foreground">{courier?.name}</p>
             <p className="text-xs text-muted-foreground">{courier?.vehicle} · Mercado Aurora</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <Badge variant={courierOnline ? "success" : "secondary"}>
               {courierOnline ? "Online" : "Offline"}
             </Badge>

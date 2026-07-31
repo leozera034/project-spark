@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useDemo } from "@/demo/state/useDemo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/preview/loja")({
   component: StorePanelLayout,
@@ -106,6 +107,7 @@ function StorePanelLayout() {
               </Badge>
 
               <div className="ml-auto flex items-center gap-2">
+                <ThemeToggle />
                 <Button variant="outline" size="sm" onClick={toggleStoreOpen}>
                   {storeOpen ? "Fechar loja" : "Abrir loja"}
                 </Button>

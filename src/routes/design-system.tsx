@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/design-system")({
   component: DesignSystemPage,
@@ -130,7 +131,11 @@ function DesignSystemPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <BrandLogo className="h-7 sm:h-8" />
-          <Badge variant="brandSoft">Fase 02</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="brandSoft">Fase 02</Badge>
+            <ThemeToggle variant="segmented" className="hidden sm:inline-flex" />
+            <ThemeToggle className="sm:hidden" />
+          </div>
         </div>
       </header>
 
@@ -161,10 +166,10 @@ function DesignSystemPage() {
               >
                 <div
                   className={`flex h-32 items-center justify-center px-6 ${
-                    asset.dark ? "bg-carbon" : "bg-surface-muted"
+                    asset.dark ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                   }`}
                 >
-                  <img src={asset.src} alt={asset.label} className="max-h-16 w-auto max-w-full" />
+                  <img src={asset.src} alt={asset.label} data-no-dim className="max-h-16 w-auto max-w-full" />
                 </div>
                 <div className="p-3">
                   <p className="text-sm font-medium">{asset.label}</p>
@@ -181,7 +186,7 @@ function DesignSystemPage() {
               <div
                 key={tone}
                 className={`flex h-28 items-center justify-center rounded-xl border border-border ${
-                  tone === "white" ? "bg-carbon" : "bg-surface-muted"
+                  tone === "white" ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                 }`}
               >
                 <BrandSymbol tone={tone} className="size-16" />

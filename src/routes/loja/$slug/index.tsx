@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
@@ -87,6 +88,8 @@ function StorefrontPage() {
           />
         )}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
+
+        <ThemeToggle className="absolute right-4 top-4 z-10 border-transparent bg-background/70 backdrop-blur sm:right-6" />
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <div className="-mt-12 flex min-w-0 items-end gap-4 rise-in">
