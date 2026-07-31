@@ -281,6 +281,34 @@
     border-color: var(--color-border);
   }
 
+  /* transicao suave apenas durante a troca de tema */
+  html[data-theme-transition],
+  html[data-theme-transition] *,
+  html[data-theme-transition] *::before,
+  html[data-theme-transition] *::after {
+    transition:
+      background-color 240ms ease,
+      border-color 240ms ease,
+      color 240ms ease,
+      fill 240ms ease,
+      stroke 240ms ease,
+      box-shadow 240ms ease !important;
+    transition-delay: 0ms !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-theme-transition],
+    html[data-theme-transition] * {
+      transition: none !important;
+    }
+  }
+
+  /* imagens e midia ficam levemente suavizadas no escuro para nao ofuscar */
+  .dark img:not([data-no-dim]),
+  .dark video:not([data-no-dim]) {
+    filter: brightness(0.92) contrast(1.02);
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
