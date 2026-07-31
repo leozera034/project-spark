@@ -19,6 +19,7 @@ import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercad
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
+import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -73,6 +74,12 @@ const LojaMercadoAuroraEnderecoIndexRoute =
     path: '/endereco/',
     getParentRoute: () => LojaMercadoAuroraRoute,
   } as any)
+const LojaMercadoAuroraEnderecoNovoRoute =
+  LojaMercadoAuroraEnderecoNovoRouteImport.update({
+    id: '/endereco/novo',
+    path: '/endereco/novo',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -94,6 +102,7 @@ export interface FileRoutesByTo {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/loja/mercado-aurora/endereco': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesById {
@@ -107,6 +116,7 @@ export interface FileRoutesById {
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRouteTypes {
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
+    | '/loja/mercado-aurora/endereco/novo'
     | '/loja/mercado-aurora/endereco/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora'
+    | '/loja/mercado-aurora/endereco/novo'
     | '/loja/mercado-aurora/endereco'
   id:
     | '__root__'
@@ -143,6 +155,7 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
+    | '/loja/mercado-aurora/endereco/novo'
     | '/loja/mercado-aurora/endereco/'
   fileRoutesById: FileRoutesById
 }
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaMercadoAuroraEnderecoIndexRouteImport
       parentRoute: typeof LojaMercadoAuroraRoute
     }
+    '/loja/mercado-aurora/endereco/novo': {
+      id: '/loja/mercado-aurora/endereco/novo'
+      path: '/endereco/novo'
+      fullPath: '/loja/mercado-aurora/endereco/novo'
+      preLoaderRoute: typeof LojaMercadoAuroraEnderecoNovoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
   }
 }
 
@@ -232,6 +252,7 @@ interface LojaMercadoAuroraRouteChildren {
   LojaMercadoAuroraIdentificacaoRoute: typeof LojaMercadoAuroraIdentificacaoRoute
   LojaMercadoAuroraModalidadeRoute: typeof LojaMercadoAuroraModalidadeRoute
   LojaMercadoAuroraIndexRoute: typeof LojaMercadoAuroraIndexRoute
+  LojaMercadoAuroraEnderecoNovoRoute: typeof LojaMercadoAuroraEnderecoNovoRoute
   LojaMercadoAuroraEnderecoIndexRoute: typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 
@@ -239,6 +260,7 @@ const LojaMercadoAuroraRouteChildren: LojaMercadoAuroraRouteChildren = {
   LojaMercadoAuroraIdentificacaoRoute: LojaMercadoAuroraIdentificacaoRoute,
   LojaMercadoAuroraModalidadeRoute: LojaMercadoAuroraModalidadeRoute,
   LojaMercadoAuroraIndexRoute: LojaMercadoAuroraIndexRoute,
+  LojaMercadoAuroraEnderecoNovoRoute: LojaMercadoAuroraEnderecoNovoRoute,
   LojaMercadoAuroraEnderecoIndexRoute: LojaMercadoAuroraEnderecoIndexRoute,
 }
 
