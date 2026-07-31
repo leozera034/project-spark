@@ -36,6 +36,7 @@ import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
+import { Route as AppLojaPedidosRouteImport } from './routes/app/loja/pedidos'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
@@ -225,6 +226,11 @@ const AppLojaCardapioRoute = AppLojaCardapioRouteImport.update({
 const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
   getParentRoute: () => AppLojaRoute,
 } as any)
 const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
@@ -556,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -629,6 +636,7 @@ export interface FileRoutesByTo {
   '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -714,6 +722,7 @@ export interface FileRoutesById {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -800,6 +809,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -873,6 +883,7 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/admin'
     | '/preview'
+    | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -957,6 +968,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -1226,6 +1238,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/app/loja/configuracoes'
       preLoaderRoute: typeof AppLojaConfiguracoesRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/pedidos': {
+      id: '/app/loja/pedidos'
+      path: '/pedidos'
+      fullPath: '/app/loja/pedidos'
+      preLoaderRoute: typeof AppLojaPedidosRouteImport
       parentRoute: typeof AppLojaRoute
     }
     '/loja/$slug/': {
@@ -1830,12 +1849,14 @@ const AppLojaConfiguracoesRouteWithChildren =
 interface AppLojaRouteChildren {
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
+  AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
 
 const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
+  AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
 }
 
