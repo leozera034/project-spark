@@ -11,6 +11,41 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as LojaRouteImport } from './routes/loja'
+import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
+import { Route as PreviewIndexRouteImport } from './routes/preview/index'
+import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
+import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
+import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
+import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
+import { Route as LojaMercadoAuroraAcompanhamentoRouteImport } from './routes/loja/mercado-aurora/acompanhamento'
+import { Route as LojaMercadoAuroraCardapioRouteImport } from './routes/loja/mercado-aurora/cardapio'
+import { Route as LojaMercadoAuroraCarrinhoRouteImport } from './routes/loja/mercado-aurora/carrinho'
+import { Route as LojaMercadoAuroraCheckoutRouteImport } from './routes/loja/mercado-aurora/checkout'
+import { Route as LojaMercadoAuroraConfirmacaoRouteImport } from './routes/loja/mercado-aurora/confirmacao'
+import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
+import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
+import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
+import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
+import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
+import { Route as PreviewAdminLojasRouteImport } from './routes/preview/admin/lojas'
+import { Route as PreviewAdminPlanosRouteImport } from './routes/preview/admin/planos'
+import { Route as PreviewAdminSuporteRouteImport } from './routes/preview/admin/suporte'
+import { Route as PreviewAdminUsuariosRouteImport } from './routes/preview/admin/usuarios'
+import { Route as PreviewEntregadorIndexRouteImport } from './routes/preview/entregador/index'
+import { Route as PreviewEntregadorHistoricoRouteImport } from './routes/preview/entregador/historico'
+import { Route as PreviewEntregadorRotaRouteImport } from './routes/preview/entregador/rota'
+import { Route as PreviewLojaIndexRouteImport } from './routes/preview/loja/index'
+import { Route as PreviewLojaCardapioRouteImport } from './routes/preview/loja/cardapio'
+import { Route as PreviewLojaConfiguracoesRouteImport } from './routes/preview/loja/configuracoes'
+import { Route as PreviewLojaCozinhaRouteImport } from './routes/preview/loja/cozinha'
+import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/loja/entregadores'
+import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
+import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
+import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
+import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
+import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +57,426 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
   path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LojaRoute = LojaRouteImport.update({
+  id: '/loja',
+  path: '/loja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRoute = PreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LojaMercadoAuroraRoute = LojaMercadoAuroraRouteImport.update({
+  id: '/mercado-aurora',
+  path: '/mercado-aurora',
+  getParentRoute: () => LojaRoute,
+} as any)
+const PreviewIndexRoute = PreviewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewAdminRoute = PreviewAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewEntregadorRoute = PreviewEntregadorRouteImport.update({
+  id: '/entregador',
+  path: '/entregador',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewLojaRoute = PreviewLojaRouteImport.update({
+  id: '/loja',
+  path: '/loja',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const LojaMercadoAuroraIndexRoute = LojaMercadoAuroraIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LojaMercadoAuroraRoute,
+} as any)
+const LojaMercadoAuroraAcompanhamentoRoute =
+  LojaMercadoAuroraAcompanhamentoRouteImport.update({
+    id: '/acompanhamento',
+    path: '/acompanhamento',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraCardapioRoute =
+  LojaMercadoAuroraCardapioRouteImport.update({
+    id: '/cardapio',
+    path: '/cardapio',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraCarrinhoRoute =
+  LojaMercadoAuroraCarrinhoRouteImport.update({
+    id: '/carrinho',
+    path: '/carrinho',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraCheckoutRoute =
+  LojaMercadoAuroraCheckoutRouteImport.update({
+    id: '/checkout',
+    path: '/checkout',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraConfirmacaoRoute =
+  LojaMercadoAuroraConfirmacaoRouteImport.update({
+    id: '/confirmacao',
+    path: '/confirmacao',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraIdentificacaoRoute =
+  LojaMercadoAuroraIdentificacaoRouteImport.update({
+    id: '/identificacao',
+    path: '/identificacao',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraModalidadeRoute =
+  LojaMercadoAuroraModalidadeRouteImport.update({
+    id: '/modalidade',
+    path: '/modalidade',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminAuditoriaRoute = PreviewAdminAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminCobrancasRoute = PreviewAdminCobrancasRouteImport.update({
+  id: '/cobrancas',
+  path: '/cobrancas',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminLojasRoute = PreviewAdminLojasRouteImport.update({
+  id: '/lojas',
+  path: '/lojas',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminPlanosRoute = PreviewAdminPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminSuporteRoute = PreviewAdminSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminUsuariosRoute = PreviewAdminUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewEntregadorIndexRoute = PreviewEntregadorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewEntregadorRoute,
+} as any)
+const PreviewEntregadorHistoricoRoute =
+  PreviewEntregadorHistoricoRouteImport.update({
+    id: '/historico',
+    path: '/historico',
+    getParentRoute: () => PreviewEntregadorRoute,
+  } as any)
+const PreviewEntregadorRotaRoute = PreviewEntregadorRotaRouteImport.update({
+  id: '/rota',
+  path: '/rota',
+  getParentRoute: () => PreviewEntregadorRoute,
+} as any)
+const PreviewLojaIndexRoute = PreviewLojaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaCardapioRoute = PreviewLojaCardapioRouteImport.update({
+  id: '/cardapio',
+  path: '/cardapio',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaConfiguracoesRoute =
+  PreviewLojaConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => PreviewLojaRoute,
+  } as any)
+const PreviewLojaCozinhaRoute = PreviewLojaCozinhaRouteImport.update({
+  id: '/cozinha',
+  path: '/cozinha',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaEntregadoresRoute = PreviewLojaEntregadoresRouteImport.update({
+  id: '/entregadores',
+  path: '/entregadores',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaEquipeRoute = PreviewLojaEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaPedidosRoute = PreviewLojaPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaRelatoriosRoute = PreviewLojaRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const LojaMercadoAuroraEnderecoIndexRoute =
+  LojaMercadoAuroraEnderecoIndexRouteImport.update({
+    id: '/endereco/',
+    path: '/endereco/',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraEnderecoNovoRoute =
+  LojaMercadoAuroraEnderecoNovoRouteImport.update({
+    id: '/endereco/novo',
+    path: '/endereco/novo',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
+  '/loja': typeof LojaRouteWithChildren
+  '/preview': typeof PreviewRouteWithChildren
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
+  '/preview/admin': typeof PreviewAdminRouteWithChildren
+  '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
+  '/preview/loja': typeof PreviewLojaRouteWithChildren
+  '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
+  '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
+  '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
+  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
+  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
+  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
+  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
+  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
+  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin/': typeof PreviewAdminIndexRoute
+  '/preview/entregador/': typeof PreviewEntregadorIndexRoute
+  '/preview/loja/': typeof PreviewLojaIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
+  '/loja': typeof LojaRouteWithChildren
+  '/preview': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
+  '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
+  '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
+  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
+  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
+  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
+  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
+  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
+  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin': typeof PreviewAdminIndexRoute
+  '/preview/entregador': typeof PreviewEntregadorIndexRoute
+  '/preview/loja': typeof PreviewLojaIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/loja/mercado-aurora/endereco': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
+  '/loja': typeof LojaRouteWithChildren
+  '/preview': typeof PreviewRouteWithChildren
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
+  '/preview/admin': typeof PreviewAdminRouteWithChildren
+  '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
+  '/preview/loja': typeof PreviewLojaRouteWithChildren
+  '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
+  '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
+  '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
+  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
+  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
+  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
+  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
+  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
+  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
+  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
+  '/preview/admin/': typeof PreviewAdminIndexRoute
+  '/preview/entregador/': typeof PreviewEntregadorIndexRoute
+  '/preview/loja/': typeof PreviewLojaIndexRoute
+  '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system'
+  fullPaths:
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora'
+    | '/preview/admin'
+    | '/preview/entregador'
+    | '/preview/loja'
+    | '/preview/'
+    | '/loja/mercado-aurora/acompanhamento'
+    | '/loja/mercado-aurora/cardapio'
+    | '/loja/mercado-aurora/carrinho'
+    | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
+    | '/preview/admin/lojas'
+    | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
+    | '/preview/entregador/historico'
+    | '/preview/entregador/rota'
+    | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
+    | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
+    | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
+    | '/loja/mercado-aurora/'
+    | '/preview/admin/'
+    | '/preview/entregador/'
+    | '/preview/loja/'
+    | '/loja/mercado-aurora/endereco/novo'
+    | '/loja/mercado-aurora/endereco/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design-system'
-  id: '__root__' | '/' | '/design-system'
+  to:
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora/acompanhamento'
+    | '/loja/mercado-aurora/cardapio'
+    | '/loja/mercado-aurora/carrinho'
+    | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
+    | '/preview/admin/lojas'
+    | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
+    | '/preview/entregador/historico'
+    | '/preview/entregador/rota'
+    | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
+    | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
+    | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
+    | '/loja/mercado-aurora'
+    | '/preview/admin'
+    | '/preview/entregador'
+    | '/preview/loja'
+    | '/loja/mercado-aurora/endereco/novo'
+    | '/loja/mercado-aurora/endereco'
+  id:
+    | '__root__'
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora'
+    | '/preview/admin'
+    | '/preview/entregador'
+    | '/preview/loja'
+    | '/preview/'
+    | '/loja/mercado-aurora/acompanhamento'
+    | '/loja/mercado-aurora/cardapio'
+    | '/loja/mercado-aurora/carrinho'
+    | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
+    | '/preview/admin/lojas'
+    | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
+    | '/preview/entregador/historico'
+    | '/preview/entregador/rota'
+    | '/preview/loja/cardapio'
+    | '/preview/loja/configuracoes'
+    | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
+    | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
+    | '/loja/mercado-aurora/'
+    | '/preview/admin/'
+    | '/preview/entregador/'
+    | '/preview/loja/'
+    | '/loja/mercado-aurora/endereco/novo'
+    | '/loja/mercado-aurora/endereco/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  LojaRoute: typeof LojaRouteWithChildren
+  PreviewRoute: typeof PreviewRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +495,380 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loja': {
+      id: '/loja'
+      path: '/loja'
+      fullPath: '/loja'
+      preLoaderRoute: typeof LojaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview': {
+      id: '/preview'
+      path: '/preview'
+      fullPath: '/preview'
+      preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loja/mercado-aurora': {
+      id: '/loja/mercado-aurora'
+      path: '/mercado-aurora'
+      fullPath: '/loja/mercado-aurora'
+      preLoaderRoute: typeof LojaMercadoAuroraRouteImport
+      parentRoute: typeof LojaRoute
+    }
+    '/preview/': {
+      id: '/preview/'
+      path: '/'
+      fullPath: '/preview/'
+      preLoaderRoute: typeof PreviewIndexRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/admin': {
+      id: '/preview/admin'
+      path: '/admin'
+      fullPath: '/preview/admin'
+      preLoaderRoute: typeof PreviewAdminRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/entregador': {
+      id: '/preview/entregador'
+      path: '/entregador'
+      fullPath: '/preview/entregador'
+      preLoaderRoute: typeof PreviewEntregadorRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/loja': {
+      id: '/preview/loja'
+      path: '/loja'
+      fullPath: '/preview/loja'
+      preLoaderRoute: typeof PreviewLojaRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/loja/mercado-aurora/': {
+      id: '/loja/mercado-aurora/'
+      path: '/'
+      fullPath: '/loja/mercado-aurora/'
+      preLoaderRoute: typeof LojaMercadoAuroraIndexRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/acompanhamento': {
+      id: '/loja/mercado-aurora/acompanhamento'
+      path: '/acompanhamento'
+      fullPath: '/loja/mercado-aurora/acompanhamento'
+      preLoaderRoute: typeof LojaMercadoAuroraAcompanhamentoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/cardapio': {
+      id: '/loja/mercado-aurora/cardapio'
+      path: '/cardapio'
+      fullPath: '/loja/mercado-aurora/cardapio'
+      preLoaderRoute: typeof LojaMercadoAuroraCardapioRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/carrinho': {
+      id: '/loja/mercado-aurora/carrinho'
+      path: '/carrinho'
+      fullPath: '/loja/mercado-aurora/carrinho'
+      preLoaderRoute: typeof LojaMercadoAuroraCarrinhoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/checkout': {
+      id: '/loja/mercado-aurora/checkout'
+      path: '/checkout'
+      fullPath: '/loja/mercado-aurora/checkout'
+      preLoaderRoute: typeof LojaMercadoAuroraCheckoutRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/confirmacao': {
+      id: '/loja/mercado-aurora/confirmacao'
+      path: '/confirmacao'
+      fullPath: '/loja/mercado-aurora/confirmacao'
+      preLoaderRoute: typeof LojaMercadoAuroraConfirmacaoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/identificacao': {
+      id: '/loja/mercado-aurora/identificacao'
+      path: '/identificacao'
+      fullPath: '/loja/mercado-aurora/identificacao'
+      preLoaderRoute: typeof LojaMercadoAuroraIdentificacaoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/modalidade': {
+      id: '/loja/mercado-aurora/modalidade'
+      path: '/modalidade'
+      fullPath: '/loja/mercado-aurora/modalidade'
+      preLoaderRoute: typeof LojaMercadoAuroraModalidadeRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/preview/admin/': {
+      id: '/preview/admin/'
+      path: '/'
+      fullPath: '/preview/admin/'
+      preLoaderRoute: typeof PreviewAdminIndexRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/auditoria': {
+      id: '/preview/admin/auditoria'
+      path: '/auditoria'
+      fullPath: '/preview/admin/auditoria'
+      preLoaderRoute: typeof PreviewAdminAuditoriaRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/cobrancas': {
+      id: '/preview/admin/cobrancas'
+      path: '/cobrancas'
+      fullPath: '/preview/admin/cobrancas'
+      preLoaderRoute: typeof PreviewAdminCobrancasRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/lojas': {
+      id: '/preview/admin/lojas'
+      path: '/lojas'
+      fullPath: '/preview/admin/lojas'
+      preLoaderRoute: typeof PreviewAdminLojasRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/planos': {
+      id: '/preview/admin/planos'
+      path: '/planos'
+      fullPath: '/preview/admin/planos'
+      preLoaderRoute: typeof PreviewAdminPlanosRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/suporte': {
+      id: '/preview/admin/suporte'
+      path: '/suporte'
+      fullPath: '/preview/admin/suporte'
+      preLoaderRoute: typeof PreviewAdminSuporteRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/usuarios': {
+      id: '/preview/admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/preview/admin/usuarios'
+      preLoaderRoute: typeof PreviewAdminUsuariosRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/entregador/': {
+      id: '/preview/entregador/'
+      path: '/'
+      fullPath: '/preview/entregador/'
+      preLoaderRoute: typeof PreviewEntregadorIndexRouteImport
+      parentRoute: typeof PreviewEntregadorRoute
+    }
+    '/preview/entregador/historico': {
+      id: '/preview/entregador/historico'
+      path: '/historico'
+      fullPath: '/preview/entregador/historico'
+      preLoaderRoute: typeof PreviewEntregadorHistoricoRouteImport
+      parentRoute: typeof PreviewEntregadorRoute
+    }
+    '/preview/entregador/rota': {
+      id: '/preview/entregador/rota'
+      path: '/rota'
+      fullPath: '/preview/entregador/rota'
+      preLoaderRoute: typeof PreviewEntregadorRotaRouteImport
+      parentRoute: typeof PreviewEntregadorRoute
+    }
+    '/preview/loja/': {
+      id: '/preview/loja/'
+      path: '/'
+      fullPath: '/preview/loja/'
+      preLoaderRoute: typeof PreviewLojaIndexRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/cardapio': {
+      id: '/preview/loja/cardapio'
+      path: '/cardapio'
+      fullPath: '/preview/loja/cardapio'
+      preLoaderRoute: typeof PreviewLojaCardapioRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/configuracoes': {
+      id: '/preview/loja/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/preview/loja/configuracoes'
+      preLoaderRoute: typeof PreviewLojaConfiguracoesRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/cozinha': {
+      id: '/preview/loja/cozinha'
+      path: '/cozinha'
+      fullPath: '/preview/loja/cozinha'
+      preLoaderRoute: typeof PreviewLojaCozinhaRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/entregadores': {
+      id: '/preview/loja/entregadores'
+      path: '/entregadores'
+      fullPath: '/preview/loja/entregadores'
+      preLoaderRoute: typeof PreviewLojaEntregadoresRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/equipe': {
+      id: '/preview/loja/equipe'
+      path: '/equipe'
+      fullPath: '/preview/loja/equipe'
+      preLoaderRoute: typeof PreviewLojaEquipeRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/pedidos': {
+      id: '/preview/loja/pedidos'
+      path: '/pedidos'
+      fullPath: '/preview/loja/pedidos'
+      preLoaderRoute: typeof PreviewLojaPedidosRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/relatorios': {
+      id: '/preview/loja/relatorios'
+      path: '/relatorios'
+      fullPath: '/preview/loja/relatorios'
+      preLoaderRoute: typeof PreviewLojaRelatoriosRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/loja/mercado-aurora/endereco/': {
+      id: '/loja/mercado-aurora/endereco/'
+      path: '/endereco'
+      fullPath: '/loja/mercado-aurora/endereco/'
+      preLoaderRoute: typeof LojaMercadoAuroraEnderecoIndexRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/endereco/novo': {
+      id: '/loja/mercado-aurora/endereco/novo'
+      path: '/endereco/novo'
+      fullPath: '/loja/mercado-aurora/endereco/novo'
+      preLoaderRoute: typeof LojaMercadoAuroraEnderecoNovoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
   }
 }
+
+interface LojaMercadoAuroraRouteChildren {
+  LojaMercadoAuroraAcompanhamentoRoute: typeof LojaMercadoAuroraAcompanhamentoRoute
+  LojaMercadoAuroraCardapioRoute: typeof LojaMercadoAuroraCardapioRoute
+  LojaMercadoAuroraCarrinhoRoute: typeof LojaMercadoAuroraCarrinhoRoute
+  LojaMercadoAuroraCheckoutRoute: typeof LojaMercadoAuroraCheckoutRoute
+  LojaMercadoAuroraConfirmacaoRoute: typeof LojaMercadoAuroraConfirmacaoRoute
+  LojaMercadoAuroraIdentificacaoRoute: typeof LojaMercadoAuroraIdentificacaoRoute
+  LojaMercadoAuroraModalidadeRoute: typeof LojaMercadoAuroraModalidadeRoute
+  LojaMercadoAuroraIndexRoute: typeof LojaMercadoAuroraIndexRoute
+  LojaMercadoAuroraEnderecoNovoRoute: typeof LojaMercadoAuroraEnderecoNovoRoute
+  LojaMercadoAuroraEnderecoIndexRoute: typeof LojaMercadoAuroraEnderecoIndexRoute
+}
+
+const LojaMercadoAuroraRouteChildren: LojaMercadoAuroraRouteChildren = {
+  LojaMercadoAuroraAcompanhamentoRoute: LojaMercadoAuroraAcompanhamentoRoute,
+  LojaMercadoAuroraCardapioRoute: LojaMercadoAuroraCardapioRoute,
+  LojaMercadoAuroraCarrinhoRoute: LojaMercadoAuroraCarrinhoRoute,
+  LojaMercadoAuroraCheckoutRoute: LojaMercadoAuroraCheckoutRoute,
+  LojaMercadoAuroraConfirmacaoRoute: LojaMercadoAuroraConfirmacaoRoute,
+  LojaMercadoAuroraIdentificacaoRoute: LojaMercadoAuroraIdentificacaoRoute,
+  LojaMercadoAuroraModalidadeRoute: LojaMercadoAuroraModalidadeRoute,
+  LojaMercadoAuroraIndexRoute: LojaMercadoAuroraIndexRoute,
+  LojaMercadoAuroraEnderecoNovoRoute: LojaMercadoAuroraEnderecoNovoRoute,
+  LojaMercadoAuroraEnderecoIndexRoute: LojaMercadoAuroraEnderecoIndexRoute,
+}
+
+const LojaMercadoAuroraRouteWithChildren =
+  LojaMercadoAuroraRoute._addFileChildren(LojaMercadoAuroraRouteChildren)
+
+interface LojaRouteChildren {
+  LojaMercadoAuroraRoute: typeof LojaMercadoAuroraRouteWithChildren
+}
+
+const LojaRouteChildren: LojaRouteChildren = {
+  LojaMercadoAuroraRoute: LojaMercadoAuroraRouteWithChildren,
+}
+
+const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
+
+interface PreviewAdminRouteChildren {
+  PreviewAdminAuditoriaRoute: typeof PreviewAdminAuditoriaRoute
+  PreviewAdminCobrancasRoute: typeof PreviewAdminCobrancasRoute
+  PreviewAdminLojasRoute: typeof PreviewAdminLojasRoute
+  PreviewAdminPlanosRoute: typeof PreviewAdminPlanosRoute
+  PreviewAdminSuporteRoute: typeof PreviewAdminSuporteRoute
+  PreviewAdminUsuariosRoute: typeof PreviewAdminUsuariosRoute
+  PreviewAdminIndexRoute: typeof PreviewAdminIndexRoute
+}
+
+const PreviewAdminRouteChildren: PreviewAdminRouteChildren = {
+  PreviewAdminAuditoriaRoute: PreviewAdminAuditoriaRoute,
+  PreviewAdminCobrancasRoute: PreviewAdminCobrancasRoute,
+  PreviewAdminLojasRoute: PreviewAdminLojasRoute,
+  PreviewAdminPlanosRoute: PreviewAdminPlanosRoute,
+  PreviewAdminSuporteRoute: PreviewAdminSuporteRoute,
+  PreviewAdminUsuariosRoute: PreviewAdminUsuariosRoute,
+  PreviewAdminIndexRoute: PreviewAdminIndexRoute,
+}
+
+const PreviewAdminRouteWithChildren = PreviewAdminRoute._addFileChildren(
+  PreviewAdminRouteChildren,
+)
+
+interface PreviewEntregadorRouteChildren {
+  PreviewEntregadorHistoricoRoute: typeof PreviewEntregadorHistoricoRoute
+  PreviewEntregadorRotaRoute: typeof PreviewEntregadorRotaRoute
+  PreviewEntregadorIndexRoute: typeof PreviewEntregadorIndexRoute
+}
+
+const PreviewEntregadorRouteChildren: PreviewEntregadorRouteChildren = {
+  PreviewEntregadorHistoricoRoute: PreviewEntregadorHistoricoRoute,
+  PreviewEntregadorRotaRoute: PreviewEntregadorRotaRoute,
+  PreviewEntregadorIndexRoute: PreviewEntregadorIndexRoute,
+}
+
+const PreviewEntregadorRouteWithChildren =
+  PreviewEntregadorRoute._addFileChildren(PreviewEntregadorRouteChildren)
+
+interface PreviewLojaRouteChildren {
+  PreviewLojaCardapioRoute: typeof PreviewLojaCardapioRoute
+  PreviewLojaConfiguracoesRoute: typeof PreviewLojaConfiguracoesRoute
+  PreviewLojaCozinhaRoute: typeof PreviewLojaCozinhaRoute
+  PreviewLojaEntregadoresRoute: typeof PreviewLojaEntregadoresRoute
+  PreviewLojaEquipeRoute: typeof PreviewLojaEquipeRoute
+  PreviewLojaPedidosRoute: typeof PreviewLojaPedidosRoute
+  PreviewLojaRelatoriosRoute: typeof PreviewLojaRelatoriosRoute
+  PreviewLojaIndexRoute: typeof PreviewLojaIndexRoute
+}
+
+const PreviewLojaRouteChildren: PreviewLojaRouteChildren = {
+  PreviewLojaCardapioRoute: PreviewLojaCardapioRoute,
+  PreviewLojaConfiguracoesRoute: PreviewLojaConfiguracoesRoute,
+  PreviewLojaCozinhaRoute: PreviewLojaCozinhaRoute,
+  PreviewLojaEntregadoresRoute: PreviewLojaEntregadoresRoute,
+  PreviewLojaEquipeRoute: PreviewLojaEquipeRoute,
+  PreviewLojaPedidosRoute: PreviewLojaPedidosRoute,
+  PreviewLojaRelatoriosRoute: PreviewLojaRelatoriosRoute,
+  PreviewLojaIndexRoute: PreviewLojaIndexRoute,
+}
+
+const PreviewLojaRouteWithChildren = PreviewLojaRoute._addFileChildren(
+  PreviewLojaRouteChildren,
+)
+
+interface PreviewRouteChildren {
+  PreviewAdminRoute: typeof PreviewAdminRouteWithChildren
+  PreviewEntregadorRoute: typeof PreviewEntregadorRouteWithChildren
+  PreviewLojaRoute: typeof PreviewLojaRouteWithChildren
+  PreviewIndexRoute: typeof PreviewIndexRoute
+}
+
+const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewAdminRoute: PreviewAdminRouteWithChildren,
+  PreviewEntregadorRoute: PreviewEntregadorRouteWithChildren,
+  PreviewLojaRoute: PreviewLojaRouteWithChildren,
+  PreviewIndexRoute: PreviewIndexRoute,
+}
+
+const PreviewRouteWithChildren =
+  PreviewRoute._addFileChildren(PreviewRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  LojaRoute: LojaRouteWithChildren,
+  PreviewRoute: PreviewRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
