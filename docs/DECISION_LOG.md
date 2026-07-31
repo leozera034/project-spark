@@ -276,3 +276,43 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Motivo:** isolamento não é autorização; abrir escrita para todos os cargos seria permissivo demais.
 - **Consequência:** a Fase 07 deve substituir `private.is_store_manager` por verificações por ação.
 - **Status:** aprovada
+
+### D-037 — Isolamento não é autorização
+- **Data:** 2026-07-31
+- **Decisão:** revogada a D-036. Nenhuma escrita é liberada por pertencer à loja. Toda operação exige uma ação nomeada da matriz de autorização.
+- **Motivo:** a Fase 06 abriu escrita ampla para proprietário e gerente, antecipando decisões de fases posteriores.
+- **Consequência:** todas as policies de escrita baseadas em `private.is_store_manager` foram removidas; cada fase dona reabre o que precisa.
+- **Riscos evitados:** permissão excessiva por padrão; cargo com poder não previsto.
+- **Status:** aprovada
+
+### D-038 — Catálogo fechado de permissões
+- **Data:** 2026-07-31
+- **Decisão:** as ações autorizáveis vivem no enum `public.app_permission`. Nenhuma permissão em texto livre, nenhuma string montada em runtime.
+- **Motivo:** nome inventado não pode virar permissão silenciosa.
+- **Consequência:** criar ação nova exige migration e atualização de `docs/AUTHORIZATION_MATRIX.md` e `src/domain/permissions.ts`.
+- **Riscos evitados:** permissão fantasma; divergência entre código e banco.
+- **Status:** aprovada
+
+### D-039 — Autorização centralizada em `private.has_permission`
+- **Data:** 2026-07-31
+- **Decisão:** toda decisão de permissão passa por `private.has_permission(acao, loja)`, que usa apenas `auth.uid()`, exige perfil e vínculo ativos e nega por padrão. Nenhuma policy reimplementa lógica de papel.
+- **Motivo:** lógica de papel espalhada em dezenas de policies diverge com o tempo.
+- **Consequência:** a matriz de papéis por ação vive em `private.permission_roles`, versionada em código.
+- **Riscos evitados:** regra contraditória entre tabelas; escalada de privilégio por policy esquecida.
+- **Status:** aprovada
+
+### D-040 — Contexto de permissões é orientação de interface
+- **Data:** 2026-07-31
+- **Decisão:** `public.get_my_authorization_context()` devolve apenas as permissões do próprio usuário, para esconder botões e menus. A verificação real permanece no banco em toda operação.
+- **Motivo:** interface não é barreira de segurança.
+- **Consequência:** nenhuma tela pode assumir permissão a partir de estado local; a função nunca aceita identidade por parâmetro.
+- **Riscos evitados:** autorização apenas no frontend; permissão inferida de token do cliente.
+- **Status:** aprovada
+
+### D-041 — Plataforma sem acesso a dado de cliente
+- **Data:** 2026-07-31
+- **Decisão:** não existe permissão de plataforma sobre cliente, endereço, pedido, item de pedido ou entrega. A ausência é estrutural, não filtro de aplicação.
+- **Motivo:** o administrador do SaaS opera a plataforma, não a operação da loja.
+- **Consequência:** suporte trabalha com contexto institucional e não com dado pessoal do consumidor.
+- **Riscos evitados:** exposição indevida de dado pessoal; risco legal.
+- **Status:** aprovada
