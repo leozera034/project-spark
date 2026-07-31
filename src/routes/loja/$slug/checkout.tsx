@@ -213,7 +213,7 @@ function CheckoutPage() {
       </header>
 
       <div className="mx-auto max-w-3xl space-y-6 px-4">
-        <section className="space-y-3 rounded-xl border p-4">
+        <section className="space-y-3 panel p-4">
           <h2 className="text-sm font-semibold">Seus dados</h2>
           <div className="space-y-2">
             <Label htmlFor="nome">Nome</Label>
@@ -249,7 +249,7 @@ function CheckoutPage() {
           </div>
         </section>
 
-        <section className="space-y-2 rounded-xl border p-4">
+        <section className="space-y-2 panel p-4">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             {context.type === "entrega" ? (
               <MapPin className="size-4" />
@@ -271,7 +271,7 @@ function CheckoutPage() {
           )}
         </section>
 
-        <section className="space-y-3 rounded-xl border p-4">
+        <section className="space-y-3 panel p-4">
           <h2 className="text-sm font-semibold">Forma de pagamento</h2>
           <p className="text-xs text-muted-foreground">
             O pagamento é combinado direto com a loja. Nada é cobrado por aqui.
@@ -288,7 +288,7 @@ function CheckoutPage() {
               {methods.map((method) => (
                 <label
                   key={method.id}
-                  className={`flex min-h-[52px] cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm ${
+                  className={`flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl border p-3.5 text-sm ${
                     methodId === method.id ? "border-primary bg-primary/5" : ""
                   }`}
                 >
@@ -317,7 +317,7 @@ function CheckoutPage() {
           )}
 
           {selectedMethod?.requiresChange ? (
-            <div className="space-y-2 rounded-lg border border-dashed p-3">
+            <div className="space-y-2 rounded-xl border border-border bg-surface-muted p-3.5">
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -349,7 +349,7 @@ function CheckoutPage() {
           ) : null}
         </section>
 
-        <section className="space-y-2 rounded-xl border p-4">
+        <section className="space-y-2 panel p-4">
           <h2 className="text-sm font-semibold">Observações para a loja</h2>
           <Textarea
             value={notes}
@@ -359,7 +359,7 @@ function CheckoutPage() {
           />
         </section>
 
-        <section className="rounded-xl border p-4">
+        <section className="panel p-4">
           <h2 className="mb-3 text-sm font-semibold">Resumo</h2>
           <ul className="space-y-2 text-sm">
             {cart.views.map((view) => (

@@ -85,7 +85,7 @@ function OrderSentPage() {
         </p>
       </div>
 
-      <div className="mt-6 rounded-xl border p-4">
+      <div className="mt-6 panel p-4">
         <p className="text-sm text-muted-foreground">Número do pedido</p>
         <p className="text-2xl font-semibold tabular-nums">#{order.orderNumber}</p>
 
@@ -119,7 +119,7 @@ function OrderSentPage() {
         </dl>
 
         {receipt.paymentInstructions ? (
-          <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+          <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-xs text-muted-foreground">
             {receipt.paymentInstructions}
           </p>
         ) : null}

@@ -94,7 +94,7 @@ function TrackingPage() {
         </div>
       </header>
 
-      <section className="mt-6 rounded-xl border p-4">
+      <section className="mt-6 panel p-4">
         <p className="text-sm text-muted-foreground">Número do pedido</p>
         <p className="text-2xl font-semibold tabular-nums">#{data.orderNumber}</p>
         <h1 className="mt-3 text-lg font-semibold">{copy.title}</h1>
@@ -187,7 +187,7 @@ function TimelineStep({
 
 function OrderSummary({ data }: { data: PublicOrderTracking }) {
   return (
-    <section className="mt-4 rounded-xl border p-4">
+    <section className="mt-4 panel p-4">
       <h2 className="text-sm font-semibold">Itens do pedido</h2>
       <ul className="mt-3 space-y-3">
         {data.items.map((item, index) => (
@@ -247,7 +247,7 @@ function OrderSummary({ data }: { data: PublicOrderTracking }) {
       ) : null}
 
       {data.payment.publicInstructions ? (
-        <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+        <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-xs text-muted-foreground">
           {data.payment.publicInstructions}
         </p>
       ) : null}
