@@ -18,6 +18,7 @@ import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppEntregadorRouteImport } from './routes/app/entregador'
 import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
@@ -103,6 +104,11 @@ const TrocarSenhaInicialRoute = TrocarSenhaInicialRouteImport.update({
   id: '/trocar-senha-inicial',
   path: '/trocar-senha-inicial',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AppEntregadorRoute = AppEntregadorRouteImport.update({
   id: '/app/entregador',
@@ -318,7 +324,7 @@ const LojaMercadoAuroraEnderecoNovoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
@@ -335,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
@@ -369,7 +376,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
@@ -379,6 +385,7 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
@@ -414,7 +421,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
@@ -431,6 +438,7 @@ export interface FileRoutesById {
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
@@ -484,6 +492,7 @@ export interface FileRouteTypes {
     | '/preview/admin'
     | '/preview/entregador'
     | '/preview/loja'
+    | '/admin/'
     | '/preview/'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
@@ -518,7 +527,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/design-system'
     | '/loja'
     | '/recuperar-acesso'
@@ -528,6 +536,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/admin'
     | '/preview'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/preview/admin'
     | '/preview/entregador'
     | '/preview/loja'
+    | '/admin/'
     | '/preview/'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
@@ -614,7 +624,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
@@ -693,6 +703,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/trocar-senha-inicial'
       preLoaderRoute: typeof TrocarSenhaInicialRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/app/entregador': {
       id: '/app/entregador'
@@ -977,6 +994,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface LojaMercadoAuroraRouteChildren {
   LojaMercadoAuroraAcompanhamentoRoute: typeof LojaMercadoAuroraAcompanhamentoRoute
   LojaMercadoAuroraCardapioRoute: typeof LojaMercadoAuroraCardapioRoute
@@ -1123,7 +1150,7 @@ const AppLojaRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
