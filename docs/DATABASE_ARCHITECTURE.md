@@ -14,7 +14,7 @@
 | Negação por padrão | RLS habilitada e **forçada** em 100% das tabelas, com **zero policies** e sem `GRANT` a `anon`/`authenticated` |
 | Preço nunca vem do cliente | Snapshots congelados em `orders`, `order_items`, `order_item_options` |
 | Catálogo genérico | Nenhuma tabela de segmento; opções resolvidas por `option_groups` + `option_items` |
-| Sem financeiro de entregador | `couriers` possui apenas `completed_deliveries_count` |
+| Sem financeiro de entregador | `couriers` não guarda valores nem contadores; entregas concluídas são derivadas via `courier_completed_deliveries_count(courier_id, store_id)` e da view `courier_delivery_counts` |
 
 ## 2. Chave estrangeira composta — por que
 
