@@ -121,6 +121,10 @@ function StorefrontLayout() {
 
 function StorefrontGate() {
   const { orderingContext } = useCustomerWizard();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // O acompanhamento é aberto por link, muitas vezes em outro aparelho:
+  // nunca pode exigir a jornada de identificação.
+  if (pathname.endsWith("/acompanhar")) return <Outlet />;
   if (!orderingContext) return <CustomerWizard />;
   return <Outlet />;
 }
