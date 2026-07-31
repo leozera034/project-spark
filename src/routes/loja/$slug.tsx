@@ -70,7 +70,9 @@ function StorefrontPage() {
     catalog: PublicCatalog;
   };
 
+  const { slug } = Route.useParams();
   const { produto } = Route.useSearch();
+
   const navigate = useNavigate({ from: Route.fullPath });
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
