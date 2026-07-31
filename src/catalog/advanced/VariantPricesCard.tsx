@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 
 import { replaceVariantOptionPrices } from "../advanced-api";
-import { describeVariant, type AdvancedBuilder } from "../advanced-types";
+import { describeVariant, type AdvancedBuilder, type VariantOptionPrice } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
 import { formatPriceBRL, parsePriceInput } from "../types";
 
