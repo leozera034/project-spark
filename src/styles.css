@@ -21,14 +21,17 @@
  * 3. Todas as cores em oklch.
  *
  * Escala de espacamento: multiplos de 4px (Tailwind padrao).
- * Raio base: 12px. Tipografia: Inter.
+ * Raio base: 14px. Tipografia: Sora (titulos) + Manrope (corpo).
  */
 
 @theme inline {
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
+  --font-display:
+    "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
 
   --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 4px);
