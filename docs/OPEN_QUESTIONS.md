@@ -35,8 +35,9 @@ Status possíveis: `aberta`, `em análise`, `respondida`.
 - **Impacto:** contato em caso de problema versus atrito no checkout.
 - **Fase limite:** 15.
 - **Opções:** sempre obrigatório; opcional na retirada; configurável por loja.
-- **Recomendação preliminar:** nenhuma registrada.
-- **Status:** aberta
+- **Resposta:** telefone obrigatório em entrega e em retirada, com fluxo único de identificação (primeiro nome + telefone).
+- **Decisão:** D-061.
+- **Status:** respondida
 
 ### Q-005 — Regra de pizza com vários sabores
 - **Contexto:** cobrança de pizza meio a meio ou mais frações.
