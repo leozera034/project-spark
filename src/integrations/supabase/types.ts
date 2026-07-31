@@ -2122,8 +2122,43 @@ export type Database = {
         }
         Returns: Json
       }
+      archive_option_group: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      archive_option_item: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      archive_product_variant: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_store_neighborhood: {
         Args: { _archived: boolean; _id: string; _store_id: string }
+        Returns: Json
+      }
+      attach_option_group_to_product: {
+        Args: {
+          _option_group_id: string
+          _product_id: string
+          _store_id: string
+        }
         Returns: Json
       }
       authorize_courier_reset: {
@@ -2166,6 +2201,44 @@ export type Database = {
         }
         Returns: Json
       }
+      create_option_group: {
+        Args: {
+          _description?: string
+          _is_required?: boolean
+          _max_selections?: number
+          _min_selections?: number
+          _name: string
+          _portion_count?: number
+          _price_effect?: string
+          _pricing_strategy?: string
+          _selection_type?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_option_item: {
+        Args: {
+          _additional_price?: number
+          _description?: string
+          _max_quantity?: number
+          _name: string
+          _option_group_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_product_variant: {
+        Args: {
+          _is_default?: boolean
+          _name: string
+          _package_quantity?: number
+          _package_unit?: string
+          _price: number
+          _product_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       create_simple_product: {
         Args: {
           _allows_notes?: boolean
@@ -2180,6 +2253,14 @@ export type Database = {
         }
         Returns: Json
       }
+      detach_option_group_from_product: {
+        Args: {
+          _option_group_id: string
+          _product_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       get_my_auth_context: { Args: never; Returns: Json }
       get_my_authorization_context: { Args: never; Returns: Json }
       get_my_catalog_overview: { Args: { _store_id?: string }; Returns: Json }
@@ -2189,6 +2270,14 @@ export type Database = {
       }
       get_my_store_configuration: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      get_option_group: {
+        Args: { _id: string; _store_id: string }
+        Returns: Json
+      }
+      get_product_advanced_builder: {
+        Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
       get_store_operational_preview: {
@@ -2218,6 +2307,14 @@ export type Database = {
           slug: string
         }[]
       }
+      list_option_groups: {
+        Args: { _include_archived?: boolean; _store_id?: string }
+        Returns: Json
+      }
+      list_product_variants: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
       move_product_to_category: {
         Args: {
           _category_id: string
@@ -2237,6 +2334,18 @@ export type Database = {
         Args: { _category_id: string; _ids: string[]; _store_id: string }
         Returns: Json
       }
+      reorder_option_items: {
+        Args: { _ids: string[]; _option_group_id: string; _store_id: string }
+        Returns: Json
+      }
+      reorder_product_option_groups: {
+        Args: { _ids: string[]; _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      reorder_product_variants: {
+        Args: { _ids: string[]; _product_id: string; _store_id: string }
+        Returns: Json
+      }
       reorder_store_neighborhoods: {
         Args: { _ids: string[]; _store_id: string }
         Returns: Json
@@ -2247,6 +2356,10 @@ export type Database = {
       }
       replace_store_hours: {
         Args: { _expected_updated_at?: string; _hours: Json; _store_id: string }
+        Returns: Json
+      }
+      replace_variant_option_prices: {
+        Args: { _prices: Json; _product_id: string; _store_id: string }
         Returns: Json
       }
       set_catalog_category_active: {
@@ -2260,6 +2373,28 @@ export type Database = {
       }
       set_catalog_category_image: {
         Args: { _id: string; _image_path: string; _store_id: string }
+        Returns: Json
+      }
+      set_default_product_variant: {
+        Args: { _expected_updated_at?: string; _id: string; _store_id: string }
+        Returns: Json
+      }
+      set_option_group_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      set_option_item_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
         Returns: Json
       }
       set_product_active: {
@@ -2293,6 +2428,15 @@ export type Database = {
         }
         Returns: Json
       }
+      set_product_variant_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
       update_catalog_category: {
         Args: {
           _description: string
@@ -2300,6 +2444,59 @@ export type Database = {
           _id: string
           _is_active: boolean
           _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_option_group: {
+        Args: {
+          _description?: string
+          _expected_updated_at?: string
+          _id: string
+          _is_required?: boolean
+          _max_selections?: number
+          _min_selections?: number
+          _name: string
+          _portion_count?: number
+          _price_effect?: string
+          _pricing_strategy?: string
+          _selection_type?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_option_item: {
+        Args: {
+          _additional_price?: number
+          _description?: string
+          _expected_updated_at?: string
+          _id: string
+          _max_quantity?: number
+          _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_sale_mode: {
+        Args: {
+          _expected_updated_at?: string
+          _measurement_unit?: string
+          _minimum_quantity?: number
+          _product_id: string
+          _quantity_step?: number
+          _sale_mode: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_variant: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _name: string
+          _package_quantity?: number
+          _package_unit?: string
+          _price: number
           _store_id: string
         }
         Returns: Json
