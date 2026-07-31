@@ -11,6 +11,7 @@ import { AlertCircle, Check, Clock, RefreshCw, Store } from "lucide-react";
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   TRACKING_COPY,
@@ -48,25 +49,27 @@ function TrackingPage() {
   if (loading && !data) {
     return (
       <main className="mx-auto min-h-svh max-w-md sm:max-w-xl space-y-4 px-4 py-10">
+        <span className="sr-only" role="status" aria-live="polite">
+          Carregando acompanhamento do pedido
+        </span>
         <Skeleton className="h-24 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
       </main>
     );
   }
 
   if (!data) {
     return (
-      <main className="mx-auto flex min-h-svh max-w-md sm:max-w-xl flex-col items-center justify-center gap-3 px-6 text-center">
-        <AlertCircle className="size-8 text-muted-foreground" />
-        <h1 className="text-lg font-semibold">
-          {error === "not_found" ? "Pedido não encontrado" : "Acompanhamento indisponível"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {error === "not_found" ? TRACKING_MESSAGES.notFound : TRACKING_MESSAGES.failed}
-        </p>
-        <Button variant="outline" className="mt-2" onClick={refresh}>
-          <RefreshCw className="size-4" /> Tentar de novo
-        </Button>
+      <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 sm:max-w-xl">
+        <ErrorState
+          title={error === "not_found" ? "Pedido não encontrado" : "Acompanhamento indisponível"}
+          description={
+            error === "not_found" ? TRACKING_MESSAGES.notFound : TRACKING_MESSAGES.failed
+          }
+          onRetry={error === "not_found" ? undefined : refresh}
+          retrying={loading}
+        />
       </main>
     );
   }

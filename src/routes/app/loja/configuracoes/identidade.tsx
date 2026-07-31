@@ -352,7 +352,9 @@ function AssetSlot({
           type="button"
           variant="outline"
           className="min-h-11 flex-1"
-          disabled={disabled || busy}
+          disabled={disabled}
+          loading={busy}
+          loadingLabel="Enviando imagem"
           onClick={() => inputRef.current?.click()}
         >
           {busy ? "Enviando…" : "Enviar imagem"}

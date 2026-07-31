@@ -181,7 +181,8 @@ export function ProductForm({
 
           <div className="flex flex-wrap gap-2 pt-2">
             <Button
-              disabled={submitting}
+              loading={submitting}
+              loadingLabel="Salvando"
               onClick={() => {
                 setTouched(true);
                 if (!invalid) onSubmit();
