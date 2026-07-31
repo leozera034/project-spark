@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeInitScript, useTheme } from "@/lib/theme";
 
@@ -79,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { title: "Pediu Aqui · Cardápio digital para o seu negócio" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "author", content: "Pediu Aqui" },
       { name: "theme-color", content: "#0B171C" },
@@ -148,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <SkipToContent />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <ThemedToaster />

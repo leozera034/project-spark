@@ -358,6 +358,26 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  /* atalho de teclado: invisivel ate receber foco */
+  .skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: 0.75rem;
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: var(--elevation-2);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
 }
 
 @utility focus-brand {
