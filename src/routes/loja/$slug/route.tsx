@@ -30,6 +30,7 @@ export const Route = createFileRoute("/loja/$slug")({
       loaderData?.store.settings.description ??
       `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
     const title = `${name} · Cardápio online`;
+    const url = `/loja/${params.slug}`;
     return {
       meta: [
         { title },
@@ -37,12 +38,41 @@ export const Route = createFileRoute("/loja/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
         { name: "robots", content: "index,follow" },
       ],
-      links: [{ rel: "canonical", href: `/loja/${params.slug}` }],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "LocalBusiness",
+                name,
+                description,
+                url,
+                ...(city ? { address: { "@type": "PostalAddress", addressLocality: city } } : {}),
+                hasMenu: url,
+              },
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+                  { "@type": "ListItem", position: 2, name, item: url },
+                ],
+              },
+            ],
+          }),
+        },
+      ],
     };
   },
+
   pendingComponent: StorefrontSkeleton,
   pendingMs: 200,
   pendingMinMs: 400,
