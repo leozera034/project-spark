@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
@@ -68,6 +69,11 @@ const LojaRoute = LojaRouteImport.update({
 const PreviewRoute = PreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarAcessoRoute = RecuperarAcessoRouteImport.update({
+  id: '/recuperar-acesso',
+  path: '/recuperar-acesso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarAdminRoute = EntrarAdminRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
+  '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/recuperar-acesso'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/'
     | '/design-system'
     | '/loja'
+    | '/recuperar-acesso'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/recuperar-acesso'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -513,6 +525,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
+  RecuperarAcessoRoute: typeof RecuperarAcessoRoute
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/preview'
       fullPath: '/preview'
       preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-acesso': {
+      id: '/recuperar-acesso'
+      path: '/recuperar-acesso'
+      fullPath: '/recuperar-acesso'
+      preLoaderRoute: typeof RecuperarAcessoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar/admin': {
@@ -929,6 +949,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
+  RecuperarAcessoRoute: RecuperarAcessoRoute,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
