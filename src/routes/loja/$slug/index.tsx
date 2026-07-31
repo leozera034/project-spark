@@ -75,44 +75,55 @@ function StorefrontPage() {
           <img
             src={settings.cover_url}
             alt=""
-            className="h-36 w-full object-cover sm:h-52"
+            className="h-40 w-full object-cover sm:h-60"
             fetchPriority="high"
           />
         ) : (
           <div
-            className="h-28 w-full sm:h-40"
+            className="h-32 w-full sm:h-44"
             style={{
               background: `linear-gradient(120deg, ${settings.brand_primary}, ${settings.brand_accent})`,
             }}
           />
         )}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
 
-        <div className="mx-auto max-w-3xl px-4">
-          <div className="-mt-10 flex items-end gap-4">
+        <div className="relative mx-auto max-w-3xl px-4">
+          <div className="-mt-12 flex items-end gap-4 rise-in">
             {settings.logo_url ? (
               <img
                 src={settings.logo_url}
                 alt={store.name}
-                className="size-20 rounded-2xl border-4 border-background object-cover shadow-sm"
+                className="size-22 rounded-3xl border-4 border-background object-cover shadow-e2"
               />
             ) : (
-              <div className="grid size-20 place-items-center rounded-2xl border-4 border-background bg-muted shadow-sm">
+              <div className="grid size-22 place-items-center rounded-3xl border-4 border-background bg-surface-muted shadow-e2">
                 <Store className="size-8 text-muted-foreground" />
               </div>
             )}
-            <div className="pb-1">
-              <h1 className="text-xl font-semibold leading-tight">{store.name}</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="pb-1.5">
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight">{store.name}</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {store.segment ? `${store.segment} · ` : ""}
                 {store.city}/{store.state}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Badge variant={isOpen ? "default" : "secondary"}>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                isOpen
+                  ? "bg-success-soft text-success"
+                  : "bg-surface-muted text-muted-foreground"
+              }`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${isOpen ? "bg-success" : "bg-muted-foreground"}`}
+                aria-hidden="true"
+              />
               {isOpen ? "Aberta agora" : "Fechada"}
-            </Badge>
+            </span>
             {store.accepts_delivery ? <Badge variant="outline">Entrega</Badge> : null}
             {store.accepts_pickup ? <Badge variant="outline">Retirada</Badge> : null}
             {settings.min_order_amount > 0 ? (
@@ -124,33 +135,35 @@ function StorefrontPage() {
           </div>
 
           {!isOpen && settings.closed_message ? (
-            <p className="mt-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+            <p className="mt-4 rounded-2xl border border-highlight/40 bg-highlight-soft p-4 text-sm text-highlight-soft-foreground">
               {settings.closed_message}
             </p>
           ) : null}
           {isOpen && settings.welcome_message ? (
-            <p className="mt-4 text-sm text-muted-foreground">{settings.welcome_message}</p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              {settings.welcome_message}
+            </p>
           ) : null}
         </div>
       </header>
 
-      <div className="sticky top-0 z-20 mt-6 border-b bg-background/95 backdrop-blur">
+      <div className="sticky top-0 z-20 mt-6 border-b border-border/70 glass-bar">
         <div className="mx-auto max-w-3xl space-y-3 px-4 py-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Buscar no cardápio"
               aria-label="Buscar no cardápio"
-              className="h-11 pl-9"
+              className="h-12 rounded-full bg-card pl-10 shadow-e1"
             />
             {term ? (
               <button
                 type="button"
                 aria-label="Limpar busca"
                 onClick={() => setTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -164,8 +177,10 @@ function StorefrontPage() {
                   key={category.id}
                   href={`#categoria-${category.id}`}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
-                    activeCategory === category.id ? "bg-muted font-medium" : ""
+                  className={`tappable shrink-0 rounded-full border px-3.5 py-1.5 text-sm active:scale-[0.97] ${
+                    activeCategory === category.id
+                      ? "border-transparent bg-primary font-semibold text-primary-foreground"
+                      : "bg-card text-muted-foreground hover:border-border-strong hover:text-foreground"
                   }`}
                 >
                   {category.name}
@@ -175,6 +190,7 @@ function StorefrontPage() {
           ) : null}
         </div>
       </div>
+
 
       <div className="mx-auto max-w-3xl px-4">
         {grouped.length === 0 ? (
