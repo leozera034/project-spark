@@ -142,7 +142,7 @@ function StorefrontPage() {
     >
       <OrderingContextBar />
 
-      <header className="relative">-
+      <header className="relative">
         {settings.cover_url ? (
           <img
             src={settings.cover_url}
