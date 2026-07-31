@@ -28,7 +28,9 @@ import { Route as PreviewLojaIndexRouteImport } from './routes/preview/loja/inde
 import { Route as PreviewLojaCardapioRouteImport } from './routes/preview/loja/cardapio'
 import { Route as PreviewLojaCozinhaRouteImport } from './routes/preview/loja/cozinha'
 import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/loja/entregadores'
+import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
 import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
+import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
 import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 
@@ -134,9 +136,19 @@ const PreviewLojaEntregadoresRoute = PreviewLojaEntregadoresRouteImport.update({
   path: '/entregadores',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
+const PreviewLojaEquipeRoute = PreviewLojaEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
 const PreviewLojaPedidosRoute = PreviewLojaPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaRelatoriosRoute = PreviewLojaRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
 const LojaMercadoAuroraEnderecoIndexRoute =
@@ -170,7 +182,9 @@ export interface FileRoutesByFullPath {
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -191,7 +205,9 @@ export interface FileRoutesByTo {
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -216,7 +232,9 @@ export interface FileRoutesById {
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
   '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
+  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
+  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
@@ -242,7 +260,9 @@ export interface FileRouteTypes {
     | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
     | '/loja/mercado-aurora/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
@@ -263,7 +283,9 @@ export interface FileRouteTypes {
     | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
     | '/loja/mercado-aurora'
     | '/preview/loja'
     | '/loja/mercado-aurora/endereco/novo'
@@ -287,7 +309,9 @@ export interface FileRouteTypes {
     | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
     | '/preview/loja/entregadores'
+    | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
+    | '/preview/loja/relatorios'
     | '/loja/mercado-aurora/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
@@ -436,11 +460,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewLojaEntregadoresRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
+    '/preview/loja/equipe': {
+      id: '/preview/loja/equipe'
+      path: '/equipe'
+      fullPath: '/preview/loja/equipe'
+      preLoaderRoute: typeof PreviewLojaEquipeRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
     '/preview/loja/pedidos': {
       id: '/preview/loja/pedidos'
       path: '/pedidos'
       fullPath: '/preview/loja/pedidos'
       preLoaderRoute: typeof PreviewLojaPedidosRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/relatorios': {
+      id: '/preview/loja/relatorios'
+      path: '/relatorios'
+      fullPath: '/preview/loja/relatorios'
+      preLoaderRoute: typeof PreviewLojaRelatoriosRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
     '/loja/mercado-aurora/endereco/': {
@@ -503,7 +541,9 @@ interface PreviewLojaRouteChildren {
   PreviewLojaCardapioRoute: typeof PreviewLojaCardapioRoute
   PreviewLojaCozinhaRoute: typeof PreviewLojaCozinhaRoute
   PreviewLojaEntregadoresRoute: typeof PreviewLojaEntregadoresRoute
+  PreviewLojaEquipeRoute: typeof PreviewLojaEquipeRoute
   PreviewLojaPedidosRoute: typeof PreviewLojaPedidosRoute
+  PreviewLojaRelatoriosRoute: typeof PreviewLojaRelatoriosRoute
   PreviewLojaIndexRoute: typeof PreviewLojaIndexRoute
 }
 
@@ -511,7 +551,9 @@ const PreviewLojaRouteChildren: PreviewLojaRouteChildren = {
   PreviewLojaCardapioRoute: PreviewLojaCardapioRoute,
   PreviewLojaCozinhaRoute: PreviewLojaCozinhaRoute,
   PreviewLojaEntregadoresRoute: PreviewLojaEntregadoresRoute,
+  PreviewLojaEquipeRoute: PreviewLojaEquipeRoute,
   PreviewLojaPedidosRoute: PreviewLojaPedidosRoute,
+  PreviewLojaRelatoriosRoute: PreviewLojaRelatoriosRoute,
   PreviewLojaIndexRoute: PreviewLojaIndexRoute,
 }
 
