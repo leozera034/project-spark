@@ -59,6 +59,7 @@ import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/lo
 import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
 import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
 import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
+import { Route as ApiPublicStorefrontSlugRouteImport } from './routes/api/public/storefront/$slug'
 import { Route as AppLojaCardapioIndexRouteImport } from './routes/app/loja/cardapio/index'
 import { Route as AppLojaCardapioCategoriasRouteImport } from './routes/app/loja/cardapio/categorias'
 import { Route as AppLojaCardapioOpcoesRouteImport } from './routes/app/loja/cardapio/opcoes'
@@ -331,6 +332,11 @@ const PreviewLojaRelatoriosRoute = PreviewLojaRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
+const ApiPublicStorefrontSlugRoute = ApiPublicStorefrontSlugRouteImport.update({
+  id: '/api/public/storefront/$slug',
+  path: '/api/public/storefront/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLojaCardapioIndexRoute = AppLojaCardapioIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -471,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -528,6 +535,7 @@ export interface FileRoutesByTo {
   '/preview/cliente': typeof PreviewClienteIndexRoute
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -596,6 +604,7 @@ export interface FileRoutesById {
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -665,6 +674,7 @@ export interface FileRouteTypes {
     | '/preview/cliente/'
     | '/preview/entregador/'
     | '/preview/loja/'
+    | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
@@ -722,6 +732,7 @@ export interface FileRouteTypes {
     | '/preview/cliente'
     | '/preview/entregador'
     | '/preview/loja'
+    | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
@@ -789,6 +800,7 @@ export interface FileRouteTypes {
     | '/preview/cliente/'
     | '/preview/entregador/'
     | '/preview/loja/'
+    | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
     | '/app/loja/configuracoes/atendimento'
@@ -821,6 +833,7 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
+  ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1175,6 +1188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewLojaRelatoriosRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
+    '/api/public/storefront/$slug': {
+      id: '/api/public/storefront/$slug'
+      path: '/api/public/storefront/$slug'
+      fullPath: '/api/public/storefront/$slug'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/loja/cardapio/': {
       id: '/app/loja/cardapio/'
       path: '/'
@@ -1494,6 +1514,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
+  ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
