@@ -97,7 +97,7 @@ function Orders() {
 
       {/* Mobile e tablet: lista filtrada */}
       <div className="xl:hidden">
-        <div className="-mx-4 overflow-x-auto px-4">
+        <div className="rail -mx-4 gap-2 px-4">
           <ul className="flex gap-2 pb-2">
             {FILTERS.map((item) => (
               <li key={item.id}>

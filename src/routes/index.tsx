@@ -55,17 +55,17 @@ function Index() {
 
       <main>
         <section className="bg-carbon text-carbon-foreground">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
             <Badge variant="brand">Fase 02 · identidade visual</Badge>
-            <h1 className="mt-6 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
+            <h1 className="mt-6 max-w-3xl text-[clamp(2rem,7vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight">
               O pedido do bairro, organizado de ponta a ponta.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg opacity-80">
+            <p className="mt-6 max-w-2xl text-base opacity-80 sm:text-lg">
               Pediu Aqui é a plataforma de cardápio digital, pedidos e entregas do comércio local.
               Cada loja opera isolada, com seus produtos, seus clientes e seus entregadores.
             </p>
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Button asChild variant="brand" size="touch">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
+              <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
                 <Link to="/design-system">Ver o design system</Link>
               </Button>
             </div>

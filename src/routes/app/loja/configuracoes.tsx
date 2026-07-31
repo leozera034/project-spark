@@ -98,7 +98,7 @@ function ConfiguracoesLayout() {
         ) : null}
       </header>
 
-      <nav aria-label="Seções de configuração" className="mt-6 -mx-4 overflow-x-auto px-4">
+      <nav aria-label="Seções de configuração" className="rail mt-6 -mx-4 gap-2 px-4">
         <ul className="flex min-w-max gap-2 border-b border-border pb-px">
           {SECTIONS.map((section) => {
             const active = pathname.startsWith(section.to);

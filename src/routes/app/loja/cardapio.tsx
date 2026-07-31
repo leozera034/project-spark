@@ -76,7 +76,7 @@ function CardapioLayout() {
       </header>
 
 
-      <nav aria-label="Seções do cardápio" className="mt-6 -mx-4 overflow-x-auto px-4">
+      <nav aria-label="Seções do cardápio" className="rail mt-6 -mx-4 gap-2 px-4">
         <ul className="flex min-w-max gap-2 border-b border-border pb-px">
           {SECTIONS.map((section) => {
             const active = section.exact
