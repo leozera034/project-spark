@@ -361,7 +361,7 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
   const { data, error } = await db.rpc("storefront_price", {
     _slug: parsed.slug,
     _product_id: parsed.product_id,
-    _variant_id: parsed.variant_id ?? null,
+    _variant_id: parsed.variant_id ?? undefined,
     _quantity: parsed.quantity,
     _selections: parsed.selections,
   });
