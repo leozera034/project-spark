@@ -73,6 +73,8 @@ function CardapioLayout() {
         <p className="text-sm text-muted-foreground">
           Categorias, produtos, variações, grupos de opções e venda por peso.
         </p>
+      </header>
+
 
       <nav aria-label="Seções do cardápio" className="mt-6 -mx-4 overflow-x-auto px-4">
         <ul className="flex min-w-max gap-2 border-b border-border pb-px">
