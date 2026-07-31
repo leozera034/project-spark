@@ -6,7 +6,7 @@
  * servidor: nenhum valor é recalculado no navegador.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertCircle, Check, Clock, RefreshCw, Store } from "lucide-react";
+import { Check, Clock, RefreshCw, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";

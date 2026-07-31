@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, MapPin, Store, TriangleAlert } from "lucide-react";
+import { ArrowLeft, MapPin, Store, TriangleAlert } from "lucide-react";
 
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { brl } from "@/components/storefront/format";

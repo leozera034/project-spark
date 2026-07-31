@@ -29,7 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { ErrorState } from "@/components/feedback/ErrorState";
+import { ListSkeleton } from "@/components/feedback/Skeletons";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/")({
   component: ProdutosPage,
@@ -137,16 +139,20 @@ function ProdutosPage() {
       </div>
 
       {query.isLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
+        <ListSkeleton rows={4} />
+      ) : query.isError ? (
+        <ErrorState
+          title="Não foi possível carregar os produtos"
+          description="A conexão com o servidor falhou. Tente novamente."
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
+        />
       ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Nenhum produto encontrado com estes filtros.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={PackageSearch}
+          title="Nenhum produto encontrado"
+          description="Ajuste os filtros de busca ou cadastre um novo produto para o cardápio."
+        />
       ) : (
         <ul className="space-y-3">
           {items.map((product) => (
