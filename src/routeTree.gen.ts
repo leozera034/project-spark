@@ -27,6 +27,7 @@ import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
 import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
+import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
 import { Route as LojaMercadoAuroraAcompanhamentoRouteImport } from './routes/loja/mercado-aurora/acompanhamento'
@@ -146,6 +147,11 @@ const PreviewLojaRoute = PreviewLojaRouteImport.update({
   id: '/loja',
   path: '/loja',
   getParentRoute: () => PreviewRoute,
+} as any)
+const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppEntregadorRoute,
 } as any)
 const AppLojaIndexRoute = AppLojaIndexRouteImport.update({
   id: '/',
@@ -313,7 +319,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
-  '/app/entregador': typeof AppEntregadorRoute
+  '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
@@ -345,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/admin/': typeof PreviewAdminIndexRoute
@@ -361,7 +368,6 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
-  '/app/entregador': typeof AppEntregadorRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
@@ -388,6 +394,7 @@ export interface FileRoutesByTo {
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/app/entregador': typeof AppEntregadorIndexRoute
   '/app/loja': typeof AppLojaIndexRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
   '/preview/admin': typeof PreviewAdminIndexRoute
@@ -406,7 +413,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
-  '/app/entregador': typeof AppEntregadorRoute
+  '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
@@ -438,6 +445,7 @@ export interface FileRoutesById {
   '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
+  '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/admin/': typeof PreviewAdminIndexRoute
@@ -489,6 +497,7 @@ export interface FileRouteTypes {
     | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
+    | '/app/entregador/'
     | '/app/loja/'
     | '/loja/mercado-aurora/'
     | '/preview/admin/'
@@ -505,7 +514,6 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
-    | '/app/entregador'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
@@ -532,6 +540,7 @@ export interface FileRouteTypes {
     | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
+    | '/app/entregador'
     | '/app/loja'
     | '/loja/mercado-aurora'
     | '/preview/admin'
@@ -581,6 +590,7 @@ export interface FileRouteTypes {
     | '/preview/loja/equipe'
     | '/preview/loja/pedidos'
     | '/preview/loja/relatorios'
+    | '/app/entregador/'
     | '/app/loja/'
     | '/loja/mercado-aurora/'
     | '/preview/admin/'
@@ -599,7 +609,7 @@ export interface RootRouteChildren {
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SemAcessoRoute: typeof SemAcessoRoute
   TrocarSenhaInicialRoute: typeof TrocarSenhaInicialRoute
-  AppEntregadorRoute: typeof AppEntregadorRoute
+  AppEntregadorRoute: typeof AppEntregadorRouteWithChildren
   AppLojaRoute: typeof AppLojaRouteWithChildren
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
@@ -733,6 +743,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/preview/loja'
       preLoaderRoute: typeof PreviewLojaRouteImport
       parentRoute: typeof PreviewRoute
+    }
+    '/app/entregador/': {
+      id: '/app/entregador/'
+      path: '/'
+      fullPath: '/app/entregador/'
+      preLoaderRoute: typeof AppEntregadorIndexRouteImport
+      parentRoute: typeof AppEntregadorRoute
     }
     '/app/loja/': {
       id: '/app/loja/'
@@ -1061,6 +1078,18 @@ const PreviewRouteChildren: PreviewRouteChildren = {
 const PreviewRouteWithChildren =
   PreviewRoute._addFileChildren(PreviewRouteChildren)
 
+interface AppEntregadorRouteChildren {
+  AppEntregadorIndexRoute: typeof AppEntregadorIndexRoute
+}
+
+const AppEntregadorRouteChildren: AppEntregadorRouteChildren = {
+  AppEntregadorIndexRoute: AppEntregadorIndexRoute,
+}
+
+const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
+  AppEntregadorRouteChildren,
+)
+
 interface AppLojaRouteChildren {
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
@@ -1081,7 +1110,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SemAcessoRoute: SemAcessoRoute,
   TrocarSenhaInicialRoute: TrocarSenhaInicialRoute,
-  AppEntregadorRoute: AppEntregadorRoute,
+  AppEntregadorRoute: AppEntregadorRouteWithChildren,
   AppLojaRoute: AppLojaRouteWithChildren,
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
