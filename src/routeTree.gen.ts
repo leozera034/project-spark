@@ -16,6 +16,7 @@ import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
+import { Route as LojaMercadoAuroraCardapioRouteImport } from './routes/loja/mercado-aurora/cardapio'
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
@@ -56,6 +57,12 @@ const LojaMercadoAuroraIndexRoute = LojaMercadoAuroraIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LojaMercadoAuroraRoute,
 } as any)
+const LojaMercadoAuroraCardapioRoute =
+  LojaMercadoAuroraCardapioRouteImport.update({
+    id: '/cardapio',
+    path: '/cardapio',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
 const LojaMercadoAuroraIdentificacaoRoute =
   LojaMercadoAuroraIdentificacaoRouteImport.update({
     id: '/identificacao',
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaMercadoAuroraIndexRouteImport
       parentRoute: typeof LojaMercadoAuroraRoute
     }
+    '/loja/mercado-aurora/cardapio': {
+      id: '/loja/mercado-aurora/cardapio'
+      path: '/cardapio'
+      fullPath: '/loja/mercado-aurora/cardapio'
+      preLoaderRoute: typeof LojaMercadoAuroraCardapioRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
     '/loja/mercado-aurora/identificacao': {
       id: '/loja/mercado-aurora/identificacao'
       path: '/identificacao'
@@ -249,6 +269,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface LojaMercadoAuroraRouteChildren {
+  LojaMercadoAuroraCardapioRoute: typeof LojaMercadoAuroraCardapioRoute
   LojaMercadoAuroraIdentificacaoRoute: typeof LojaMercadoAuroraIdentificacaoRoute
   LojaMercadoAuroraModalidadeRoute: typeof LojaMercadoAuroraModalidadeRoute
   LojaMercadoAuroraIndexRoute: typeof LojaMercadoAuroraIndexRoute
@@ -257,6 +278,7 @@ interface LojaMercadoAuroraRouteChildren {
 }
 
 const LojaMercadoAuroraRouteChildren: LojaMercadoAuroraRouteChildren = {
+  LojaMercadoAuroraCardapioRoute: LojaMercadoAuroraCardapioRoute,
   LojaMercadoAuroraIdentificacaoRoute: LojaMercadoAuroraIdentificacaoRoute,
   LojaMercadoAuroraModalidadeRoute: LojaMercadoAuroraModalidadeRoute,
   LojaMercadoAuroraIndexRoute: LojaMercadoAuroraIndexRoute,
