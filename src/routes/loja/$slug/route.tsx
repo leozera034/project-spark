@@ -22,7 +22,13 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/loja/$slug")({
   validateSearch: searchSchema,
-  loader: async ({ params }) => fetchStorefront({ data: { slug: params.slug } }),
+  loader: async ({ params }) => {
+    const [storefront, origin] = await Promise.all([
+      fetchStorefront({ data: { slug: params.slug } }),
+      getSiteOrigin(),
+    ]);
+    return { ...storefront, origin };
+  },
   head: ({ loaderData, params }) => {
     const name = loaderData?.store.store.name ?? "Cardápio digital";
     const city = loaderData?.store.store.city;
@@ -30,7 +36,9 @@ export const Route = createFileRoute("/loja/$slug")({
       loaderData?.store.settings.description ??
       `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
     const title = `${name} · Cardápio online`;
-    const url = `/loja/${params.slug}`;
+    const origin = loaderData?.origin ?? "";
+    const url = absoluteUrl(origin, `/loja/${params.slug}`);
+    const ogImage = absoluteUrl(origin, OG_IMAGE_PATH);
     return {
       meta: [
         { title },
@@ -39,12 +47,19 @@ export const Route = createFileRoute("/loja/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: url },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: `${name} — cardápio online` },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
+        { name: "twitter:image", content: ogImage },
+        { name: "twitter:image:alt", content: `${name} — cardápio online` },
         { name: "robots", content: "index,follow" },
       ],
       links: [{ rel: "canonical", href: url }],
+
       scripts: [
         {
           type: "application/ld+json",
