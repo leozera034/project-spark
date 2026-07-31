@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { PackageSearch } from "lucide-react";
 
 import {
   archiveProduct,
