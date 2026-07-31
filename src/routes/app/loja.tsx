@@ -28,7 +28,7 @@ function StoreAppLayout() {
         <BrandLogo lockup="horizontal" className="h-7 w-auto" />
         <div className="flex items-center gap-3">
           <span className="hidden text-sm text-muted-foreground sm:inline">
-            {authContext?.display_name ?? "Equipe"}
+            {authContext?.full_name ?? "Equipe"}
           </span>
           <Button
             variant="outline"
