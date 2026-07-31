@@ -17,11 +17,13 @@ import {
   initialProductValues,
   type ProductFormValues,
 } from "@/catalog/ProductForm";
+import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/$id")({
   component: EditarProduto,
