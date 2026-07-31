@@ -71,6 +71,7 @@ import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
 import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
+import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
 
 const IndexRoute = IndexRouteImport.update({
@@ -403,6 +404,12 @@ const AppLojaCardapioProdutosIndexRoute =
     path: '/produtos/',
     getParentRoute: () => AppLojaCardapioRoute,
   } as any)
+const AppLojaCardapioProdutosIdRoute =
+  AppLojaCardapioProdutosIdRouteImport.update({
+    id: '/produtos/$id',
+    path: '/produtos/$id',
+    getParentRoute: () => AppLojaCardapioRoute,
+  } as any)
 const AppLojaCardapioProdutosNovoRoute =
   AppLojaCardapioProdutosNovoRouteImport.update({
     id: '/produtos/novo',
@@ -472,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
+  '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
 }
@@ -527,6 +535,7 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco': typeof LojaMercadoAuroraEnderecoIndexRoute
+  '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
 }
@@ -593,6 +602,7 @@ export interface FileRoutesById {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
+  '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
 }
@@ -660,6 +670,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
+    | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
   fileRoutesByTo: FileRoutesByTo
@@ -715,6 +726,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/loja/mercado-aurora/endereco'
+    | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
   id:
@@ -780,6 +792,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
+    | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
   fileRoutesById: FileRoutesById
@@ -1237,6 +1250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioProdutosIndexRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/cardapio/produtos/$id': {
+      id: '/app/loja/cardapio/produtos/$id'
+      path: '/produtos/$id'
+      fullPath: '/app/loja/cardapio/produtos/$id'
+      preLoaderRoute: typeof AppLojaCardapioProdutosIdRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
     '/app/loja/cardapio/produtos/novo': {
       id: '/app/loja/cardapio/produtos/novo'
       path: '/produtos/novo'
@@ -1393,6 +1413,7 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
 interface AppLojaCardapioRouteChildren {
   AppLojaCardapioCategoriasRoute: typeof AppLojaCardapioCategoriasRoute
   AppLojaCardapioIndexRoute: typeof AppLojaCardapioIndexRoute
+  AppLojaCardapioProdutosIdRoute: typeof AppLojaCardapioProdutosIdRoute
   AppLojaCardapioProdutosNovoRoute: typeof AppLojaCardapioProdutosNovoRoute
   AppLojaCardapioProdutosIndexRoute: typeof AppLojaCardapioProdutosIndexRoute
 }
@@ -1400,6 +1421,7 @@ interface AppLojaCardapioRouteChildren {
 const AppLojaCardapioRouteChildren: AppLojaCardapioRouteChildren = {
   AppLojaCardapioCategoriasRoute: AppLojaCardapioCategoriasRoute,
   AppLojaCardapioIndexRoute: AppLojaCardapioIndexRoute,
+  AppLojaCardapioProdutosIdRoute: AppLojaCardapioProdutosIdRoute,
   AppLojaCardapioProdutosNovoRoute: AppLojaCardapioProdutosNovoRoute,
   AppLojaCardapioProdutosIndexRoute: AppLojaCardapioProdutosIndexRoute,
 }
