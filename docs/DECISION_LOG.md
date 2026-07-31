@@ -242,3 +242,37 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Motivo:** dois entregadores podem tentar aceitar a mesma entrega no mesmo instante.
 - **Consequência:** implementação obrigatória nas fases de gestão de entregadores e experiência do entregador; nunca ler-e-depois-escrever.
 - **Status:** aprovada
+
+### D-031 — Funções de contexto de segurança no schema `private`
+- **Data:** 2026-07-31
+- **Decisão:** todas as funções que resolvem identidade, loja e papel (`is_store_member`, `is_store_manager`, `current_courier_id`, `current_courier_store_id`, `is_platform_admin`, `is_public_store`) vivem no schema `private`, com `SECURITY DEFINER` e `search_path` fixo.
+- **Motivo:** policies que consultam `user_roles` diretamente causam recursão; funções em `public` viram RPC chamável.
+- **Consequência:** o schema `private` nunca entra nos schemas expostos da Data API.
+- **Status:** aprovada
+
+### D-032 — Isolamento por loja com negação por padrão
+- **Data:** 2026-07-31
+- **Decisão:** toda tabela operacional recebe policies comparando `store_id` com as lojas do usuário. Nenhuma policy usa `USING (true)`. `GRANT` só é concedido para a operação que alguma policy permite.
+- **Motivo:** o produto é multi-tenant; consulta entre lojas não pode existir nem por engano.
+- **Consequência:** `audit_logs`, `order_status_history`, assinaturas e cobranças ficam somente leitura na API; escrita só por `service_role`.
+- **Status:** aprovada
+
+### D-034 — Catálogo público por coluna, dados sensíveis da loja fechados
+- **Data:** 2026-07-31
+- **Decisão:** o visitante do cardápio lê apenas lojas com status `ativa` e o catálogo publicado. O `GRANT SELECT` de `anon` em `stores` é por coluna e exclui `document`, `legal_name` e `email`.
+- **Motivo:** o cardápio precisa ser público, o cadastro fiscal da loja não.
+- **Consequência:** consultas públicas devem listar colunas explicitamente; `select *` como visitante falha por privilégio.
+- **Status:** aprovada
+
+### D-035 — Acompanhamento por token fora do RLS
+- **Data:** 2026-07-31
+- **Decisão:** `orders` não recebe policy para `anon`. O acompanhamento por `public_tracking_token` será servido por função de servidor que valida o token e devolve apenas campos de acompanhamento.
+- **Motivo:** uma policy não consegue exigir posse do token; liberar `orders` para `anon` exporia todos os pedidos da loja.
+- **Status:** aprovada
+
+### D-036 — Escrita ampla de gestão é temporária
+- **Data:** 2026-07-31
+- **Decisão:** na Fase 06 a escrita nas tabelas da loja fica restrita a `proprietario` e `gerente`. Atendente e cozinha ficam somente leitura até a Fase 07 definir a autorização por ação.
+- **Motivo:** isolamento não é autorização; abrir escrita para todos os cargos seria permissivo demais.
+- **Consequência:** a Fase 07 deve substituir `private.is_store_manager` por verificações por ação.
+- **Status:** aprovada
