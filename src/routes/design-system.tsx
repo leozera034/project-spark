@@ -169,7 +169,7 @@ function DesignSystemPage() {
                     asset.dark ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                   }`}
                 >
-                  <img src={asset.src} alt={asset.label} className="max-h-16 w-auto max-w-full" />
+                  <img src={asset.src} alt={asset.label} data-no-dim className="max-h-16 w-auto max-w-full" />
                 </div>
                 <div className="p-3">
                   <p className="text-sm font-medium">{asset.label}</p>
