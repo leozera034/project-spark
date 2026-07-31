@@ -94,7 +94,7 @@ function Index() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
-          <BrandLogo tone="monochrome" className="h-6 opacity-70" />
+          <BrandLogo className="h-6 opacity-70" />
           <p className="text-xs text-muted-foreground">Pediu Aqui · plataforma para o comércio local</p>
         </div>
       </footer>

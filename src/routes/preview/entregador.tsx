@@ -27,7 +27,7 @@ function CourierLayout() {
       <DemoBanner />
       <header className="sticky top-0 z-20 border-b border-border bg-surface">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
-          <BrandSymbol tone="carbon-teal" className="size-8" />
+          <BrandSymbol className="size-8" />
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-foreground">{courier?.name}</p>
             <p className="text-xs text-muted-foreground">{courier?.vehicle} · Mercado Aurora</p>
