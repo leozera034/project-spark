@@ -2343,7 +2343,10 @@ export type Database = {
         | "concluida"
         | "cancelada"
       fulfillment_type: "entrega" | "retirada"
-      option_selection_type: "unica" | "multipla"
+      measurement_unit: "unit" | "kg" | "g" | "l" | "ml"
+      option_group_price_effect: "additive" | "replace_base"
+      option_group_pricing_strategy: "sum" | "highest_price" | "average_price"
+      option_selection_type: "unica" | "multipla" | "quantidade"
       order_status:
         | "aguardando_confirmacao"
         | "aceito"
@@ -2364,6 +2367,7 @@ export type Database = {
         | "vale_refeicao"
         | "outro"
       pricing_unit: "unidade" | "quantidade" | "peso"
+      product_sale_mode: "unit" | "measured" | "fixed_package"
       promotion_type: "percentual" | "valor_fixo"
       store_status: "em_implantacao" | "ativa" | "suspensa" | "inativa"
       subscription_payment_status:
@@ -2583,7 +2587,10 @@ export const Constants = {
         "cancelada",
       ],
       fulfillment_type: ["entrega", "retirada"],
-      option_selection_type: ["unica", "multipla"],
+      measurement_unit: ["unit", "kg", "g", "l", "ml"],
+      option_group_price_effect: ["additive", "replace_base"],
+      option_group_pricing_strategy: ["sum", "highest_price", "average_price"],
+      option_selection_type: ["unica", "multipla", "quantidade"],
       order_status: [
         "aguardando_confirmacao",
         "aceito",
@@ -2606,6 +2613,7 @@ export const Constants = {
         "outro",
       ],
       pricing_unit: ["unidade", "quantidade", "peso"],
+      product_sale_mode: ["unit", "measured", "fixed_package"],
       promotion_type: ["percentual", "valor_fixo"],
       store_status: ["em_implantacao", "ativa", "suspensa", "inativa"],
       subscription_payment_status: [
