@@ -31,6 +31,7 @@ import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregad
 import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
+import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
 import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
 import { Route as LojaMercadoAuroraAcompanhamentoRouteImport } from './routes/loja/mercado-aurora/acompanhamento'
 import { Route as LojaMercadoAuroraCardapioRouteImport } from './routes/loja/mercado-aurora/cardapio'
@@ -57,6 +58,7 @@ import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/lo
 import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
 import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
 import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
+import { Route as AppLojaConfiguracoesIndexRouteImport } from './routes/app/loja/configuracoes/index'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
 import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 
@@ -168,6 +170,11 @@ const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
 const AppLojaIndexRoute = AppLojaIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => AppLojaRoute,
 } as any)
 const LojaMercadoAuroraIndexRoute = LojaMercadoAuroraIndexRouteImport.update({
@@ -309,6 +316,12 @@ const PreviewLojaRelatoriosRoute = PreviewLojaRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
+const AppLojaConfiguracoesIndexRoute =
+  AppLojaConfiguracoesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLojaConfiguracoesRoute,
+  } as any)
 const LojaMercadoAuroraEnderecoIndexRoute =
   LojaMercadoAuroraEnderecoIndexRouteImport.update({
     id: '/endereco/',
@@ -343,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
+  '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
@@ -372,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -416,6 +431,7 @@ export interface FileRoutesByTo {
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRoutesById {
@@ -440,6 +456,7 @@ export interface FileRoutesById {
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
+  '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
@@ -469,6 +486,7 @@ export interface FileRoutesById {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
+  '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
 }
 export interface FileRouteTypes {
@@ -494,6 +512,7 @@ export interface FileRouteTypes {
     | '/preview/loja'
     | '/admin/'
     | '/preview/'
+    | '/app/loja/configuracoes'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/carrinho'
@@ -523,6 +542,7 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
+    | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -567,6 +587,7 @@ export interface FileRouteTypes {
     | '/preview/entregador'
     | '/preview/loja'
     | '/loja/mercado-aurora/endereco/novo'
+    | '/app/loja/configuracoes'
     | '/loja/mercado-aurora/endereco'
   id:
     | '__root__'
@@ -590,6 +611,7 @@ export interface FileRouteTypes {
     | '/preview/loja'
     | '/admin/'
     | '/preview/'
+    | '/app/loja/configuracoes'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/carrinho'
@@ -619,6 +641,7 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/loja/mercado-aurora/endereco/novo'
+    | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
   fileRoutesById: FileRoutesById
 }
@@ -793,6 +816,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/loja/'
       preLoaderRoute: typeof AppLojaIndexRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/configuracoes': {
+      id: '/app/loja/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/loja/configuracoes'
+      preLoaderRoute: typeof AppLojaConfiguracoesRouteImport
       parentRoute: typeof AppLojaRoute
     }
     '/loja/mercado-aurora/': {
@@ -977,6 +1007,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewLojaRelatoriosRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
+    '/app/loja/configuracoes/': {
+      id: '/app/loja/configuracoes/'
+      path: '/'
+      fullPath: '/app/loja/configuracoes/'
+      preLoaderRoute: typeof AppLojaConfiguracoesIndexRouteImport
+      parentRoute: typeof AppLojaConfiguracoesRoute
+    }
     '/loja/mercado-aurora/endereco/': {
       id: '/loja/mercado-aurora/endereco/'
       path: '/endereco'
@@ -1137,11 +1174,24 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
   AppEntregadorRouteChildren,
 )
 
+interface AppLojaConfiguracoesRouteChildren {
+  AppLojaConfiguracoesIndexRoute: typeof AppLojaConfiguracoesIndexRoute
+}
+
+const AppLojaConfiguracoesRouteChildren: AppLojaConfiguracoesRouteChildren = {
+  AppLojaConfiguracoesIndexRoute: AppLojaConfiguracoesIndexRoute,
+}
+
+const AppLojaConfiguracoesRouteWithChildren =
+  AppLojaConfiguracoesRoute._addFileChildren(AppLojaConfiguracoesRouteChildren)
+
 interface AppLojaRouteChildren {
+  AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
 
 const AppLojaRouteChildren: AppLojaRouteChildren = {
+  AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
   AppLojaIndexRoute: AppLojaIndexRoute,
 }
 
