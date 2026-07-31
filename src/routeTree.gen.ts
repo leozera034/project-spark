@@ -37,6 +37,7 @@ import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/conf
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
 import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
+import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
 import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
 import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
 import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
@@ -225,6 +226,11 @@ const LojaSlugCarrinhoRoute = LojaSlugCarrinhoRouteImport.update({
 const LojaSlugCheckoutRoute = LojaSlugCheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => LojaSlugRouteRoute,
+} as any)
+const LojaSlugPedidoEnviadoRoute = LojaSlugPedidoEnviadoRouteImport.update({
+  id: '/pedido-enviado',
+  path: '/pedido-enviado',
   getParentRoute: () => LojaSlugRouteRoute,
 } as any)
 const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -593,6 +600,7 @@ export interface FileRoutesByTo {
   '/preview': typeof PreviewIndexRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -673,6 +681,7 @@ export interface FileRoutesById {
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -754,6 +763,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -822,6 +832,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -901,6 +912,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -1169,6 +1181,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/loja/$slug/checkout'
       preLoaderRoute: typeof LojaSlugCheckoutRouteImport
+      parentRoute: typeof LojaSlugRouteRoute
+    }
+    '/loja/$slug/pedido-enviado': {
+      id: '/loja/$slug/pedido-enviado'
+      path: '/pedido-enviado'
+      fullPath: '/loja/$slug/pedido-enviado'
+      preLoaderRoute: typeof LojaSlugPedidoEnviadoRouteImport
       parentRoute: typeof LojaSlugRouteRoute
     }
     '/preview/admin/': {
@@ -1530,12 +1549,14 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface LojaSlugRouteRouteChildren {
   LojaSlugCarrinhoRoute: typeof LojaSlugCarrinhoRoute
   LojaSlugCheckoutRoute: typeof LojaSlugCheckoutRoute
+  LojaSlugPedidoEnviadoRoute: typeof LojaSlugPedidoEnviadoRoute
   LojaSlugIndexRoute: typeof LojaSlugIndexRoute
 }
 
 const LojaSlugRouteRouteChildren: LojaSlugRouteRouteChildren = {
   LojaSlugCarrinhoRoute: LojaSlugCarrinhoRoute,
   LojaSlugCheckoutRoute: LojaSlugCheckoutRoute,
+  LojaSlugPedidoEnviadoRoute: LojaSlugPedidoEnviadoRoute,
   LojaSlugIndexRoute: LojaSlugIndexRoute,
 }
 
