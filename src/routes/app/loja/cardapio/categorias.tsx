@@ -16,6 +16,7 @@ import { CatalogImage } from "@/catalog/CatalogImage";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import type { CatalogCategory } from "@/catalog/types";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -131,13 +132,15 @@ function CategoriasPage() {
       </div>
 
       {visible.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {showArchived
-              ? "Nenhuma categoria arquivada."
-              : "Nenhuma categoria ainda. Crie a primeira para organizar seus produtos."}
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={FolderOpen}
+          title={showArchived ? "Nenhuma categoria arquivada" : "Nenhuma categoria ainda"}
+          description={
+            showArchived
+              ? "As categorias arquivadas aparecem aqui quando você arquivar alguma."
+              : "Crie a primeira categoria para organizar os produtos do seu cardápio."
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {visible.map((category, index) => (
