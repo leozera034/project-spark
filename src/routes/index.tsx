@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Monte seu cardápio digital, receba pedidos pelo WhatsApp do bairro e organize suas entregas em um só lugar.",
+          "Monte seu cardápio digital, receba pedidos organizados e faça suas entregas com a sua própria equipe.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
