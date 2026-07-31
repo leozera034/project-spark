@@ -45,7 +45,7 @@ export function NotFoundPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button asChild size="lg" className="w-full sm:w-auto">
+          <Button asChild variant="brand" size="lg" className="w-full sm:w-auto">
             <Link to="/">
               <Home className="h-4 w-4" aria-hidden="true" />
               Voltar à página inicial
