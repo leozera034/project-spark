@@ -17,6 +17,7 @@ import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppEntregadorRouteImport } from './routes/app/entregador'
@@ -128,6 +129,11 @@ const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
 const SemAcessoRoute = SemAcessoRouteImport.update({
   id: '/sem-acesso',
   path: '/sem-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrocarSenhaInicialRoute = TrocarSenhaInicialRouteImport.update({
@@ -527,6 +533,7 @@ export interface FileRoutesByFullPath {
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/loja/$slug': typeof LojaSlugRouteRouteWithChildren
   '/app/entregador': typeof AppEntregadorRouteWithChildren
@@ -607,6 +614,7 @@ export interface FileRoutesByTo {
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
@@ -681,6 +689,7 @@ export interface FileRoutesById {
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/loja/$slug': typeof LojaSlugRouteRouteWithChildren
   '/app/entregador': typeof AppEntregadorRouteWithChildren
@@ -765,6 +774,7 @@ export interface FileRouteTypes {
     | '/recuperar-acesso'
     | '/redefinir-senha'
     | '/sem-acesso'
+    | '/sitemap.xml'
     | '/trocar-senha-inicial'
     | '/loja/$slug'
     | '/app/entregador'
@@ -845,6 +855,7 @@ export interface FileRouteTypes {
     | '/recuperar-acesso'
     | '/redefinir-senha'
     | '/sem-acesso'
+    | '/sitemap.xml'
     | '/trocar-senha-inicial'
     | '/entrar/admin'
     | '/entrar/entregador'
@@ -918,6 +929,7 @@ export interface FileRouteTypes {
     | '/recuperar-acesso'
     | '/redefinir-senha'
     | '/sem-acesso'
+    | '/sitemap.xml'
     | '/trocar-senha-inicial'
     | '/loja/$slug'
     | '/app/entregador'
@@ -1001,6 +1013,7 @@ export interface RootRouteChildren {
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SemAcessoRoute: typeof SemAcessoRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrocarSenhaInicialRoute: typeof TrocarSenhaInicialRoute
   AppEntregadorRoute: typeof AppEntregadorRouteWithChildren
   AppLojaRoute: typeof AppLojaRouteWithChildren
@@ -1068,6 +1081,13 @@ declare module '@tanstack/react-router' {
       path: '/sem-acesso'
       fullPath: '/sem-acesso'
       preLoaderRoute: typeof SemAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trocar-senha-inicial': {
@@ -1853,6 +1873,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarAcessoRoute: RecuperarAcessoRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SemAcessoRoute: SemAcessoRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrocarSenhaInicialRoute: TrocarSenhaInicialRoute,
   AppEntregadorRoute: AppEntregadorRouteWithChildren,
   AppLojaRoute: AppLojaRouteWithChildren,
@@ -1866,3 +1887,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
