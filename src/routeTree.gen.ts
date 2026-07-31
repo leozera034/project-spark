@@ -36,6 +36,7 @@ import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
+import { Route as AppLojaCozinhaRouteImport } from './routes/app/loja/cozinha'
 import { Route as AppLojaPedidosRouteImport } from './routes/app/loja/pedidos'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
@@ -226,6 +227,11 @@ const AppLojaCardapioRoute = AppLojaCardapioRouteImport.update({
 const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaCozinhaRoute = AppLojaCozinhaRouteImport.update({
+  id: '/cozinha',
+  path: '/cozinha',
   getParentRoute: () => AppLojaRoute,
 } as any)
 const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
@@ -562,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -636,6 +643,7 @@ export interface FileRoutesByTo {
   '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
+  '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -722,6 +730,7 @@ export interface FileRoutesById {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -809,6 +818,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/cozinha'
     | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
@@ -883,6 +893,7 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/admin'
     | '/preview'
+    | '/app/loja/cozinha'
     | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
@@ -968,6 +979,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/cozinha'
     | '/app/loja/pedidos'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
@@ -1238,6 +1250,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/app/loja/configuracoes'
       preLoaderRoute: typeof AppLojaConfiguracoesRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/cozinha': {
+      id: '/app/loja/cozinha'
+      path: '/cozinha'
+      fullPath: '/app/loja/cozinha'
+      preLoaderRoute: typeof AppLojaCozinhaRouteImport
       parentRoute: typeof AppLojaRoute
     }
     '/app/loja/pedidos': {
@@ -1849,6 +1868,7 @@ const AppLojaConfiguracoesRouteWithChildren =
 interface AppLojaRouteChildren {
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
+  AppLojaCozinhaRoute: typeof AppLojaCozinhaRoute
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
@@ -1856,6 +1876,7 @@ interface AppLojaRouteChildren {
 const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
+  AppLojaCozinhaRoute: AppLojaCozinhaRoute,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
 }
@@ -1929,13 +1950,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

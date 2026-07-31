@@ -534,3 +534,53 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** a atualização leva de 12 a 30 segundos; aba oculta ou aparelho offline não consultam.
 - **Riscos evitados:** canal Realtime aberto ao anônimo; tráfego desnecessário; consumo de bateria.
 - **Status:** aprovada
+
+---
+
+### D-069 — A cozinha é uma projeção, não um subsistema
+- **Data:** 2026-07-31
+- **Decisão:** o Modo Cozinha lê `public.list_my_kitchen_orders` e escreve apenas pelos wrappers da Fase 16, sem máquina de estados, tabela ou fila própria.
+- **Motivo:** duplicar a lógica de pedidos criaria dois caminhos de verdade e estados divergentes.
+- **Consequência:** qualquer regra futura de transição vale automaticamente para a cozinha.
+- **Riscos evitados:** estado inconsistente entre painel e cozinha; auditoria incompleta.
+- **Status:** aprovada
+
+### D-070 — Projeção mínima por ausência, não por ocultação
+- **Data:** 2026-07-31
+- **Decisão:** dados pessoais, de entrega e financeiros não são selecionados pela RPC nem declarados nos tipos do frontend.
+- **Motivo:** esconder por CSS ou por `select` no cliente ainda trafega o dado.
+- **Consequência:** a tela da cozinha é incapaz de exibir cliente, endereço, pagamento ou valores, mesmo por engano.
+- **Riscos evitados:** vazamento de PII em tela compartilhada na área de produção.
+- **Status:** aprovada
+
+### D-071 — Início de preparo derivado do histórico
+- **Data:** 2026-07-31
+- **Decisão:** `preparationStartedAt` vem da última entrada `em_preparo` em `order_status_history`, sem coluna nova em `orders`.
+- **Motivo:** o histórico já é o canônico da Fase 16; uma coluna paralela poderia divergir.
+- **Consequência:** o contador de preparo depende do histórico estar íntegro, o que a transição garante na mesma transação.
+- **Riscos evitados:** duplicidade de verdade; migração desnecessária em tabela quente.
+- **Status:** aprovada
+
+### D-072 — Tempo decorrido calculado com offset do servidor
+- **Data:** 2026-07-31
+- **Decisão:** a tela guarda `serverNow − Date.now()` e atualiza o mostrador a cada 15 segundos apenas com esse offset; nenhum tempo decorrido é persistido.
+- **Motivo:** relógio de tablet de cozinha erra com frequência, e consultar o servidor a cada segundo é insustentável.
+- **Consequência:** a leitura fica correta mesmo com o aparelho desajustado, com granularidade de 15 segundos.
+- **Riscos evitados:** contadores mentirosos; tempestade de requisições.
+- **Status:** aprovada
+
+### D-073 — Urgência é derivada, nunca um status
+- **Data:** 2026-07-31
+- **Decisão:** `normal`, `attention` e `delayed` são calculados por consulta a partir de `eta_minutes` e do aceite; o enum de status permanece intocado.
+- **Motivo:** atraso é leitura de tempo, não etapa do pedido.
+- **Consequência:** mudar a régua de atraso não exige migração nem afeta o acompanhamento público.
+- **Riscos evitados:** poluição da máquina de estados; “atrasado” chegando ao cliente.
+- **Status:** aprovada
+
+### D-074 — Sem transição otimista na cozinha
+- **Data:** 2026-07-31
+- **Decisão:** o card só muda de fila após a confirmação do servidor, com um pedido em ação por vez e sem repetição automática em conflito.
+- **Motivo:** duas estações operam a mesma fila; mover o card antes da resposta faria a cozinha preparar duas vezes.
+- **Consequência:** há uma pequena espera visível ao tocar na ação.
+- **Riscos evitados:** duplo preparo; conflito silencioso; retentativa cega.
+- **Status:** aprovada

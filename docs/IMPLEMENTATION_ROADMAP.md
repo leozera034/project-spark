@@ -162,6 +162,7 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Riscos:** poluição de informação.
 - **Conclusão:** apenas dados de preparo e duas ações.
 - **Proibido:** dados financeiros e administrativos.
+- **Status:** concluída em 2026-07-31 (Fase 17 da execução). Entregas: `public.list_my_kitchen_orders`, `private.kitchen_allowed_actions`, `src/kitchen/*`, rota `/app/loja/cozinha`, docs `KITCHEN_MODE_*` e `PHASE_17_REPORT.md`. Pendência: roteiro de QA com pedidos reais.
 
 ## Fase 20 — Gestão de equipe
 - **Objetivo:** convidar, ativar, desativar e atribuir papéis dentro da loja.

@@ -1,11 +1,21 @@
+import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
 /**
  * Barra fina no topo enquanto o roteador carrega dados de uma rota.
  * Garante retorno visual imediato em qualquer navegação, sem tela travada.
+ *
+ * O estado de carregamento só é considerado depois da hidratação: no servidor
+ * a rota está sempre pendente e isso causaria divergência de marcação.
  */
 export function RouteProgress() {
-  const isLoading = useRouterState({ select: (state) => state.status === "pending" });
+  const [hydrated, setHydrated] = useState(false);
+  const pending = useRouterState({ select: (state) => state.status === "pending" });
+  const isLoading = hydrated && pending;
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   return (
     <div
