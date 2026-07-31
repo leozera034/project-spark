@@ -17,8 +17,9 @@ import { isAddressStep, nextAddressStep, progressLabel } from "@/storefront/cust
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/customer-wizard.types";
 
-const PRIMARY = "h-13 min-h-[52px] w-full text-base";
-const FIELD = "mt-2 h-12 text-[16px]";
+const PRIMARY =
+  "tappable h-13 min-h-[52px] w-full rounded-xl text-base shadow-e1 active:scale-[0.99]";
+const FIELD = "mt-2 h-12 rounded-xl text-[16px]";
 
 function StepShell({
   title,
@@ -86,7 +87,7 @@ function StepShell({
 
 function AddressSummary({ address, areaName }: { address: LocalSavedAddress; areaName: string }) {
   return (
-    <dl className="space-y-2 rounded-2xl border bg-card p-5 text-base">
+    <dl className="panel space-y-2.5 p-5 text-base">
       <Row label="Identificação" value={address.customLabel ?? address.label} />
       <Row label="Endereço" value={shortAddressLine(address)} />
       <Row label="Bairro" value={areaName} />
@@ -161,12 +162,12 @@ export function CustomerWizard() {
   const banner = (
     <>
       {!wizard.storageAvailable ? (
-        <p className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
           {WIZARD_MESSAGES.storageUnavailable}
         </p>
       ) : null}
       {configuration && !configuration.storeIsOpen ? (
-        <p className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
           {WIZARD_MESSAGES.storeClosed}
         </p>
       ) : null}
@@ -451,7 +452,7 @@ export function CustomerWizard() {
               </button>
             ))}
             {filteredAreas.length === 0 ? (
-              <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              <p className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
                 Esta loja ainda não entrega neste bairro.
               </p>
             ) : null}
@@ -641,7 +642,7 @@ export function CustomerWizard() {
       >
         {banner}
         {duplicate ? (
-          <p className="mb-4 rounded-lg border border-dashed p-3 text-sm">
+          <p className="mb-4 rounded-lg border border-border p-3 text-sm">
             Você já tem um endereço igual salvo ({duplicate.customLabel ?? duplicate.label}).{" "}
             <button
               type="button"
