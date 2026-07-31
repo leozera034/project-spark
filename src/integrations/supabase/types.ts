@@ -60,11 +60,14 @@ export type Database = {
       }
       categories: {
         Row: {
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          image_path: string | null
           image_url: string | null
           is_active: boolean
+          is_archived: boolean
           name: string
           parent_id: string | null
           sort_order: number
@@ -72,11 +75,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_archived?: boolean
           name: string
           parent_id?: string | null
           sort_order?: number
@@ -84,11 +90,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_archived?: boolean
           name?: string
           parent_id?: string | null
           sort_order?: number
@@ -1411,6 +1420,8 @@ export type Database = {
       }
       products: {
         Row: {
+          allows_notes: boolean
+          archived_at: string | null
           available_from: string | null
           available_to: string | null
           available_weekdays: number[] | null
@@ -1420,19 +1431,25 @@ export type Database = {
           description: string | null
           has_variants: boolean
           id: string
+          image_path: string | null
           image_url: string | null
+          is_archived: boolean
           is_available: boolean
           is_featured: boolean
           is_sold_out: boolean
           max_quantity: number | null
+          minimum_quantity: number
           name: string
           pricing_unit: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step: number
           sort_order: number
           store_id: string
           unit_label: string | null
           updated_at: string
         }
         Insert: {
+          allows_notes?: boolean
+          archived_at?: string | null
           available_from?: string | null
           available_to?: string | null
           available_weekdays?: number[] | null
@@ -1442,19 +1459,25 @@ export type Database = {
           description?: string | null
           has_variants?: boolean
           id?: string
+          image_path?: string | null
           image_url?: string | null
+          is_archived?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          minimum_quantity?: number
           name: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step?: number
           sort_order?: number
           store_id: string
           unit_label?: string | null
           updated_at?: string
         }
         Update: {
+          allows_notes?: boolean
+          archived_at?: string | null
           available_from?: string | null
           available_to?: string | null
           available_weekdays?: number[] | null
@@ -1464,13 +1487,17 @@ export type Database = {
           description?: string | null
           has_variants?: boolean
           id?: string
+          image_path?: string | null
           image_url?: string | null
+          is_archived?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          minimum_quantity?: number
           name?: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step?: number
           sort_order?: number
           store_id?: string
           unit_label?: string | null
