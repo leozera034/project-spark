@@ -374,3 +374,35 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Riscos evitados:** cobrança surpresa para o cliente; total que muda depois do fechamento; recálculo inseguro fora do banco.
 - **Status:** aprovada
 - **Questão relacionada:** Q-017
+
+### D-049 — Um único motor genérico de opções para todos os segmentos
+- **Data:** 2026-07-31
+- **Decisão:** tamanhos, sabores, adicionais, complementos, escolhas obrigatórias e seleções por quantidade são representados por apenas duas estruturas: variações do produto e grupos de opções com itens. Não existe tabela específica por segmento.
+- **Motivo:** o produto é multi-segmento; qualquer estrutura dedicada criaria manutenção paralela e regras divergentes.
+- **Consequência:** o grupo de opções carrega tipo de seleção, mínimos, máximos, estratégia de preço, efeito no preço e contagem de porções. O mesmo grupo pode ser reaproveitado por vários produtos da mesma loja.
+- **Riscos evitados:** motor paralelo por nicho; divergência de cálculo entre segmentos.
+- **Status:** aprovada
+
+### D-050 — Preço configurado é sempre calculado no servidor
+- **Data:** 2026-07-31
+- **Decisão:** o preço de um produto configurado nunca é calculado no navegador. A interface monta a seleção e o banco devolve preço unitário, total, detalhamento por grupo e erros de validação.
+- **Motivo:** o valor cobrado precisa ter uma fonte única e auditável, e a prévia administrativa deve mostrar exatamente o que o pedido cobraria.
+- **Consequência:** a prévia da loja consome a mesma rotina que o pedido consumirá nas fases seguintes.
+- **Riscos evitados:** preço mostrado diferente do cobrado; manipulação de valores pelo cliente.
+- **Status:** aprovada
+
+### D-051 — Preço específico por variação vive em tabela própria
+- **Data:** 2026-07-31
+- **Decisão:** quando um item de opção custa diferente em cada tamanho, o valor é gravado em uma tabela de preço por par variação/item. Sem valor específico, vale o preço adicional do item.
+- **Motivo:** manter o item único e reaproveitável, sem duplicar grupos por tamanho.
+- **Consequência:** a gravação é feita em bloco e de forma transacional; a validação avisa quando faltam preços em grupo que substitui o preço base.
+- **Riscos evitados:** explosão de grupos duplicados; preço incoerente entre tamanhos.
+- **Status:** aprovada
+
+### D-052 — Produto publicado precisa de configuração válida
+- **Data:** 2026-07-31
+- **Decisão:** o banco recusa publicar, ou manter publicado, um produto cuja configuração esteja inválida — sem variação padrão, com grupo obrigatório sem itens, com dois grupos substituindo o preço, entre outros.
+- **Motivo:** um produto publicado com configuração quebrada gera pedido impossível de precificar.
+- **Consequência:** ativar produto, desativar variação, arquivar grupo ou desvincular grupo passam pela mesma checagem antes de concluir.
+- **Riscos evitados:** cardápio com item impossível de comprar; pedido sem preço definido.
+- **Status:** aprovada
