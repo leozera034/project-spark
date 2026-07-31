@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
 import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
@@ -65,6 +66,11 @@ const LojaRoute = LojaRouteImport.update({
 const PreviewRoute = PreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarLojaRoute = EntrarLojaRouteImport.update({
+  id: '/entrar/loja',
+  path: '/entrar/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LojaMercadoAuroraRoute = LojaMercadoAuroraRouteImport.update({
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/entrar/loja': typeof EntrarLojaRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
+  '/entrar/loja': typeof EntrarLojaRoute
   '/preview': typeof PreviewIndexRoute
   '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
+  '/entrar/loja': typeof EntrarLojaRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/entrar/loja'
     | '/loja/mercado-aurora'
     | '/preview/admin'
     | '/preview/entregador'
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/'
     | '/design-system'
     | '/loja'
+    | '/entrar/loja'
     | '/preview'
     | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/entrar/loja'
     | '/loja/mercado-aurora'
     | '/preview/admin'
     | '/preview/entregador'
@@ -477,6 +489,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
+  EntrarLojaRoute: typeof EntrarLojaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -507,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/preview'
       fullPath: '/preview'
       preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar/loja': {
+      id: '/entrar/loja'
+      path: '/entrar/loja'
+      fullPath: '/entrar/loja'
+      preLoaderRoute: typeof EntrarLojaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loja/mercado-aurora': {
@@ -869,6 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
+  EntrarLojaRoute: EntrarLojaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
