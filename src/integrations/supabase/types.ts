@@ -224,6 +224,73 @@ export type Database = {
           },
         ]
       }
+      courier_auth_identities: {
+        Row: {
+          auth_user_id: string
+          courier_id: string
+          created_at: string
+          id: string
+          is_login_enabled: boolean
+          login_identifier: string
+          password_changed_at: string | null
+          requires_password_change: boolean
+          store_id: string
+          synthetic_email: string
+          temporary_password_issued_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          courier_id: string
+          created_at?: string
+          id?: string
+          is_login_enabled?: boolean
+          login_identifier: string
+          password_changed_at?: string | null
+          requires_password_change?: boolean
+          store_id: string
+          synthetic_email: string
+          temporary_password_issued_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          courier_id?: string
+          created_at?: string
+          id?: string
+          is_login_enabled?: boolean
+          login_identifier?: string
+          password_changed_at?: string | null
+          requires_password_change?: boolean
+          store_id?: string
+          synthetic_email?: string
+          temporary_password_issued_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_auth_identities_courier_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
+          {
+            foreignKeyName: "courier_auth_identities_courier_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "couriers"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "courier_auth_identities_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couriers: {
         Row: {
           created_at: string
@@ -1879,10 +1946,20 @@ export type Database = {
       }
     }
     Functions: {
+      authorize_courier_reset: {
+        Args: { _actor_user_id: string; _courier_id: string }
+        Returns: {
+          auth_user_id: string
+          identity_id: string
+          store_id: string
+        }[]
+      }
+      complete_my_initial_password_change: { Args: never; Returns: boolean }
       courier_completed_deliveries_count: {
         Args: { _courier_id: string; _store_id: string }
         Returns: number
       }
+      get_my_auth_context: { Args: never; Returns: Json }
     }
     Enums: {
       app_role:
