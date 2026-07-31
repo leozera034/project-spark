@@ -60,11 +60,14 @@ export type Database = {
       }
       categories: {
         Row: {
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          image_path: string | null
           image_url: string | null
           is_active: boolean
+          is_archived: boolean
           name: string
           parent_id: string | null
           sort_order: number
@@ -72,11 +75,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_archived?: boolean
           name: string
           parent_id?: string | null
           sort_order?: number
@@ -84,11 +90,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_archived?: boolean
           name?: string
           parent_id?: string | null
           sort_order?: number
@@ -1411,6 +1420,8 @@ export type Database = {
       }
       products: {
         Row: {
+          allows_notes: boolean
+          archived_at: string | null
           available_from: string | null
           available_to: string | null
           available_weekdays: number[] | null
@@ -1420,19 +1431,25 @@ export type Database = {
           description: string | null
           has_variants: boolean
           id: string
+          image_path: string | null
           image_url: string | null
+          is_archived: boolean
           is_available: boolean
           is_featured: boolean
           is_sold_out: boolean
           max_quantity: number | null
+          minimum_quantity: number
           name: string
           pricing_unit: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step: number
           sort_order: number
           store_id: string
           unit_label: string | null
           updated_at: string
         }
         Insert: {
+          allows_notes?: boolean
+          archived_at?: string | null
           available_from?: string | null
           available_to?: string | null
           available_weekdays?: number[] | null
@@ -1442,19 +1459,25 @@ export type Database = {
           description?: string | null
           has_variants?: boolean
           id?: string
+          image_path?: string | null
           image_url?: string | null
+          is_archived?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          minimum_quantity?: number
           name: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step?: number
           sort_order?: number
           store_id: string
           unit_label?: string | null
           updated_at?: string
         }
         Update: {
+          allows_notes?: boolean
+          archived_at?: string | null
           available_from?: string | null
           available_to?: string | null
           available_weekdays?: number[] | null
@@ -1464,13 +1487,17 @@ export type Database = {
           description?: string | null
           has_variants?: boolean
           id?: string
+          image_path?: string | null
           image_url?: string | null
+          is_archived?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          minimum_quantity?: number
           name?: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          quantity_step?: number
           sort_order?: number
           store_id?: string
           unit_label?: string | null
@@ -1961,6 +1988,24 @@ export type Database = {
       }
     }
     Functions: {
+      archive_catalog_category: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      archive_catalog_product: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_store_neighborhood: {
         Args: { _archived: boolean; _id: string; _store_id: string }
         Returns: Json
@@ -1986,14 +2031,57 @@ export type Database = {
         Args: { _courier_id: string; _store_id: string }
         Returns: number
       }
+      create_catalog_category: {
+        Args: {
+          _description?: string
+          _is_active?: boolean
+          _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_simple_product: {
+        Args: {
+          _allows_notes?: boolean
+          _base_price?: number
+          _category_id: string
+          _description?: string
+          _is_active?: boolean
+          _is_featured?: boolean
+          _is_sold_out?: boolean
+          _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       get_my_auth_context: { Args: never; Returns: Json }
       get_my_authorization_context: { Args: never; Returns: Json }
+      get_my_catalog_overview: { Args: { _store_id?: string }; Returns: Json }
+      get_my_catalog_product: {
+        Args: { _id: string; _store_id: string }
+        Returns: Json
+      }
       get_my_store_configuration: {
         Args: { _store_id?: string }
         Returns: Json
       }
       get_store_operational_preview: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      list_my_catalog_categories: {
+        Args: { _include_archived?: boolean; _store_id?: string }
+        Returns: Json
+      }
+      list_my_catalog_products: {
+        Args: {
+          _category_id?: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+          _store_id?: string
+        }
         Returns: Json
       }
       list_my_stores: {
@@ -2004,8 +2092,25 @@ export type Database = {
           slug: string
         }[]
       }
+      move_product_to_category: {
+        Args: {
+          _category_id: string
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      reorder_catalog_categories: {
+        Args: { _ids: string[]; _store_id: string }
+        Returns: Json
+      }
+      reorder_catalog_products: {
+        Args: { _category_id: string; _ids: string[]; _store_id: string }
+        Returns: Json
+      }
       reorder_store_neighborhoods: {
         Args: { _ids: string[]; _store_id: string }
         Returns: Json
@@ -2016,6 +2121,74 @@ export type Database = {
       }
       replace_store_hours: {
         Args: { _expected_updated_at?: string; _hours: Json; _store_id: string }
+        Returns: Json
+      }
+      set_catalog_category_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      set_catalog_category_image: {
+        Args: { _id: string; _image_path: string; _store_id: string }
+        Returns: Json
+      }
+      set_product_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      set_product_featured: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_featured: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      set_product_image: {
+        Args: { _id: string; _image_path: string; _store_id: string }
+        Returns: Json
+      }
+      set_product_sold_out: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_sold_out: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_catalog_category: {
+        Args: {
+          _description: string
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_simple_product: {
+        Args: {
+          _allows_notes: boolean
+          _base_price: number
+          _category_id: string
+          _description: string
+          _expected_updated_at?: string
+          _id: string
+          _name: string
+          _store_id: string
+        }
         Returns: Json
       }
       update_store_payment_method: {

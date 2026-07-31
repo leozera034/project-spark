@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -173,16 +173,21 @@ export function useUnsavedChangesWarning(dirty: boolean) {
 
 /** Estado de formulário com detecção de alterações não salvas. */
 export function useSectionForm<T extends object>(initial: T) {
+  const serialized = JSON.stringify(initial);
   const [value, setValue] = useState<T>(initial);
   const [baseline, setBaseline] = useState<T>(initial);
+  const lastSerialized = useRef(serialized);
 
   useEffect(() => {
-    setValue(initial);
-    setBaseline(initial);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(initial)]);
+    if (lastSerialized.current === serialized) return;
+    lastSerialized.current = serialized;
+    const next = JSON.parse(serialized) as T;
+    setValue(next);
+    setBaseline(next);
+  }, [serialized]);
 
   const dirty = useMemo(() => JSON.stringify(value) !== JSON.stringify(baseline), [value, baseline]);
+
 
   return {
     value,
