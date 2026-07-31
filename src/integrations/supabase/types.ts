@@ -2486,6 +2486,10 @@ export type Database = {
         Returns: Json
       }
       storefront_store: { Args: { _slug: string }; Returns: Json }
+      storefront_submit_order: {
+        Args: { _payload: Json; _slug: string }
+        Returns: Json
+      }
       storefront_validate_fulfillment: {
         Args: {
           _configuration_version?: string
