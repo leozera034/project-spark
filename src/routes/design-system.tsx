@@ -382,7 +382,7 @@ function DesignSystemPage() {
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="ds-switch">Receber neste endereco</Label>
+                  <Label htmlFor="ds-switch">Receber neste endereço</Label>
                   <Switch id="ds-switch" defaultChecked />
                 </div>
               </CardContent>
