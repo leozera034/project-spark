@@ -55,6 +55,7 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Riscos:** política permissiva; recursão em políticas; tabela sem RLS.
 - **Conclusão:** teste de acesso cruzado entre duas lojas falha em todas as tabelas.
 - **Proibido:** liberar leitura ampla "temporariamente".
+- **Status:** CONCLUÍDA (2026-07-31). Schema `private` com funções de contexto, 31 tabelas com policies por `store_id`, catálogo público por coluna, entregador restrito à própria loja e administração sem acesso a dado de cliente. Documentado em `docs/RLS_POLICY_MATRIX.md`.
 
 ## Fase 07 — Perfis e permissões
 - **Objetivo:** `user_roles`, função de verificação de papel, autorização por ação no servidor.
