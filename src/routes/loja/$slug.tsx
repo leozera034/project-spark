@@ -3,7 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
 import { z } from "zod";
 
+import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
+import {
+  CustomerWizardProvider,
+  useCustomerWizard,
+} from "@/storefront/customer/customer-wizard.context";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
