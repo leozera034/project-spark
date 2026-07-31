@@ -22,6 +22,7 @@ export function NotFoundPage() {
       />
 
       <div className="rise-in relative w-full max-w-lg text-center">
+        <div>
         <Link
           to="/"
           className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -29,6 +30,7 @@ export function NotFoundPage() {
         >
           <BrandLogo lockup="horizontal" className="h-7 w-auto" />
         </Link>
+        </div>
 
         <p className="mt-10 inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <Compass className="h-3.5 w-3.5" aria-hidden="true" />
