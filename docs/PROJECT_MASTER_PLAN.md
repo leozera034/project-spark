@@ -7,8 +7,8 @@
 - **Variações internas:** `pediu_aqui`, `PediuAqui`, `PEDIU_AQUI`
 - **Assinatura:** Seu cardápio, seus pedidos, tudo aqui.
 - **Assinatura institucional:** Pedidos simples. Operação precisa.
-- **Fase atual:** Fase 02 — Identidade visual e design system (concluída)
-- **Status:** documentação, marca e design system. Nenhum banco, autenticação, pedido ou integração criada. Manual de marca em `docs/BRAND_GUIDELINES.md`; galeria viva em `/design-system`.
+- **Fase atual:** Fase 04 — Arquitetura física do banco (concluída)
+- **Status:** documentação, marca, design system, protótipo navegável e arquitetura física do banco. Nenhuma tela conectada ao banco, nenhuma autenticação, nenhum pedido real e nenhuma integração externa. Manual de marca em `docs/BRAND_GUIDELINES.md`; galeria viva em `/design-system`.
 
 
 ---
@@ -323,7 +323,7 @@ Riscos críticos: vazamento entre lojas, manipulação de preço, pedido duplica
 
 ## 28. Decisões aprovadas
 
-Registradas em `docs/DECISION_LOG.md` (D-001 a D-020).
+Registradas em `docs/DECISION_LOG.md` (D-001 a D-028).
 
 ## 29. Decisões pendentes
 
