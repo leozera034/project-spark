@@ -1,8 +1,11 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { Store } from "lucide-react";
 import { z } from "zod";
 
 import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import { ErrorState } from "@/components/feedback/ErrorState";
+import { StorefrontSkeleton } from "@/components/feedback/Skeletons";
 import {
   CustomerWizardProvider,
   useCustomerWizard,
@@ -40,12 +43,10 @@ export const Route = createFileRoute("/loja/$slug")({
       links: [{ rel: "canonical", href: `/loja/${params.slug}` }],
     };
   },
-  errorComponent: () => (
-    <CenteredMessage
-      title="Cardápio indisponível"
-      body="Não conseguimos carregar esta loja agora. Tente novamente em instantes."
-    />
-  ),
+  pendingComponent: StorefrontSkeleton,
+  pendingMs: 200,
+  pendingMinMs: 400,
+  errorComponent: () => <StorefrontError />,
   notFoundComponent: () => (
     <CenteredMessage
       title="Loja não encontrada"
@@ -75,6 +76,25 @@ function StorefrontGate() {
   const { orderingContext } = useCustomerWizard();
   if (!orderingContext) return <CustomerWizard />;
   return <Outlet />;
+}
+
+/** Falha de carregamento do cardápio com caminho claro para tentar de novo. */
+function StorefrontError() {
+  const router = useRouter();
+  const [retrying, setRetrying] = useState(false);
+  return (
+    <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-6">
+      <ErrorState
+        title="Cardápio indisponível"
+        description="Não conseguimos carregar esta loja agora. Verifique sua conexão e tente novamente."
+        retrying={retrying}
+        onRetry={() => {
+          setRetrying(true);
+          void router.invalidate().finally(() => setRetrying(false));
+        }}
+      />
+    </main>
+  );
 }
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {

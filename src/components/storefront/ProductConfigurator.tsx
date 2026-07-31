@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -516,10 +516,12 @@ export function ProductConfigurator({
         <Button
           className="h-12 w-full text-base"
           onClick={submit}
-          disabled={!isComplete || !storeOpen || product.is_sold_out || pricing || !price?.ok}
+          disabled={!isComplete || !storeOpen || product.is_sold_out || !price?.ok}
+          loading={pricing}
+          loadingLabel="Calculando preço"
         >
           {pricing ? (
-            <Loader2 className="size-4 animate-spin" />
+            "Calculando preço…"
           ) : product.is_sold_out ? (
             "Item esgotado"
           ) : !storeOpen ? (

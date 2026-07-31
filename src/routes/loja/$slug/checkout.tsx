@@ -7,11 +7,12 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, MapPin, Store, TriangleAlert } from "lucide-react";
+import { ArrowLeft, MapPin, Store, TriangleAlert } from "lucide-react";
 
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -278,7 +279,11 @@ function CheckoutPage() {
           </p>
 
           {methods === null ? (
-            <p className="text-sm text-muted-foreground">Carregando formas de pagamento…</p>
+            <div role="status" aria-live="polite" className="space-y-2">
+              <span className="sr-only">Carregando formas de pagamento</span>
+              <Skeleton className="h-13 w-full rounded-xl" />
+              <Skeleton className="h-13 w-full rounded-xl" />
+            </div>
           ) : methods.length === 0 ? (
             <p className="text-sm">
               Esta loja ainda não publicou formas de pagamento para esta modalidade.
@@ -417,10 +422,11 @@ function CheckoutPage() {
           <Button
             className="h-13 w-full justify-between px-4 text-base"
             disabled={!canSubmit}
+            loading={submitting}
+            loadingLabel="Enviando pedido"
             onClick={() => void submit()}
           >
             <span className="flex items-center gap-2">
-              {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
               {submitting ? "Enviando pedido…" : "Enviar pedido"}
             </span>
             <span className="tabular-nums">{brl(cart.total)}</span>

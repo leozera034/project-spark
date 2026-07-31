@@ -15,6 +15,8 @@ import {
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { UNIT_LABELS, brl } from "@/components/storefront/format";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { ListSkeleton } from "@/components/feedback/Skeletons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,17 +89,21 @@ function CartPage() {
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {!cart.hydrated ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">Carregando carrinho…</p>
+          <ListSkeleton rows={3} className="py-6" />
         ) : cart.itemCount === 0 ? (
-          <div className="py-16 text-center">
-            <ShoppingBag className="mx-auto size-8 text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">Seu carrinho está vazio.</p>
-            <Button asChild className="mt-5">
-              <Link to="/loja/$slug" params={{ slug }}>
-                Ver o cardápio
-              </Link>
-            </Button>
-          </div>
+          <EmptyState
+            className="my-10"
+            icon={ShoppingBag}
+            title="Seu carrinho está vazio"
+            description="Escolha os itens no cardápio e eles aparecem aqui para revisão antes do pedido."
+            action={
+              <Button asChild>
+                <Link to="/loja/$slug" params={{ slug }}>
+                  Ver o cardápio
+                </Link>
+              </Button>
+            }
+          />
         ) : (
           <>
             {!cart.storageAvailable ? (

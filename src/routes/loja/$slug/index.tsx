@@ -7,7 +7,9 @@ import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Reveal } from "@/components/motion/Reveal";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -198,14 +200,23 @@ function StorefrontPage() {
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
-          <div className="panel mt-8 px-6 py-16 text-center">
-            <ShoppingBag className="mx-auto size-8 text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              {term
-                ? `Nenhum item encontrado para “${term}”.`
-                : "Esta loja ainda não publicou itens no cardápio."}
-            </p>
-          </div>
+          <EmptyState
+            className="mt-8"
+            icon={ShoppingBag}
+            title={term ? "Nenhum item encontrado" : "Cardápio em preparo"}
+            description={
+              term
+                ? `Não achamos nada para “${term}”. Tente outra palavra ou veja todas as categorias.`
+                : "Esta loja ainda não publicou itens no cardápio. Volte em instantes."
+            }
+            action={
+              term ? (
+                <Button variant="outline" size="sm" onClick={() => setTerm("")}>
+                  Limpar busca
+                </Button>
+              ) : null
+            }
+          />
         ) : (
           grouped.map(({ category, items }) => (
             <Reveal

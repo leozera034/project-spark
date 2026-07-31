@@ -220,7 +220,13 @@ function MethodRow({
             </div>
           </div>
           <div className="flex justify-end">
-            <Button type="button" className="min-h-13" disabled={saving} onClick={() => persist()}>
+            <Button
+              type="button"
+              className="min-h-13"
+              loading={saving}
+              loadingLabel="Salvando"
+              onClick={() => persist()}
+            >
               {saving ? "Salvando…" : "Salvar"}
             </Button>
           </div>

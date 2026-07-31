@@ -281,7 +281,13 @@ function BairrosSection() {
               >
                 Cancelar
               </Button>
-              <Button type="button" className="min-h-13" disabled={isSaving} onClick={submit}>
+              <Button
+                type="button"
+                className="min-h-13"
+                loading={isSaving}
+                loadingLabel="Salvando"
+                onClick={submit}
+              >
                 {isSaving ? "Salvando…" : "Salvar bairro"}
               </Button>
             </div>

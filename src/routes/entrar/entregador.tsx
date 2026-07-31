@@ -110,7 +110,13 @@ function CourierSignInPage() {
           disabled={busy}
         />
 
-        <Button type="submit" disabled={busy} className="h-14 w-full text-lg" size="lg">
+        <Button
+          type="submit"
+          loading={busy}
+          loadingLabel="Entrando"
+          className="h-14 w-full text-lg"
+          size="lg"
+        >
           {busy ? "Entrando…" : "Entrar"}
         </Button>
       </form>

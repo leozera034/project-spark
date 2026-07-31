@@ -105,7 +105,13 @@ function StoreSignInPage() {
           disabled={busy}
         />
 
-        <Button type="submit" disabled={busy} className="h-13 w-full text-base" size="lg">
+        <Button
+          type="submit"
+          loading={busy}
+          loadingLabel="Entrando"
+          className="h-13 w-full text-base"
+          size="lg"
+        >
           {busy ? "Entrando…" : "Entrar"}
         </Button>
       </form>

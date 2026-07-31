@@ -601,3 +601,29 @@
     transform: none;
   }
 }
+
+/* Barra de progresso de navegacao: avanca ate 90% e some ao concluir. */
+@keyframes route-progress {
+  0% {
+    transform: scaleX(0.05);
+  }
+  60% {
+    transform: scaleX(0.6);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+
+.route-progress {
+  transform-origin: left center;
+  animation: route-progress 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-progress {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 0.6;
+  }
+}
