@@ -23,10 +23,55 @@ export const Route = createFileRoute("/")({
           "Monte seu cardápio digital, receba pedidos organizados e faça suas entregas com a sua própria equipe.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content: "Pediu Aqui — venda mais no seu próprio cardápio digital",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Monte seu cardápio digital, receba pedidos organizados e faça suas entregas com a sua própria equipe.",
+      },
+      { name: "robots", content: "index,follow" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Pediu Aqui",
+              url: "/",
+              logo: "/brand/apple-touch-icon-180x180.png",
+              description:
+                "Plataforma de cardápio digital, pedidos e entregas para o comércio de bairro.",
+            },
+            {
+              "@type": "WebSite",
+              name: "Pediu Aqui",
+              url: "/",
+              inLanguage: "pt-BR",
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: "Pediu Aqui",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description:
+                "Cardápio digital, pedidos e entregas no nome da própria loja, com equipe de entrega própria.",
+            },
+          ],
+        }),
+      },
     ],
   }),
 });
+
 
 const pillars = [
   {
