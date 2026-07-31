@@ -74,10 +74,11 @@ function readRaw(kind: StorageKind, key: string): unknown | null {
     const parsed: unknown = JSON.parse(raw);
     if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
     // Sem prototype pollution: descartamos qualquer chave perigosa.
-    const clean = { ...(parsed as Record<string, unknown>) };
-    delete clean.__proto__;
-    delete clean.constructor;
-    delete clean.prototype;
+    const clean: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+      clean[key] = value;
+    }
     return clean;
   } catch {
     // JSON corrompido: remove somente a chave afetada.
