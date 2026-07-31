@@ -40,7 +40,7 @@ function ResetPasswordPage() {
       return;
     }
     if (password !== confirmation) {
-      setError(AUTH_MESSAGES.passwordMismatch);
+      setError(AUTH_MESSAGES.passwordsDiffer);
       return;
     }
     setBusy(true);
