@@ -1,0 +1,136 @@
+export interface StoreConfigStore {
+  id: string;
+  slug: string;
+  name: string;
+  status: string;
+  legal_name: string | null;
+  document: string | null;
+  segment: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+  timezone: string;
+  accepts_delivery: boolean;
+  accepts_pickup: boolean;
+  updated_at: string;
+}
+
+export interface StoreConfigSettings {
+  brand_primary: string;
+  brand_accent: string;
+  logo_path: string | null;
+  cover_path: string | null;
+  description: string | null;
+  welcome_message: string | null;
+  closed_message: string | null;
+  min_order_amount: number;
+  default_prep_minutes: number;
+  sound_alert_enabled: boolean;
+  auto_open_by_hours: boolean;
+  updated_at: string;
+}
+
+export interface StoreConfigShift {
+  weekday: number;
+  opens_at: string;
+  closes_at: string;
+}
+
+export interface StoreConfigNeighborhood {
+  id: string;
+  name: string;
+  delivery_fee: number;
+  min_order_amount: number | null;
+  eta_minutes: number;
+  notes: string | null;
+  is_active: boolean;
+  is_archived: boolean;
+  sort_order: number;
+  updated_at: string;
+}
+
+export interface StoreConfigPaymentMethod {
+  id: string;
+  kind: string;
+  label: string;
+  instructions: string | null;
+  needs_change: boolean;
+  is_active: boolean;
+  available_for_delivery: boolean;
+  available_for_pickup: boolean;
+  sort_order: number;
+  updated_at: string;
+}
+
+export interface StoreConfigAbilities {
+  update_profile: boolean;
+  manage_settings: boolean;
+  manage_hours: boolean;
+  manage_neighborhoods: boolean;
+  manage_payment_methods: boolean;
+}
+
+export interface StoreConfiguration {
+  store: StoreConfigStore;
+  settings: StoreConfigSettings;
+  hours: StoreConfigShift[];
+  neighborhoods: StoreConfigNeighborhood[];
+  payment_methods: StoreConfigPaymentMethod[];
+  can: StoreConfigAbilities;
+}
+
+export interface StoreOperationalPreview {
+  timezone: string;
+  local_time: string;
+  is_open: boolean;
+  closes_at: string | null;
+  next_open_at: string | null;
+  next_open_day: string | null;
+  delivery_enabled: boolean;
+  pickup_enabled: boolean;
+  reason: string | null;
+}
+
+export interface StoreOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export const WEEKDAY_LABELS = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+] as const;
+
+/**
+ * Precedência do pedido mínimo (Fase 08):
+ * 1. valor específico do bairro, quando definido;
+ * 2. pedido mínimo padrão da loja;
+ * 3. zero.
+ */
+export function resolveMinOrder(
+  neighborhood: Pick<StoreConfigNeighborhood, "min_order_amount"> | null,
+  storeDefault: number | null | undefined,
+): number {
+  if (neighborhood?.min_order_amount != null) return Number(neighborhood.min_order_amount);
+  if (storeDefault != null) return Number(storeDefault);
+  return 0;
+}
+
+/**
+ * Precedência do tempo estimado (Fase 08): sem rota nem distância ainda.
+ */
+export function resolveEta(
+  neighborhood: Pick<StoreConfigNeighborhood, "eta_minutes"> | null,
+  storeDefaultPrep: number | null | undefined,
+): number {
+  if (neighborhood?.eta_minutes != null) return Number(neighborhood.eta_minutes);
+  return Number(storeDefaultPrep ?? 0);
+}
