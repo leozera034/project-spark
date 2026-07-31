@@ -342,7 +342,12 @@ function CategoriasPage() {
             <Button variant="ghost" onClick={() => setDraft(EMPTY_DRAFT)}>
               Cancelar
             </Button>
-            <Button disabled={nameInvalid || isBusy} onClick={() => void submitDraft()}>
+            <Button
+              disabled={nameInvalid}
+              loading={isBusy}
+              loadingLabel="Salvando"
+              onClick={() => void submitDraft()}
+            >
               {isBusy ? "Salvando…" : "Salvar"}
             </Button>
           </DialogFooter>
