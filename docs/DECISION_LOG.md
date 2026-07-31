@@ -164,3 +164,27 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** RLS e funções de verificação de papel no banco.
 - **Riscos evitados:** acesso administrativo indevido.
 - **Status:** aprovada
+
+### D-021 — Símbolo da marca: letra P com faixa de movimento
+- **Data:** 2026-07-30
+- **Decisão:** o símbolo é a letra P em geometria constante atravessada por uma faixa horizontal teal que avança para fora da letra; proibidos ícones de comida, moto, sacola, balão de conversa ou cursor.
+- **Motivo:** identidade abstrata, escalável e não datada, aplicável a qualquer comércio local.
+- **Consequência:** todos os ativos, ícones e telas usam essa forma; nenhuma ilustração de segmento.
+- **Riscos evitados:** aparência de template de delivery; obsolescência da marca ao ampliar segmentos.
+- **Status:** aprovada
+
+### D-022 — Geometria da marca em fonte única e ativos gerados por script
+- **Data:** 2026-07-30
+- **Decisão:** a geometria vive apenas em `tools/brand-geometry.mjs`, o wordmark é armazenado em contornos e todos os arquivos de `public/brand` são produzidos por `npm run brand:generate`.
+- **Motivo:** garantir que todos os ativos derivem de uma única fonte, sem edição manual.
+- **Consequência:** nenhum PNG é editado à mão; nenhum logotipo é redesenhado em JSX; ajustes de marca exigem regeração.
+- **Riscos evitados:** divergência entre variações; dependência de fonte instalada; ativos órfãos.
+- **Status:** aprovada
+
+### D-023 — Tokens semânticos obrigatórios em OKLCH
+- **Data:** 2026-07-30
+- **Decisão:** toda cor, raio, elevação e tipografia da interface passa por tokens semânticos declarados em `src/styles.css` no formato OKLCH; classes de cor cruas são proibidas nos componentes.
+- **Motivo:** consistência, tema escuro confiável e controle central da identidade.
+- **Consequência:** novas cores exigem token em `:root` e `.dark` e registro em `@theme inline`.
+- **Riscos evitados:** deriva visual; quebra do tema escuro; contraste insuficiente.
+- **Status:** aprovada
