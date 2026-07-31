@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="64 64 384 384" role="img" aria-label="Simbolo Pediu Aqui">
+  <title>Simbolo Pediu Aqui</title>
+  <desc>Letra P geometrica com faixa horizontal de movimento. Geometria unica derivada de pediu-aqui-master.svg.</desc>
+  <defs>
+    <mask id="symbol-carbon-teal-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect x="0" y="0" width="512" height="512" fill="#fff"/>
+      <rect x="140" y="188" width="304" height="72" rx="10" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#symbol-carbon-teal-cut)">
+    <rect x="80" y="96" width="72" height="320" rx="8" fill="#0B171C"/>
+    <path d="M152 132 H252 A92 92 0 0 1 252 316 H152" fill="none" stroke="#0B171C" stroke-width="72"/>
+  </g>
+  <rect x="152" y="200" width="280" height="48" rx="6" fill="#00C2A8"/>
+</svg>
