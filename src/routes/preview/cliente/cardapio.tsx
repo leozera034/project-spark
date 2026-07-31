@@ -67,7 +67,7 @@ function Menu() {
             MA
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-foreground">{store.name}</p>
+            <h1 className="truncate text-base font-semibold text-foreground">{store.name}</h1>
             <p className="truncate text-sm text-muted-foreground">
               {storeOpen ? `Aberta · entrega em ${store.etaDelivery}` : "Fechada no momento"}
             </p>

@@ -29,7 +29,7 @@ function CourierLayout() {
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           <BrandSymbol className="size-8" />
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold text-foreground">{courier?.name}</p>
+            <h1 className="truncate text-base font-semibold text-foreground">{courier?.name}</h1>
             <p className="text-xs text-muted-foreground">{courier?.vehicle} · Mercado Aurora</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -61,7 +61,7 @@ function CourierLayout() {
               <Link
                 to={tab.to}
                 activeOptions={{ exact: tab.exact ?? false }}
-                className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground data-[status=active]:text-brand"
+                className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground data-[status=active]:text-brand-soft-foreground"
               >
                 <tab.icon aria-hidden="true" className="size-5" />
                 {tab.label}

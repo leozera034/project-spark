@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function DemoBanner({ className }: { className?: string }) {
   return (
     <div
+      role="region"
+      aria-label="Aviso de ambiente de demonstração"
       className={cn(
         "flex items-center justify-center gap-2 bg-carbon px-4 py-2 text-center text-xs font-medium text-carbon-foreground",
         className,
