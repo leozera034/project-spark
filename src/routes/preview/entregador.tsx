@@ -6,6 +6,7 @@ import { BackToPreview, DemoBanner } from "@/components/demo/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useDemo } from "@/demo/state/useDemo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/preview/entregador")({
   component: CourierLayout,
@@ -32,6 +33,7 @@ function CourierLayout() {
             <p className="text-xs text-muted-foreground">{courier?.vehicle} · Mercado Aurora</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <Badge variant={courierOnline ? "success" : "secondary"}>
               {courierOnline ? "Online" : "Offline"}
             </Badge>
