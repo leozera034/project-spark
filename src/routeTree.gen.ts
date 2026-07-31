@@ -60,9 +60,11 @@ import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pe
 import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
 import { Route as AppLojaConfiguracoesIndexRouteImport } from './routes/app/loja/configuracoes/index'
 import { Route as AppLojaConfiguracoesAtendimentoRouteImport } from './routes/app/loja/configuracoes/atendimento'
+import { Route as AppLojaConfiguracoesBairrosRouteImport } from './routes/app/loja/configuracoes/bairros'
 import { Route as AppLojaConfiguracoesDadosRouteImport } from './routes/app/loja/configuracoes/dados'
 import { Route as AppLojaConfiguracoesHorariosRouteImport } from './routes/app/loja/configuracoes/horarios'
 import { Route as AppLojaConfiguracoesIdentidadeRouteImport } from './routes/app/loja/configuracoes/identidade'
+import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app/loja/configuracoes/pagamentos'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
 import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
 
@@ -332,6 +334,12 @@ const AppLojaConfiguracoesAtendimentoRoute =
     path: '/atendimento',
     getParentRoute: () => AppLojaConfiguracoesRoute,
   } as any)
+const AppLojaConfiguracoesBairrosRoute =
+  AppLojaConfiguracoesBairrosRouteImport.update({
+    id: '/bairros',
+    path: '/bairros',
+    getParentRoute: () => AppLojaConfiguracoesRoute,
+  } as any)
 const AppLojaConfiguracoesDadosRoute =
   AppLojaConfiguracoesDadosRouteImport.update({
     id: '/dados',
@@ -348,6 +356,12 @@ const AppLojaConfiguracoesIdentidadeRoute =
   AppLojaConfiguracoesIdentidadeRouteImport.update({
     id: '/identidade',
     path: '/identidade',
+    getParentRoute: () => AppLojaConfiguracoesRoute,
+  } as any)
+const AppLojaConfiguracoesPagamentosRoute =
+  AppLojaConfiguracoesPagamentosRouteImport.update({
+    id: '/pagamentos',
+    path: '/pagamentos',
     getParentRoute: () => AppLojaConfiguracoesRoute,
   } as any)
 const LojaMercadoAuroraEnderecoIndexRoute =
@@ -414,9 +428,11 @@ export interface FileRoutesByFullPath {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
+  '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
+  '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
@@ -463,9 +479,11 @@ export interface FileRoutesByTo {
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
+  '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
+  '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco': typeof LojaMercadoAuroraEnderecoIndexRoute
@@ -522,9 +540,11 @@ export interface FileRoutesById {
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
+  '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
+  '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/loja/mercado-aurora/endereco/novo': typeof LojaMercadoAuroraEnderecoNovoRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/loja/mercado-aurora/endereco/': typeof LojaMercadoAuroraEnderecoIndexRoute
@@ -582,9 +602,11 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/app/loja/configuracoes/atendimento'
+    | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
+    | '/app/loja/configuracoes/pagamentos'
     | '/loja/mercado-aurora/endereco/novo'
     | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
@@ -631,9 +653,11 @@ export interface FileRouteTypes {
     | '/preview/entregador'
     | '/preview/loja'
     | '/app/loja/configuracoes/atendimento'
+    | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
+    | '/app/loja/configuracoes/pagamentos'
     | '/loja/mercado-aurora/endereco/novo'
     | '/app/loja/configuracoes'
     | '/loja/mercado-aurora/endereco'
@@ -689,9 +713,11 @@ export interface FileRouteTypes {
     | '/preview/entregador/'
     | '/preview/loja/'
     | '/app/loja/configuracoes/atendimento'
+    | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
+    | '/app/loja/configuracoes/pagamentos'
     | '/loja/mercado-aurora/endereco/novo'
     | '/app/loja/configuracoes/'
     | '/loja/mercado-aurora/endereco/'
@@ -1073,6 +1099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaConfiguracoesAtendimentoRouteImport
       parentRoute: typeof AppLojaConfiguracoesRoute
     }
+    '/app/loja/configuracoes/bairros': {
+      id: '/app/loja/configuracoes/bairros'
+      path: '/bairros'
+      fullPath: '/app/loja/configuracoes/bairros'
+      preLoaderRoute: typeof AppLojaConfiguracoesBairrosRouteImport
+      parentRoute: typeof AppLojaConfiguracoesRoute
+    }
     '/app/loja/configuracoes/dados': {
       id: '/app/loja/configuracoes/dados'
       path: '/dados'
@@ -1092,6 +1125,13 @@ declare module '@tanstack/react-router' {
       path: '/identidade'
       fullPath: '/app/loja/configuracoes/identidade'
       preLoaderRoute: typeof AppLojaConfiguracoesIdentidadeRouteImport
+      parentRoute: typeof AppLojaConfiguracoesRoute
+    }
+    '/app/loja/configuracoes/pagamentos': {
+      id: '/app/loja/configuracoes/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/app/loja/configuracoes/pagamentos'
+      preLoaderRoute: typeof AppLojaConfiguracoesPagamentosRouteImport
       parentRoute: typeof AppLojaConfiguracoesRoute
     }
     '/loja/mercado-aurora/endereco/': {
@@ -1256,17 +1296,21 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
 
 interface AppLojaConfiguracoesRouteChildren {
   AppLojaConfiguracoesAtendimentoRoute: typeof AppLojaConfiguracoesAtendimentoRoute
+  AppLojaConfiguracoesBairrosRoute: typeof AppLojaConfiguracoesBairrosRoute
   AppLojaConfiguracoesDadosRoute: typeof AppLojaConfiguracoesDadosRoute
   AppLojaConfiguracoesHorariosRoute: typeof AppLojaConfiguracoesHorariosRoute
   AppLojaConfiguracoesIdentidadeRoute: typeof AppLojaConfiguracoesIdentidadeRoute
+  AppLojaConfiguracoesPagamentosRoute: typeof AppLojaConfiguracoesPagamentosRoute
   AppLojaConfiguracoesIndexRoute: typeof AppLojaConfiguracoesIndexRoute
 }
 
 const AppLojaConfiguracoesRouteChildren: AppLojaConfiguracoesRouteChildren = {
   AppLojaConfiguracoesAtendimentoRoute: AppLojaConfiguracoesAtendimentoRoute,
+  AppLojaConfiguracoesBairrosRoute: AppLojaConfiguracoesBairrosRoute,
   AppLojaConfiguracoesDadosRoute: AppLojaConfiguracoesDadosRoute,
   AppLojaConfiguracoesHorariosRoute: AppLojaConfiguracoesHorariosRoute,
   AppLojaConfiguracoesIdentidadeRoute: AppLojaConfiguracoesIdentidadeRoute,
+  AppLojaConfiguracoesPagamentosRoute: AppLojaConfiguracoesPagamentosRoute,
   AppLojaConfiguracoesIndexRoute: AppLojaConfiguracoesIndexRoute,
 }
 
