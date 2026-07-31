@@ -93,7 +93,7 @@ function Menu() {
           </div>
         </div>
 
-        <nav aria-label="Categorias" className="mx-auto max-w-3xl overflow-x-auto px-4 pb-3">
+        <nav aria-label="Categorias" className="rail mx-auto max-w-3xl gap-2 px-4 pb-3">
           <ul className="flex gap-2">
             {categories.map((item) => (
               <li key={item.id}>

@@ -88,21 +88,21 @@ function StorefrontPage() {
         )}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
 
-        <div className="relative mx-auto max-w-3xl px-4">
-          <div className="-mt-12 flex items-end gap-4 rise-in">
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="-mt-12 flex min-w-0 items-end gap-4 rise-in">
             {settings.logo_url ? (
               <img
                 src={settings.logo_url}
                 alt={store.name}
-                className="size-22 rounded-3xl border-4 border-background object-cover shadow-e2"
+                className="size-18 shrink-0 rounded-2xl border-4 sm:size-22 sm:rounded-3xl border-background object-cover shadow-e2"
               />
             ) : (
-              <div className="grid size-22 place-items-center rounded-3xl border-4 border-background bg-surface-muted shadow-e2">
+              <div className="grid size-18 shrink-0 place-items-center rounded-2xl border-4 sm:size-22 sm:rounded-3xl border-background bg-surface-muted shadow-e2">
                 <Store className="size-8 text-muted-foreground" />
               </div>
             )}
-            <div className="pb-1.5">
-              <h1 className="text-2xl font-semibold leading-tight tracking-tight">{store.name}</h1>
+            <div className="min-w-0 pb-1.5">
+              <h1 className="text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">{store.name}</h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {store.segment ? `${store.segment} · ` : ""}
                 {store.city}/{store.state}
@@ -171,7 +171,7 @@ function StorefrontPage() {
           </div>
 
           {grouped.length > 1 ? (
-            <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            <nav className="rail -mx-4 gap-2 px-4 pb-1 sm:-mx-6 sm:px-6">
               {grouped.map(({ category }) => (
                 <a
                   key={category.id}
@@ -192,7 +192,7 @@ function StorefrontPage() {
       </div>
 
 
-      <div className="mx-auto max-w-3xl px-4">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
           <div className="panel mt-8 px-6 py-16 text-center">
             <ShoppingBag className="mx-auto size-8 text-muted-foreground" />
@@ -261,7 +261,7 @@ function StorefrontPage() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="size-22 shrink-0 rounded-xl object-cover"
+                          className="size-18 shrink-0 rounded-xl object-cover sm:size-22"
                         />
                       ) : null}
                     </button>

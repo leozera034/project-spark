@@ -46,7 +46,7 @@ function TrackingPage() {
 
   if (loading && !data) {
     return (
-      <main className="mx-auto min-h-svh max-w-md space-y-4 px-4 py-10">
+      <main className="mx-auto min-h-svh max-w-md sm:max-w-xl space-y-4 px-4 py-10">
         <Skeleton className="h-24 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
       </main>
@@ -55,7 +55,7 @@ function TrackingPage() {
 
   if (!data) {
     return (
-      <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
+      <main className="mx-auto flex min-h-svh max-w-md sm:max-w-xl flex-col items-center justify-center gap-3 px-6 text-center">
         <AlertCircle className="size-8 text-muted-foreground" />
         <h1 className="text-lg font-semibold">
           {error === "not_found" ? "Pedido não encontrado" : "Acompanhamento indisponível"}
@@ -77,7 +77,7 @@ function TrackingPage() {
   const currentIndex = steps.indexOf(data.status.publicCode);
 
   return (
-    <main className="mx-auto min-h-svh max-w-md px-4 py-8">
+    <main className="mx-auto min-h-svh max-w-md sm:max-w-xl px-4 py-8">
       <header className="flex items-center gap-3">
         {data.store.logoUrl ? (
           <img

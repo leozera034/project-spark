@@ -50,7 +50,7 @@ function Settings() {
       />
 
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 overflow-x-auto px-4">
+        <div className="rail -mx-4 gap-2 px-4">
           <TabsList className="w-max">
             <TabsTrigger value="dados">Dados</TabsTrigger>
             <TabsTrigger value="horarios">Horários</TabsTrigger>

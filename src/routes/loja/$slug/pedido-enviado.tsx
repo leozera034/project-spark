@@ -76,7 +76,7 @@ function OrderSentPage() {
   const { order } = receipt;
 
   return (
-    <main className="mx-auto min-h-svh max-w-md px-4 py-10">
+    <main className="mx-auto min-h-svh max-w-md px-4 sm:px-6 py-10">
       <div className="text-center">
         <CheckCircle2 className="mx-auto size-12 text-primary" />
         <h1 className="mt-3 text-xl font-semibold">Pedido enviado</h1>

@@ -24,7 +24,7 @@ function StoreHome() {
   const { authContext } = useAuth();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         Olá, {authContext?.full_name ?? "equipe"}
       </h1>

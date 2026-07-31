@@ -24,7 +24,7 @@ function CourierAppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 lg:px-8">
         <BrandSymbol className="h-8 w-auto" />
         <Button
           variant="outline"

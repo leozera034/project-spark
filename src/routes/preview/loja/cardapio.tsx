@@ -58,7 +58,7 @@ function MenuManager() {
         }
       />
 
-      <div className="-mx-4 overflow-x-auto px-4">
+      <div className="rail -mx-4 gap-2 px-4">
         <ul className="flex gap-2 pb-2">
           {[{ id: "todas", name: "Todas" }, ...demoCategories].map((category) => (
             <li key={category.id}>

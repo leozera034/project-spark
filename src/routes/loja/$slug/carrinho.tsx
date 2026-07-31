@@ -85,7 +85,7 @@ function CartPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-3xl px-4">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {!cart.hydrated ? (
           <p className="py-16 text-center text-sm text-muted-foreground">Carregando carrinho…</p>
         ) : cart.itemCount === 0 ? (
