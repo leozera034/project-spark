@@ -1960,8 +1960,57 @@ export type Database = {
         Returns: number
       }
       get_my_auth_context: { Args: never; Returns: Json }
+      get_my_authorization_context: { Args: never; Returns: Json }
     }
     Enums: {
+      app_permission:
+        | "store.view_basic"
+        | "store.update_profile"
+        | "store.manage_settings"
+        | "store.manage_hours"
+        | "store.manage_neighborhoods"
+        | "store.manage_payment_methods"
+        | "catalog.view"
+        | "catalog.create"
+        | "catalog.update"
+        | "catalog.archive"
+        | "orders.view_queue"
+        | "orders.view_customer_contact"
+        | "orders.accept"
+        | "orders.reject"
+        | "orders.start_preparation"
+        | "orders.mark_ready"
+        | "orders.cancel"
+        | "kitchen.view"
+        | "kitchen.start_preparation"
+        | "kitchen.mark_ready"
+        | "team.view"
+        | "team.invite"
+        | "team.change_role"
+        | "team.disable"
+        | "couriers.view"
+        | "couriers.create"
+        | "couriers.update"
+        | "couriers.assign"
+        | "couriers.reset_access"
+        | "courier.view_self"
+        | "courier.view_offered_deliveries"
+        | "courier.view_assigned_delivery"
+        | "courier.update_delivery_status"
+        | "courier.register_incident"
+        | "reports.view_operational"
+        | "subscription.view"
+        | "platform.stores.view"
+        | "platform.stores.create"
+        | "platform.stores.update"
+        | "platform.stores.suspend"
+        | "platform.stores.reactivate"
+        | "platform.plans.view"
+        | "platform.plans.manage"
+        | "platform.billing.view"
+        | "platform.billing.register_payment"
+        | "platform.audit.view"
+        | "platform.support.open_context"
       app_role:
         | "admin_plataforma"
         | "proprietario"
@@ -2150,6 +2199,55 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_permission: [
+        "store.view_basic",
+        "store.update_profile",
+        "store.manage_settings",
+        "store.manage_hours",
+        "store.manage_neighborhoods",
+        "store.manage_payment_methods",
+        "catalog.view",
+        "catalog.create",
+        "catalog.update",
+        "catalog.archive",
+        "orders.view_queue",
+        "orders.view_customer_contact",
+        "orders.accept",
+        "orders.reject",
+        "orders.start_preparation",
+        "orders.mark_ready",
+        "orders.cancel",
+        "kitchen.view",
+        "kitchen.start_preparation",
+        "kitchen.mark_ready",
+        "team.view",
+        "team.invite",
+        "team.change_role",
+        "team.disable",
+        "couriers.view",
+        "couriers.create",
+        "couriers.update",
+        "couriers.assign",
+        "couriers.reset_access",
+        "courier.view_self",
+        "courier.view_offered_deliveries",
+        "courier.view_assigned_delivery",
+        "courier.update_delivery_status",
+        "courier.register_incident",
+        "reports.view_operational",
+        "subscription.view",
+        "platform.stores.view",
+        "platform.stores.create",
+        "platform.stores.update",
+        "platform.stores.suspend",
+        "platform.stores.reactivate",
+        "platform.plans.view",
+        "platform.plans.manage",
+        "platform.billing.view",
+        "platform.billing.register_payment",
+        "platform.audit.view",
+        "platform.support.open_context",
+      ],
       app_role: [
         "admin_plataforma",
         "proprietario",

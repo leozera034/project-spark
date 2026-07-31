@@ -55,7 +55,7 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Riscos:** política permissiva; recursão em políticas; tabela sem RLS.
 - **Conclusão:** teste de acesso cruzado entre duas lojas falha em todas as tabelas.
 - **Proibido:** liberar leitura ampla "temporariamente".
-- **Status:** CONCLUÍDA (2026-07-31). Schema `private` com funções de contexto, 31 tabelas com policies por `store_id`, catálogo público por coluna, entregador restrito à própria loja e administração sem acesso a dado de cliente. Documentado em `docs/RLS_POLICY_MATRIX.md`.
+- **Status:** CONCLUÍDA COM CORREÇÃO (2026-07-31). Isolamento por `store_id` e schema `private` mantidos. Os acessos antecipados de fases posteriores (cardápio público, dados operacionais do entregador, acesso global da administração e escrita ampla de gestão) foram removidos na Fase 07. Ver `docs/PHASE_06_SCOPE_AUDIT.md`.
 
 ## Fase 07 — Perfis e permissões
 - **Objetivo:** `user_roles`, função de verificação de papel, autorização por ação no servidor.
@@ -64,6 +64,8 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Riscos:** escalada de privilégio; papel no frontend.
 - **Conclusão:** cada perfil só executa suas ações, validado no backend.
 - **Proibido:** decisão de permissão apenas no cliente.
+- **Status:** CONCLUÍDA (2026-07-31). Enum `public.app_permission` com catálogo fechado de ações, matriz de papéis versionada em `private.permission_roles`, autorização central em `private.has_permission(acao, loja)` usando apenas `auth.uid()`, leituras mínimas reescritas sobre a função central e contexto de permissões do próprio usuário para a interface. Documentado em `docs/AUTHORIZATION_MATRIX.md`.
+
 
 ## Fase 08 — Configurações da loja
 - **Objetivo:** dados da loja, slug, tema por tokens, horários, bairros, taxas, pedido mínimo, formas de pagamento, retirada e entrega.
