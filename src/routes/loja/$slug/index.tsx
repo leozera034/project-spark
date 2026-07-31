@@ -6,6 +6,7 @@ import { CartBar } from "@/components/storefront/CartBar";
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
+import { Reveal } from "@/components/motion/Reveal";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -180,7 +181,7 @@ function StorefrontPage() {
                   key={category.id}
                   href={`#categoria-${category.id}`}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`tappable shrink-0 rounded-full border px-3.5 py-1.5 text-sm active:scale-[0.97] ${
+                  className={`press shrink-0 rounded-full border px-3.5 py-1.5 text-sm ${
                     activeCategory === category.id
                       ? "border-transparent bg-primary font-semibold text-primary-foreground"
                       : "bg-card text-muted-foreground hover:border-border-strong hover:text-foreground"
@@ -207,7 +208,8 @@ function StorefrontPage() {
           </div>
         ) : (
           grouped.map(({ category, items }) => (
-            <section
+            <Reveal
+              as="section"
               key={category.id}
               id={`categoria-${category.id}`}
               className="scroll-mt-32 py-7"
@@ -224,12 +226,12 @@ function StorefrontPage() {
               ) : null}
 
               <ul className="mt-4 space-y-3">
-                {items.map((product) => (
-                  <li key={product.id}>
+                {items.map((product, productIndex) => (
+                  <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 55}>
                     <button
                       type="button"
                       onClick={() => openProduct(product.id)}
-                      className="tappable panel flex w-full items-center gap-4 p-3.5 text-left hover:border-border-strong hover:shadow-e2 active:scale-[0.995] disabled:opacity-55 disabled:hover:shadow-e1"
+                      className="group hover-lift panel flex w-full items-center gap-4 p-3.5 text-left disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:shadow-e1"
                       disabled={product.is_sold_out}
                     >
                       <div className="min-w-0 flex-1">
@@ -264,14 +266,14 @@ function StorefrontPage() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="size-18 shrink-0 rounded-xl object-cover sm:size-22"
+                          className="size-18 shrink-0 rounded-xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04] sm:size-22"
                         />
                       ) : null}
                     </button>
-                  </li>
+                  </Reveal>
                 ))}
               </ul>
-            </section>
+            </Reveal>
           ))
         )}
 
