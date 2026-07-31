@@ -60,14 +60,22 @@ function StepShell({
           id="wizard-title"
           ref={headingRef}
           tabIndex={-1}
+          key={`title-${title}`}
           className="mt-3 text-[26px] font-semibold leading-tight sm:text-3xl tracking-tight outline-none rise-in"
         >
           {title}
         </h1>
         {description ? (
-          <p className="mt-2.5 text-base leading-relaxed text-muted-foreground">{description}</p>
+          <p
+            key={`desc-${title}`}
+            className="mt-2.5 text-base leading-relaxed text-muted-foreground rise-in [animation-delay:60ms]"
+          >
+            {description}
+          </p>
         ) : null}
-        <div className="mt-7">{children}</div>
+        <div key={`body-${title}`} className="mt-7 rise-in [animation-delay:110ms]">
+          {children}
+        </div>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -75,7 +83,7 @@ function StepShell({
           {onBack ? (
             <Button
               variant="outline"
-              className="tappable h-13 min-h-[52px] rounded-xl active:scale-[0.98]"
+              className="h-13 min-h-[52px] rounded-xl"
               onClick={onBack}
             >
               Voltar
