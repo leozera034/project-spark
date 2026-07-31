@@ -10,6 +10,7 @@ const SECTIONS = [
   { to: "/app/loja/cardapio", label: "Visão geral", exact: true },
   { to: "/app/loja/cardapio/categorias", label: "Categorias", exact: false },
   { to: "/app/loja/cardapio/produtos", label: "Produtos", exact: false },
+  { to: "/app/loja/cardapio/opcoes", label: "Opções", exact: false },
 ] as const;
 
 export const Route = createFileRoute("/app/loja/cardapio")({
@@ -70,9 +71,10 @@ function CardapioLayout() {
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cardápio</h1>
         <p className="text-sm text-muted-foreground">
-          Categorias e produtos simples. Variações e adicionais chegam na próxima etapa.
+          Categorias, produtos, variações, grupos de opções e venda por peso.
         </p>
       </header>
+
 
       <nav aria-label="Seções do cardápio" className="mt-6 -mx-4 overflow-x-auto px-4">
         <ul className="flex min-w-max gap-2 border-b border-border pb-px">
