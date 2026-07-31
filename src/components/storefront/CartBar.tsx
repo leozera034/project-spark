@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/storefront/cart/cart.context";
 
 export function CartBar({ slug }: { slug: string }) {
-  const { hydrated, itemCount, total, quoteState, hasBlockingIssues, views } = useCart();
+  const { hydrated, itemCount, total, quoteState, hasBlockingIssues } = useCart();
 
   if (!hydrated || itemCount === 0) return null;
 
-  const units = views.reduce((sum, view) => sum + (view.line.saleMode === "measured" ? 1 : 1), 0);
+  const units = itemCount;
+
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur">
