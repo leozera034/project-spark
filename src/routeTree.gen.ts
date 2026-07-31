@@ -75,6 +75,7 @@ import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
+import { Route as ApiPublicStorefrontSlugProdutosProductIdRouteImport } from './routes/api/public/storefront/$slug/produtos/$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -425,6 +426,12 @@ const AppLojaCardapioProdutosNovoRoute =
     path: '/produtos/novo',
     getParentRoute: () => AppLojaCardapioRoute,
   } as any)
+const ApiPublicStorefrontSlugProdutosProductIdRoute =
+  ApiPublicStorefrontSlugProdutosProductIdRouteImport.update({
+    id: '/produtos/$productId',
+    path: '/produtos/$productId',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -477,7 +484,7 @@ export interface FileRoutesByFullPath {
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
-  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -493,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -535,7 +543,7 @@ export interface FileRoutesByTo {
   '/preview/cliente': typeof PreviewClienteIndexRoute
   '/preview/entregador': typeof PreviewEntregadorIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
-  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -551,6 +559,7 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -604,7 +613,7 @@ export interface FileRoutesById {
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
-  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRoute
+  '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
@@ -620,6 +629,7 @@ export interface FileRoutesById {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -690,6 +700,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -748,6 +759,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
+    | '/api/public/storefront/$slug/produtos/$productId'
   id:
     | '__root__'
     | '/'
@@ -816,6 +828,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -833,7 +846,7 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
-  ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRoute
+  ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -1300,6 +1313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioProdutosNovoRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/api/public/storefront/$slug/produtos/$productId': {
+      id: '/api/public/storefront/$slug/produtos/$productId'
+      path: '/produtos/$productId'
+      fullPath: '/api/public/storefront/$slug/produtos/$productId'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
   }
 }
 
@@ -1499,6 +1519,21 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
 const AppLojaRouteWithChildren =
   AppLojaRoute._addFileChildren(AppLojaRouteChildren)
 
+interface ApiPublicStorefrontSlugRouteChildren {
+  ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
+}
+
+const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren =
+  {
+    ApiPublicStorefrontSlugProdutosProductIdRoute:
+      ApiPublicStorefrontSlugProdutosProductIdRoute,
+  }
+
+const ApiPublicStorefrontSlugRouteWithChildren =
+  ApiPublicStorefrontSlugRoute._addFileChildren(
+    ApiPublicStorefrontSlugRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -1514,7 +1549,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
-  ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRoute,
+  ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
