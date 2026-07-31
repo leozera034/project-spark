@@ -735,40 +735,61 @@ export type Database = {
       option_groups: {
         Row: {
           allow_quantity: boolean
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          is_active: boolean
+          is_archived: boolean
           is_required: boolean
           max_selections: number
           min_selections: number
           name: string
+          portion_count: number | null
+          price_effect: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type: Database["public"]["Enums"]["option_selection_type"]
+          sort_order: number
           store_id: string
           updated_at: string
         }
         Insert: {
           allow_quantity?: boolean
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean
           max_selections?: number
           min_selections?: number
           name: string
+          portion_count?: number | null
+          price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
+          sort_order?: number
           store_id: string
           updated_at?: string
         }
         Update: {
           allow_quantity?: boolean
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean
           max_selections?: number
           min_selections?: number
           name?: string
+          portion_count?: number | null
+          price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
+          pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
+          sort_order?: number
           store_id?: string
           updated_at?: string
         }
@@ -785,9 +806,11 @@ export type Database = {
       option_items: {
         Row: {
           additional_price: number
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
+          is_archived: boolean
           is_available: boolean
           max_quantity: number
           name: string
@@ -798,9 +821,11 @@ export type Database = {
         }
         Insert: {
           additional_price?: number
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           max_quantity?: number
           name: string
@@ -811,9 +836,11 @@ export type Database = {
         }
         Update: {
           additional_price?: number
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           max_quantity?: number
           name?: string
@@ -1302,8 +1329,11 @@ export type Database = {
       }
       product_option_groups: {
         Row: {
+          archived_at: string | null
           created_at: string
           id: string
+          is_active: boolean
+          is_archived: boolean
           is_required: boolean | null
           max_selections: number | null
           min_selections: number | null
@@ -1314,8 +1344,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean | null
           max_selections?: number | null
           min_selections?: number | null
@@ -1326,8 +1359,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_archived?: boolean
           is_required?: boolean | null
           max_selections?: number | null
           min_selections?: number | null
@@ -1361,13 +1397,79 @@ export type Database = {
           },
         ]
       }
-      product_variants: {
+      product_variant_option_item_prices: {
         Row: {
           created_at: string
           id: string
+          option_item_id: string
+          price: number
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_item_id: string
+          price: number
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_item_id?: string
+          price?: number
+          product_id?: string
+          product_variant_id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvoip_item_fk"
+            columns: ["option_item_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "option_items"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvoip_product_fk"
+            columns: ["product_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvoip_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvoip_variant_fk"
+            columns: ["product_variant_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id", "store_id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          is_archived: boolean
           is_available: boolean
           is_default: boolean
           name: string
+          package_quantity: number | null
+          package_unit: Database["public"]["Enums"]["measurement_unit"] | null
           price: number
           product_id: string
           sku: string | null
@@ -1376,11 +1478,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
           name: string
+          package_quantity?: number | null
+          package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
           price: number
           product_id: string
           sku?: string | null
@@ -1389,11 +1495,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
           name?: string
+          package_quantity?: number | null
+          package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
           price?: number
           product_id?: string
           sku?: string | null
@@ -1438,10 +1548,12 @@ export type Database = {
           is_featured: boolean
           is_sold_out: boolean
           max_quantity: number | null
+          measurement_unit: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity: number
           name: string
           pricing_unit: Database["public"]["Enums"]["pricing_unit"]
           quantity_step: number
+          sale_mode: Database["public"]["Enums"]["product_sale_mode"]
           sort_order: number
           store_id: string
           unit_label: string | null
@@ -1466,10 +1578,12 @@ export type Database = {
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
           quantity_step?: number
+          sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
           store_id: string
           unit_label?: string | null
@@ -1494,10 +1608,12 @@ export type Database = {
           is_featured?: boolean
           is_sold_out?: boolean
           max_quantity?: number | null
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name?: string
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
           quantity_step?: number
+          sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
           store_id?: string
           unit_label?: string | null
@@ -2006,8 +2122,43 @@ export type Database = {
         }
         Returns: Json
       }
+      archive_option_group: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      archive_option_item: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      archive_product_variant: {
+        Args: {
+          _archived: boolean
+          _expected_updated_at?: string
+          _id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_store_neighborhood: {
         Args: { _archived: boolean; _id: string; _store_id: string }
+        Returns: Json
+      }
+      attach_option_group_to_product: {
+        Args: {
+          _option_group_id: string
+          _product_id: string
+          _store_id: string
+        }
         Returns: Json
       }
       authorize_courier_reset: {
@@ -2017,6 +2168,16 @@ export type Database = {
           identity_id: string
           store_id: string
         }[]
+      }
+      calculate_product_configuration_preview: {
+        Args: {
+          _product_id: string
+          _quantity?: number
+          _selections?: Json
+          _store_id: string
+          _variant_id?: string
+        }
+        Returns: Json
       }
       check_store_slug_availability: {
         Args: { _slug: string; _store_id: string }
@@ -2040,6 +2201,44 @@ export type Database = {
         }
         Returns: Json
       }
+      create_option_group: {
+        Args: {
+          _description?: string
+          _is_required?: boolean
+          _max_selections?: number
+          _min_selections?: number
+          _name: string
+          _portion_count?: number
+          _price_effect?: string
+          _pricing_strategy?: string
+          _selection_type?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_option_item: {
+        Args: {
+          _additional_price?: number
+          _description?: string
+          _max_quantity?: number
+          _name: string
+          _option_group_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_product_variant: {
+        Args: {
+          _is_default?: boolean
+          _name: string
+          _package_quantity?: number
+          _package_unit?: string
+          _price: number
+          _product_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       create_simple_product: {
         Args: {
           _allows_notes?: boolean
@@ -2054,6 +2253,14 @@ export type Database = {
         }
         Returns: Json
       }
+      detach_option_group_from_product: {
+        Args: {
+          _option_group_id: string
+          _product_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       get_my_auth_context: { Args: never; Returns: Json }
       get_my_authorization_context: { Args: never; Returns: Json }
       get_my_catalog_overview: { Args: { _store_id?: string }; Returns: Json }
@@ -2063,6 +2270,14 @@ export type Database = {
       }
       get_my_store_configuration: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      get_option_group: {
+        Args: { _id: string; _store_id: string }
+        Returns: Json
+      }
+      get_product_advanced_builder: {
+        Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
       get_store_operational_preview: {
@@ -2092,6 +2307,14 @@ export type Database = {
           slug: string
         }[]
       }
+      list_option_groups: {
+        Args: { _include_archived?: boolean; _store_id?: string }
+        Returns: Json
+      }
+      list_product_variants: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
       move_product_to_category: {
         Args: {
           _category_id: string
@@ -2111,6 +2334,18 @@ export type Database = {
         Args: { _category_id: string; _ids: string[]; _store_id: string }
         Returns: Json
       }
+      reorder_option_items: {
+        Args: { _ids: string[]; _option_group_id: string; _store_id: string }
+        Returns: Json
+      }
+      reorder_product_option_groups: {
+        Args: { _ids: string[]; _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      reorder_product_variants: {
+        Args: { _ids: string[]; _product_id: string; _store_id: string }
+        Returns: Json
+      }
       reorder_store_neighborhoods: {
         Args: { _ids: string[]; _store_id: string }
         Returns: Json
@@ -2121,6 +2356,10 @@ export type Database = {
       }
       replace_store_hours: {
         Args: { _expected_updated_at?: string; _hours: Json; _store_id: string }
+        Returns: Json
+      }
+      replace_variant_option_prices: {
+        Args: { _prices: Json; _product_id: string; _store_id: string }
         Returns: Json
       }
       set_catalog_category_active: {
@@ -2134,6 +2373,28 @@ export type Database = {
       }
       set_catalog_category_image: {
         Args: { _id: string; _image_path: string; _store_id: string }
+        Returns: Json
+      }
+      set_default_product_variant: {
+        Args: { _expected_updated_at?: string; _id: string; _store_id: string }
+        Returns: Json
+      }
+      set_option_group_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      set_option_item_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
         Returns: Json
       }
       set_product_active: {
@@ -2167,6 +2428,15 @@ export type Database = {
         }
         Returns: Json
       }
+      set_product_variant_active: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
       update_catalog_category: {
         Args: {
           _description: string
@@ -2174,6 +2444,59 @@ export type Database = {
           _id: string
           _is_active: boolean
           _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_option_group: {
+        Args: {
+          _description?: string
+          _expected_updated_at?: string
+          _id: string
+          _is_required?: boolean
+          _max_selections?: number
+          _min_selections?: number
+          _name: string
+          _portion_count?: number
+          _price_effect?: string
+          _pricing_strategy?: string
+          _selection_type?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_option_item: {
+        Args: {
+          _additional_price?: number
+          _description?: string
+          _expected_updated_at?: string
+          _id: string
+          _max_quantity?: number
+          _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_sale_mode: {
+        Args: {
+          _expected_updated_at?: string
+          _measurement_unit?: string
+          _minimum_quantity?: number
+          _product_id: string
+          _quantity_step?: number
+          _sale_mode: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_variant: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _name: string
+          _package_quantity?: number
+          _package_unit?: string
+          _price: number
           _store_id: string
         }
         Returns: Json
@@ -2266,6 +2589,10 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_product_configuration: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_permission:
@@ -2343,7 +2670,10 @@ export type Database = {
         | "concluida"
         | "cancelada"
       fulfillment_type: "entrega" | "retirada"
-      option_selection_type: "unica" | "multipla"
+      measurement_unit: "unit" | "kg" | "g" | "l" | "ml"
+      option_group_price_effect: "additive" | "replace_base"
+      option_group_pricing_strategy: "sum" | "highest_price" | "average_price"
+      option_selection_type: "unica" | "multipla" | "quantidade"
       order_status:
         | "aguardando_confirmacao"
         | "aceito"
@@ -2364,6 +2694,7 @@ export type Database = {
         | "vale_refeicao"
         | "outro"
       pricing_unit: "unidade" | "quantidade" | "peso"
+      product_sale_mode: "unit" | "measured" | "fixed_package"
       promotion_type: "percentual" | "valor_fixo"
       store_status: "em_implantacao" | "ativa" | "suspensa" | "inativa"
       subscription_payment_status:
@@ -2583,7 +2914,10 @@ export const Constants = {
         "cancelada",
       ],
       fulfillment_type: ["entrega", "retirada"],
-      option_selection_type: ["unica", "multipla"],
+      measurement_unit: ["unit", "kg", "g", "l", "ml"],
+      option_group_price_effect: ["additive", "replace_base"],
+      option_group_pricing_strategy: ["sum", "highest_price", "average_price"],
+      option_selection_type: ["unica", "multipla", "quantidade"],
       order_status: [
         "aguardando_confirmacao",
         "aceito",
@@ -2606,6 +2940,7 @@ export const Constants = {
         "outro",
       ],
       pricing_unit: ["unidade", "quantidade", "peso"],
+      product_sale_mode: ["unit", "measured", "fixed_package"],
       promotion_type: ["percentual", "valor_fixo"],
       store_status: ["em_implantacao", "ativa", "suspensa", "inativa"],
       subscription_payment_status: [
