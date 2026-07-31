@@ -8,10 +8,11 @@
 
 import { cn } from "@/lib/utils";
 
-export type BrandTone = "auto" | "carbon" | "white" | "monochrome";
+export type BrandFileTone = "carbon" | "white" | "monochrome";
+export type BrandTone = "auto" | BrandFileTone;
 export type BrandLockup = "horizontal" | "stacked";
 
-const LOCKUP_SRC: Record<BrandLockup, Record<BrandTone, string>> = {
+const LOCKUP_SRC: Record<BrandLockup, Record<BrandFileTone, string>> = {
   horizontal: {
     carbon: "/brand/logo-horizontal-carbon.svg",
     white: "/brand/logo-horizontal-white.svg",
