@@ -240,6 +240,7 @@ function CartPage() {
                     <div className="mt-2">
                       {editingNotes === line.lineId ? (
                         <Textarea
+                          aria-label="Observação do item"
                           autoFocus
                           maxLength={280}
                           defaultValue={line.notes ?? ""}

@@ -352,6 +352,7 @@ function CheckoutPage() {
         <section className="space-y-2 panel p-4">
           <h2 className="text-sm font-semibold">Observações para a loja</h2>
           <Textarea
+            aria-label="Observações para a loja"
             value={notes}
             maxLength={400}
             placeholder="Ex.: interfone quebrado, entregar na portaria."
