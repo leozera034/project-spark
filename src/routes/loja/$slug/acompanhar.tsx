@@ -1,11 +1,13 @@
 /**
- * Fase 15 — Acompanhamento público do pedido.
+ * Fase 16 — Bloco A: acompanhamento público sem segredo na URL.
  *
- * O link recebido no fim do checkout é a única credencial. Nada aqui exige
- * conta ou senha, e a página fica fora da indexação. A projeção vem pronta do
- * servidor: nenhum valor é recalculado no navegador.
+ * O token chega apenas no fragmento (`#`), que o navegador nunca envia ao
+ * servidor. Assim que a página monta, capturamos o valor em memória e
+ * reescrevemos a barra de endereços para `/loja/{slug}/acompanhar`. A partir
+ * daí o token só existe em estado React e no corpo do POST.
  */
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Check, Clock, RefreshCw, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
@@ -17,44 +19,84 @@ import {
   TRACKING_COPY,
   TRACKING_MESSAGES,
   TRACKING_STEPS,
+  trackingTokenSchema,
   type PublicOrderStatusCode,
   type PublicOrderTracking,
 } from "@/lib/tracking-contracts";
 import { useOrderTracking } from "@/storefront/tracking/useOrderTracking";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export const Route = createFileRoute("/pedido/$token")({
+export const Route = createFileRoute("/loja/$slug/acompanhar")({
+  headers: () => ({
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  }),
   head: () => ({
     meta: [
       { title: "Acompanhar pedido · Pediu Aqui" },
-      { name: "description", content: "Acompanhe a situação do seu pedido em tempo quase real." },
-      { property: "og:title", content: "Acompanhar pedido" },
       {
-        property: "og:description",
+        name: "description",
         content: "Acompanhe a situação do seu pedido em tempo quase real.",
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex,nofollow" },
+      { name: "robots", content: "noindex, nofollow, noarchive" },
       { name: "referrer", content: "no-referrer" },
     ],
   }),
   component: TrackingPage,
 });
 
+/** Lê e apaga o fragmento numa única passagem, sem nunca reescrevê-lo. */
+function useTokenFromFragment(slug: string): { token: string | null; ready: boolean } {
+  const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const raw = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    const parsed = trackingTokenSchema.safeParse(decodeURIComponent(raw));
+
+    if (raw) {
+      // Some da barra de endereços antes de qualquer requisição sair daqui.
+      window.history.replaceState(window.history.state, "", `/loja/${slug}/acompanhar`);
+    }
+
+    if (parsed.success) setToken(parsed.data.toLowerCase());
+    setReady(true);
+  }, [slug]);
+
+  return { token, ready };
+}
+
 function TrackingPage() {
-  const { token } = Route.useParams();
+  const { slug } = useParams({ from: "/loja/$slug/acompanhar" });
+  const { token, ready } = useTokenFromFragment(slug);
   const { data, error, loading, refresh } = useOrderTracking(token);
 
-  if (loading && !data) {
+  if (!ready || (loading && !data)) {
     return (
-      <main className="mx-auto min-h-svh max-w-md sm:max-w-xl space-y-4 px-4 py-10">
+      <main className="mx-auto min-h-svh max-w-md space-y-4 px-4 py-10 sm:max-w-xl">
         <span className="sr-only" role="status" aria-live="polite">
           Carregando acompanhamento do pedido
         </span>
         <Skeleton className="h-24 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
         <Skeleton className="h-32 w-full rounded-xl" />
+      </main>
+    );
+  }
+
+  if (!token) {
+    return (
+      <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 sm:max-w-xl">
+        <ErrorState
+          title="Link de acompanhamento incompleto"
+          description="Abra o link completo que você recebeu ao finalizar o pedido. Ele é a única credencial deste acompanhamento."
+        />
+        <Button asChild variant="outline" className="mt-4">
+          <Link to="/loja/$slug" params={{ slug }}>
+            Ir ao cardápio
+          </Link>
+        </Button>
       </main>
     );
   }
@@ -81,7 +123,7 @@ function TrackingPage() {
   const currentIndex = steps.indexOf(data.status.publicCode);
 
   return (
-    <main className="mx-auto min-h-svh max-w-md sm:max-w-xl px-4 py-8">
+    <main className="mx-auto min-h-svh max-w-md px-4 py-8 sm:max-w-xl">
       <header className="flex items-center gap-3">
         {data.store.logoUrl ? (
           <img
@@ -99,11 +141,17 @@ function TrackingPage() {
         <ThemeToggle className="ml-auto" />
       </header>
 
-      <section className="mt-6 panel p-4">
+      <section className="panel mt-6 p-4">
         <p className="text-sm text-muted-foreground">Número do pedido</p>
         <p className="text-2xl font-semibold tabular-nums">#{data.orderNumber}</p>
         <h1 className="mt-3 text-lg font-semibold">{copy.title}</h1>
         <p className="text-sm text-muted-foreground">{copy.description}</p>
+
+        {data.status.publicMessage ? (
+          <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm">
+            Recado da loja: {data.status.publicMessage}
+          </p>
+        ) : null}
 
         {data.fulfillment.estimatedMinutes && !data.status.isFinal ? (
           <p className="mt-3 flex items-center gap-2 text-sm">
@@ -192,7 +240,7 @@ function TimelineStep({
 
 function OrderSummary({ data }: { data: PublicOrderTracking }) {
   return (
-    <section className="mt-4 panel p-4">
+    <section className="panel mt-4 p-4">
       <h2 className="text-sm font-semibold">Itens do pedido</h2>
       <ul className="mt-3 space-y-3">
         {data.items.map((item, index) => (

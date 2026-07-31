@@ -26,7 +26,7 @@ import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
-import { Route as PedidoTokenRouteImport } from './routes/pedido/$token'
+import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
@@ -36,7 +36,9 @@ import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
+import { Route as AppLojaPedidosRouteImport } from './routes/app/loja/pedidos'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
+import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
 import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
 import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
@@ -176,9 +178,9 @@ const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
   path: '/$slug',
   getParentRoute: () => LojaRoute,
 } as any)
-const PedidoTokenRoute = PedidoTokenRouteImport.update({
-  id: '/pedido/$token',
-  path: '/pedido/$token',
+const PedidoSplatRoute = PedidoSplatRouteImport.update({
+  id: '/pedido/$',
+  path: '/pedido/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
@@ -226,9 +228,19 @@ const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AppLojaRoute,
 } as any)
+const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => AppLojaRoute,
+} as any)
 const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LojaSlugRouteRoute,
+} as any)
+const LojaSlugAcompanharRoute = LojaSlugAcompanharRouteImport.update({
+  id: '/acompanhar',
+  path: '/acompanhar',
   getParentRoute: () => LojaSlugRouteRoute,
 } as any)
 const LojaSlugCarrinhoRoute = LojaSlugCarrinhoRouteImport.update({
@@ -541,7 +553,7 @@ export interface FileRoutesByFullPath {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/pedido/$token': typeof PedidoTokenRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -550,6 +562,8 @@ export interface FileRoutesByFullPath {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -619,9 +633,11 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/pedido/$token': typeof PedidoTokenRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -697,7 +713,7 @@ export interface FileRoutesById {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/pedido/$token': typeof PedidoTokenRoute
+  '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -706,6 +722,8 @@ export interface FileRoutesById {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -782,7 +800,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/pedido/$token'
+    | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -791,6 +809,8 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/pedidos'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -860,9 +880,11 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/pedido/$token'
+    | '/pedido/$'
     | '/admin'
     | '/preview'
+    | '/app/loja/pedidos'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -937,7 +959,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/pedido/$token'
+    | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -946,6 +968,8 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/app/loja/pedidos'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -1020,7 +1044,7 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
-  PedidoTokenRoute: typeof PedidoTokenRoute
+  PedidoSplatRoute: typeof PedidoSplatRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
   ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
@@ -1146,11 +1170,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaSlugRouteRouteImport
       parentRoute: typeof LojaRoute
     }
-    '/pedido/$token': {
-      id: '/pedido/$token'
-      path: '/pedido/$token'
-      fullPath: '/pedido/$token'
-      preLoaderRoute: typeof PedidoTokenRouteImport
+    '/pedido/$': {
+      id: '/pedido/$'
+      path: '/pedido/$'
+      fullPath: '/pedido/$'
+      preLoaderRoute: typeof PedidoSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview/': {
@@ -1216,11 +1240,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaConfiguracoesRouteImport
       parentRoute: typeof AppLojaRoute
     }
+    '/app/loja/pedidos': {
+      id: '/app/loja/pedidos'
+      path: '/pedidos'
+      fullPath: '/app/loja/pedidos'
+      preLoaderRoute: typeof AppLojaPedidosRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
     '/loja/$slug/': {
       id: '/loja/$slug/'
       path: '/'
       fullPath: '/loja/$slug/'
       preLoaderRoute: typeof LojaSlugIndexRouteImport
+      parentRoute: typeof LojaSlugRouteRoute
+    }
+    '/loja/$slug/acompanhar': {
+      id: '/loja/$slug/acompanhar'
+      path: '/acompanhar'
+      fullPath: '/loja/$slug/acompanhar'
+      preLoaderRoute: typeof LojaSlugAcompanharRouteImport
       parentRoute: typeof LojaSlugRouteRoute
     }
     '/loja/$slug/carrinho': {
@@ -1608,6 +1646,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface LojaSlugRouteRouteChildren {
+  LojaSlugAcompanharRoute: typeof LojaSlugAcompanharRoute
   LojaSlugCarrinhoRoute: typeof LojaSlugCarrinhoRoute
   LojaSlugCheckoutRoute: typeof LojaSlugCheckoutRoute
   LojaSlugPedidoEnviadoRoute: typeof LojaSlugPedidoEnviadoRoute
@@ -1615,6 +1654,7 @@ interface LojaSlugRouteRouteChildren {
 }
 
 const LojaSlugRouteRouteChildren: LojaSlugRouteRouteChildren = {
+  LojaSlugAcompanharRoute: LojaSlugAcompanharRoute,
   LojaSlugCarrinhoRoute: LojaSlugCarrinhoRoute,
   LojaSlugCheckoutRoute: LojaSlugCheckoutRoute,
   LojaSlugPedidoEnviadoRoute: LojaSlugPedidoEnviadoRoute,
@@ -1809,12 +1849,14 @@ const AppLojaConfiguracoesRouteWithChildren =
 interface AppLojaRouteChildren {
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
+  AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
 
 const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
+  AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
 }
 
@@ -1880,7 +1922,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
-  PedidoTokenRoute: PedidoTokenRoute,
+  PedidoSplatRoute: PedidoSplatRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
   ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }

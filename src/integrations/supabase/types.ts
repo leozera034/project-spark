@@ -1031,38 +1031,50 @@ export type Database = {
       }
       order_status_history: {
         Row: {
+          action: string | null
           actor_courier_id: string | null
           actor_kind: string
           actor_user_id: string | null
           created_at: string
+          customer_visible_message: string | null
           from_status: Database["public"]["Enums"]["order_status"] | null
           id: string
+          internal_note: string | null
           order_id: string
           reason: string | null
+          reason_code: string | null
           store_id: string
           to_status: Database["public"]["Enums"]["order_status"]
         }
         Insert: {
+          action?: string | null
           actor_courier_id?: string | null
           actor_kind?: string
           actor_user_id?: string | null
           created_at?: string
+          customer_visible_message?: string | null
           from_status?: Database["public"]["Enums"]["order_status"] | null
           id?: string
+          internal_note?: string | null
           order_id: string
           reason?: string | null
+          reason_code?: string | null
           store_id: string
           to_status: Database["public"]["Enums"]["order_status"]
         }
         Update: {
+          action?: string | null
           actor_courier_id?: string | null
           actor_kind?: string
           actor_user_id?: string | null
           created_at?: string
+          customer_visible_message?: string | null
           from_status?: Database["public"]["Enums"]["order_status"] | null
           id?: string
+          internal_note?: string | null
           order_id?: string
           reason?: string | null
+          reason_code?: string | null
           store_id?: string
           to_status?: Database["public"]["Enums"]["order_status"]
         }
@@ -1097,6 +1109,42 @@ export type Database = {
           },
         ]
       }
+      order_transition_reasons: {
+        Row: {
+          applies_cancel: boolean
+          applies_reject: boolean
+          code: string
+          created_at: string
+          internal_label: string
+          is_active: boolean
+          public_message: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          applies_cancel?: boolean
+          applies_reject?: boolean
+          code: string
+          created_at?: string
+          internal_label: string
+          is_active?: boolean
+          public_message: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          applies_cancel?: boolean
+          applies_reject?: boolean
+          code?: string
+          created_at?: string
+          internal_label?: string
+          is_active?: boolean
+          public_message?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           accepted_at: string | null
@@ -1110,6 +1158,7 @@ export type Database = {
           customer_notes: string | null
           customer_phone: string
           customer_phone_display: string | null
+          customer_visible_message: string | null
           delivery_fee: number
           discount_total: number
           eta_minutes: number | null
@@ -1117,6 +1166,7 @@ export type Database = {
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           idempotency_key: string | null
+          internal_note: string | null
           items_subtotal: number
           minimum_order_amount: number
           neighborhood_id: string | null
@@ -1129,6 +1179,7 @@ export type Database = {
           payment_needs_change: boolean
           public_tracking_token: string | null
           ready_at: string | null
+          reason_code: string | null
           rejection_reason: string | null
           request_hash: string | null
           source: string
@@ -1137,6 +1188,7 @@ export type Database = {
           total_amount: number
           tracking_token_hash: string | null
           updated_at: string
+          version: number
         }
         Insert: {
           accepted_at?: string | null
@@ -1150,6 +1202,7 @@ export type Database = {
           customer_notes?: string | null
           customer_phone: string
           customer_phone_display?: string | null
+          customer_visible_message?: string | null
           delivery_fee?: number
           discount_total?: number
           eta_minutes?: number | null
@@ -1157,6 +1210,7 @@ export type Database = {
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           idempotency_key?: string | null
+          internal_note?: string | null
           items_subtotal?: number
           minimum_order_amount?: number
           neighborhood_id?: string | null
@@ -1169,6 +1223,7 @@ export type Database = {
           payment_needs_change?: boolean
           public_tracking_token?: string | null
           ready_at?: string | null
+          reason_code?: string | null
           rejection_reason?: string | null
           request_hash?: string | null
           source?: string
@@ -1177,6 +1232,7 @@ export type Database = {
           total_amount?: number
           tracking_token_hash?: string | null
           updated_at?: string
+          version?: number
         }
         Update: {
           accepted_at?: string | null
@@ -1190,6 +1246,7 @@ export type Database = {
           customer_notes?: string | null
           customer_phone?: string
           customer_phone_display?: string | null
+          customer_visible_message?: string | null
           delivery_fee?: number
           discount_total?: number
           eta_minutes?: number | null
@@ -1197,6 +1254,7 @@ export type Database = {
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           idempotency_key?: string | null
+          internal_note?: string | null
           items_subtotal?: number
           minimum_order_amount?: number
           neighborhood_id?: string | null
@@ -1209,6 +1267,7 @@ export type Database = {
           payment_needs_change?: boolean
           public_tracking_token?: string | null
           ready_at?: string | null
+          reason_code?: string | null
           rejection_reason?: string | null
           request_hash?: string | null
           source?: string
@@ -1217,6 +1276,7 @@ export type Database = {
           total_amount?: number
           tracking_token_hash?: string | null
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1774,6 +1834,44 @@ export type Database = {
           },
         ]
       }
+      store_order_realtime_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          expires_at: string
+          id: string
+          order_id: string
+          status_version: number
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          expires_at?: string
+          id?: string
+          order_id: string
+          status_version?: number
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          expires_at?: string
+          id?: string
+          order_id?: string
+          status_version?: number
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_order_realtime_events_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           auto_open_by_hours: boolean
@@ -2134,6 +2232,15 @@ export type Database = {
       }
     }
     Functions: {
+      accept_store_order: {
+        Args: {
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_catalog_category: {
         Args: {
           _archived: boolean
@@ -2209,6 +2316,17 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_store_order: {
+        Args: {
+          _customer_message?: string
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
+          _reason_code: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       check_store_slug_availability: {
         Args: { _slug: string; _store_id: string }
         Returns: Json
@@ -2218,6 +2336,15 @@ export type Database = {
         Returns: Json
       }
       complete_my_initial_password_change: { Args: never; Returns: boolean }
+      complete_store_pickup_order: {
+        Args: {
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       courier_completed_deliveries_count: {
         Args: { _courier_id: string; _store_id: string }
         Returns: number
@@ -2302,6 +2429,15 @@ export type Database = {
         Args: { _store_id?: string }
         Returns: Json
       }
+      get_my_store_order_counts: { Args: { _store_id?: string }; Returns: Json }
+      get_my_store_order_detail: {
+        Args: { _order_id: string; _store_id: string }
+        Returns: Json
+      }
+      get_my_store_order_history: {
+        Args: { _order_id: string; _store_id: string }
+        Returns: Json
+      }
       get_option_group: {
         Args: { _id: string; _store_id: string }
         Returns: Json
@@ -2329,6 +2465,21 @@ export type Database = {
         }
         Returns: Json
       }
+      list_my_store_orders: {
+        Args: {
+          _cursor?: string
+          _cursor_id?: string
+          _delayed_only?: boolean
+          _from?: string
+          _fulfillment?: string
+          _limit?: number
+          _search?: string
+          _statuses?: string[]
+          _store_id?: string
+          _to?: string
+        }
+        Returns: Json
+      }
       list_my_stores: {
         Args: never
         Returns: {
@@ -2345,6 +2496,15 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      mark_store_order_ready: {
+        Args: {
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       move_product_to_category: {
         Args: {
           _category_id: string
@@ -2356,6 +2516,17 @@ export type Database = {
       }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      reject_store_order: {
+        Args: {
+          _customer_message?: string
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
+          _reason_code: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       reorder_catalog_categories: {
         Args: { _ids: string[]; _store_id: string }
         Returns: Json
@@ -2463,6 +2634,15 @@ export type Database = {
           _expected_updated_at?: string
           _id: string
           _is_active: boolean
+          _store_id: string
+        }
+        Returns: Json
+      }
+      start_store_order_preparation: {
+        Args: {
+          _expected_version: number
+          _internal_note?: string
+          _order_id: string
           _store_id: string
         }
         Returns: Json
@@ -2712,6 +2892,8 @@ export type Database = {
         | "platform.billing.register_payment"
         | "platform.audit.view"
         | "platform.support.open_context"
+        | "orders.complete_pickup"
+        | "orders.view_history"
       app_role:
         | "admin_plataforma"
         | "proprietario"
@@ -2952,6 +3134,8 @@ export const Constants = {
         "platform.billing.register_payment",
         "platform.audit.view",
         "platform.support.open_context",
+        "orders.complete_pickup",
+        "orders.view_history",
       ],
       app_role: [
         "admin_plataforma",

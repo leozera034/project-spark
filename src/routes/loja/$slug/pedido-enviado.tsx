@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { CheckCircle2, Clock, Store } from "lucide-react";
+import { CheckCircle2, Clock, Copy, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
@@ -133,17 +133,9 @@ function OrderSentPage() {
       </div>
 
       {order.trackingToken ? (
-        <Button asChild className="mt-6 w-full">
-          <Link to="/pedido/$token" params={{ token: order.trackingToken }}>
-            Acompanhar pedido
-          </Link>
-        </Button>
+        <TrackingLinkActions slug={slug} token={order.trackingToken} />
       ) : null}
 
-      <p className="mt-4 text-xs text-muted-foreground">
-        Guarde o link de acompanhamento: ele mostra a situação do pedido sem precisar de conta ou
-        senha.
-      </p>
 
       <Button asChild variant="outline" className="mt-3 w-full">
         <Link to="/loja/$slug" params={{ slug }}>
@@ -152,5 +144,43 @@ function OrderSentPage() {
       </Button>
 
     </main>
+  );
+}
+
+/**
+ * Ações do link de acompanhamento.
+ *
+ * O token viaja apenas no fragmento (`#`), que o navegador não envia ao
+ * servidor nem grava em logs de acesso.
+ */
+function TrackingLinkActions({ slug, token }: { slug: string; token: string }) {
+  const [copied, setCopied] = useState(false);
+  const path = `/loja/${slug}/acompanhar#${encodeURIComponent(token)}`;
+
+  async function copyLink() {
+    const absolute = `${window.location.origin}${path}`;
+    try {
+      await navigator.clipboard.writeText(absolute);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      window.prompt("Copie o link de acompanhamento:", absolute);
+    }
+  }
+
+  return (
+    <div className="mt-6">
+      <Button asChild className="w-full">
+        <a href={path}>Acompanhar pedido</a>
+      </Button>
+      <Button variant="outline" className="mt-3 w-full" onClick={copyLink}>
+        <Copy className="size-4" />
+        {copied ? "Link copiado" : "Copiar link de acompanhamento"}
+      </Button>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Este link é a chave do seu pedido: quem tiver ele consegue ver a situação, sem conta nem
+        senha. Compartilhe só com quem você quiser acompanhar junto.
+      </p>
+    </div>
   );
 }

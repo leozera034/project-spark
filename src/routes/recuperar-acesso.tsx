@@ -45,7 +45,11 @@ function RecoveryPage() {
       title="Recuperar acesso"
       description="Informe o e-mail da sua conta. Se existir uma conta, enviaremos um link de redefinição."
       footer={
-        <Link to={AUTH_ROUTES.storeSignIn} className="underline underline-offset-4">
+        <Link
+          to={AUTH_ROUTES.storeSignIn}
+          search={{ retorno: undefined }}
+          className="underline underline-offset-4"
+        >
           Voltar para o login
         </Link>
       }
