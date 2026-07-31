@@ -1,0 +1,309 @@
+/**
+ * Fase 16 — Bloco A: acompanhamento público sem segredo na URL.
+ *
+ * O token chega apenas no fragmento (`#`), que o navegador nunca envia ao
+ * servidor. Assim que a página monta, capturamos o valor em memória e
+ * reescrevemos a barra de endereços para `/loja/{slug}/acompanhar`. A partir
+ * daí o token só existe em estado React e no corpo do POST.
+ */
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { Check, Clock, RefreshCw, Store } from "lucide-react";
+
+import { brl } from "@/components/storefront/format";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ErrorState } from "@/components/feedback/ErrorState";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  TRACKING_COPY,
+  TRACKING_MESSAGES,
+  TRACKING_STEPS,
+  trackingTokenSchema,
+  type PublicOrderStatusCode,
+  type PublicOrderTracking,
+} from "@/lib/tracking-contracts";
+import { useOrderTracking } from "@/storefront/tracking/useOrderTracking";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+export const Route = createFileRoute("/loja/$slug/acompanhar")({
+  headers: () => ({
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  }),
+  head: () => ({
+    meta: [
+      { title: "Acompanhar pedido · Pediu Aqui" },
+      {
+        name: "description",
+        content: "Acompanhe a situação do seu pedido em tempo quase real.",
+      },
+      { name: "robots", content: "noindex, nofollow, noarchive" },
+      { name: "referrer", content: "no-referrer" },
+    ],
+  }),
+  component: TrackingPage,
+});
+
+/** Lê e apaga o fragmento numa única passagem, sem nunca reescrevê-lo. */
+function useTokenFromFragment(slug: string): { token: string | null; ready: boolean } {
+  const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const raw = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    const parsed = trackingTokenSchema.safeParse(decodeURIComponent(raw));
+
+    if (raw) {
+      // Some da barra de endereços antes de qualquer requisição sair daqui.
+      window.history.replaceState(window.history.state, "", `/loja/${slug}/acompanhar`);
+    }
+
+    if (parsed.success) setToken(parsed.data.toLowerCase());
+    setReady(true);
+  }, [slug]);
+
+  return { token, ready };
+}
+
+function TrackingPage() {
+  const { slug } = useParams({ from: "/loja/$slug/acompanhar" });
+  const { token, ready } = useTokenFromFragment(slug);
+  const { data, error, loading, refresh } = useOrderTracking(token);
+
+  if (!ready || (loading && !data)) {
+    return (
+      <main className="mx-auto min-h-svh max-w-md space-y-4 px-4 py-10 sm:max-w-xl">
+        <span className="sr-only" role="status" aria-live="polite">
+          Carregando acompanhamento do pedido
+        </span>
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </main>
+    );
+  }
+
+  if (!token) {
+    return (
+      <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 sm:max-w-xl">
+        <ErrorState
+          title="Link de acompanhamento incompleto"
+          description="Abra o link completo que você recebeu ao finalizar o pedido. Ele é a única credencial deste acompanhamento."
+        />
+        <Button asChild variant="outline" className="mt-4">
+          <Link to="/loja/$slug" params={{ slug }}>
+            Ir ao cardápio
+          </Link>
+        </Button>
+      </main>
+    );
+  }
+
+  if (!data) {
+    return (
+      <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 sm:max-w-xl">
+        <ErrorState
+          title={error === "not_found" ? "Pedido não encontrado" : "Acompanhamento indisponível"}
+          description={
+            error === "not_found" ? TRACKING_MESSAGES.notFound : TRACKING_MESSAGES.failed
+          }
+          onRetry={error === "not_found" ? undefined : refresh}
+          retrying={loading}
+        />
+      </main>
+    );
+  }
+
+  const copy = TRACKING_COPY[data.status.publicCode];
+  const steps = TRACKING_STEPS[data.fulfillment.type] ?? TRACKING_STEPS.entrega;
+  const reached = new Set(data.timeline.map((entry) => entry.code));
+  reached.add(data.status.publicCode);
+  const currentIndex = steps.indexOf(data.status.publicCode);
+
+  return (
+    <main className="mx-auto min-h-svh max-w-md px-4 py-8 sm:max-w-xl">
+      <header className="flex items-center gap-3">
+        {data.store.logoUrl ? (
+          <img
+            src={data.store.logoUrl}
+            alt={data.store.name}
+            className="size-10 rounded-lg object-cover"
+          />
+        ) : (
+          <Store className="size-8 text-muted-foreground" />
+        )}
+        <div className="min-w-0">
+          <p className="text-sm text-muted-foreground">Pedido na loja</p>
+          <p className="truncate font-semibold">{data.store.name}</p>
+        </div>
+        <ThemeToggle className="ml-auto" />
+      </header>
+
+      <section className="panel mt-6 p-4">
+        <p className="text-sm text-muted-foreground">Número do pedido</p>
+        <p className="text-2xl font-semibold tabular-nums">#{data.orderNumber}</p>
+        <h1 className="mt-3 text-lg font-semibold">{copy.title}</h1>
+        <p className="text-sm text-muted-foreground">{copy.description}</p>
+
+        {data.status.publicMessage ? (
+          <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm">
+            Recado da loja: {data.status.publicMessage}
+          </p>
+        ) : null}
+
+        {data.fulfillment.estimatedMinutes && !data.status.isFinal ? (
+          <p className="mt-3 flex items-center gap-2 text-sm">
+            <Clock className="size-4" />
+            Previsão informada pela loja: cerca de {data.fulfillment.estimatedMinutes} minutos.
+          </p>
+        ) : null}
+
+        {!data.status.isFinal ? (
+          <ol className="mt-4 space-y-3">
+            {steps.map((step, index) => (
+              <TimelineStep
+                key={step}
+                code={step}
+                done={reached.has(step) || (currentIndex >= 0 && index < currentIndex)}
+                current={step === data.status.publicCode}
+                occurredAt={data.timeline.find((entry) => entry.code === step)?.occurredAt ?? null}
+              />
+            ))}
+          </ol>
+        ) : null}
+      </section>
+
+      <OrderSummary data={data} />
+
+      {data.store.publicWhatsapp || data.store.publicPhone ? (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Precisa falar com a loja? {data.store.publicWhatsapp ?? data.store.publicPhone}
+        </p>
+      ) : null}
+
+      <div className="mt-6 flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={refresh}>
+          <RefreshCw className="size-4" /> Atualizar
+        </Button>
+        <Button asChild className="flex-1">
+          <Link to="/loja/$slug" params={{ slug: data.store.slug }}>
+            Ir ao cardápio
+          </Link>
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          {error === "rate_limited" ? TRACKING_MESSAGES.rateLimited : TRACKING_MESSAGES.failed}
+        </p>
+      ) : null}
+    </main>
+  );
+}
+
+function TimelineStep({
+  code,
+  done,
+  current,
+  occurredAt,
+}: {
+  code: PublicOrderStatusCode;
+  done: boolean;
+  current: boolean;
+  occurredAt: string | null;
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      <span
+        className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border ${
+          done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"
+        }`}
+      >
+        {done ? <Check className="size-3" /> : null}
+      </span>
+      <div>
+        <p className={`text-sm ${current ? "font-semibold" : ""}`}>{TRACKING_COPY[code].title}</p>
+        {occurredAt ? (
+          <p className="text-xs text-muted-foreground">
+            {new Date(occurredAt).toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+function OrderSummary({ data }: { data: PublicOrderTracking }) {
+  return (
+    <section className="panel mt-4 p-4">
+      <h2 className="text-sm font-semibold">Itens do pedido</h2>
+      <ul className="mt-3 space-y-3">
+        {data.items.map((item, index) => (
+          <li key={`${item.productName}-${index}`} className="text-sm">
+            <div className="flex justify-between gap-3">
+              <span>
+                {item.quantity}
+                {item.measurementUnit && item.measurementUnit !== "unidade"
+                  ? ` ${item.measurementUnit}`
+                  : "×"}{" "}
+                {item.productName}
+                {item.variantName ? ` · ${item.variantName}` : ""}
+              </span>
+              <span className="tabular-nums">{brl(item.lineTotal)}</span>
+            </div>
+            {item.options.length > 0 ? (
+              <p className="text-xs text-muted-foreground">
+                {item.options.map((option) => option.optionName).join(", ")}
+              </p>
+            ) : null}
+            {item.note ? <p className="text-xs text-muted-foreground">{item.note}</p> : null}
+          </li>
+        ))}
+      </ul>
+
+      <Separator className="my-4" />
+
+      <dl className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">Subtotal</dt>
+          <dd className="tabular-nums">{brl(data.totals.subtotal)}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-muted-foreground">
+            {data.fulfillment.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}
+          </dt>
+          <dd className="tabular-nums">
+            {data.fulfillment.type === "entrega" ? brl(data.totals.deliveryFee) : "Sem taxa"}
+          </dd>
+        </div>
+        <div className="flex justify-between border-t pt-2 text-base font-semibold">
+          <dt>Total</dt>
+          <dd className="tabular-nums">{brl(data.totals.total)}</dd>
+        </div>
+        {data.payment.displayName ? (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Pagamento</dt>
+            <dd className="text-right">{data.payment.displayName}</dd>
+          </div>
+        ) : null}
+      </dl>
+
+      {data.fulfillment.type === "entrega" && data.fulfillment.neighborhoodName ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Entrega em {data.fulfillment.neighborhoodName}.
+        </p>
+      ) : null}
+
+      {data.payment.publicInstructions ? (
+        <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-xs text-muted-foreground">
+          {data.payment.publicInstructions}
+        </p>
+      ) : null}
+    </section>
+  );
+}
