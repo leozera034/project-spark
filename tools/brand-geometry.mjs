@@ -57,7 +57,7 @@ export function symbolMarkup({ base, accent, id }) {
   return `  <defs>
     <mask id="${id}-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
       <rect x="0" y="0" width="512" height="512" fill="#fff"/>
-      <rect x="140" y="188" width="304" height="72" rx="10" fill="#000"/>
+      <rect x="152" y="188" width="292" height="72" rx="10" fill="#000"/>
     </mask>
   </defs>
   <g mask="url(#${id}-cut)">
