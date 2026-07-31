@@ -417,10 +417,11 @@ function CheckoutPage() {
           <Button
             className="h-13 w-full justify-between px-4 text-base"
             disabled={!canSubmit}
+            loading={submitting}
+            loadingLabel="Enviando pedido"
             onClick={() => void submit()}
           >
             <span className="flex items-center gap-2">
-              {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
               {submitting ? "Enviando pedido…" : "Enviar pedido"}
             </span>
             <span className="tabular-nums">{brl(cart.total)}</span>

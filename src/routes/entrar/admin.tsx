@@ -105,7 +105,13 @@ function AdminSignInPage() {
           disabled={busy}
         />
 
-        <Button type="submit" disabled={busy} className="w-full text-base" size="lg">
+        <Button
+          type="submit"
+          loading={busy}
+          loadingLabel="Entrando"
+          className="w-full text-base"
+          size="lg"
+        >
           {busy ? "Entrando…" : "Entrar"}
         </Button>
       </form>
