@@ -226,7 +226,6 @@ export type Database = {
       }
       couriers: {
         Row: {
-          completed_deliveries_count: number
           created_at: string
           full_name: string
           id: string
@@ -240,7 +239,6 @@ export type Database = {
           vehicle: string | null
         }
         Insert: {
-          completed_deliveries_count?: number
           created_at?: string
           full_name: string
           id?: string
@@ -254,7 +252,6 @@ export type Database = {
           vehicle?: string | null
         }
         Update: {
-          completed_deliveries_count?: number
           created_at?: string
           full_name?: string
           id?: string
@@ -454,6 +451,13 @@ export type Database = {
             foreignKeyName: "deliveries_courier_same_store_fk"
             columns: ["courier_id", "store_id"]
             isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
+          {
+            foreignKeyName: "deliveries_courier_same_store_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
             referencedRelation: "couriers"
             referencedColumns: ["id", "store_id"]
           },
@@ -508,6 +512,13 @@ export type Database = {
           store_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "delivery_events_courier_same_store_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
           {
             foreignKeyName: "delivery_events_courier_same_store_fk"
             columns: ["courier_id", "store_id"]
@@ -569,6 +580,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "device_push_tokens_courier_same_store_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
           {
             foreignKeyName: "device_push_tokens_courier_same_store_fk"
             columns: ["courier_id", "store_id"]
@@ -937,6 +955,13 @@ export type Database = {
           to_status?: Database["public"]["Enums"]["order_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "order_status_history_courier_same_store_fk"
+            columns: ["actor_courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
           {
             foreignKeyName: "order_status_history_courier_same_store_fk"
             columns: ["actor_courier_id", "store_id"]
@@ -1836,10 +1861,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      courier_delivery_counts: {
+        Row: {
+          completed_deliveries: number | null
+          courier_id: string | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couriers_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      courier_completed_deliveries_count: {
+        Args: { _courier_id: string; _store_id: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role:
