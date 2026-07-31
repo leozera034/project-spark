@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowUp, FolderOpen, ImagePlus, Loader2 } from "lucide-react";
 
 import {
   archiveCategory,
