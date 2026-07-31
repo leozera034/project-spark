@@ -101,7 +101,7 @@ export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitO
 
   if (error) {
     console.error("[storefront] submit order rpc failed", error.message);
-    throw new StorefrontError("unavailable");
+    throw new StorefrontError(("DEBUG:" + error.message) as never);
   }
   if (!data) throw new StorefrontError("not_found");
 
