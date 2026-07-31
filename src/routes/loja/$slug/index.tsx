@@ -194,7 +194,7 @@ function StorefrontPage() {
 
       <div className="mx-auto max-w-3xl px-4">
         {grouped.length === 0 ? (
-          <div className="py-16 text-center">
+          <div className="panel mt-8 px-6 py-16 text-center">
             <ShoppingBag className="mx-auto size-8 text-muted-foreground" />
             <p className="mt-3 text-sm text-muted-foreground">
               {term
@@ -207,11 +207,17 @@ function StorefrontPage() {
             <section
               key={category.id}
               id={`categoria-${category.id}`}
-              className="scroll-mt-32 py-6"
+              className="scroll-mt-32 py-7"
             >
-              <h2 className="text-lg font-semibold">{category.name}</h2>
+              <div className="flex items-baseline gap-3">
+                <h2 className="text-lg font-semibold tracking-tight">{category.name}</h2>
+                <span className="h-px flex-1 bg-border" aria-hidden="true" />
+                <span className="text-xs font-medium text-muted-foreground tabular-nums">
+                  {items.length} {items.length === 1 ? "item" : "itens"}
+                </span>
+              </div>
               {category.description ? (
-                <p className="text-sm text-muted-foreground">{category.description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{category.description}</p>
               ) : null}
 
               <ul className="mt-4 space-y-3">
@@ -220,24 +226,28 @@ function StorefrontPage() {
                     <button
                       type="button"
                       onClick={() => openProduct(product.id)}
-                      className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-muted/50 disabled:opacity-60"
+                      className="tappable panel flex w-full items-center gap-4 p-3.5 text-left hover:border-border-strong hover:shadow-e2 active:scale-[0.995] disabled:opacity-55 disabled:hover:shadow-e1"
                       disabled={product.is_sold_out}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 truncate font-medium">
+                        <p className="flex items-center gap-2 truncate font-semibold">
                           {product.name}
                           {product.is_featured ? (
-                            <Badge variant="secondary" className="shrink-0">
+                            <span className="shrink-0 rounded-full bg-highlight-soft px-2 py-0.5 text-[11px] font-semibold text-highlight-soft-foreground">
                               Destaque
-                            </Badge>
+                            </span>
                           ) : null}
                         </p>
                         {product.description ? (
-                          <p className="line-clamp-2 text-sm text-muted-foreground">
+                          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                             {product.description}
                           </p>
                         ) : null}
-                        <p className="mt-1 text-sm font-semibold">
+                        <p
+                          className={`mt-2 text-sm font-semibold tabular-nums ${
+                            product.is_sold_out ? "text-muted-foreground" : "text-brand-soft-foreground"
+                          }`}
+                        >
                           {product.is_sold_out
                             ? "Esgotado"
                             : product.from_price !== null && product.has_variants
@@ -251,7 +261,7 @@ function StorefrontPage() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="size-20 shrink-0 rounded-lg object-cover"
+                          className="size-22 shrink-0 rounded-xl object-cover"
                         />
                       ) : null}
                     </button>
@@ -263,6 +273,7 @@ function StorefrontPage() {
         )}
 
         <Separator className="my-6" />
+
 
         <footer className="space-y-4 pb-10 text-sm text-muted-foreground">
           {store.address_line ? (
