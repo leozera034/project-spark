@@ -24,6 +24,7 @@ import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
+import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
 import { Route as LojaSlugRouteImport } from './routes/loja/$slug'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
@@ -34,6 +35,7 @@ import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
+import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
 import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
 import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
@@ -157,6 +159,11 @@ const EntrarLojaRoute = EntrarLojaRouteImport.update({
   path: '/entrar/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LojaRoute,
+} as any)
 const LojaSlugRoute = LojaSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -206,6 +213,11 @@ const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
   getParentRoute: () => AppLojaRoute,
+} as any)
+const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LojaSlugRoute,
 } as any)
 const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
   id: '/',
@@ -477,12 +489,12 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/loja/$slug': typeof LojaSlugRouteWithChildren
   '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/loja/$slug': typeof LojaSlugRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -515,6 +527,7 @@ export interface FileRoutesByFullPath {
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
+  '/loja/$slug/': typeof LojaSlugIndexRoute
   '/preview/admin/': typeof PreviewAdminIndexRoute
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
@@ -549,10 +562,10 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/loja/$slug': typeof LojaSlugIndexRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/loja/$slug': typeof LojaSlugRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
@@ -616,12 +629,12 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/loja/$slug': typeof LojaSlugRouteWithChildren
   '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/loja/$slug': typeof LojaSlugRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -654,6 +667,7 @@ export interface FileRoutesById {
   '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
+  '/loja/$slug/': typeof LojaSlugIndexRoute
   '/preview/admin/': typeof PreviewAdminIndexRoute
   '/preview/cliente/': typeof PreviewClienteIndexRoute
   '/preview/entregador/': typeof PreviewEntregadorIndexRoute
@@ -692,12 +706,12 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/loja/$slug'
     | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/loja/$slug'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -730,6 +744,7 @@ export interface FileRouteTypes {
     | '/preview/loja/relatorios'
     | '/app/entregador/'
     | '/app/loja/'
+    | '/loja/$slug/'
     | '/preview/admin/'
     | '/preview/cliente/'
     | '/preview/entregador/'
@@ -764,10 +779,10 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/loja/$slug'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/loja/$slug'
     | '/admin'
     | '/preview'
     | '/preview/admin/auditoria'
@@ -830,12 +845,12 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/sem-acesso'
     | '/trocar-senha-inicial'
+    | '/loja/$slug'
     | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/loja/$slug'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -868,6 +883,7 @@ export interface FileRouteTypes {
     | '/preview/loja/relatorios'
     | '/app/entregador/'
     | '/app/loja/'
+    | '/loja/$slug/'
     | '/preview/admin/'
     | '/preview/cliente/'
     | '/preview/entregador/'
@@ -1024,6 +1040,13 @@ declare module '@tanstack/react-router' {
       id: '/loja/$slug'
       path: '/$slug'
       fullPath: '/loja/$slug'
+      preLoaderRoute: typeof LojaSlugRouteRouteImport
+      parentRoute: typeof LojaRoute
+    }
+    '/loja/$slug': {
+      id: '/loja/$slug'
+      path: '/$slug'
+      fullPath: '/loja/$slug'
       preLoaderRoute: typeof LojaSlugRouteImport
       parentRoute: typeof LojaRoute
     }
@@ -1089,6 +1112,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/loja/configuracoes'
       preLoaderRoute: typeof AppLojaConfiguracoesRouteImport
       parentRoute: typeof AppLojaRoute
+    }
+    '/loja/$slug/': {
+      id: '/loja/$slug/'
+      path: '/'
+      fullPath: '/loja/$slug/'
+      preLoaderRoute: typeof LojaSlugIndexRouteImport
+      parentRoute: typeof LojaSlugRoute
     }
     '/preview/admin/': {
       id: '/preview/admin/'
@@ -1432,12 +1462,26 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface LojaSlugRouteChildren {
+  LojaSlugIndexRoute: typeof LojaSlugIndexRoute
+}
+
+const LojaSlugRouteChildren: LojaSlugRouteChildren = {
+  LojaSlugIndexRoute: LojaSlugIndexRoute,
+}
+
+const LojaSlugRouteWithChildren = LojaSlugRoute._addFileChildren(
+  LojaSlugRouteChildren,
+)
+
 interface LojaRouteChildren {
-  LojaSlugRoute: typeof LojaSlugRoute
+  LojaSlugRouteRoute: typeof LojaSlugRouteRoute
+  LojaSlugRoute: typeof LojaSlugRouteWithChildren
 }
 
 const LojaRouteChildren: LojaRouteChildren = {
-  LojaSlugRoute: LojaSlugRoute,
+  LojaSlugRouteRoute: LojaSlugRouteRoute,
+  LojaSlugRoute: LojaSlugRouteWithChildren,
 }
 
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
