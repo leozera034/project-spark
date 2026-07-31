@@ -45,6 +45,9 @@ function StoreHome() {
       </dl>
       <div className="mt-8 flex flex-wrap gap-3">
         <Button asChild>
+          <Link to="/app/loja/pedidos">Fila de pedidos</Link>
+        </Button>
+        <Button asChild variant="outline">
           <Link to="/app/loja/cardapio">Gerenciar cardápio</Link>
         </Button>
         <Button asChild variant="outline">
