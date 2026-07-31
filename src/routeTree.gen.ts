@@ -36,6 +36,8 @@ import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
+import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
+import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
 import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
 import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
 import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
@@ -76,6 +78,8 @@ import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app
 import { Route as PreviewClienteEnderecoIndexRouteImport } from './routes/preview/cliente/endereco/index'
 import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview/cliente/endereco/novo'
 import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
+import { Route as ApiPublicStorefrontSlugPagamentosRouteImport } from './routes/api/public/storefront/$slug/pagamentos'
+import { Route as ApiPublicStorefrontSlugPedidosRouteImport } from './routes/api/public/storefront/$slug/pedidos'
 import { Route as ApiPublicStorefrontSlugPrecoRouteImport } from './routes/api/public/storefront/$slug/preco'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
@@ -217,6 +221,16 @@ const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
 const LojaSlugCarrinhoRoute = LojaSlugCarrinhoRouteImport.update({
   id: '/carrinho',
   path: '/carrinho',
+  getParentRoute: () => LojaSlugRouteRoute,
+} as any)
+const LojaSlugCheckoutRoute = LojaSlugCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => LojaSlugRouteRoute,
+} as any)
+const LojaSlugPedidoEnviadoRoute = LojaSlugPedidoEnviadoRouteImport.update({
+  id: '/pedido-enviado',
+  path: '/pedido-enviado',
   getParentRoute: () => LojaSlugRouteRoute,
 } as any)
 const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
@@ -436,6 +450,18 @@ const ApiPublicStorefrontSlugAtendimentoRoute =
     path: '/atendimento',
     getParentRoute: () => ApiPublicStorefrontSlugRoute,
   } as any)
+const ApiPublicStorefrontSlugPagamentosRoute =
+  ApiPublicStorefrontSlugPagamentosRouteImport.update({
+    id: '/pagamentos',
+    path: '/pagamentos',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
+const ApiPublicStorefrontSlugPedidosRoute =
+  ApiPublicStorefrontSlugPedidosRouteImport.update({
+    id: '/pedidos',
+    path: '/pedidos',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
 const ApiPublicStorefrontSlugPrecoRoute =
   ApiPublicStorefrontSlugPrecoRouteImport.update({
     id: '/preco',
@@ -504,6 +530,8 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
+  '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -547,6 +575,8 @@ export interface FileRoutesByFullPath {
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
+  '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -569,6 +599,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
+  '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -612,6 +644,8 @@ export interface FileRoutesByTo {
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
+  '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -646,6 +680,8 @@ export interface FileRoutesById {
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
+  '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
+  '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
   '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
@@ -689,6 +725,8 @@ export interface FileRoutesById {
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
+  '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -724,6 +762,8 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/loja/$slug/carrinho'
+    | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -767,6 +807,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
+    | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -789,6 +831,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/preview'
     | '/loja/$slug/carrinho'
+    | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -832,6 +876,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes'
     | '/preview/cliente/endereco'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
+    | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -865,6 +911,8 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/loja/$slug/carrinho'
+    | '/loja/$slug/checkout'
+    | '/loja/$slug/pedido-enviado'
     | '/preview/admin/auditoria'
     | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
@@ -908,6 +956,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
+    | '/api/public/storefront/$slug/pagamentos'
+    | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -1124,6 +1174,20 @@ declare module '@tanstack/react-router' {
       path: '/carrinho'
       fullPath: '/loja/$slug/carrinho'
       preLoaderRoute: typeof LojaSlugCarrinhoRouteImport
+      parentRoute: typeof LojaSlugRouteRoute
+    }
+    '/loja/$slug/checkout': {
+      id: '/loja/$slug/checkout'
+      path: '/checkout'
+      fullPath: '/loja/$slug/checkout'
+      preLoaderRoute: typeof LojaSlugCheckoutRouteImport
+      parentRoute: typeof LojaSlugRouteRoute
+    }
+    '/loja/$slug/pedido-enviado': {
+      id: '/loja/$slug/pedido-enviado'
+      path: '/pedido-enviado'
+      fullPath: '/loja/$slug/pedido-enviado'
+      preLoaderRoute: typeof LojaSlugPedidoEnviadoRouteImport
       parentRoute: typeof LojaSlugRouteRoute
     }
     '/preview/admin/': {
@@ -1406,6 +1470,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteImport
       parentRoute: typeof ApiPublicStorefrontSlugRoute
     }
+    '/api/public/storefront/$slug/pagamentos': {
+      id: '/api/public/storefront/$slug/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/api/public/storefront/$slug/pagamentos'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugPagamentosRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
+    '/api/public/storefront/$slug/pedidos': {
+      id: '/api/public/storefront/$slug/pedidos'
+      path: '/pedidos'
+      fullPath: '/api/public/storefront/$slug/pedidos'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugPedidosRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
     '/api/public/storefront/$slug/preco': {
       id: '/api/public/storefront/$slug/preco'
       path: '/preco'
@@ -1470,11 +1548,15 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface LojaSlugRouteRouteChildren {
   LojaSlugCarrinhoRoute: typeof LojaSlugCarrinhoRoute
+  LojaSlugCheckoutRoute: typeof LojaSlugCheckoutRoute
+  LojaSlugPedidoEnviadoRoute: typeof LojaSlugPedidoEnviadoRoute
   LojaSlugIndexRoute: typeof LojaSlugIndexRoute
 }
 
 const LojaSlugRouteRouteChildren: LojaSlugRouteRouteChildren = {
   LojaSlugCarrinhoRoute: LojaSlugCarrinhoRoute,
+  LojaSlugCheckoutRoute: LojaSlugCheckoutRoute,
+  LojaSlugPedidoEnviadoRoute: LojaSlugPedidoEnviadoRoute,
   LojaSlugIndexRoute: LojaSlugIndexRoute,
 }
 
@@ -1695,6 +1777,8 @@ const ApiPublicStorefrontSlugAtendimentoRouteWithChildren =
 
 interface ApiPublicStorefrontSlugRouteChildren {
   ApiPublicStorefrontSlugAtendimentoRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
+  ApiPublicStorefrontSlugPagamentosRoute: typeof ApiPublicStorefrontSlugPagamentosRoute
+  ApiPublicStorefrontSlugPedidosRoute: typeof ApiPublicStorefrontSlugPedidosRoute
   ApiPublicStorefrontSlugPrecoRoute: typeof ApiPublicStorefrontSlugPrecoRoute
   ApiPublicStorefrontSlugCarrinhoCotacaoRoute: typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
@@ -1704,6 +1788,9 @@ const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren
   {
     ApiPublicStorefrontSlugAtendimentoRoute:
       ApiPublicStorefrontSlugAtendimentoRouteWithChildren,
+    ApiPublicStorefrontSlugPagamentosRoute:
+      ApiPublicStorefrontSlugPagamentosRoute,
+    ApiPublicStorefrontSlugPedidosRoute: ApiPublicStorefrontSlugPedidosRoute,
     ApiPublicStorefrontSlugPrecoRoute: ApiPublicStorefrontSlugPrecoRoute,
     ApiPublicStorefrontSlugCarrinhoCotacaoRoute:
       ApiPublicStorefrontSlugCarrinhoCotacaoRoute,

@@ -352,6 +352,7 @@ export type Database = {
       }
       customer_addresses: {
         Row: {
+          address_fingerprint: string | null
           complement: string | null
           created_at: string
           customer_id: string
@@ -359,6 +360,7 @@ export type Database = {
           id: string
           is_default: boolean
           label: string | null
+          last_used_at: string | null
           latitude: number | null
           longitude: number | null
           neighborhood_id: string | null
@@ -370,6 +372,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address_fingerprint?: string | null
           complement?: string | null
           created_at?: string
           customer_id: string
@@ -377,6 +380,7 @@ export type Database = {
           id?: string
           is_default?: boolean
           label?: string | null
+          last_used_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_id?: string | null
@@ -388,6 +392,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address_fingerprint?: string | null
           complement?: string | null
           created_at?: string
           customer_id?: string
@@ -395,6 +400,7 @@ export type Database = {
           id?: string
           is_default?: boolean
           label?: string | null
+          last_used_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_id?: string | null
@@ -1103,6 +1109,7 @@ export type Database = {
           customer_name: string
           customer_notes: string | null
           customer_phone: string
+          customer_phone_display: string | null
           delivery_fee: number
           discount_total: number
           eta_minutes: number | null
@@ -1111,14 +1118,20 @@ export type Database = {
           id: string
           idempotency_key: string | null
           items_subtotal: number
+          minimum_order_amount: number
           neighborhood_id: string | null
           neighborhood_snapshot: string | null
           order_number: number
+          payment_instructions: string | null
           payment_method_id: string | null
+          payment_method_kind: string | null
           payment_method_label: string | null
+          payment_needs_change: boolean
           public_tracking_token: string
           ready_at: string | null
           rejection_reason: string | null
+          request_hash: string | null
+          source: string
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           total_amount: number
@@ -1135,6 +1148,7 @@ export type Database = {
           customer_name: string
           customer_notes?: string | null
           customer_phone: string
+          customer_phone_display?: string | null
           delivery_fee?: number
           discount_total?: number
           eta_minutes?: number | null
@@ -1143,14 +1157,20 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           items_subtotal?: number
+          minimum_order_amount?: number
           neighborhood_id?: string | null
           neighborhood_snapshot?: string | null
           order_number: number
+          payment_instructions?: string | null
           payment_method_id?: string | null
+          payment_method_kind?: string | null
           payment_method_label?: string | null
+          payment_needs_change?: boolean
           public_tracking_token?: string
           ready_at?: string | null
           rejection_reason?: string | null
+          request_hash?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           total_amount?: number
@@ -1167,6 +1187,7 @@ export type Database = {
           customer_name?: string
           customer_notes?: string | null
           customer_phone?: string
+          customer_phone_display?: string | null
           delivery_fee?: number
           discount_total?: number
           eta_minutes?: number | null
@@ -1175,14 +1196,20 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           items_subtotal?: number
+          minimum_order_amount?: number
           neighborhood_id?: string | null
           neighborhood_snapshot?: string | null
           order_number?: number
+          payment_instructions?: string | null
           payment_method_id?: string | null
+          payment_method_kind?: string | null
           payment_method_label?: string | null
+          payment_needs_change?: boolean
           public_tracking_token?: string
           ready_at?: string | null
           rejection_reason?: string | null
+          request_hash?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           total_amount?: number
@@ -2440,6 +2467,10 @@ export type Database = {
       storefront_catalog: { Args: { _slug: string }; Returns: Json }
       storefront_fulfillment: { Args: { _slug: string }; Returns: Json }
       storefront_normalize_slug: { Args: { _slug: string }; Returns: string }
+      storefront_payment_methods: {
+        Args: { _fulfillment_type?: string; _slug: string }
+        Returns: Json
+      }
       storefront_price: {
         Args: {
           _product_id: string
@@ -2455,6 +2486,10 @@ export type Database = {
         Returns: Json
       }
       storefront_store: { Args: { _slug: string }; Returns: Json }
+      storefront_submit_order: {
+        Args: { _payload: Json; _slug: string }
+        Returns: Json
+      }
       storefront_validate_fulfillment: {
         Args: {
           _configuration_version?: string
