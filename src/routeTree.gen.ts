@@ -24,6 +24,7 @@ import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
+import { Route as LojaSlugRouteImport } from './routes/loja/$slug'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
@@ -152,6 +153,11 @@ const EntrarLojaRoute = EntrarLojaRouteImport.update({
   id: '/entrar/loja',
   path: '/entrar/loja',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LojaSlugRoute = LojaSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LojaRoute,
 } as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
   id: '/',
@@ -444,7 +450,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
@@ -455,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -513,7 +520,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
@@ -521,6 +528,7 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
@@ -575,7 +583,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
-  '/loja': typeof LojaRoute
+  '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
@@ -586,6 +594,7 @@ export interface FileRoutesById {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
@@ -658,6 +667,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/loja/$slug'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -724,6 +734,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/loja/$slug'
     | '/admin'
     | '/preview'
     | '/preview/admin/auditoria'
@@ -788,6 +799,7 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/loja/$slug'
     | '/preview/admin'
     | '/preview/cliente'
     | '/preview/entregador'
@@ -848,7 +860,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   DesignSystemRoute: typeof DesignSystemRoute
-  LojaRoute: typeof LojaRoute
+  LojaRoute: typeof LojaRouteWithChildren
   PreviewRoute: typeof PreviewRouteWithChildren
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
@@ -968,6 +980,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/entrar/loja'
       preLoaderRoute: typeof EntrarLojaRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/loja/$slug': {
+      id: '/loja/$slug'
+      path: '/$slug'
+      fullPath: '/loja/$slug'
+      preLoaderRoute: typeof LojaSlugRouteImport
+      parentRoute: typeof LojaRoute
     }
     '/preview/': {
       id: '/preview/'
@@ -1353,6 +1372,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface LojaRouteChildren {
+  LojaSlugRoute: typeof LojaSlugRoute
+}
+
+const LojaRouteChildren: LojaRouteChildren = {
+  LojaSlugRoute: LojaSlugRoute,
+}
+
+const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
+
 interface PreviewAdminRouteChildren {
   PreviewAdminAuditoriaRoute: typeof PreviewAdminAuditoriaRoute
   PreviewAdminCobrancasRoute: typeof PreviewAdminCobrancasRoute
@@ -1560,7 +1589,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   DesignSystemRoute: DesignSystemRoute,
-  LojaRoute: LojaRoute,
+  LojaRoute: LojaRouteWithChildren,
   PreviewRoute: PreviewRouteWithChildren,
   RecuperarAcessoRoute: RecuperarAcessoRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,

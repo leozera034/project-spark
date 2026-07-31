@@ -65,8 +65,11 @@ function CenteredMessage({ title, body }: { title: string; body: string }) {
 }
 
 function StorefrontPage() {
-  const { store: storePayload, catalog } = Route.useLoaderData();
-  const { slug } = Route.useParams();
+  const { store: storePayload, catalog } = Route.useLoaderData() as {
+    store: PublicStorePayload;
+    catalog: PublicCatalog;
+  };
+
   const { produto } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [term, setTerm] = useState("");
