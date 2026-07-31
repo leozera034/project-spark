@@ -62,7 +62,7 @@ export function symbolMarkup({ base, accent, id }) {
   </defs>
   <g mask="url(#${id}-cut)">
     <rect x="80" y="96" width="72" height="320" rx="8" fill="${base}"/>
-    <path d="M152 132 H252 A92 92 0 0 1 252 316 H152" fill="none" stroke="${base}" stroke-width="72"/>
+    <path d="M140 132 H252 A92 92 0 0 1 252 316 H140" fill="none" stroke="${base}" stroke-width="72"/>
   </g>
   <rect x="152" y="200" width="280" height="48" rx="6" fill="${accent}"/>`;
 }
