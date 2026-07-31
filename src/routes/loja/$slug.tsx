@@ -53,8 +53,27 @@ export const Route = createFileRoute("/loja/$slug")({
       body="O endereço acessado não corresponde a nenhuma loja ativa."
     />
   ),
-  component: StorefrontPage,
+  component: StorefrontRoute,
 });
+
+/**
+ * O wizard sempre precede o cardápio: sem contexto confirmado nesta sessão,
+ * a loja não é exibida para pedido.
+ */
+function StorefrontRoute() {
+  const { slug } = Route.useParams();
+  return (
+    <CustomerWizardProvider slug={slug}>
+      <StorefrontGate />
+    </CustomerWizardProvider>
+  );
+}
+
+function StorefrontGate() {
+  const { orderingContext } = useCustomerWizard();
+  if (!orderingContext) return <CustomerWizard />;
+  return <StorefrontPage />;
+}
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   return (
