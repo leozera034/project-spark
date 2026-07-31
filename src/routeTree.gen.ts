@@ -79,6 +79,7 @@ import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/l
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
 import { Route as ApiPublicStorefrontSlugAtendimentoValidarRouteImport } from './routes/api/public/storefront/$slug/atendimento/validar'
+import { Route as ApiPublicStorefrontSlugCarrinhoCotacaoRouteImport } from './routes/api/public/storefront/$slug/carrinho/cotacao'
 import { Route as ApiPublicStorefrontSlugProdutosProductIdRouteImport } from './routes/api/public/storefront/$slug/produtos/$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -453,6 +454,12 @@ const ApiPublicStorefrontSlugAtendimentoValidarRoute =
     path: '/validar',
     getParentRoute: () => ApiPublicStorefrontSlugAtendimentoRoute,
   } as any)
+const ApiPublicStorefrontSlugCarrinhoCotacaoRoute =
+  ApiPublicStorefrontSlugCarrinhoCotacaoRouteImport.update({
+    id: '/carrinho/cotacao',
+    path: '/carrinho/cotacao',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
 const ApiPublicStorefrontSlugProdutosProductIdRoute =
   ApiPublicStorefrontSlugProdutosProductIdRouteImport.update({
     id: '/produtos/$productId',
@@ -531,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
+  '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -594,6 +602,7 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
+  '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesById {
@@ -668,6 +677,7 @@ export interface FileRoutesById {
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
+  '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRouteTypes {
@@ -743,6 +753,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
     | '/api/public/storefront/$slug/atendimento/validar'
+    | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -806,6 +817,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
     | '/api/public/storefront/$slug/atendimento/validar'
+    | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
   id:
     | '__root__'
@@ -879,6 +891,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
     | '/api/public/storefront/$slug/atendimento/validar'
+    | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -1392,6 +1405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStorefrontSlugAtendimentoValidarRouteImport
       parentRoute: typeof ApiPublicStorefrontSlugAtendimentoRoute
     }
+    '/api/public/storefront/$slug/carrinho/cotacao': {
+      id: '/api/public/storefront/$slug/carrinho/cotacao'
+      path: '/carrinho/cotacao'
+      fullPath: '/api/public/storefront/$slug/carrinho/cotacao'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugCarrinhoCotacaoRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
     '/api/public/storefront/$slug/produtos/$productId': {
       id: '/api/public/storefront/$slug/produtos/$productId'
       path: '/produtos/$productId'
@@ -1626,6 +1646,7 @@ const ApiPublicStorefrontSlugAtendimentoRouteWithChildren =
 interface ApiPublicStorefrontSlugRouteChildren {
   ApiPublicStorefrontSlugAtendimentoRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   ApiPublicStorefrontSlugPrecoRoute: typeof ApiPublicStorefrontSlugPrecoRoute
+  ApiPublicStorefrontSlugCarrinhoCotacaoRoute: typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 
@@ -1634,6 +1655,8 @@ const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren
     ApiPublicStorefrontSlugAtendimentoRoute:
       ApiPublicStorefrontSlugAtendimentoRouteWithChildren,
     ApiPublicStorefrontSlugPrecoRoute: ApiPublicStorefrontSlugPrecoRoute,
+    ApiPublicStorefrontSlugCarrinhoCotacaoRoute:
+      ApiPublicStorefrontSlugCarrinhoCotacaoRoute,
     ApiPublicStorefrontSlugProdutosProductIdRoute:
       ApiPublicStorefrontSlugProdutosProductIdRoute,
   }
