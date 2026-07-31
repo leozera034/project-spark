@@ -347,11 +347,14 @@ export async function loadPublicProduct(
 
 export type PublicPriceResult = {
   ok: boolean;
+  /** Código genérico; detalhes ficam no log do servidor. */
   error?: string;
   total?: number;
   unit_price?: number;
+  base_total?: number;
   options_total?: number;
-  breakdown?: string | null;
+  /** Códigos de validação do motor (ex.: SELECTION_BELOW_MINIMUM). */
+  validation_errors?: string[];
 };
 
 export async function computePublicPrice(input: PriceInput): Promise<PublicPriceResult> {
@@ -375,11 +378,21 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
   if (!payload.ok) return { ok: false, error: String(payload.error ?? "invalid_request") };
 
   const result = (payload.result ?? {}) as Record<string, any>;
+  const validation = Array.isArray(result.validation_errors)
+    ? result.validation_errors.map((code: unknown) => String(code))
+    : [];
+
+  if (validation.length > 0 || result.final_total === null || result.final_total === undefined) {
+    return { ok: false, error: "invalid_configuration", validation_errors: validation };
+  }
+
   return {
     ok: true,
-    total: Number(result.total ?? result.total_amount ?? 0),
-    unit_price: Number(result.unit_price ?? result.base_price ?? 0),
-    options_total: Number(result.options_total ?? 0),
-    breakdown: typeof result.summary === "string" ? result.summary : null,
+    total: Number(result.final_total ?? 0),
+    unit_price: Number(result.final_unit_price ?? result.base_price ?? 0),
+    base_total: Number(result.base_total ?? 0),
+    options_total: Number(result.additive_groups_total ?? 0),
+    validation_errors: [],
   };
 }
+
