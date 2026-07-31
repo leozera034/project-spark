@@ -12,12 +12,13 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeInitScript, useTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
@@ -33,7 +34,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -79,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { title: "Pediu Aqui · Cardápio digital para o seu negócio" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "author", content: "Pediu Aqui" },
       { name: "theme-color", content: "#0B171C" },
@@ -148,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <SkipToContent />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <ThemedToaster />

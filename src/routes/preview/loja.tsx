@@ -98,7 +98,7 @@ function StorePanelLayout() {
               </Sheet>
 
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-foreground">{store.name}</p>
+                <h1 className="truncate text-base font-semibold text-foreground">{store.name}</h1>
                 <p className="text-xs text-muted-foreground">Ambiente fictício</p>
               </div>
 

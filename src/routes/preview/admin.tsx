@@ -92,7 +92,7 @@ function AdminLayout() {
                 </SheetContent>
               </Sheet>
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-foreground">Painel administrativo</p>
+                <h1 className="truncate text-base font-semibold text-foreground">Painel administrativo</h1>
                 <p className="text-xs text-muted-foreground">Ambiente fictício · acesso interno</p>
               </div>
               <ThemeToggle className="ml-auto" />

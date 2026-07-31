@@ -43,7 +43,7 @@ function StepShell({
   }, [title]);
 
   return (
-    <section className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
+    <main className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
       <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8 sm:max-w-lg sm:px-6 sm:pt-12">
         <div className="mb-4 flex justify-end">
           <ThemeToggle />
@@ -92,7 +92,7 @@ function StepShell({
           <div className="flex-1">{footer}</div>
         </div>
       </div>
-    </section>
+    </main>
 
   );
 }

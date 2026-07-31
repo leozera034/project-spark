@@ -20,7 +20,7 @@ export const demoStore: DemoStore = {
   address: "Rua das Laranjeiras, 100 — Centro (endereço fictício)",
   phone: "(00) 00000-0000",
   theme: {
-    brand: "oklch(0.58 0.13 28)",
+    brand: "oklch(0.535 0.135 28)",
     brandForeground: "oklch(0.99 0.005 90)",
     brandSoft: "oklch(0.95 0.03 60)",
     brandSoftForeground: "oklch(0.44 0.11 32)",
