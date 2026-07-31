@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,39 +35,46 @@ const PreviewRoute = PreviewRouteImport.update({
   path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviewIndexRoute = PreviewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/loja' | '/preview'
+  fullPaths: '/' | '/design-system' | '/loja' | '/preview' | '/preview/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/design-system' | '/loja' | '/preview'
-  id: '__root__' | '/' | '/design-system' | '/loja' | '/preview'
+  id: '__root__' | '/' | '/design-system' | '/loja' | '/preview' | '/preview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRoute
-  PreviewRoute: typeof PreviewRoute
+  PreviewRoute: typeof PreviewRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -99,14 +107,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preview/': {
+      id: '/preview/'
+      path: '/'
+      fullPath: '/preview/'
+      preLoaderRoute: typeof PreviewIndexRouteImport
+      parentRoute: typeof PreviewRoute
+    }
   }
 }
+
+interface PreviewRouteChildren {
+  PreviewIndexRoute: typeof PreviewIndexRoute
+}
+
+const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewIndexRoute: PreviewIndexRoute,
+}
+
+const PreviewRouteWithChildren =
+  PreviewRoute._addFileChildren(PreviewRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRoute,
-  PreviewRoute: PreviewRoute,
+  PreviewRoute: PreviewRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
