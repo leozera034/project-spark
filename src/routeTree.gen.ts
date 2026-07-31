@@ -15,6 +15,8 @@ import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
+import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
+import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,21 +48,35 @@ const PreviewIndexRoute = PreviewIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PreviewRoute,
 } as any)
+const LojaMercadoAuroraIndexRoute = LojaMercadoAuroraIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LojaMercadoAuroraRoute,
+} as any)
+const LojaMercadoAuroraIdentificacaoRoute =
+  LojaMercadoAuroraIdentificacaoRouteImport.update({
+    id: '/identificacao',
+    path: '/identificacao',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
-  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
-  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
   '/preview': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,8 +84,10 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewRouteWithChildren
-  '/loja/mercado-aurora': typeof LojaMercadoAuroraRoute
+  '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
+  '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,8 +98,16 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design-system' | '/loja' | '/loja/mercado-aurora' | '/preview'
+  to:
+    | '/'
+    | '/design-system'
+    | '/loja'
+    | '/preview'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora'
   id:
     | '__root__'
     | '/'
@@ -90,6 +116,8 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/identificacao'
+    | '/loja/mercado-aurora/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -143,15 +171,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewIndexRouteImport
       parentRoute: typeof PreviewRoute
     }
+    '/loja/mercado-aurora/': {
+      id: '/loja/mercado-aurora/'
+      path: '/'
+      fullPath: '/loja/mercado-aurora/'
+      preLoaderRoute: typeof LojaMercadoAuroraIndexRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/identificacao': {
+      id: '/loja/mercado-aurora/identificacao'
+      path: '/identificacao'
+      fullPath: '/loja/mercado-aurora/identificacao'
+      preLoaderRoute: typeof LojaMercadoAuroraIdentificacaoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
   }
 }
 
+interface LojaMercadoAuroraRouteChildren {
+  LojaMercadoAuroraIdentificacaoRoute: typeof LojaMercadoAuroraIdentificacaoRoute
+  LojaMercadoAuroraIndexRoute: typeof LojaMercadoAuroraIndexRoute
+}
+
+const LojaMercadoAuroraRouteChildren: LojaMercadoAuroraRouteChildren = {
+  LojaMercadoAuroraIdentificacaoRoute: LojaMercadoAuroraIdentificacaoRoute,
+  LojaMercadoAuroraIndexRoute: LojaMercadoAuroraIndexRoute,
+}
+
+const LojaMercadoAuroraRouteWithChildren =
+  LojaMercadoAuroraRoute._addFileChildren(LojaMercadoAuroraRouteChildren)
+
 interface LojaRouteChildren {
-  LojaMercadoAuroraRoute: typeof LojaMercadoAuroraRoute
+  LojaMercadoAuroraRoute: typeof LojaMercadoAuroraRouteWithChildren
 }
 
 const LojaRouteChildren: LojaRouteChildren = {
-  LojaMercadoAuroraRoute: LojaMercadoAuroraRoute,
+  LojaMercadoAuroraRoute: LojaMercadoAuroraRouteWithChildren,
 }
 
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
