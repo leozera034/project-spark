@@ -29,7 +29,14 @@ export const Route = createFileRoute("/")({
           "Monte seu cardápio digital, receba pedidos organizados e faça suas entregas com a sua própria equipe.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: canonical },
+      { property: "og:image", content: ogImage },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Pediu Aqui — seu cardápio digital, seus pedidos, sua entrega",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
@@ -40,9 +47,15 @@ export const Route = createFileRoute("/")({
         content:
           "Monte seu cardápio digital, receba pedidos organizados e faça suas entregas com a sua própria equipe.",
       },
+      { name: "twitter:image", content: ogImage },
+      {
+        name: "twitter:image:alt",
+        content: "Pediu Aqui — seu cardápio digital, seus pedidos, sua entrega",
+      },
       { name: "robots", content: "index,follow" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: canonical }],
+
     scripts: [
       {
         type: "application/ld+json",
