@@ -12,3 +12,14 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /entrar/
+Disallow: /preview/
+Disallow: /pedido/
+Disallow: /api/
+Disallow: /design-system
+Disallow: /trocar-senha-inicial
+Disallow: /redefinir-senha
+Disallow: /recuperar-acesso
+Disallow: /sem-acesso

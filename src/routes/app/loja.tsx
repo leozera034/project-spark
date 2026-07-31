@@ -8,6 +8,9 @@ import { useAuth } from "@/auth/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/app/loja")({
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex,nofollow" }],
+  }),
   component: () => (
     <RequireAuth signIn={AUTH_ROUTES.storeSignIn}>
       <RequirePasswordChangeCompleted>
