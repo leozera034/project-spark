@@ -27,8 +27,12 @@ import { Route as LojaMercadoAuroraConfirmacaoRouteImport } from './routes/loja/
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
+import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
+import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
 import { Route as PreviewAdminLojasRouteImport } from './routes/preview/admin/lojas'
 import { Route as PreviewAdminPlanosRouteImport } from './routes/preview/admin/planos'
+import { Route as PreviewAdminSuporteRouteImport } from './routes/preview/admin/suporte'
+import { Route as PreviewAdminUsuariosRouteImport } from './routes/preview/admin/usuarios'
 import { Route as PreviewEntregadorIndexRouteImport } from './routes/preview/entregador/index'
 import { Route as PreviewEntregadorHistoricoRouteImport } from './routes/preview/entregador/historico'
 import { Route as PreviewEntregadorRotaRouteImport } from './routes/preview/entregador/rota'
@@ -140,6 +144,16 @@ const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PreviewAdminRoute,
 } as any)
+const PreviewAdminAuditoriaRoute = PreviewAdminAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminCobrancasRoute = PreviewAdminCobrancasRouteImport.update({
+  id: '/cobrancas',
+  path: '/cobrancas',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
 const PreviewAdminLojasRoute = PreviewAdminLojasRouteImport.update({
   id: '/lojas',
   path: '/lojas',
@@ -148,6 +162,16 @@ const PreviewAdminLojasRoute = PreviewAdminLojasRouteImport.update({
 const PreviewAdminPlanosRoute = PreviewAdminPlanosRouteImport.update({
   id: '/planos',
   path: '/planos',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminSuporteRoute = PreviewAdminSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => PreviewAdminRoute,
+} as any)
+const PreviewAdminUsuariosRoute = PreviewAdminUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
   getParentRoute: () => PreviewAdminRoute,
 } as any)
 const PreviewEntregadorIndexRoute = PreviewEntregadorIndexRouteImport.update({
@@ -237,8 +261,12 @@ export interface FileRoutesByFullPath {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
   '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
   '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
   '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
@@ -267,8 +295,12 @@ export interface FileRoutesByTo {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
   '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
   '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
   '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
@@ -303,8 +335,12 @@ export interface FileRoutesById {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
+  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
   '/preview/admin/lojas': typeof PreviewAdminLojasRoute
   '/preview/admin/planos': typeof PreviewAdminPlanosRoute
+  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
+  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
   '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
   '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
   '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
@@ -340,8 +376,12 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
     | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
     | '/preview/entregador/historico'
     | '/preview/entregador/rota'
     | '/preview/loja/cardapio'
@@ -370,8 +410,12 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
     | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
     | '/preview/entregador/historico'
     | '/preview/entregador/rota'
     | '/preview/loja/cardapio'
@@ -405,8 +449,12 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/admin/auditoria'
+    | '/preview/admin/cobrancas'
     | '/preview/admin/lojas'
     | '/preview/admin/planos'
+    | '/preview/admin/suporte'
+    | '/preview/admin/usuarios'
     | '/preview/entregador/historico'
     | '/preview/entregador/rota'
     | '/preview/loja/cardapio'
@@ -559,6 +607,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewAdminIndexRouteImport
       parentRoute: typeof PreviewAdminRoute
     }
+    '/preview/admin/auditoria': {
+      id: '/preview/admin/auditoria'
+      path: '/auditoria'
+      fullPath: '/preview/admin/auditoria'
+      preLoaderRoute: typeof PreviewAdminAuditoriaRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/cobrancas': {
+      id: '/preview/admin/cobrancas'
+      path: '/cobrancas'
+      fullPath: '/preview/admin/cobrancas'
+      preLoaderRoute: typeof PreviewAdminCobrancasRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
     '/preview/admin/lojas': {
       id: '/preview/admin/lojas'
       path: '/lojas'
@@ -571,6 +633,20 @@ declare module '@tanstack/react-router' {
       path: '/planos'
       fullPath: '/preview/admin/planos'
       preLoaderRoute: typeof PreviewAdminPlanosRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/suporte': {
+      id: '/preview/admin/suporte'
+      path: '/suporte'
+      fullPath: '/preview/admin/suporte'
+      preLoaderRoute: typeof PreviewAdminSuporteRouteImport
+      parentRoute: typeof PreviewAdminRoute
+    }
+    '/preview/admin/usuarios': {
+      id: '/preview/admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/preview/admin/usuarios'
+      preLoaderRoute: typeof PreviewAdminUsuariosRouteImport
       parentRoute: typeof PreviewAdminRoute
     }
     '/preview/entregador/': {
@@ -707,14 +783,22 @@ const LojaRouteChildren: LojaRouteChildren = {
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
 interface PreviewAdminRouteChildren {
+  PreviewAdminAuditoriaRoute: typeof PreviewAdminAuditoriaRoute
+  PreviewAdminCobrancasRoute: typeof PreviewAdminCobrancasRoute
   PreviewAdminLojasRoute: typeof PreviewAdminLojasRoute
   PreviewAdminPlanosRoute: typeof PreviewAdminPlanosRoute
+  PreviewAdminSuporteRoute: typeof PreviewAdminSuporteRoute
+  PreviewAdminUsuariosRoute: typeof PreviewAdminUsuariosRoute
   PreviewAdminIndexRoute: typeof PreviewAdminIndexRoute
 }
 
 const PreviewAdminRouteChildren: PreviewAdminRouteChildren = {
+  PreviewAdminAuditoriaRoute: PreviewAdminAuditoriaRoute,
+  PreviewAdminCobrancasRoute: PreviewAdminCobrancasRoute,
   PreviewAdminLojasRoute: PreviewAdminLojasRoute,
   PreviewAdminPlanosRoute: PreviewAdminPlanosRoute,
+  PreviewAdminSuporteRoute: PreviewAdminSuporteRoute,
+  PreviewAdminUsuariosRoute: PreviewAdminUsuariosRoute,
   PreviewAdminIndexRoute: PreviewAdminIndexRoute,
 }
 
