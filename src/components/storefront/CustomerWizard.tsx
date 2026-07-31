@@ -41,10 +41,13 @@ function StepShell({
   }, [title]);
 
   return (
-    <section className="flex min-h-svh flex-col" aria-labelledby="wizard-title">
-      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-6">
+    <section className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
+      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8">
         {progress ? (
-          <p className="text-sm text-muted-foreground" aria-live="polite">
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft-foreground"
+            aria-live="polite"
+          >
             {progress}
           </p>
         ) : null}
@@ -52,18 +55,24 @@ function StepShell({
           id="wizard-title"
           ref={headingRef}
           tabIndex={-1}
-          className="mt-2 text-2xl font-semibold outline-none"
+          className="mt-3 text-[28px] font-semibold leading-tight tracking-tight outline-none rise-in"
         >
           {title}
         </h1>
-        {description ? <p className="mt-2 text-base text-muted-foreground">{description}</p> : null}
-        <div className="mt-6">{children}</div>
+        {description ? (
+          <p className="mt-2.5 text-base leading-relaxed text-muted-foreground">{description}</p>
+        ) : null}
+        <div className="mt-7">{children}</div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t bg-background/95 p-4 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="mx-auto flex max-w-md gap-3">
           {onBack ? (
-            <Button variant="outline" className="h-13 min-h-[52px]" onClick={onBack}>
+            <Button
+              variant="outline"
+              className="tappable h-13 min-h-[52px] rounded-xl active:scale-[0.98]"
+              onClick={onBack}
+            >
               Voltar
             </Button>
           ) : null}
@@ -71,6 +80,7 @@ function StepShell({
         </div>
       </div>
     </section>
+
   );
 }
 
