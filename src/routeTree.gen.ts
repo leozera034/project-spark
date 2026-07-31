@@ -73,10 +73,12 @@ import { Route as AppLojaConfiguracoesIdentidadeRouteImport } from './routes/app
 import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app/loja/configuracoes/pagamentos'
 import { Route as PreviewClienteEnderecoIndexRouteImport } from './routes/preview/cliente/endereco/index'
 import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview/cliente/endereco/novo'
+import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
 import { Route as ApiPublicStorefrontSlugPrecoRouteImport } from './routes/api/public/storefront/$slug/preco'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
+import { Route as ApiPublicStorefrontSlugAtendimentoValidarRouteImport } from './routes/api/public/storefront/$slug/atendimento/validar'
 import { Route as ApiPublicStorefrontSlugProdutosProductIdRouteImport } from './routes/api/public/storefront/$slug/produtos/$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -415,6 +417,12 @@ const PreviewClienteEnderecoNovoRoute =
     path: '/endereco/novo',
     getParentRoute: () => PreviewClienteRoute,
   } as any)
+const ApiPublicStorefrontSlugAtendimentoRoute =
+  ApiPublicStorefrontSlugAtendimentoRouteImport.update({
+    id: '/atendimento',
+    path: '/atendimento',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
 const ApiPublicStorefrontSlugPrecoRoute =
   ApiPublicStorefrontSlugPrecoRouteImport.update({
     id: '/preco',
@@ -438,6 +446,12 @@ const AppLojaCardapioProdutosNovoRoute =
     id: '/produtos/novo',
     path: '/produtos/novo',
     getParentRoute: () => AppLojaCardapioRoute,
+  } as any)
+const ApiPublicStorefrontSlugAtendimentoValidarRoute =
+  ApiPublicStorefrontSlugAtendimentoValidarRouteImport.update({
+    id: '/validar',
+    path: '/validar',
+    getParentRoute: () => ApiPublicStorefrontSlugAtendimentoRoute,
   } as any)
 const ApiPublicStorefrontSlugProdutosProductIdRoute =
   ApiPublicStorefrontSlugProdutosProductIdRouteImport.update({
@@ -511,10 +525,12 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
+  '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -572,10 +588,12 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco': typeof PreviewClienteEnderecoIndexRoute
+  '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRoutesById {
@@ -644,10 +662,12 @@ export interface FileRoutesById {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
+  '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 export interface FileRouteTypes {
@@ -717,10 +737,12 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
+    | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -778,10 +800,12 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/preview/cliente/endereco'
+    | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
+    | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/produtos/$productId'
   id:
     | '__root__'
@@ -849,10 +873,12 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/preview/cliente/endereco/'
+    | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/preco'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/produtos/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -1324,6 +1350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewClienteEnderecoNovoRouteImport
       parentRoute: typeof PreviewClienteRoute
     }
+    '/api/public/storefront/$slug/atendimento': {
+      id: '/api/public/storefront/$slug/atendimento'
+      path: '/atendimento'
+      fullPath: '/api/public/storefront/$slug/atendimento'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
     '/api/public/storefront/$slug/preco': {
       id: '/api/public/storefront/$slug/preco'
       path: '/preco'
@@ -1351,6 +1384,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/loja/cardapio/produtos/novo'
       preLoaderRoute: typeof AppLojaCardapioProdutosNovoRouteImport
       parentRoute: typeof AppLojaCardapioRoute
+    }
+    '/api/public/storefront/$slug/atendimento/validar': {
+      id: '/api/public/storefront/$slug/atendimento/validar'
+      path: '/validar'
+      fullPath: '/api/public/storefront/$slug/atendimento/validar'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugAtendimentoValidarRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugAtendimentoRoute
     }
     '/api/public/storefront/$slug/produtos/$productId': {
       id: '/api/public/storefront/$slug/produtos/$productId'
@@ -1568,13 +1608,31 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
 const AppLojaRouteWithChildren =
   AppLojaRoute._addFileChildren(AppLojaRouteChildren)
 
+interface ApiPublicStorefrontSlugAtendimentoRouteChildren {
+  ApiPublicStorefrontSlugAtendimentoValidarRoute: typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
+}
+
+const ApiPublicStorefrontSlugAtendimentoRouteChildren: ApiPublicStorefrontSlugAtendimentoRouteChildren =
+  {
+    ApiPublicStorefrontSlugAtendimentoValidarRoute:
+      ApiPublicStorefrontSlugAtendimentoValidarRoute,
+  }
+
+const ApiPublicStorefrontSlugAtendimentoRouteWithChildren =
+  ApiPublicStorefrontSlugAtendimentoRoute._addFileChildren(
+    ApiPublicStorefrontSlugAtendimentoRouteChildren,
+  )
+
 interface ApiPublicStorefrontSlugRouteChildren {
+  ApiPublicStorefrontSlugAtendimentoRoute: typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   ApiPublicStorefrontSlugPrecoRoute: typeof ApiPublicStorefrontSlugPrecoRoute
   ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
 
 const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren =
   {
+    ApiPublicStorefrontSlugAtendimentoRoute:
+      ApiPublicStorefrontSlugAtendimentoRouteWithChildren,
     ApiPublicStorefrontSlugPrecoRoute: ApiPublicStorefrontSlugPrecoRoute,
     ApiPublicStorefrontSlugProdutosProductIdRoute:
       ApiPublicStorefrontSlugProdutosProductIdRoute,
