@@ -166,7 +166,7 @@ function DesignSystemPage() {
               >
                 <div
                   className={`flex h-32 items-center justify-center px-6 ${
-                    asset.dark ? "bg-carbon" : "bg-surface-muted"
+                    asset.dark ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                   }`}
                 >
                   <img src={asset.src} alt={asset.label} className="max-h-16 w-auto max-w-full" />
@@ -186,7 +186,7 @@ function DesignSystemPage() {
               <div
                 key={tone}
                 className={`flex h-28 items-center justify-center rounded-xl border border-border ${
-                  tone === "white" ? "bg-carbon" : "bg-surface-muted"
+                  tone === "white" ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                 }`}
               >
                 <BrandSymbol tone={tone} className="size-16" />
