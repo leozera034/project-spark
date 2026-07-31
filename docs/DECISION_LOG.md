@@ -228,3 +228,17 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** o backend recalcula tudo na criação e grava os valores; o cliente nunca envia preço confiável.
 - **Riscos evitados:** manipulação de preço; divergência de relatório; contestação de valor.
 - **Status:** aprovada
+
+### D-029 — Contador de entregas sempre derivado
+- **Data:** 2026-07-31
+- **Decisão:** removida a coluna armazenada `couriers.completed_deliveries_count`. O total de entregas concluídas é calculado pela função `public.courier_completed_deliveries_count(_courier_id, _store_id)` e pela view `public.courier_delivery_counts`, ambas contando `deliveries.status = 'concluida'`.
+- **Motivo:** contador armazenado pode ser incrementado manualmente, divergir da realidade e virar embrião de módulo financeiro.
+- **Consequência:** nenhuma coluna `delivery_count`, `completed_deliveries` ou `total_deliveries` pode ser criada no futuro.
+- **Status:** aprovada
+
+### D-030 — Aceite de entrega por operação atômica
+- **Data:** 2026-07-31
+- **Decisão:** `UNIQUE(order_id)` em `deliveries` garante uma entrega por pedido, mas o aceite concorrente será resolvido por `UPDATE ... WHERE courier_id IS NULL AND status IN ('pendente','atribuida') RETURNING *`, considerando sucesso apenas quando exatamente uma linha retorna.
+- **Motivo:** dois entregadores podem tentar aceitar a mesma entrega no mesmo instante.
+- **Consequência:** implementação obrigatória nas fases de gestão de entregadores e experiência do entregador; nunca ler-e-depois-escrever.
+- **Status:** aprovada
