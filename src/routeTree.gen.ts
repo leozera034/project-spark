@@ -25,7 +25,9 @@ import { Route as LojaMercadoAuroraConfirmacaoRouteImport } from './routes/loja/
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as PreviewLojaIndexRouteImport } from './routes/preview/loja/index'
+import { Route as PreviewLojaCardapioRouteImport } from './routes/preview/loja/cardapio'
 import { Route as PreviewLojaCozinhaRouteImport } from './routes/preview/loja/cozinha'
+import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/loja/entregadores'
 import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
 import { Route as LojaMercadoAuroraEnderecoNovoRouteImport } from './routes/loja/mercado-aurora/endereco/novo'
@@ -117,9 +119,19 @@ const PreviewLojaIndexRoute = PreviewLojaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
+const PreviewLojaCardapioRoute = PreviewLojaCardapioRouteImport.update({
+  id: '/cardapio',
+  path: '/cardapio',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
 const PreviewLojaCozinhaRoute = PreviewLojaCozinhaRouteImport.update({
   id: '/cozinha',
   path: '/cozinha',
+  getParentRoute: () => PreviewLojaRoute,
+} as any)
+const PreviewLojaEntregadoresRoute = PreviewLojaEntregadoresRouteImport.update({
+  id: '/entregadores',
+  path: '/entregadores',
   getParentRoute: () => PreviewLojaRoute,
 } as any)
 const PreviewLojaPedidosRoute = PreviewLojaPedidosRouteImport.update({
@@ -155,7 +167,9 @@ export interface FileRoutesByFullPath {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
@@ -174,7 +188,9 @@ export interface FileRoutesByTo {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja': typeof PreviewLojaIndexRoute
@@ -197,7 +213,9 @@ export interface FileRoutesById {
   '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
+  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
   '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
+  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
   '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
   '/preview/loja/': typeof PreviewLojaIndexRoute
@@ -221,7 +239,9 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
     | '/preview/loja/pedidos'
     | '/loja/mercado-aurora/'
     | '/preview/loja/'
@@ -240,7 +260,9 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
     | '/preview/loja/pedidos'
     | '/loja/mercado-aurora'
     | '/preview/loja'
@@ -262,7 +284,9 @@ export interface FileRouteTypes {
     | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
+    | '/preview/loja/cardapio'
     | '/preview/loja/cozinha'
+    | '/preview/loja/entregadores'
     | '/preview/loja/pedidos'
     | '/loja/mercado-aurora/'
     | '/preview/loja/'
@@ -391,11 +415,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewLojaIndexRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
+    '/preview/loja/cardapio': {
+      id: '/preview/loja/cardapio'
+      path: '/cardapio'
+      fullPath: '/preview/loja/cardapio'
+      preLoaderRoute: typeof PreviewLojaCardapioRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
     '/preview/loja/cozinha': {
       id: '/preview/loja/cozinha'
       path: '/cozinha'
       fullPath: '/preview/loja/cozinha'
       preLoaderRoute: typeof PreviewLojaCozinhaRouteImport
+      parentRoute: typeof PreviewLojaRoute
+    }
+    '/preview/loja/entregadores': {
+      id: '/preview/loja/entregadores'
+      path: '/entregadores'
+      fullPath: '/preview/loja/entregadores'
+      preLoaderRoute: typeof PreviewLojaEntregadoresRouteImport
       parentRoute: typeof PreviewLojaRoute
     }
     '/preview/loja/pedidos': {
@@ -462,13 +500,17 @@ const LojaRouteChildren: LojaRouteChildren = {
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
 interface PreviewLojaRouteChildren {
+  PreviewLojaCardapioRoute: typeof PreviewLojaCardapioRoute
   PreviewLojaCozinhaRoute: typeof PreviewLojaCozinhaRoute
+  PreviewLojaEntregadoresRoute: typeof PreviewLojaEntregadoresRoute
   PreviewLojaPedidosRoute: typeof PreviewLojaPedidosRoute
   PreviewLojaIndexRoute: typeof PreviewLojaIndexRoute
 }
 
 const PreviewLojaRouteChildren: PreviewLojaRouteChildren = {
+  PreviewLojaCardapioRoute: PreviewLojaCardapioRoute,
   PreviewLojaCozinhaRoute: PreviewLojaCozinhaRoute,
+  PreviewLojaEntregadoresRoute: PreviewLojaEntregadoresRoute,
   PreviewLojaPedidosRoute: PreviewLojaPedidosRoute,
   PreviewLojaIndexRoute: PreviewLojaIndexRoute,
 }
