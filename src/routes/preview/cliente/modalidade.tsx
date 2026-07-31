@@ -5,7 +5,7 @@ import { StoreFooter, StorePage, StoreStepHeader } from "@/components/demo/Store
 import { useDemo } from "@/demo/state/useDemo";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/modalidade")({
+export const Route = createFileRoute("/preview/cliente/modalidade")({
   head: demoHead(
     "Entrega ou retirada — Mercado Aurora",
     "Escolha entre receber no endereço ou buscar o pedido na loja.",
@@ -25,7 +25,7 @@ function Fulfillment() {
       description: "Um entregador da própria loja leva o pedido até você.",
       onSelect: () => {
         updateCustomer({ fulfillment: "entrega", address: savedAddress, addressConfirmed: false });
-        void navigate({ to: "/loja/mercado-aurora/endereco" });
+        void navigate({ to: "/preview/cliente/endereco" });
       },
     },
     {
@@ -35,7 +35,7 @@ function Fulfillment() {
       description: "Você retira no balcão quando o pedido estiver pronto.",
       onSelect: () => {
         updateCustomer({ fulfillment: "retirada", address: null, addressConfirmed: false });
-        void navigate({ to: "/loja/mercado-aurora/cardapio" });
+        void navigate({ to: "/preview/cliente/cardapio" });
       },
     },
   ];
@@ -44,7 +44,7 @@ function Fulfillment() {
     <div className="flex min-h-screen flex-col">
       <StoreStepHeader
         title="Como receber"
-        backTo="/loja/mercado-aurora/identificacao"
+        backTo="/preview/cliente/identificacao"
         step={2}
         totalSteps={4}
       />

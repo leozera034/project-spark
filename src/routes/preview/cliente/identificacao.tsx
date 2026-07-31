@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useDemo } from "@/demo/state/useDemo";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/identificacao")({
+export const Route = createFileRoute("/preview/cliente/identificacao")({
   head: demoHead(
     "Identificação — Mercado Aurora",
     "Informe apenas o primeiro nome para continuar o pedido no Mercado Aurora.",
@@ -23,7 +23,7 @@ function Identification() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <StoreStepHeader title="Boas-vindas" backTo="/loja/mercado-aurora" step={1} totalSteps={4} />
+      <StoreStepHeader title="Boas-vindas" backTo="/preview/cliente" step={1} totalSteps={4} />
       <StorePage className="flex-1">
         <h1 className="text-2xl font-semibold text-foreground">Como podemos chamar você?</h1>
         <p className="mt-2 text-base text-muted-foreground">
@@ -57,7 +57,7 @@ function Identification() {
           disabled={name.trim().length < 2}
           onClick={() => {
             updateCustomer({ firstName: name.trim() });
-            void navigate({ to: "/loja/mercado-aurora/modalidade" });
+            void navigate({ to: "/preview/cliente/modalidade" });
           }}
         >
           Continuar

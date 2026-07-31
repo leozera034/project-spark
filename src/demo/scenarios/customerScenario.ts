@@ -6,7 +6,7 @@ export const customerScenario: DemoScenario = {
   goal: "Pedir sem criar conta, com poucas decisões por tela e confirmação explícita do endereço.",
   audience: "Pessoa da vizinhança, qualquer idade, primeira compra ou recompra.",
   device: "Celular",
-  entryRoute: "/loja/mercado-aurora",
+  entryRoute: "/preview/cliente",
   steps: [
     "Página inicial da loja com status, prazos e acesso ao cardápio",
     "Identificação apenas pelo primeiro nome",

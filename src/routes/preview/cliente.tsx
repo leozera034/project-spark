@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 
 import { useDemo } from "@/demo/state/useDemo";
 
-export const Route = createFileRoute("/loja/mercado-aurora")({
+export const Route = createFileRoute("/preview/cliente")({
   component: StoreThemeLayout,
 });
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useDemo } from "@/demo/state/useDemo";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/acompanhamento")({
+export const Route = createFileRoute("/preview/cliente/acompanhamento")({
   head: demoHead(
     "Acompanhar pedido — Mercado Aurora",
     "Linha do tempo do pedido para entrega e para retirada na loja.",
@@ -46,7 +46,7 @@ function Tracking() {
 
   return (
     <div className="min-h-screen">
-      <StoreStepHeader title="Acompanhar pedido" backTo="/loja/mercado-aurora/cardapio" />
+      <StoreStepHeader title="Acompanhar pedido" backTo="/preview/cliente/cardapio" />
       <StorePage>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

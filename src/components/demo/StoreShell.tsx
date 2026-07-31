@@ -44,7 +44,7 @@ export function StoreStepHeader({
         <p className="flex-1 truncate text-base font-semibold text-foreground">{title}</p>
         {cartCount > 0 ? (
           <Button asChild variant="ghost" size="iconTouch" aria-label={`Carrinho com ${cartCount} itens`}>
-            <Link to="/loja/mercado-aurora/carrinho" className="relative">
+            <Link to="/preview/cliente/carrinho" className="relative">
               <ShoppingBag aria-hidden="true" />
               <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-brand-foreground">
                 {cartCount}

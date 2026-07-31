@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useDemo } from "@/demo/state/useDemo";
 import { demoHead } from "@/demo/utils/head";
 
-export const Route = createFileRoute("/loja/mercado-aurora/")({
+export const Route = createFileRoute("/preview/cliente/")({
   head: demoHead(
     "Mercado Aurora — peça pelo cardápio digital",
     "Padaria, mercearia e refeições do Mercado Aurora com entrega no bairro ou retirada na loja.",
@@ -113,10 +113,10 @@ function StoreHome() {
 
         <div className="mt-6 space-y-3">
           <Button asChild size="touch" variant="brand" className="w-full text-base">
-            <Link to="/loja/mercado-aurora/identificacao">Ver o cardápio</Link>
+            <Link to="/preview/cliente/identificacao">Ver o cardápio</Link>
           </Button>
           <Button asChild size="touch" variant="outline" className="w-full text-base">
-            <Link to="/loja/mercado-aurora/cardapio">Só quero olhar os produtos</Link>
+            <Link to="/preview/cliente/cardapio">Só quero olhar os produtos</Link>
           </Button>
         </div>
 

@@ -2437,6 +2437,23 @@ export type Database = {
         }
         Returns: Json
       }
+      storefront_catalog: { Args: { _slug: string }; Returns: Json }
+      storefront_normalize_slug: { Args: { _slug: string }; Returns: string }
+      storefront_price: {
+        Args: {
+          _product_id: string
+          _quantity?: number
+          _selections?: Json
+          _slug: string
+          _variant_id?: string
+        }
+        Returns: Json
+      }
+      storefront_product: {
+        Args: { _product_id: string; _slug: string }
+        Returns: Json
+      }
+      storefront_store: { Args: { _slug: string }; Returns: Json }
       update_catalog_category: {
         Args: {
           _description: string
