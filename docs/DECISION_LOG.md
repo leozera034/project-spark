@@ -438,3 +438,35 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** dado inválido é descartado em silêncio e a jornada recomeça na etapa correspondente, sem erro técnico visível.
 - **Riscos evitados:** poluição de protótipo; travamento por dado malformado; confirmação forjada.
 - **Status:** aprovada
+
+### D-057 — Carrinho vive no aparelho e é recotizado no servidor
+- **Data:** 2026-07-30
+- **Decisão:** o carrinho do cliente é guardado apenas no armazenamento local, isolado por slug canônico e com validade de sete dias. Nenhuma linha de carrinho é gravada no banco nesta fase.
+- **Motivo:** o cliente não tem conta; persistir carrinho no servidor criaria dado pessoal sem pedido correspondente.
+- **Consequência:** o carrinho é reconstruído a partir do aparelho e revalidado a cada abertura, mudança de item, retorno de foco ou reconexão.
+- **Riscos evitados:** carrinho órfão no banco; mistura de carrinhos entre lojas no mesmo navegador.
+- **Status:** aprovada
+
+### D-058 — Nenhum preço vindo do navegador é aceito
+- **Data:** 2026-07-30
+- **Decisão:** o corpo enviado à cotação contém somente identificadores públicos, quantidades e a modalidade. Preço, subtotal, taxa e total são sempre calculados no servidor pelo motor canônico da Fase 10 e pela validação de atendimento da Fase 12.
+- **Motivo:** qualquer valor exibido no aparelho é editável pelo usuário.
+- **Consequência:** os valores guardados localmente são apenas "último valor conhecido", usados para exibição offline e para detectar mudança de preço.
+- **Riscos evitados:** manipulação de total; cobrança divergente do cardápio publicado.
+- **Status:** aprovada
+
+### D-059 — Cotação do carrinho em uma única chamada
+- **Data:** 2026-07-30
+- **Decisão:** o navegador faz uma única requisição para recalcular o carrinho inteiro. A agregação por linha acontece no servidor, com limite de quarenta linhas, corpo máximo e limite de frequência por instância.
+- **Motivo:** conexões fracas e cardápios grandes tornam inviável uma chamada por item.
+- **Consequência:** respostas fora de ordem são descartadas por número de sequência; falha de rede mantém os últimos valores conhecidos com aviso explícito.
+- **Riscos evitados:** total intercalado de duas respostas; sobrecarga do banco; abuso do endpoint público.
+- **Status:** aprovada
+
+### D-060 — Mudanças do cardápio nunca são aplicadas em silêncio
+- **Data:** 2026-07-30
+- **Decisão:** item esgotado, item removido do cardápio, configuração inválida e mudança de preço bloqueiam o avanço e são comunicados linha a linha, com ação de remover ou revisar.
+- **Motivo:** o cliente precisa reconhecer a mudança antes de pagar por ela.
+- **Consequência:** o botão de avanço só é liberado com todas as linhas válidas, pedido mínimo atingido e contexto de atendimento confirmado.
+- **Riscos evitados:** cobrança surpresa; pedido enviado com item indisponível.
+- **Status:** aprovada
