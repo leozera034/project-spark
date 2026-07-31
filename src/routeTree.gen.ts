@@ -16,9 +16,11 @@ import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as LojaMercadoAuroraRouteImport } from './routes/loja/mercado-aurora'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as LojaMercadoAuroraIndexRouteImport } from './routes/loja/mercado-aurora/index'
+import { Route as LojaMercadoAuroraAcompanhamentoRouteImport } from './routes/loja/mercado-aurora/acompanhamento'
 import { Route as LojaMercadoAuroraCardapioRouteImport } from './routes/loja/mercado-aurora/cardapio'
 import { Route as LojaMercadoAuroraCarrinhoRouteImport } from './routes/loja/mercado-aurora/carrinho'
 import { Route as LojaMercadoAuroraCheckoutRouteImport } from './routes/loja/mercado-aurora/checkout'
+import { Route as LojaMercadoAuroraConfirmacaoRouteImport } from './routes/loja/mercado-aurora/confirmacao'
 import { Route as LojaMercadoAuroraIdentificacaoRouteImport } from './routes/loja/mercado-aurora/identificacao'
 import { Route as LojaMercadoAuroraModalidadeRouteImport } from './routes/loja/mercado-aurora/modalidade'
 import { Route as LojaMercadoAuroraEnderecoIndexRouteImport } from './routes/loja/mercado-aurora/endereco/index'
@@ -59,6 +61,12 @@ const LojaMercadoAuroraIndexRoute = LojaMercadoAuroraIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LojaMercadoAuroraRoute,
 } as any)
+const LojaMercadoAuroraAcompanhamentoRoute =
+  LojaMercadoAuroraAcompanhamentoRouteImport.update({
+    id: '/acompanhamento',
+    path: '/acompanhamento',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
 const LojaMercadoAuroraCardapioRoute =
   LojaMercadoAuroraCardapioRouteImport.update({
     id: '/cardapio',
@@ -75,6 +83,12 @@ const LojaMercadoAuroraCheckoutRoute =
   LojaMercadoAuroraCheckoutRouteImport.update({
     id: '/checkout',
     path: '/checkout',
+    getParentRoute: () => LojaMercadoAuroraRoute,
+  } as any)
+const LojaMercadoAuroraConfirmacaoRoute =
+  LojaMercadoAuroraConfirmacaoRouteImport.update({
+    id: '/confirmacao',
+    path: '/confirmacao',
     getParentRoute: () => LojaMercadoAuroraRoute,
   } as any)
 const LojaMercadoAuroraIdentificacaoRoute =
@@ -109,9 +123,11 @@ export interface FileRoutesByFullPath {
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
   '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
@@ -123,9 +139,11 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/preview': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
   '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora': typeof LojaMercadoAuroraIndexRoute
@@ -140,9 +158,11 @@ export interface FileRoutesById {
   '/preview': typeof PreviewRouteWithChildren
   '/loja/mercado-aurora': typeof LojaMercadoAuroraRouteWithChildren
   '/preview/': typeof PreviewIndexRoute
+  '/loja/mercado-aurora/acompanhamento': typeof LojaMercadoAuroraAcompanhamentoRoute
   '/loja/mercado-aurora/cardapio': typeof LojaMercadoAuroraCardapioRoute
   '/loja/mercado-aurora/carrinho': typeof LojaMercadoAuroraCarrinhoRoute
   '/loja/mercado-aurora/checkout': typeof LojaMercadoAuroraCheckoutRoute
+  '/loja/mercado-aurora/confirmacao': typeof LojaMercadoAuroraConfirmacaoRoute
   '/loja/mercado-aurora/identificacao': typeof LojaMercadoAuroraIdentificacaoRoute
   '/loja/mercado-aurora/modalidade': typeof LojaMercadoAuroraModalidadeRoute
   '/loja/mercado-aurora/': typeof LojaMercadoAuroraIndexRoute
@@ -158,9 +178,11 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/carrinho'
     | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
@@ -172,9 +194,11 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/loja'
     | '/preview'
+    | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/carrinho'
     | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora'
@@ -188,9 +212,11 @@ export interface FileRouteTypes {
     | '/preview'
     | '/loja/mercado-aurora'
     | '/preview/'
+    | '/loja/mercado-aurora/acompanhamento'
     | '/loja/mercado-aurora/cardapio'
     | '/loja/mercado-aurora/carrinho'
     | '/loja/mercado-aurora/checkout'
+    | '/loja/mercado-aurora/confirmacao'
     | '/loja/mercado-aurora/identificacao'
     | '/loja/mercado-aurora/modalidade'
     | '/loja/mercado-aurora/'
@@ -256,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaMercadoAuroraIndexRouteImport
       parentRoute: typeof LojaMercadoAuroraRoute
     }
+    '/loja/mercado-aurora/acompanhamento': {
+      id: '/loja/mercado-aurora/acompanhamento'
+      path: '/acompanhamento'
+      fullPath: '/loja/mercado-aurora/acompanhamento'
+      preLoaderRoute: typeof LojaMercadoAuroraAcompanhamentoRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
     '/loja/mercado-aurora/cardapio': {
       id: '/loja/mercado-aurora/cardapio'
       path: '/cardapio'
@@ -275,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/loja/mercado-aurora/checkout'
       preLoaderRoute: typeof LojaMercadoAuroraCheckoutRouteImport
+      parentRoute: typeof LojaMercadoAuroraRoute
+    }
+    '/loja/mercado-aurora/confirmacao': {
+      id: '/loja/mercado-aurora/confirmacao'
+      path: '/confirmacao'
+      fullPath: '/loja/mercado-aurora/confirmacao'
+      preLoaderRoute: typeof LojaMercadoAuroraConfirmacaoRouteImport
       parentRoute: typeof LojaMercadoAuroraRoute
     }
     '/loja/mercado-aurora/identificacao': {
@@ -309,9 +349,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface LojaMercadoAuroraRouteChildren {
+  LojaMercadoAuroraAcompanhamentoRoute: typeof LojaMercadoAuroraAcompanhamentoRoute
   LojaMercadoAuroraCardapioRoute: typeof LojaMercadoAuroraCardapioRoute
   LojaMercadoAuroraCarrinhoRoute: typeof LojaMercadoAuroraCarrinhoRoute
   LojaMercadoAuroraCheckoutRoute: typeof LojaMercadoAuroraCheckoutRoute
+  LojaMercadoAuroraConfirmacaoRoute: typeof LojaMercadoAuroraConfirmacaoRoute
   LojaMercadoAuroraIdentificacaoRoute: typeof LojaMercadoAuroraIdentificacaoRoute
   LojaMercadoAuroraModalidadeRoute: typeof LojaMercadoAuroraModalidadeRoute
   LojaMercadoAuroraIndexRoute: typeof LojaMercadoAuroraIndexRoute
@@ -320,9 +362,11 @@ interface LojaMercadoAuroraRouteChildren {
 }
 
 const LojaMercadoAuroraRouteChildren: LojaMercadoAuroraRouteChildren = {
+  LojaMercadoAuroraAcompanhamentoRoute: LojaMercadoAuroraAcompanhamentoRoute,
   LojaMercadoAuroraCardapioRoute: LojaMercadoAuroraCardapioRoute,
   LojaMercadoAuroraCarrinhoRoute: LojaMercadoAuroraCarrinhoRoute,
   LojaMercadoAuroraCheckoutRoute: LojaMercadoAuroraCheckoutRoute,
+  LojaMercadoAuroraConfirmacaoRoute: LojaMercadoAuroraConfirmacaoRoute,
   LojaMercadoAuroraIdentificacaoRoute: LojaMercadoAuroraIdentificacaoRoute,
   LojaMercadoAuroraModalidadeRoute: LojaMercadoAuroraModalidadeRoute,
   LojaMercadoAuroraIndexRoute: LojaMercadoAuroraIndexRoute,
