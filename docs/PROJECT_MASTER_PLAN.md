@@ -7,8 +7,9 @@
 - **Variações internas:** `pediu_aqui`, `PediuAqui`, `PEDIU_AQUI`
 - **Assinatura:** Seu cardápio, seus pedidos, tudo aqui.
 - **Assinatura institucional:** Pedidos simples. Operação precisa.
-- **Fase atual:** Fase 01 — Fundação e Documentação
-- **Status:** documentação apenas. Nenhum banco, tela funcional ou integração criada.
+- **Fase atual:** Fase 02 — Identidade visual e design system (concluída)
+- **Status:** documentação, marca e design system. Nenhum banco, autenticação, pedido ou integração criada. Manual de marca em `docs/BRAND_GUIDELINES.md`; galeria viva em `/design-system`.
+
 
 ---
 

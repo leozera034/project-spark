@@ -21,6 +21,7 @@ Legenda de áreas: `DOC` documentação, `UI` interface, `DB` banco, `SEC` segur
 - **Riscos:** cores fixas espalhadas; estética genérica; tokens insuficientes para temas por loja.
 - **Conclusão:** tokens definidos em CSS global, componentes base documentados, marca em fonte única.
 - **Proibido:** banco, autenticação, pedidos, integrações.
+- **Status:** concluída em 2026-07-30. Entregas: `tools/brand-geometry.mjs`, `tools/generate-brand-assets.mjs`, `npm run brand:generate`, `public/brand/*` (36 ativos), `docs/BRAND_GUIDELINES.md`, tokens OKLCH em `src/styles.css`, componentes de marca em `src/components/brand/BrandLogo.tsx` e galeria em `/design-system`.
 
 ## Fase 03 — Protótipo navegável
 - **Objetivo:** telas estáticas dos quatro ambientes com dados fictícios locais, validando fluxo e UX.
