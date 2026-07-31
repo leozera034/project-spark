@@ -18,9 +18,9 @@ export function CartBar({ slug }: { slug: string }) {
 
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 glass-bar p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto max-w-3xl">
-        <Button asChild className="h-13 w-full justify-between px-4 text-base">
+        <Button asChild className="tappable h-14 w-full justify-between rounded-2xl px-4 text-base shadow-e2 active:scale-[0.99]">
           <Link to="/loja/$slug/carrinho" params={{ slug }}>
             <span className="flex items-center gap-2">
               <ShoppingBag className="size-5" />

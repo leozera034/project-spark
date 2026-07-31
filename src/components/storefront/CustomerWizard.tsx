@@ -17,8 +17,9 @@ import { isAddressStep, nextAddressStep, progressLabel } from "@/storefront/cust
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/customer-wizard.types";
 
-const PRIMARY = "h-13 min-h-[52px] w-full text-base";
-const FIELD = "mt-2 h-12 text-[16px]";
+const PRIMARY =
+  "tappable h-13 min-h-[52px] w-full rounded-xl text-base shadow-e1 active:scale-[0.99]";
+const FIELD = "mt-2 h-12 rounded-xl text-[16px]";
 
 function StepShell({
   title,
@@ -41,10 +42,13 @@ function StepShell({
   }, [title]);
 
   return (
-    <section className="flex min-h-svh flex-col" aria-labelledby="wizard-title">
-      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-6">
+    <section className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
+      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8">
         {progress ? (
-          <p className="text-sm text-muted-foreground" aria-live="polite">
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft-foreground"
+            aria-live="polite"
+          >
             {progress}
           </p>
         ) : null}
@@ -52,18 +56,24 @@ function StepShell({
           id="wizard-title"
           ref={headingRef}
           tabIndex={-1}
-          className="mt-2 text-2xl font-semibold outline-none"
+          className="mt-3 text-[28px] font-semibold leading-tight tracking-tight outline-none rise-in"
         >
           {title}
         </h1>
-        {description ? <p className="mt-2 text-base text-muted-foreground">{description}</p> : null}
-        <div className="mt-6">{children}</div>
+        {description ? (
+          <p className="mt-2.5 text-base leading-relaxed text-muted-foreground">{description}</p>
+        ) : null}
+        <div className="mt-7">{children}</div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t bg-background/95 p-4 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="mx-auto flex max-w-md gap-3">
           {onBack ? (
-            <Button variant="outline" className="h-13 min-h-[52px]" onClick={onBack}>
+            <Button
+              variant="outline"
+              className="tappable h-13 min-h-[52px] rounded-xl active:scale-[0.98]"
+              onClick={onBack}
+            >
               Voltar
             </Button>
           ) : null}
@@ -71,12 +81,13 @@ function StepShell({
         </div>
       </div>
     </section>
+
   );
 }
 
 function AddressSummary({ address, areaName }: { address: LocalSavedAddress; areaName: string }) {
   return (
-    <dl className="space-y-2 rounded-2xl border bg-card p-5 text-base">
+    <dl className="panel space-y-2.5 p-5 text-base">
       <Row label="Identificação" value={address.customLabel ?? address.label} />
       <Row label="Endereço" value={shortAddressLine(address)} />
       <Row label="Bairro" value={areaName} />
@@ -151,12 +162,12 @@ export function CustomerWizard() {
   const banner = (
     <>
       {!wizard.storageAvailable ? (
-        <p className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
           {WIZARD_MESSAGES.storageUnavailable}
         </p>
       ) : null}
       {configuration && !configuration.storeIsOpen ? (
-        <p className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
           {WIZARD_MESSAGES.storeClosed}
         </p>
       ) : null}
@@ -441,7 +452,7 @@ export function CustomerWizard() {
               </button>
             ))}
             {filteredAreas.length === 0 ? (
-              <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              <p className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
                 Esta loja ainda não entrega neste bairro.
               </p>
             ) : null}
@@ -631,7 +642,7 @@ export function CustomerWizard() {
       >
         {banner}
         {duplicate ? (
-          <p className="mb-4 rounded-lg border border-dashed p-3 text-sm">
+          <p className="mb-4 rounded-lg border border-border p-3 text-sm">
             Você já tem um endereço igual salvo ({duplicate.customLabel ?? duplicate.label}).{" "}
             <button
               type="button"

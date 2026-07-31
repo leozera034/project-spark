@@ -101,13 +101,13 @@ function CartPage() {
         ) : (
           <>
             {!cart.storageAvailable ? (
-              <p className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              <p className="mb-4 rounded-xl border border-border bg-surface-muted p-3.5 text-sm text-muted-foreground">
                 {CART_MESSAGES.storageUnavailable}
               </p>
             ) : null}
 
             {offline || cart.quoteState === "error" ? (
-              <div className="mb-4 flex items-start gap-3 rounded-lg border border-dashed p-3 text-sm">
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" />
                 <div className="flex-1">
                   <p>{cart.quoteMessage}</p>
@@ -123,7 +123,7 @@ function CartPage() {
             ) : null}
 
             {priceChanges > 0 ? (
-              <p className="mb-4 rounded-lg border p-3 text-sm">
+              <p className="mb-4 rounded-xl border p-3.5 text-sm">
                 {priceChanges === 1
                   ? "Um item teve o preço atualizado pela loja. Confira antes de continuar."
                   : `${priceChanges} itens tiveram o preço atualizado pela loja. Confira antes de continuar.`}
@@ -139,7 +139,7 @@ function CartPage() {
                 return (
                   <li
                     key={line.lineId}
-                    className={`rounded-xl border p-4 ${issues.length > 0 ? "border-destructive/50" : ""}`}
+                    className={`panel p-4 ${issues.length > 0 ? "border-destructive/50" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -299,7 +299,7 @@ function CartPage() {
 
             <Separator className="my-5" />
 
-            <dl className="space-y-2 rounded-xl border p-4 text-base">
+            <dl className="space-y-2 panel p-4 text-base">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Subtotal</dt>
                 <dd className="tabular-nums">{brl(cart.subtotal)}</dd>
@@ -328,20 +328,20 @@ function CartPage() {
             </dl>
 
             {cart.minimumOrderAmount !== null && !cart.minimumOrderMet ? (
-              <p className="mt-3 rounded-lg border p-3 text-sm">
+              <p className="mt-3 rounded-xl border p-3.5 text-sm">
                 Faltam {brl(Math.max(cart.minimumOrderAmount - cart.subtotal, 0))} para atingir o
                 pedido mínimo de {brl(cart.minimumOrderAmount)}.
               </p>
             ) : null}
 
             {cart.quote && !cart.quote.storeIsOpen ? (
-              <p className="mt-3 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm text-muted-foreground">
                 {CART_MESSAGES.storeClosed}
               </p>
             ) : null}
 
             {cart.quote && !cart.quote.fulfillmentValid ? (
-              <p className="mt-3 rounded-lg border p-3 text-sm">
+              <p className="mt-3 rounded-xl border p-3.5 text-sm">
                 {CART_MESSAGES.fulfillmentChanged}
               </p>
             ) : null}
