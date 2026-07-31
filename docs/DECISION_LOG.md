@@ -470,3 +470,19 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** o botão de avanço só é liberado com todas as linhas válidas, pedido mínimo atingido e contexto de atendimento confirmado.
 - **Riscos evitados:** cobrança surpresa; pedido enviado com item indisponível.
 - **Status:** aprovada
+
+### D-061 — Telefone obrigatório em entrega e em retirada
+- **Data:** 2026-07-31
+- **Decisão:** o telefone do cliente é obrigatório nas duas modalidades. A identificação continua sem cadastro e sem senha, formada por primeiro nome e telefone, coletados no checkout (Fase 14).
+- **Motivo:** mesmo na retirada a loja precisa avisar sobre item indisponível, alteração de preparo, pedido pronto, atraso, dúvida sobre observação ou impossibilidade de atender.
+- **Consequência:** fluxo único de identificação; validação de formato no servidor; nenhum pedido criado sem forma de contato.
+- **Riscos evitados:** pedido de retirada sem contato; duas jornadas divergentes de identificação.
+- **Status:** aprovada
+
+### D-062 — Pedido agendado fica para pós-MVP
+- **Data:** 2026-07-31
+- **Decisão:** o MVP não terá agendamento. Nenhum campo improvisado de data ou hora será criado, e a observação livre não pode ser usada nem interpretada como agendamento.
+- **Motivo:** agendamento real depende de horário de funcionamento, disponibilidade futura, fila operacional, capacidade da cozinha, prazo de preparo e confirmação da loja.
+- **Consequência:** o checkout da Fase 14 cria apenas pedidos imediatos; agendamento entra em fase própria pós-MVP com máquina de estados dedicada.
+- **Riscos evitados:** promessa não cumprida ao cliente; observação ignorada pela operação; estado de pedido ambíguo.
+- **Status:** aprovada

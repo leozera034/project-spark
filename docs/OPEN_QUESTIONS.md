@@ -35,8 +35,9 @@ Status possíveis: `aberta`, `em análise`, `respondida`.
 - **Impacto:** contato em caso de problema versus atrito no checkout.
 - **Fase limite:** 15.
 - **Opções:** sempre obrigatório; opcional na retirada; configurável por loja.
-- **Recomendação preliminar:** nenhuma registrada.
-- **Status:** aberta
+- **Resposta:** telefone obrigatório em entrega e em retirada, com fluxo único de identificação (primeiro nome + telefone).
+- **Decisão:** D-061.
+- **Status:** respondida
 
 ### Q-005 — Regra de pizza com vários sabores
 - **Contexto:** cobrança de pizza meio a meio ou mais frações.
@@ -52,8 +53,9 @@ Status possíveis: `aberta`, `em análise`, `respondida`.
 - **Impacto:** máquina de estados, painel de pedidos, cozinha.
 - **Fase limite:** 16.
 - **Opções:** pós-MVP; MVP apenas como observação de texto; MVP completo.
-- **Recomendação preliminar:** nenhuma registrada.
-- **Status:** aberta
+- **Resposta:** pós-MVP. Nenhum campo improvisado de agendamento, e a observação livre não pode ser usada como agendamento.
+- **Decisão:** D-062.
+- **Status:** respondida
 
 ### Q-007 — Impressão térmica
 - **Contexto:** muitas lojas usam impressora de cupom.
