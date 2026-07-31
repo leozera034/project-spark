@@ -59,6 +59,8 @@ export type PublicOrderTracking = {
     publicCode: PublicOrderStatusCode;
     isFinal: boolean;
     isSuccessful: boolean;
+    /** Mensagem pública controlada da loja (recusa/cancelamento). */
+    publicMessage?: string | null;
   };
   fulfillment: {
     type: "entrega" | "retirada";

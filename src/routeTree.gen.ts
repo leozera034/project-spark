@@ -36,6 +36,7 @@ import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
+import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
 import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
 import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
@@ -223,6 +224,11 @@ const AppLojaConfiguracoesRoute = AppLojaConfiguracoesRouteImport.update({
 const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LojaSlugRouteRoute,
+} as any)
+const LojaSlugAcompanharRoute = LojaSlugAcompanharRouteImport.update({
+  id: '/acompanhar',
+  path: '/acompanhar',
   getParentRoute: () => LojaSlugRouteRoute,
 } as any)
 const LojaSlugCarrinhoRoute = LojaSlugCarrinhoRouteImport.update({
@@ -543,6 +549,7 @@ export interface FileRoutesByFullPath {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -614,6 +621,7 @@ export interface FileRoutesByTo {
   '/entrar/loja': typeof EntrarLojaRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -697,6 +705,7 @@ export interface FileRoutesById {
   '/preview/': typeof PreviewIndexRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
+  '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
@@ -781,6 +790,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -852,6 +862,7 @@ export interface FileRouteTypes {
     | '/entrar/loja'
     | '/admin'
     | '/preview'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -934,6 +945,7 @@ export interface FileRouteTypes {
     | '/preview/'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
+    | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
@@ -1201,6 +1213,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/loja/$slug/'
       preLoaderRoute: typeof LojaSlugIndexRouteImport
+      parentRoute: typeof LojaSlugRouteRoute
+    }
+    '/loja/$slug/acompanhar': {
+      id: '/loja/$slug/acompanhar'
+      path: '/acompanhar'
+      fullPath: '/loja/$slug/acompanhar'
+      preLoaderRoute: typeof LojaSlugAcompanharRouteImport
       parentRoute: typeof LojaSlugRouteRoute
     }
     '/loja/$slug/carrinho': {
@@ -1588,6 +1607,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface LojaSlugRouteRouteChildren {
+  LojaSlugAcompanharRoute: typeof LojaSlugAcompanharRoute
   LojaSlugCarrinhoRoute: typeof LojaSlugCarrinhoRoute
   LojaSlugCheckoutRoute: typeof LojaSlugCheckoutRoute
   LojaSlugPedidoEnviadoRoute: typeof LojaSlugPedidoEnviadoRoute
@@ -1595,6 +1615,7 @@ interface LojaSlugRouteRouteChildren {
 }
 
 const LojaSlugRouteRouteChildren: LojaSlugRouteRouteChildren = {
+  LojaSlugAcompanharRoute: LojaSlugAcompanharRoute,
   LojaSlugCarrinhoRoute: LojaSlugCarrinhoRoute,
   LojaSlugCheckoutRoute: LojaSlugCheckoutRoute,
   LojaSlugPedidoEnviadoRoute: LojaSlugPedidoEnviadoRoute,
