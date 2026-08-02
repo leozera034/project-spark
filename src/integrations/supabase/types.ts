@@ -2342,6 +2342,14 @@ export type Database = {
         }
         Returns: Json
       }
+      activate_store_courier: {
+        Args: {
+          _courier_id: string
+          _expected_version: number
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_catalog_category: {
         Args: {
           _archived: boolean
@@ -2389,6 +2397,16 @@ export type Database = {
       }
       archive_store_neighborhood: {
         Args: { _archived: boolean; _id: string; _store_id: string }
+        Returns: Json
+      }
+      assign_delivery_courier: {
+        Args: {
+          _courier_id: string
+          _expected_delivery_version: number
+          _internal_note?: string
+          _order_id: string
+          _store_id: string
+        }
         Returns: Json
       }
       attach_option_group_to_product: {
@@ -2511,12 +2529,24 @@ export type Database = {
         }
         Returns: Json
       }
+      deactivate_store_courier: {
+        Args: {
+          _courier_id: string
+          _expected_version: number
+          _store_id: string
+        }
+        Returns: Json
+      }
       detach_option_group_from_product: {
         Args: {
           _option_group_id: string
           _product_id: string
           _store_id: string
         }
+        Returns: Json
+      }
+      get_courier_management_counts: {
+        Args: { _store_id: string }
         Returns: Json
       }
       get_my_auth_context: { Args: never; Returns: Json }
@@ -2528,6 +2558,10 @@ export type Database = {
       }
       get_my_store_configuration: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      get_my_store_courier_detail: {
+        Args: { _courier_id: string; _store_id: string }
         Returns: Json
       }
       get_my_store_order_counts: { Args: { _store_id?: string }; Returns: Json }
@@ -2547,8 +2581,16 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      get_store_delivery_assignment: {
+        Args: { _order_id: string; _store_id: string }
+        Returns: Json
+      }
       get_store_operational_preview: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      list_eligible_couriers_for_delivery: {
+        Args: { _order_id: string; _store_id: string }
         Returns: Json
       }
       list_my_catalog_categories: {
@@ -2567,6 +2609,15 @@ export type Database = {
         Returns: Json
       }
       list_my_kitchen_orders: { Args: { _store_id?: string }; Returns: Json }
+      list_my_store_couriers: {
+        Args: {
+          _account?: string
+          _availability?: string
+          _presence?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       list_my_store_orders: {
         Args: {
           _cursor?: string
@@ -2618,6 +2669,17 @@ export type Database = {
       }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      reassign_delivery_courier: {
+        Args: {
+          _courier_id: string
+          _expected_delivery_version: number
+          _internal_note?: string
+          _order_id: string
+          _reason_code: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       reject_store_order: {
         Args: {
           _customer_message?: string
@@ -2861,6 +2923,17 @@ export type Database = {
           _expected_updated_at?: string
           _id: string
           _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_store_courier: {
+        Args: {
+          _can_accept_deliveries: boolean
+          _courier_id: string
+          _expected_version: number
+          _full_name: string
+          _phone: string
           _store_id: string
         }
         Returns: Json
