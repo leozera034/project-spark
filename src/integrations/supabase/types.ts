@@ -300,12 +300,70 @@ export type Database = {
           },
         ]
       }
+      courier_provisioning_intents: {
+        Row: {
+          courier_id: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          request_hash: string
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          courier_id?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          request_hash: string
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          courier_id?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          request_hash?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_intents_courier_same_store_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "courier_delivery_counts"
+            referencedColumns: ["courier_id", "store_id"]
+          },
+          {
+            foreignKeyName: "courier_intents_courier_same_store_fk"
+            columns: ["courier_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "couriers"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "courier_provisioning_intents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couriers: {
         Row: {
+          can_accept_deliveries: boolean
           created_at: string
+          deactivated_at: string | null
           full_name: string
           id: string
           is_online: boolean
+          last_seen_at: string | null
           phone: string
           plate: string | null
           status: Database["public"]["Enums"]["courier_status"]
@@ -313,12 +371,16 @@ export type Database = {
           updated_at: string
           user_id: string | null
           vehicle: string | null
+          version: number
         }
         Insert: {
+          can_accept_deliveries?: boolean
           created_at?: string
+          deactivated_at?: string | null
           full_name: string
           id?: string
           is_online?: boolean
+          last_seen_at?: string | null
           phone: string
           plate?: string | null
           status?: Database["public"]["Enums"]["courier_status"]
@@ -326,12 +388,16 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           vehicle?: string | null
+          version?: number
         }
         Update: {
+          can_accept_deliveries?: boolean
           created_at?: string
+          deactivated_at?: string | null
           full_name?: string
           id?: string
           is_online?: boolean
+          last_seen_at?: string | null
           phone?: string
           plate?: string | null
           status?: Database["public"]["Enums"]["courier_status"]
@@ -339,6 +405,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           vehicle?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -483,6 +550,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           assigned_at: string | null
+          assigned_by_user_id: string | null
           cancelled_at: string | null
           completed_at: string | null
           courier_id: string | null
@@ -491,14 +559,17 @@ export type Database = {
           notes: string | null
           order_id: string
           picked_up_at: string | null
+          reason_code: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["delivery_status"]
           store_id: string
           updated_at: string
+          version: number
         }
         Insert: {
           accepted_at?: string | null
           assigned_at?: string | null
+          assigned_by_user_id?: string | null
           cancelled_at?: string | null
           completed_at?: string | null
           courier_id?: string | null
@@ -507,14 +578,17 @@ export type Database = {
           notes?: string | null
           order_id: string
           picked_up_at?: string | null
+          reason_code?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["delivery_status"]
           store_id: string
           updated_at?: string
+          version?: number
         }
         Update: {
           accepted_at?: string | null
           assigned_at?: string | null
+          assigned_by_user_id?: string | null
           cancelled_at?: string | null
           completed_at?: string | null
           courier_id?: string | null
@@ -523,12 +597,21 @@ export type Database = {
           notes?: string | null
           order_id?: string
           picked_up_at?: string | null
+          reason_code?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["delivery_status"]
           store_id?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "deliveries_assigned_by_user_id_fkey"
+            columns: ["assigned_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "deliveries_courier_same_store_fk"
             columns: ["courier_id", "store_id"]
@@ -561,36 +644,48 @@ export type Database = {
       }
       delivery_events: {
         Row: {
+          actor_user_id: string | null
           courier_id: string | null
           created_at: string
           delivery_id: string
+          delivery_version: number | null
           description: string | null
           id: string
           kind: Database["public"]["Enums"]["delivery_event_type"]
           latitude: number | null
           longitude: number | null
+          previous_courier_id: string | null
+          reason_code: string | null
           store_id: string
         }
         Insert: {
+          actor_user_id?: string | null
           courier_id?: string | null
           created_at?: string
           delivery_id: string
+          delivery_version?: number | null
           description?: string | null
           id?: string
           kind: Database["public"]["Enums"]["delivery_event_type"]
           latitude?: number | null
           longitude?: number | null
+          previous_courier_id?: string | null
+          reason_code?: string | null
           store_id: string
         }
         Update: {
+          actor_user_id?: string | null
           courier_id?: string | null
           created_at?: string
           delivery_id?: string
+          delivery_version?: number | null
           description?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["delivery_event_type"]
           latitude?: number | null
           longitude?: number | null
+          previous_courier_id?: string | null
+          reason_code?: string | null
           store_id?: string
         }
         Relationships: [
@@ -1837,28 +1932,34 @@ export type Database = {
       store_order_realtime_events: {
         Row: {
           created_at: string
+          entity_id: string | null
+          entity_type: string
           event_type: string
           expires_at: string
           id: string
-          order_id: string
+          order_id: string | null
           status_version: number
           store_id: string
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string
           event_type: string
           expires_at?: string
           id?: string
-          order_id: string
+          order_id?: string | null
           status_version?: number
           store_id: string
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string
           event_type?: string
           expires_at?: string
           id?: string
-          order_id?: string
+          order_id?: string | null
           status_version?: number
           store_id?: string
         }
@@ -2241,6 +2342,14 @@ export type Database = {
         }
         Returns: Json
       }
+      activate_store_courier: {
+        Args: {
+          _courier_id: string
+          _expected_version: number
+          _store_id: string
+        }
+        Returns: Json
+      }
       archive_catalog_category: {
         Args: {
           _archived: boolean
@@ -2288,6 +2397,16 @@ export type Database = {
       }
       archive_store_neighborhood: {
         Args: { _archived: boolean; _id: string; _store_id: string }
+        Returns: Json
+      }
+      assign_delivery_courier: {
+        Args: {
+          _courier_id: string
+          _expected_delivery_version: number
+          _internal_note?: string
+          _order_id: string
+          _store_id: string
+        }
         Returns: Json
       }
       attach_option_group_to_product: {
@@ -2410,12 +2529,24 @@ export type Database = {
         }
         Returns: Json
       }
+      deactivate_store_courier: {
+        Args: {
+          _courier_id: string
+          _expected_version: number
+          _store_id: string
+        }
+        Returns: Json
+      }
       detach_option_group_from_product: {
         Args: {
           _option_group_id: string
           _product_id: string
           _store_id: string
         }
+        Returns: Json
+      }
+      get_courier_management_counts: {
+        Args: { _store_id: string }
         Returns: Json
       }
       get_my_auth_context: { Args: never; Returns: Json }
@@ -2427,6 +2558,10 @@ export type Database = {
       }
       get_my_store_configuration: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      get_my_store_courier_detail: {
+        Args: { _courier_id: string; _store_id: string }
         Returns: Json
       }
       get_my_store_order_counts: { Args: { _store_id?: string }; Returns: Json }
@@ -2446,8 +2581,16 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      get_store_delivery_assignment: {
+        Args: { _order_id: string; _store_id: string }
+        Returns: Json
+      }
       get_store_operational_preview: {
         Args: { _store_id?: string }
+        Returns: Json
+      }
+      list_eligible_couriers_for_delivery: {
+        Args: { _order_id: string; _store_id: string }
         Returns: Json
       }
       list_my_catalog_categories: {
@@ -2466,6 +2609,15 @@ export type Database = {
         Returns: Json
       }
       list_my_kitchen_orders: { Args: { _store_id?: string }; Returns: Json }
+      list_my_store_couriers: {
+        Args: {
+          _account?: string
+          _availability?: string
+          _presence?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       list_my_store_orders: {
         Args: {
           _cursor?: string
@@ -2517,6 +2669,17 @@ export type Database = {
       }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      reassign_delivery_courier: {
+        Args: {
+          _courier_id: string
+          _expected_delivery_version: number
+          _internal_note?: string
+          _order_id: string
+          _reason_code: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       reject_store_order: {
         Args: {
           _customer_message?: string
@@ -2760,6 +2923,17 @@ export type Database = {
           _expected_updated_at?: string
           _id: string
           _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_store_courier: {
+        Args: {
+          _can_accept_deliveries: boolean
+          _courier_id: string
+          _expected_version: number
+          _full_name: string
+          _phone: string
           _store_id: string
         }
         Returns: Json
