@@ -5,13 +5,13 @@ import {
   listPlatformStores, 
   adminSuspendStore, 
   adminReactivateStore 
-} from "../platform-admin.functions";
+} from "@/lib/platform-admin.functions";
 
 export function usePlatformHealth() {
   const fetchHealth = useServerFn(getPlatformHealth);
   return useQuery({
     queryKey: ['platform', 'health'],
-    queryFn: () => fetchHealth(),
+    queryFn: () => fetchHealth({ data: undefined }),
     refetchInterval: 60000, // 1 minute
   });
 }
