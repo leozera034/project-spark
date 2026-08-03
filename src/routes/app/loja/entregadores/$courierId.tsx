@@ -7,6 +7,7 @@ import {
   useResetCourierAccess
 } from "@/store/couriers/hooks/useCouriers";
 import { useAuth } from "@/auth/useAuth";
+import type { CourierHistoryEntry } from "@/store/couriers/courier.types";
 import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
@@ -245,7 +246,7 @@ function CourierDetailPage() {
                 </div>
               ) : (
                 <div className="divide-y border-t">
-                  {courier.history.map((entry, idx) => (
+                  {courier.history.map((entry: CourierHistoryEntry, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-4 text-sm">
                       <div className="min-w-[140px] text-muted-foreground">
                         {new Date(entry.occurredAt).toLocaleString("pt-BR")}
@@ -305,7 +306,7 @@ function CourierDetailPage() {
                       <Badge variant="brand" className="text-[10px]">{courier.currentAssignment.deliveryStatus}</Badge>
                     </div>
                     <Button asChild variant="link" size="sm" className="h-auto p-0 text-xs">
-                      <Link to={`/app/loja/pedidos/${courier.currentAssignment.deliveryId}`}>Ver Entrega</Link>
+                      <Link to="/app/loja/pedidos" search={{ open: courier.currentAssignment.deliveryId }}>Ver Entrega</Link>
                     </Button>
                   </div>
                 ) : (

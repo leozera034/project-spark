@@ -584,3 +584,35 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** há uma pequena espera visível ao tocar na ação.
 - **Riscos evitados:** duplo preparo; conflito silencioso; retentativa cega.
 - **Status:** aprovada
+
+### D-075 — Token de acompanhamento no fragmento da URL
+- **Data:** 2026-08-04
+- **Decisão:** o token de acompanhamento do pedido (#tracking_token) é movido para o fragmento da URL, nunca no caminho (path).
+- **Motivo:** o fragmento não é enviado ao servidor em cada requisição de assets, prevenindo vazamento do segredo em logs de infraestrutura ou de redirecionamento.
+- **Consequência:** o cliente lê o token via window.location.hash e o envia manualmente na cotação.
+- **Riscos evitados:** exposição do segredo do pedido em logs de servidor e proxies.
+- **Status:** aprovada
+
+### D-076 — Heartbeat de presença a cada 120 segundos
+- **Data:** 2026-08-04
+- **Decisão:** o entregador online envia um sinal de vida (heartbeat) ao banco a cada 120 segundos.
+- **Motivo:** manter a visibilidade operacional da loja sem sobrecarregar o banco com frequências maiores (ex: 30s).
+- **Consequência:** um entregador é considerado "sem sinal" após 150 segundos sem atividade.
+- **Riscos evitados:** ocupação desnecessária de conexões; indicação de disponibilidade para quem perdeu conexão.
+- **Status:** aprovada
+
+### D-077 — Idempotência obrigatória com UUIDv4 gerado no cliente
+- **Data:** 2026-08-04
+- **Decisão:** toda ação operacional do entregador (aceite, coleta, início, fim) exige um idempotency_key (UUIDv4) gerado na interface.
+- **Motivo:** garantir que reconexões automáticas ou toques duplos não executem a transição duas vezes ou gerem erros falsos.
+- **Consequência:** o banco armazena as chaves processadas recentemente e devolve o resultado original para chaves repetidas.
+- **Riscos evitados:** aceites duplicados; erro de versão em retentativa transparente.
+- **Status:** aprovada
+
+### D-078 — Localização do cliente por bairro, nunca coordenada GPS (MVP)
+- **Data:** 2026-08-04
+- **Decisão:** a navegação do entregador para o destino usa o endereço textual e o bairro selecionado; coordenadas lat/lng não são coletadas no checkout nem exibidas no painel.
+- **Motivo:** simplificar o escopo e evitar dependência de APIs de geocodificação ou sensores de GPS do cliente no MVP.
+- **Consequência:** o botão "Mapa" faz uma busca textual por endereço + bairro + cidade.
+- **Riscos evitados:** endereço impreciso por GPS mal calibrado; custo de API de mapas.
+- **Status:** aprovada
