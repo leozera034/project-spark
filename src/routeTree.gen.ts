@@ -81,6 +81,7 @@ import { Route as AppLojaConfiguracoesDadosRouteImport } from './routes/app/loja
 import { Route as AppLojaConfiguracoesHorariosRouteImport } from './routes/app/loja/configuracoes/horarios'
 import { Route as AppLojaConfiguracoesIdentidadeRouteImport } from './routes/app/loja/configuracoes/identidade'
 import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app/loja/configuracoes/pagamentos'
+import { Route as AppLojaEntregadoresNovoRouteImport } from './routes/app/loja/entregadores/novo'
 import { Route as PreviewClienteEnderecoIndexRouteImport } from './routes/preview/cliente/endereco/index'
 import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview/cliente/endereco/novo'
 import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
@@ -469,6 +470,11 @@ const AppLojaConfiguracoesPagamentosRoute =
     path: '/pagamentos',
     getParentRoute: () => AppLojaConfiguracoesRoute,
   } as any)
+const AppLojaEntregadoresNovoRoute = AppLojaEntregadoresNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => AppLojaEntregadoresRoute,
+} as any)
 const PreviewClienteEnderecoIndexRoute =
   PreviewClienteEnderecoIndexRouteImport.update({
     id: '/endereco/',
@@ -575,7 +581,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
-  '/app/loja/entregadores': typeof AppLojaEntregadoresRoute
+  '/app/loja/entregadores': typeof AppLojaEntregadoresRouteWithChildren
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
+  '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
   '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
@@ -651,7 +658,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
-  '/app/loja/entregadores': typeof AppLojaEntregadoresRoute
+  '/app/loja/entregadores': typeof AppLojaEntregadoresRouteWithChildren
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -695,6 +702,7 @@ export interface FileRoutesByTo {
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
+  '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
   '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
@@ -739,7 +747,7 @@ export interface FileRoutesById {
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
-  '/app/loja/entregadores': typeof AppLojaEntregadoresRoute
+  '/app/loja/entregadores': typeof AppLojaEntregadoresRouteWithChildren
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
@@ -783,6 +791,7 @@ export interface FileRoutesById {
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
+  '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
   '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
@@ -872,6 +881,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
+    | '/app/loja/entregadores/novo'
     | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
@@ -948,6 +958,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
+    | '/app/loja/entregadores/novo'
     | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
@@ -1035,6 +1046,7 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
+    | '/app/loja/entregadores/novo'
     | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
@@ -1579,6 +1591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaConfiguracoesPagamentosRouteImport
       parentRoute: typeof AppLojaConfiguracoesRoute
     }
+    '/app/loja/entregadores/novo': {
+      id: '/app/loja/entregadores/novo'
+      path: '/novo'
+      fullPath: '/app/loja/entregadores/novo'
+      preLoaderRoute: typeof AppLojaEntregadoresNovoRouteImport
+      parentRoute: typeof AppLojaEntregadoresRoute
+    }
     '/preview/cliente/endereco/': {
       id: '/preview/cliente/endereco/'
       path: '/endereco'
@@ -1884,11 +1903,22 @@ const AppLojaConfiguracoesRouteChildren: AppLojaConfiguracoesRouteChildren = {
 const AppLojaConfiguracoesRouteWithChildren =
   AppLojaConfiguracoesRoute._addFileChildren(AppLojaConfiguracoesRouteChildren)
 
+interface AppLojaEntregadoresRouteChildren {
+  AppLojaEntregadoresNovoRoute: typeof AppLojaEntregadoresNovoRoute
+}
+
+const AppLojaEntregadoresRouteChildren: AppLojaEntregadoresRouteChildren = {
+  AppLojaEntregadoresNovoRoute: AppLojaEntregadoresNovoRoute,
+}
+
+const AppLojaEntregadoresRouteWithChildren =
+  AppLojaEntregadoresRoute._addFileChildren(AppLojaEntregadoresRouteChildren)
+
 interface AppLojaRouteChildren {
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
   AppLojaCozinhaRoute: typeof AppLojaCozinhaRoute
-  AppLojaEntregadoresRoute: typeof AppLojaEntregadoresRoute
+  AppLojaEntregadoresRoute: typeof AppLojaEntregadoresRouteWithChildren
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
 }
@@ -1897,7 +1927,7 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
   AppLojaCozinhaRoute: AppLojaCozinhaRoute,
-  AppLojaEntregadoresRoute: AppLojaEntregadoresRoute,
+  AppLojaEntregadoresRoute: AppLojaEntregadoresRouteWithChildren,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
 }
