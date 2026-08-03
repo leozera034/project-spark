@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/auth/useAuth";
 import { useCourierList, useCourierCounts } from "@/store/couriers/hooks/useCouriers";
@@ -24,7 +24,7 @@ import {
   CardTitle,
   CardDescription 
 } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
+import { derivePresence, PRESENCE_LABEL, availabilityLabel } from "@/store/couriers/courier.formatters";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
