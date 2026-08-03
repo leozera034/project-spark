@@ -104,12 +104,16 @@ export function useDeactivateCourier() {
 export function useResetCourierAccess() {
   const resetFn = useServerFn(resetCourierAccess);
   return useMutation({
-    mutationFn: resetFn,
+    mutationFn: (variables: { data: { courier_id: string } }) => resetFn(variables),
     onSuccess: () => {
       toast.success("Acesso redefinido com sucesso.");
     },
+    onError: (error) => {
+      toast.error(toFriendlyMessage(error));
+    },
   });
 }
+
 
 export function useEligibleCouriers(storeId: string | null, orderId: string) {
   return useQuery({
