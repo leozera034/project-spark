@@ -339,14 +339,18 @@ function CourierDashboard() {
           <Bike className="h-6 w-6" />
           <span className="text-[10px] font-bold">Início</span>
         </Link>
-        <Link to="/preview/entregador/historico" className="flex flex-col items-center gap-1 text-muted-foreground pointer-events-none opacity-50">
+        <Link to="/app/entregador/historico" className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-brand">
           <History className="h-6 w-6" />
           <span className="text-[10px] font-bold">Histórico</span>
         </Link>
-        <Link to="/preview/entregador/configuracoes" className="flex flex-col items-center gap-1 text-muted-foreground pointer-events-none opacity-50">
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-destructive"
+        >
           <User className="h-6 w-6" />
-          <span className="text-[10px] font-bold">Perfil</span>
-        </Link>
+          <span className="text-[10px] font-bold">Sair</span>
+        </button>
       </nav>
     </div>
   );

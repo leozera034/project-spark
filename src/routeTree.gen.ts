@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
-import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
@@ -27,14 +26,10 @@ import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
 import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
-import { Route as PreviewIndexRouteImport } from './routes/preview/index'
-import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
-import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
 import { Route as PreviewDemoRouteImport } from './routes/preview/demo'
-import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
-import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
 import { Route as AppEntregadorEntregaRouteImport } from './routes/app/entregador/entrega'
+import { Route as AppEntregadorHistoricoRouteImport } from './routes/app/entregador/historico'
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
@@ -46,32 +41,6 @@ import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acom
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
 import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
 import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
-import { Route as PreviewAdminIndexRouteImport } from './routes/preview/admin/index'
-import { Route as PreviewAdminAuditoriaRouteImport } from './routes/preview/admin/auditoria'
-import { Route as PreviewAdminCobrancasRouteImport } from './routes/preview/admin/cobrancas'
-import { Route as PreviewAdminLojasRouteImport } from './routes/preview/admin/lojas'
-import { Route as PreviewAdminPlanosRouteImport } from './routes/preview/admin/planos'
-import { Route as PreviewAdminSuporteRouteImport } from './routes/preview/admin/suporte'
-import { Route as PreviewAdminUsuariosRouteImport } from './routes/preview/admin/usuarios'
-import { Route as PreviewClienteIndexRouteImport } from './routes/preview/cliente/index'
-import { Route as PreviewClienteAcompanhamentoRouteImport } from './routes/preview/cliente/acompanhamento'
-import { Route as PreviewClienteCardapioRouteImport } from './routes/preview/cliente/cardapio'
-import { Route as PreviewClienteCarrinhoRouteImport } from './routes/preview/cliente/carrinho'
-import { Route as PreviewClienteCheckoutRouteImport } from './routes/preview/cliente/checkout'
-import { Route as PreviewClienteConfirmacaoRouteImport } from './routes/preview/cliente/confirmacao'
-import { Route as PreviewClienteIdentificacaoRouteImport } from './routes/preview/cliente/identificacao'
-import { Route as PreviewClienteModalidadeRouteImport } from './routes/preview/cliente/modalidade'
-import { Route as PreviewEntregadorIndexRouteImport } from './routes/preview/entregador/index'
-import { Route as PreviewEntregadorHistoricoRouteImport } from './routes/preview/entregador/historico'
-import { Route as PreviewEntregadorRotaRouteImport } from './routes/preview/entregador/rota'
-import { Route as PreviewLojaIndexRouteImport } from './routes/preview/loja/index'
-import { Route as PreviewLojaCardapioRouteImport } from './routes/preview/loja/cardapio'
-import { Route as PreviewLojaConfiguracoesRouteImport } from './routes/preview/loja/configuracoes'
-import { Route as PreviewLojaCozinhaRouteImport } from './routes/preview/loja/cozinha'
-import { Route as PreviewLojaEntregadoresRouteImport } from './routes/preview/loja/entregadores'
-import { Route as PreviewLojaEquipeRouteImport } from './routes/preview/loja/equipe'
-import { Route as PreviewLojaPedidosRouteImport } from './routes/preview/loja/pedidos'
-import { Route as PreviewLojaRelatoriosRouteImport } from './routes/preview/loja/relatorios'
 import { Route as ApiPublicStorefrontSlugRouteImport } from './routes/api/public/storefront/$slug'
 import { Route as AppLojaCardapioIndexRouteImport } from './routes/app/loja/cardapio/index'
 import { Route as AppLojaCardapioCategoriasRouteImport } from './routes/app/loja/cardapio/categorias'
@@ -85,8 +54,6 @@ import { Route as AppLojaConfiguracoesIdentidadeRouteImport } from './routes/app
 import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app/loja/configuracoes/pagamentos'
 import { Route as AppLojaEntregadoresCourierIdRouteImport } from './routes/app/loja/entregadores/$courierId'
 import { Route as AppLojaEntregadoresNovoRouteImport } from './routes/app/loja/entregadores/novo'
-import { Route as PreviewClienteEnderecoIndexRouteImport } from './routes/preview/cliente/endereco/index'
-import { Route as PreviewClienteEnderecoNovoRouteImport } from './routes/preview/cliente/endereco/novo'
 import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
 import { Route as ApiPublicStorefrontSlugPagamentosRouteImport } from './routes/api/public/storefront/$slug/pagamentos'
 import { Route as ApiPublicStorefrontSlugPedidosRouteImport } from './routes/api/public/storefront/$slug/pedidos'
@@ -118,11 +85,6 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
 const LojaRoute = LojaRouteImport.update({
   id: '/loja',
   path: '/loja',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewRoute = PreviewRouteImport.update({
-  id: '/preview',
-  path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecuperarAcessoRoute = RecuperarAcessoRouteImport.update({
@@ -190,35 +152,10 @@ const PedidoSplatRoute = PedidoSplatRouteImport.update({
   path: '/pedido/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreviewIndexRoute = PreviewIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const PreviewAdminRoute = PreviewAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const PreviewClienteRoute = PreviewClienteRouteImport.update({
-  id: '/cliente',
-  path: '/cliente',
-  getParentRoute: () => PreviewRoute,
-} as any)
 const PreviewDemoRoute = PreviewDemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const PreviewEntregadorRoute = PreviewEntregadorRouteImport.update({
-  id: '/entregador',
-  path: '/entregador',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const PreviewLojaRoute = PreviewLojaRouteImport.update({
-  id: '/loja',
-  path: '/loja',
-  getParentRoute: () => PreviewRoute,
+  id: '/preview/demo',
+  path: '/preview/demo',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
   id: '/',
@@ -228,6 +165,11 @@ const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
 const AppEntregadorEntregaRoute = AppEntregadorEntregaRouteImport.update({
   id: '/entrega',
   path: '/entrega',
+  getParentRoute: () => AppEntregadorRoute,
+} as any)
+const AppEntregadorHistoricoRoute = AppEntregadorHistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
   getParentRoute: () => AppEntregadorRoute,
 } as any)
 const AppLojaIndexRoute = AppLojaIndexRouteImport.update({
@@ -284,142 +226,6 @@ const LojaSlugPedidoEnviadoRoute = LojaSlugPedidoEnviadoRouteImport.update({
   id: '/pedido-enviado',
   path: '/pedido-enviado',
   getParentRoute: () => LojaSlugRouteRoute,
-} as any)
-const PreviewAdminIndexRoute = PreviewAdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminAuditoriaRoute = PreviewAdminAuditoriaRouteImport.update({
-  id: '/auditoria',
-  path: '/auditoria',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminCobrancasRoute = PreviewAdminCobrancasRouteImport.update({
-  id: '/cobrancas',
-  path: '/cobrancas',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminLojasRoute = PreviewAdminLojasRouteImport.update({
-  id: '/lojas',
-  path: '/lojas',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminPlanosRoute = PreviewAdminPlanosRouteImport.update({
-  id: '/planos',
-  path: '/planos',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminSuporteRoute = PreviewAdminSuporteRouteImport.update({
-  id: '/suporte',
-  path: '/suporte',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewAdminUsuariosRoute = PreviewAdminUsuariosRouteImport.update({
-  id: '/usuarios',
-  path: '/usuarios',
-  getParentRoute: () => PreviewAdminRoute,
-} as any)
-const PreviewClienteIndexRoute = PreviewClienteIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewClienteRoute,
-} as any)
-const PreviewClienteAcompanhamentoRoute =
-  PreviewClienteAcompanhamentoRouteImport.update({
-    id: '/acompanhamento',
-    path: '/acompanhamento',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
-const PreviewClienteCardapioRoute = PreviewClienteCardapioRouteImport.update({
-  id: '/cardapio',
-  path: '/cardapio',
-  getParentRoute: () => PreviewClienteRoute,
-} as any)
-const PreviewClienteCarrinhoRoute = PreviewClienteCarrinhoRouteImport.update({
-  id: '/carrinho',
-  path: '/carrinho',
-  getParentRoute: () => PreviewClienteRoute,
-} as any)
-const PreviewClienteCheckoutRoute = PreviewClienteCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => PreviewClienteRoute,
-} as any)
-const PreviewClienteConfirmacaoRoute =
-  PreviewClienteConfirmacaoRouteImport.update({
-    id: '/confirmacao',
-    path: '/confirmacao',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
-const PreviewClienteIdentificacaoRoute =
-  PreviewClienteIdentificacaoRouteImport.update({
-    id: '/identificacao',
-    path: '/identificacao',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
-const PreviewClienteModalidadeRoute =
-  PreviewClienteModalidadeRouteImport.update({
-    id: '/modalidade',
-    path: '/modalidade',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
-const PreviewEntregadorIndexRoute = PreviewEntregadorIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewEntregadorRoute,
-} as any)
-const PreviewEntregadorHistoricoRoute =
-  PreviewEntregadorHistoricoRouteImport.update({
-    id: '/historico',
-    path: '/historico',
-    getParentRoute: () => PreviewEntregadorRoute,
-  } as any)
-const PreviewEntregadorRotaRoute = PreviewEntregadorRotaRouteImport.update({
-  id: '/rota',
-  path: '/rota',
-  getParentRoute: () => PreviewEntregadorRoute,
-} as any)
-const PreviewLojaIndexRoute = PreviewLojaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaCardapioRoute = PreviewLojaCardapioRouteImport.update({
-  id: '/cardapio',
-  path: '/cardapio',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaConfiguracoesRoute =
-  PreviewLojaConfiguracoesRouteImport.update({
-    id: '/configuracoes',
-    path: '/configuracoes',
-    getParentRoute: () => PreviewLojaRoute,
-  } as any)
-const PreviewLojaCozinhaRoute = PreviewLojaCozinhaRouteImport.update({
-  id: '/cozinha',
-  path: '/cozinha',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaEntregadoresRoute = PreviewLojaEntregadoresRouteImport.update({
-  id: '/entregadores',
-  path: '/entregadores',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaEquipeRoute = PreviewLojaEquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaPedidosRoute = PreviewLojaPedidosRouteImport.update({
-  id: '/pedidos',
-  path: '/pedidos',
-  getParentRoute: () => PreviewLojaRoute,
-} as any)
-const PreviewLojaRelatoriosRoute = PreviewLojaRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => PreviewLojaRoute,
 } as any)
 const ApiPublicStorefrontSlugRoute = ApiPublicStorefrontSlugRouteImport.update({
   id: '/api/public/storefront/$slug',
@@ -495,18 +301,6 @@ const AppLojaEntregadoresNovoRoute = AppLojaEntregadoresNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => AppLojaEntregadoresRoute,
 } as any)
-const PreviewClienteEnderecoIndexRoute =
-  PreviewClienteEnderecoIndexRouteImport.update({
-    id: '/endereco/',
-    path: '/endereco/',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
-const PreviewClienteEnderecoNovoRoute =
-  PreviewClienteEnderecoNovoRouteImport.update({
-    id: '/endereco/novo',
-    path: '/endereco/novo',
-    getParentRoute: () => PreviewClienteRoute,
-  } as any)
 const ApiPublicStorefrontSlugAtendimentoRoute =
   ApiPublicStorefrontSlugAtendimentoRouteImport.update({
     id: '/atendimento',
@@ -585,7 +379,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
-  '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
@@ -598,14 +391,10 @@ export interface FileRoutesByFullPath {
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
   '/pedido/$': typeof PedidoSplatRoute
-  '/preview/admin': typeof PreviewAdminRouteWithChildren
-  '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/demo': typeof PreviewDemoRoute
-  '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
-  '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
-  '/preview/': typeof PreviewIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
+  '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
@@ -615,35 +404,9 @@ export interface FileRoutesByFullPath {
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
-  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
-  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
-  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
-  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
-  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
-  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
-  '/preview/cliente/acompanhamento': typeof PreviewClienteAcompanhamentoRoute
-  '/preview/cliente/cardapio': typeof PreviewClienteCardapioRoute
-  '/preview/cliente/carrinho': typeof PreviewClienteCarrinhoRoute
-  '/preview/cliente/checkout': typeof PreviewClienteCheckoutRoute
-  '/preview/cliente/confirmacao': typeof PreviewClienteConfirmacaoRoute
-  '/preview/cliente/identificacao': typeof PreviewClienteIdentificacaoRoute
-  '/preview/cliente/modalidade': typeof PreviewClienteModalidadeRoute
-  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
-  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
-  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
-  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
-  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
-  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
-  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
-  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
-  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/$slug/': typeof LojaSlugIndexRoute
-  '/preview/admin/': typeof PreviewAdminIndexRoute
-  '/preview/cliente/': typeof PreviewClienteIndexRoute
-  '/preview/entregador/': typeof PreviewEntregadorIndexRoute
-  '/preview/loja/': typeof PreviewLojaIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
@@ -655,10 +418,8 @@ export interface FileRoutesByFullPath {
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/app/loja/entregadores/$courierId': typeof AppLojaEntregadoresCourierIdRoute
   '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
-  '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
-  '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
@@ -687,8 +448,8 @@ export interface FileRoutesByTo {
   '/pedido/$': typeof PedidoSplatRoute
   '/preview/demo': typeof PreviewDemoRoute
   '/admin': typeof AdminIndexRoute
-  '/preview': typeof PreviewIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
+  '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/entregadores': typeof AppLojaEntregadoresRouteWithChildren
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
@@ -696,35 +457,9 @@ export interface FileRoutesByTo {
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
-  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
-  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
-  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
-  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
-  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
-  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
-  '/preview/cliente/acompanhamento': typeof PreviewClienteAcompanhamentoRoute
-  '/preview/cliente/cardapio': typeof PreviewClienteCardapioRoute
-  '/preview/cliente/carrinho': typeof PreviewClienteCarrinhoRoute
-  '/preview/cliente/checkout': typeof PreviewClienteCheckoutRoute
-  '/preview/cliente/confirmacao': typeof PreviewClienteConfirmacaoRoute
-  '/preview/cliente/identificacao': typeof PreviewClienteIdentificacaoRoute
-  '/preview/cliente/modalidade': typeof PreviewClienteModalidadeRoute
-  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
-  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
-  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
-  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
-  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
-  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
-  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
-  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
-  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/app/entregador': typeof AppEntregadorIndexRoute
   '/app/loja': typeof AppLojaIndexRoute
   '/loja/$slug': typeof LojaSlugIndexRoute
-  '/preview/admin': typeof PreviewAdminIndexRoute
-  '/preview/cliente': typeof PreviewClienteIndexRoute
-  '/preview/entregador': typeof PreviewEntregadorIndexRoute
-  '/preview/loja': typeof PreviewLojaIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
@@ -736,10 +471,8 @@ export interface FileRoutesByTo {
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/app/loja/entregadores/$courierId': typeof AppLojaEntregadoresCourierIdRoute
   '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
-  '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
-  '/preview/cliente/endereco': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
@@ -759,7 +492,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
-  '/preview': typeof PreviewRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sem-acesso': typeof SemAcessoRoute
@@ -772,14 +504,10 @@ export interface FileRoutesById {
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
   '/pedido/$': typeof PedidoSplatRoute
-  '/preview/admin': typeof PreviewAdminRouteWithChildren
-  '/preview/cliente': typeof PreviewClienteRouteWithChildren
   '/preview/demo': typeof PreviewDemoRoute
-  '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
-  '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
-  '/preview/': typeof PreviewIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
+  '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
@@ -789,35 +517,9 @@ export interface FileRoutesById {
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
-  '/preview/admin/auditoria': typeof PreviewAdminAuditoriaRoute
-  '/preview/admin/cobrancas': typeof PreviewAdminCobrancasRoute
-  '/preview/admin/lojas': typeof PreviewAdminLojasRoute
-  '/preview/admin/planos': typeof PreviewAdminPlanosRoute
-  '/preview/admin/suporte': typeof PreviewAdminSuporteRoute
-  '/preview/admin/usuarios': typeof PreviewAdminUsuariosRoute
-  '/preview/cliente/acompanhamento': typeof PreviewClienteAcompanhamentoRoute
-  '/preview/cliente/cardapio': typeof PreviewClienteCardapioRoute
-  '/preview/cliente/carrinho': typeof PreviewClienteCarrinhoRoute
-  '/preview/cliente/checkout': typeof PreviewClienteCheckoutRoute
-  '/preview/cliente/confirmacao': typeof PreviewClienteConfirmacaoRoute
-  '/preview/cliente/identificacao': typeof PreviewClienteIdentificacaoRoute
-  '/preview/cliente/modalidade': typeof PreviewClienteModalidadeRoute
-  '/preview/entregador/historico': typeof PreviewEntregadorHistoricoRoute
-  '/preview/entregador/rota': typeof PreviewEntregadorRotaRoute
-  '/preview/loja/cardapio': typeof PreviewLojaCardapioRoute
-  '/preview/loja/configuracoes': typeof PreviewLojaConfiguracoesRoute
-  '/preview/loja/cozinha': typeof PreviewLojaCozinhaRoute
-  '/preview/loja/entregadores': typeof PreviewLojaEntregadoresRoute
-  '/preview/loja/equipe': typeof PreviewLojaEquipeRoute
-  '/preview/loja/pedidos': typeof PreviewLojaPedidosRoute
-  '/preview/loja/relatorios': typeof PreviewLojaRelatoriosRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/$slug/': typeof LojaSlugIndexRoute
-  '/preview/admin/': typeof PreviewAdminIndexRoute
-  '/preview/cliente/': typeof PreviewClienteIndexRoute
-  '/preview/entregador/': typeof PreviewEntregadorIndexRoute
-  '/preview/loja/': typeof PreviewLojaIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
@@ -829,10 +531,8 @@ export interface FileRoutesById {
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
   '/app/loja/entregadores/$courierId': typeof AppLojaEntregadoresCourierIdRoute
   '/app/loja/entregadores/novo': typeof AppLojaEntregadoresNovoRoute
-  '/preview/cliente/endereco/novo': typeof PreviewClienteEnderecoNovoRoute
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
-  '/preview/cliente/endereco/': typeof PreviewClienteEnderecoIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
@@ -853,7 +553,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/design-system'
     | '/loja'
-    | '/preview'
     | '/recuperar-acesso'
     | '/redefinir-senha'
     | '/sem-acesso'
@@ -866,14 +565,10 @@ export interface FileRouteTypes {
     | '/entrar/entregador'
     | '/entrar/loja'
     | '/pedido/$'
-    | '/preview/admin'
-    | '/preview/cliente'
     | '/preview/demo'
-    | '/preview/entregador'
-    | '/preview/loja'
     | '/admin/'
-    | '/preview/'
     | '/app/entregador/entrega'
+    | '/app/entregador/historico'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
@@ -883,35 +578,9 @@ export interface FileRouteTypes {
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
-    | '/preview/admin/auditoria'
-    | '/preview/admin/cobrancas'
-    | '/preview/admin/lojas'
-    | '/preview/admin/planos'
-    | '/preview/admin/suporte'
-    | '/preview/admin/usuarios'
-    | '/preview/cliente/acompanhamento'
-    | '/preview/cliente/cardapio'
-    | '/preview/cliente/carrinho'
-    | '/preview/cliente/checkout'
-    | '/preview/cliente/confirmacao'
-    | '/preview/cliente/identificacao'
-    | '/preview/cliente/modalidade'
-    | '/preview/entregador/historico'
-    | '/preview/entregador/rota'
-    | '/preview/loja/cardapio'
-    | '/preview/loja/configuracoes'
-    | '/preview/loja/cozinha'
-    | '/preview/loja/entregadores'
-    | '/preview/loja/equipe'
-    | '/preview/loja/pedidos'
-    | '/preview/loja/relatorios'
     | '/app/entregador/'
     | '/app/loja/'
     | '/loja/$slug/'
-    | '/preview/admin/'
-    | '/preview/cliente/'
-    | '/preview/entregador/'
-    | '/preview/loja/'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
@@ -923,10 +592,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/pagamentos'
     | '/app/loja/entregadores/$courierId'
     | '/app/loja/entregadores/novo'
-    | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
-    | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
@@ -955,8 +622,8 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/preview/demo'
     | '/admin'
-    | '/preview'
     | '/app/entregador/entrega'
+    | '/app/entregador/historico'
     | '/app/loja/cozinha'
     | '/app/loja/entregadores'
     | '/app/loja/pedidos'
@@ -964,35 +631,9 @@ export interface FileRouteTypes {
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
-    | '/preview/admin/auditoria'
-    | '/preview/admin/cobrancas'
-    | '/preview/admin/lojas'
-    | '/preview/admin/planos'
-    | '/preview/admin/suporte'
-    | '/preview/admin/usuarios'
-    | '/preview/cliente/acompanhamento'
-    | '/preview/cliente/cardapio'
-    | '/preview/cliente/carrinho'
-    | '/preview/cliente/checkout'
-    | '/preview/cliente/confirmacao'
-    | '/preview/cliente/identificacao'
-    | '/preview/cliente/modalidade'
-    | '/preview/entregador/historico'
-    | '/preview/entregador/rota'
-    | '/preview/loja/cardapio'
-    | '/preview/loja/configuracoes'
-    | '/preview/loja/cozinha'
-    | '/preview/loja/entregadores'
-    | '/preview/loja/equipe'
-    | '/preview/loja/pedidos'
-    | '/preview/loja/relatorios'
     | '/app/entregador'
     | '/app/loja'
     | '/loja/$slug'
-    | '/preview/admin'
-    | '/preview/cliente'
-    | '/preview/entregador'
-    | '/preview/loja'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
@@ -1004,10 +645,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/pagamentos'
     | '/app/loja/entregadores/$courierId'
     | '/app/loja/entregadores/novo'
-    | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
-    | '/preview/cliente/endereco'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
@@ -1026,7 +665,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/design-system'
     | '/loja'
-    | '/preview'
     | '/recuperar-acesso'
     | '/redefinir-senha'
     | '/sem-acesso'
@@ -1039,14 +677,10 @@ export interface FileRouteTypes {
     | '/entrar/entregador'
     | '/entrar/loja'
     | '/pedido/$'
-    | '/preview/admin'
-    | '/preview/cliente'
     | '/preview/demo'
-    | '/preview/entregador'
-    | '/preview/loja'
     | '/admin/'
-    | '/preview/'
     | '/app/entregador/entrega'
+    | '/app/entregador/historico'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
@@ -1056,35 +690,9 @@ export interface FileRouteTypes {
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
-    | '/preview/admin/auditoria'
-    | '/preview/admin/cobrancas'
-    | '/preview/admin/lojas'
-    | '/preview/admin/planos'
-    | '/preview/admin/suporte'
-    | '/preview/admin/usuarios'
-    | '/preview/cliente/acompanhamento'
-    | '/preview/cliente/cardapio'
-    | '/preview/cliente/carrinho'
-    | '/preview/cliente/checkout'
-    | '/preview/cliente/confirmacao'
-    | '/preview/cliente/identificacao'
-    | '/preview/cliente/modalidade'
-    | '/preview/entregador/historico'
-    | '/preview/entregador/rota'
-    | '/preview/loja/cardapio'
-    | '/preview/loja/configuracoes'
-    | '/preview/loja/cozinha'
-    | '/preview/loja/entregadores'
-    | '/preview/loja/equipe'
-    | '/preview/loja/pedidos'
-    | '/preview/loja/relatorios'
     | '/app/entregador/'
     | '/app/loja/'
     | '/loja/$slug/'
-    | '/preview/admin/'
-    | '/preview/cliente/'
-    | '/preview/entregador/'
-    | '/preview/loja/'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
@@ -1096,10 +704,8 @@ export interface FileRouteTypes {
     | '/app/loja/configuracoes/pagamentos'
     | '/app/loja/entregadores/$courierId'
     | '/app/loja/entregadores/novo'
-    | '/preview/cliente/endereco/novo'
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
-    | '/preview/cliente/endereco/'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
@@ -1119,7 +725,6 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRouteWithChildren
-  PreviewRoute: typeof PreviewRouteWithChildren
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SemAcessoRoute: typeof SemAcessoRoute
@@ -1131,6 +736,7 @@ export interface RootRouteChildren {
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
   PedidoSplatRoute: typeof PedidoSplatRoute
+  PreviewDemoRoute: typeof PreviewDemoRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
   ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
@@ -1163,13 +769,6 @@ declare module '@tanstack/react-router' {
       path: '/loja'
       fullPath: '/loja'
       preLoaderRoute: typeof LojaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preview': {
-      id: '/preview'
-      path: '/preview'
-      fullPath: '/preview'
-      preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recuperar-acesso': {
@@ -1263,47 +862,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PedidoSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preview/': {
-      id: '/preview/'
-      path: '/'
-      fullPath: '/preview/'
-      preLoaderRoute: typeof PreviewIndexRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/preview/admin': {
-      id: '/preview/admin'
-      path: '/admin'
-      fullPath: '/preview/admin'
-      preLoaderRoute: typeof PreviewAdminRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/preview/cliente': {
-      id: '/preview/cliente'
-      path: '/cliente'
-      fullPath: '/preview/cliente'
-      preLoaderRoute: typeof PreviewClienteRouteImport
-      parentRoute: typeof PreviewRoute
-    }
     '/preview/demo': {
       id: '/preview/demo'
-      path: '/demo'
+      path: '/preview/demo'
       fullPath: '/preview/demo'
       preLoaderRoute: typeof PreviewDemoRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/preview/entregador': {
-      id: '/preview/entregador'
-      path: '/entregador'
-      fullPath: '/preview/entregador'
-      preLoaderRoute: typeof PreviewEntregadorRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/preview/loja': {
-      id: '/preview/loja'
-      path: '/loja'
-      fullPath: '/preview/loja'
-      preLoaderRoute: typeof PreviewLojaRouteImport
-      parentRoute: typeof PreviewRoute
+      parentRoute: typeof rootRouteImport
     }
     '/app/entregador/': {
       id: '/app/entregador/'
@@ -1317,6 +881,13 @@ declare module '@tanstack/react-router' {
       path: '/entrega'
       fullPath: '/app/entregador/entrega'
       preLoaderRoute: typeof AppEntregadorEntregaRouteImport
+      parentRoute: typeof AppEntregadorRoute
+    }
+    '/app/entregador/historico': {
+      id: '/app/entregador/historico'
+      path: '/historico'
+      fullPath: '/app/entregador/historico'
+      preLoaderRoute: typeof AppEntregadorHistoricoRouteImport
       parentRoute: typeof AppEntregadorRoute
     }
     '/app/loja/': {
@@ -1395,188 +966,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/loja/$slug/pedido-enviado'
       preLoaderRoute: typeof LojaSlugPedidoEnviadoRouteImport
       parentRoute: typeof LojaSlugRouteRoute
-    }
-    '/preview/admin/': {
-      id: '/preview/admin/'
-      path: '/'
-      fullPath: '/preview/admin/'
-      preLoaderRoute: typeof PreviewAdminIndexRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/auditoria': {
-      id: '/preview/admin/auditoria'
-      path: '/auditoria'
-      fullPath: '/preview/admin/auditoria'
-      preLoaderRoute: typeof PreviewAdminAuditoriaRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/cobrancas': {
-      id: '/preview/admin/cobrancas'
-      path: '/cobrancas'
-      fullPath: '/preview/admin/cobrancas'
-      preLoaderRoute: typeof PreviewAdminCobrancasRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/lojas': {
-      id: '/preview/admin/lojas'
-      path: '/lojas'
-      fullPath: '/preview/admin/lojas'
-      preLoaderRoute: typeof PreviewAdminLojasRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/planos': {
-      id: '/preview/admin/planos'
-      path: '/planos'
-      fullPath: '/preview/admin/planos'
-      preLoaderRoute: typeof PreviewAdminPlanosRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/suporte': {
-      id: '/preview/admin/suporte'
-      path: '/suporte'
-      fullPath: '/preview/admin/suporte'
-      preLoaderRoute: typeof PreviewAdminSuporteRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/admin/usuarios': {
-      id: '/preview/admin/usuarios'
-      path: '/usuarios'
-      fullPath: '/preview/admin/usuarios'
-      preLoaderRoute: typeof PreviewAdminUsuariosRouteImport
-      parentRoute: typeof PreviewAdminRoute
-    }
-    '/preview/cliente/': {
-      id: '/preview/cliente/'
-      path: '/'
-      fullPath: '/preview/cliente/'
-      preLoaderRoute: typeof PreviewClienteIndexRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/acompanhamento': {
-      id: '/preview/cliente/acompanhamento'
-      path: '/acompanhamento'
-      fullPath: '/preview/cliente/acompanhamento'
-      preLoaderRoute: typeof PreviewClienteAcompanhamentoRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/cardapio': {
-      id: '/preview/cliente/cardapio'
-      path: '/cardapio'
-      fullPath: '/preview/cliente/cardapio'
-      preLoaderRoute: typeof PreviewClienteCardapioRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/carrinho': {
-      id: '/preview/cliente/carrinho'
-      path: '/carrinho'
-      fullPath: '/preview/cliente/carrinho'
-      preLoaderRoute: typeof PreviewClienteCarrinhoRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/checkout': {
-      id: '/preview/cliente/checkout'
-      path: '/checkout'
-      fullPath: '/preview/cliente/checkout'
-      preLoaderRoute: typeof PreviewClienteCheckoutRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/confirmacao': {
-      id: '/preview/cliente/confirmacao'
-      path: '/confirmacao'
-      fullPath: '/preview/cliente/confirmacao'
-      preLoaderRoute: typeof PreviewClienteConfirmacaoRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/identificacao': {
-      id: '/preview/cliente/identificacao'
-      path: '/identificacao'
-      fullPath: '/preview/cliente/identificacao'
-      preLoaderRoute: typeof PreviewClienteIdentificacaoRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/modalidade': {
-      id: '/preview/cliente/modalidade'
-      path: '/modalidade'
-      fullPath: '/preview/cliente/modalidade'
-      preLoaderRoute: typeof PreviewClienteModalidadeRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/entregador/': {
-      id: '/preview/entregador/'
-      path: '/'
-      fullPath: '/preview/entregador/'
-      preLoaderRoute: typeof PreviewEntregadorIndexRouteImport
-      parentRoute: typeof PreviewEntregadorRoute
-    }
-    '/preview/entregador/historico': {
-      id: '/preview/entregador/historico'
-      path: '/historico'
-      fullPath: '/preview/entregador/historico'
-      preLoaderRoute: typeof PreviewEntregadorHistoricoRouteImport
-      parentRoute: typeof PreviewEntregadorRoute
-    }
-    '/preview/entregador/rota': {
-      id: '/preview/entregador/rota'
-      path: '/rota'
-      fullPath: '/preview/entregador/rota'
-      preLoaderRoute: typeof PreviewEntregadorRotaRouteImport
-      parentRoute: typeof PreviewEntregadorRoute
-    }
-    '/preview/loja/': {
-      id: '/preview/loja/'
-      path: '/'
-      fullPath: '/preview/loja/'
-      preLoaderRoute: typeof PreviewLojaIndexRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/cardapio': {
-      id: '/preview/loja/cardapio'
-      path: '/cardapio'
-      fullPath: '/preview/loja/cardapio'
-      preLoaderRoute: typeof PreviewLojaCardapioRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/configuracoes': {
-      id: '/preview/loja/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/preview/loja/configuracoes'
-      preLoaderRoute: typeof PreviewLojaConfiguracoesRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/cozinha': {
-      id: '/preview/loja/cozinha'
-      path: '/cozinha'
-      fullPath: '/preview/loja/cozinha'
-      preLoaderRoute: typeof PreviewLojaCozinhaRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/entregadores': {
-      id: '/preview/loja/entregadores'
-      path: '/entregadores'
-      fullPath: '/preview/loja/entregadores'
-      preLoaderRoute: typeof PreviewLojaEntregadoresRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/equipe': {
-      id: '/preview/loja/equipe'
-      path: '/equipe'
-      fullPath: '/preview/loja/equipe'
-      preLoaderRoute: typeof PreviewLojaEquipeRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/pedidos': {
-      id: '/preview/loja/pedidos'
-      path: '/pedidos'
-      fullPath: '/preview/loja/pedidos'
-      preLoaderRoute: typeof PreviewLojaPedidosRouteImport
-      parentRoute: typeof PreviewLojaRoute
-    }
-    '/preview/loja/relatorios': {
-      id: '/preview/loja/relatorios'
-      path: '/relatorios'
-      fullPath: '/preview/loja/relatorios'
-      preLoaderRoute: typeof PreviewLojaRelatoriosRouteImport
-      parentRoute: typeof PreviewLojaRoute
     }
     '/api/public/storefront/$slug': {
       id: '/api/public/storefront/$slug'
@@ -1668,20 +1057,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/loja/entregadores/novo'
       preLoaderRoute: typeof AppLojaEntregadoresNovoRouteImport
       parentRoute: typeof AppLojaEntregadoresRoute
-    }
-    '/preview/cliente/endereco/': {
-      id: '/preview/cliente/endereco/'
-      path: '/endereco'
-      fullPath: '/preview/cliente/endereco/'
-      preLoaderRoute: typeof PreviewClienteEnderecoIndexRouteImport
-      parentRoute: typeof PreviewClienteRoute
-    }
-    '/preview/cliente/endereco/novo': {
-      id: '/preview/cliente/endereco/novo'
-      path: '/endereco/novo'
-      fullPath: '/preview/cliente/endereco/novo'
-      preLoaderRoute: typeof PreviewClienteEnderecoNovoRouteImport
-      parentRoute: typeof PreviewClienteRoute
     }
     '/api/public/storefront/$slug/atendimento': {
       id: '/api/public/storefront/$slug/atendimento'
@@ -1810,129 +1185,15 @@ const LojaRouteChildren: LojaRouteChildren = {
 
 const LojaRouteWithChildren = LojaRoute._addFileChildren(LojaRouteChildren)
 
-interface PreviewAdminRouteChildren {
-  PreviewAdminAuditoriaRoute: typeof PreviewAdminAuditoriaRoute
-  PreviewAdminCobrancasRoute: typeof PreviewAdminCobrancasRoute
-  PreviewAdminLojasRoute: typeof PreviewAdminLojasRoute
-  PreviewAdminPlanosRoute: typeof PreviewAdminPlanosRoute
-  PreviewAdminSuporteRoute: typeof PreviewAdminSuporteRoute
-  PreviewAdminUsuariosRoute: typeof PreviewAdminUsuariosRoute
-  PreviewAdminIndexRoute: typeof PreviewAdminIndexRoute
-}
-
-const PreviewAdminRouteChildren: PreviewAdminRouteChildren = {
-  PreviewAdminAuditoriaRoute: PreviewAdminAuditoriaRoute,
-  PreviewAdminCobrancasRoute: PreviewAdminCobrancasRoute,
-  PreviewAdminLojasRoute: PreviewAdminLojasRoute,
-  PreviewAdminPlanosRoute: PreviewAdminPlanosRoute,
-  PreviewAdminSuporteRoute: PreviewAdminSuporteRoute,
-  PreviewAdminUsuariosRoute: PreviewAdminUsuariosRoute,
-  PreviewAdminIndexRoute: PreviewAdminIndexRoute,
-}
-
-const PreviewAdminRouteWithChildren = PreviewAdminRoute._addFileChildren(
-  PreviewAdminRouteChildren,
-)
-
-interface PreviewClienteRouteChildren {
-  PreviewClienteAcompanhamentoRoute: typeof PreviewClienteAcompanhamentoRoute
-  PreviewClienteCardapioRoute: typeof PreviewClienteCardapioRoute
-  PreviewClienteCarrinhoRoute: typeof PreviewClienteCarrinhoRoute
-  PreviewClienteCheckoutRoute: typeof PreviewClienteCheckoutRoute
-  PreviewClienteConfirmacaoRoute: typeof PreviewClienteConfirmacaoRoute
-  PreviewClienteIdentificacaoRoute: typeof PreviewClienteIdentificacaoRoute
-  PreviewClienteModalidadeRoute: typeof PreviewClienteModalidadeRoute
-  PreviewClienteIndexRoute: typeof PreviewClienteIndexRoute
-  PreviewClienteEnderecoNovoRoute: typeof PreviewClienteEnderecoNovoRoute
-  PreviewClienteEnderecoIndexRoute: typeof PreviewClienteEnderecoIndexRoute
-}
-
-const PreviewClienteRouteChildren: PreviewClienteRouteChildren = {
-  PreviewClienteAcompanhamentoRoute: PreviewClienteAcompanhamentoRoute,
-  PreviewClienteCardapioRoute: PreviewClienteCardapioRoute,
-  PreviewClienteCarrinhoRoute: PreviewClienteCarrinhoRoute,
-  PreviewClienteCheckoutRoute: PreviewClienteCheckoutRoute,
-  PreviewClienteConfirmacaoRoute: PreviewClienteConfirmacaoRoute,
-  PreviewClienteIdentificacaoRoute: PreviewClienteIdentificacaoRoute,
-  PreviewClienteModalidadeRoute: PreviewClienteModalidadeRoute,
-  PreviewClienteIndexRoute: PreviewClienteIndexRoute,
-  PreviewClienteEnderecoNovoRoute: PreviewClienteEnderecoNovoRoute,
-  PreviewClienteEnderecoIndexRoute: PreviewClienteEnderecoIndexRoute,
-}
-
-const PreviewClienteRouteWithChildren = PreviewClienteRoute._addFileChildren(
-  PreviewClienteRouteChildren,
-)
-
-interface PreviewEntregadorRouteChildren {
-  PreviewEntregadorHistoricoRoute: typeof PreviewEntregadorHistoricoRoute
-  PreviewEntregadorRotaRoute: typeof PreviewEntregadorRotaRoute
-  PreviewEntregadorIndexRoute: typeof PreviewEntregadorIndexRoute
-}
-
-const PreviewEntregadorRouteChildren: PreviewEntregadorRouteChildren = {
-  PreviewEntregadorHistoricoRoute: PreviewEntregadorHistoricoRoute,
-  PreviewEntregadorRotaRoute: PreviewEntregadorRotaRoute,
-  PreviewEntregadorIndexRoute: PreviewEntregadorIndexRoute,
-}
-
-const PreviewEntregadorRouteWithChildren =
-  PreviewEntregadorRoute._addFileChildren(PreviewEntregadorRouteChildren)
-
-interface PreviewLojaRouteChildren {
-  PreviewLojaCardapioRoute: typeof PreviewLojaCardapioRoute
-  PreviewLojaConfiguracoesRoute: typeof PreviewLojaConfiguracoesRoute
-  PreviewLojaCozinhaRoute: typeof PreviewLojaCozinhaRoute
-  PreviewLojaEntregadoresRoute: typeof PreviewLojaEntregadoresRoute
-  PreviewLojaEquipeRoute: typeof PreviewLojaEquipeRoute
-  PreviewLojaPedidosRoute: typeof PreviewLojaPedidosRoute
-  PreviewLojaRelatoriosRoute: typeof PreviewLojaRelatoriosRoute
-  PreviewLojaIndexRoute: typeof PreviewLojaIndexRoute
-}
-
-const PreviewLojaRouteChildren: PreviewLojaRouteChildren = {
-  PreviewLojaCardapioRoute: PreviewLojaCardapioRoute,
-  PreviewLojaConfiguracoesRoute: PreviewLojaConfiguracoesRoute,
-  PreviewLojaCozinhaRoute: PreviewLojaCozinhaRoute,
-  PreviewLojaEntregadoresRoute: PreviewLojaEntregadoresRoute,
-  PreviewLojaEquipeRoute: PreviewLojaEquipeRoute,
-  PreviewLojaPedidosRoute: PreviewLojaPedidosRoute,
-  PreviewLojaRelatoriosRoute: PreviewLojaRelatoriosRoute,
-  PreviewLojaIndexRoute: PreviewLojaIndexRoute,
-}
-
-const PreviewLojaRouteWithChildren = PreviewLojaRoute._addFileChildren(
-  PreviewLojaRouteChildren,
-)
-
-interface PreviewRouteChildren {
-  PreviewAdminRoute: typeof PreviewAdminRouteWithChildren
-  PreviewClienteRoute: typeof PreviewClienteRouteWithChildren
-  PreviewDemoRoute: typeof PreviewDemoRoute
-  PreviewEntregadorRoute: typeof PreviewEntregadorRouteWithChildren
-  PreviewLojaRoute: typeof PreviewLojaRouteWithChildren
-  PreviewIndexRoute: typeof PreviewIndexRoute
-}
-
-const PreviewRouteChildren: PreviewRouteChildren = {
-  PreviewAdminRoute: PreviewAdminRouteWithChildren,
-  PreviewClienteRoute: PreviewClienteRouteWithChildren,
-  PreviewDemoRoute: PreviewDemoRoute,
-  PreviewEntregadorRoute: PreviewEntregadorRouteWithChildren,
-  PreviewLojaRoute: PreviewLojaRouteWithChildren,
-  PreviewIndexRoute: PreviewIndexRoute,
-}
-
-const PreviewRouteWithChildren =
-  PreviewRoute._addFileChildren(PreviewRouteChildren)
-
 interface AppEntregadorRouteChildren {
   AppEntregadorEntregaRoute: typeof AppEntregadorEntregaRoute
+  AppEntregadorHistoricoRoute: typeof AppEntregadorHistoricoRoute
   AppEntregadorIndexRoute: typeof AppEntregadorIndexRoute
 }
 
 const AppEntregadorRouteChildren: AppEntregadorRouteChildren = {
   AppEntregadorEntregaRoute: AppEntregadorEntregaRoute,
+  AppEntregadorHistoricoRoute: AppEntregadorHistoricoRoute,
   AppEntregadorIndexRoute: AppEntregadorIndexRoute,
 }
 
@@ -2069,7 +1330,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRouteWithChildren,
-  PreviewRoute: PreviewRouteWithChildren,
   RecuperarAcessoRoute: RecuperarAcessoRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SemAcessoRoute: SemAcessoRoute,
@@ -2081,6 +1341,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
   PedidoSplatRoute: PedidoSplatRoute,
+  PreviewDemoRoute: PreviewDemoRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
   ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }
