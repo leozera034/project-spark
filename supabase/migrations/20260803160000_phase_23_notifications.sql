@@ -7,14 +7,14 @@ RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS 40004
+AS $$
 DECLARE
     _store_id uuid;
     _unanswered_orders json;
     _no_courier_alerts json;
 BEGIN
     _store_id := private.current_store_id();
-    IF _store_id IS NULL THEN RETURN '[]'::json; END IF;
+    IF _store_id IS NULL THEN RETURN '{"unanswered_orders": [], "no_courier_alerts": []}'::json; END IF;
 
     -- 1. Unanswered Orders (> 60s in 'pendente' without answer)
     SELECT json_agg(t) INTO _unanswered_orders
@@ -44,7 +44,7 @@ BEGIN
         LEFT JOIN public.deliveries d ON d.order_id = o.id
         WHERE o.store_id = _store_id
           AND o.status = 'pronto'
-          AND d.id IS NULL
+          AND (d.id IS NULL OR d.status = 'pendente')
           AND o.updated_at < (now() - interval '300 seconds')
     ) t;
 
@@ -53,7 +53,7 @@ BEGIN
         'no_courier_alerts', COALESCE(_no_courier_alerts, '[]'::json)
     );
 END;
-40004;
+$$;
 
 -- Courier Assignments Alert
 CREATE OR REPLACE FUNCTION private.get_my_courier_alerts()
@@ -61,13 +61,13 @@ RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS 40004
+AS $$
 DECLARE
     _courier_id uuid;
     _new_assignments json;
 BEGIN
     SELECT id INTO _courier_id FROM public.couriers WHERE user_id = auth.uid() LIMIT 1;
-    IF _courier_id IS NULL THEN RETURN '[]'::json; END IF;
+    IF _courier_id IS NULL THEN RETURN '{"new_assignments": []}'::json; END IF;
 
     SELECT json_agg(t) INTO _new_assignments
     FROM (
@@ -86,7 +86,7 @@ BEGIN
         'new_assignments', COALESCE(_new_assignments, '[]'::json)
     );
 END;
-40004;
+$$;
 
 GRANT EXECUTE ON FUNCTION private.get_my_store_operational_alerts TO authenticated;
 GRANT EXECUTE ON FUNCTION private.get_my_courier_alerts TO authenticated;
