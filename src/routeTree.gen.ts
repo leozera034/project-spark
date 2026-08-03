@@ -94,6 +94,7 @@ import { Route as ApiPublicStorefrontPedidoStatusRouteImport } from './routes/ap
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
 import { Route as AppLojaCardapioProdutosNovoRouteImport } from './routes/app/loja/cardapio/produtos/novo'
+import { Route as AppLojaRelatoriosEntregasIndexRouteImport } from './routes/app/loja/relatorios/entregas/index'
 import { Route as ApiPublicStorefrontSlugAtendimentoValidarRouteImport } from './routes/api/public/storefront/$slug/atendimento/validar'
 import { Route as ApiPublicStorefrontSlugCarrinhoCotacaoRouteImport } from './routes/api/public/storefront/$slug/carrinho/cotacao'
 import { Route as ApiPublicStorefrontSlugProdutosProductIdRouteImport } from './routes/api/public/storefront/$slug/produtos/$productId'
@@ -548,6 +549,12 @@ const AppLojaCardapioProdutosNovoRoute =
     path: '/produtos/novo',
     getParentRoute: () => AppLojaCardapioRoute,
   } as any)
+const AppLojaRelatoriosEntregasIndexRoute =
+  AppLojaRelatoriosEntregasIndexRouteImport.update({
+    id: '/relatorios/entregas/',
+    path: '/relatorios/entregas/',
+    getParentRoute: () => AppLojaRoute,
+  } as any)
 const ApiPublicStorefrontSlugAtendimentoValidarRoute =
   ApiPublicStorefrontSlugAtendimentoValidarRouteImport.update({
     id: '/validar',
@@ -653,6 +660,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/app/loja/relatorios/entregas/': typeof AppLojaRelatoriosEntregasIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
@@ -732,6 +740,7 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos': typeof AppLojaCardapioProdutosIndexRoute
+  '/app/loja/relatorios/entregas': typeof AppLojaRelatoriosEntregasIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
@@ -823,6 +832,7 @@ export interface FileRoutesById {
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
   '/app/loja/cardapio/produtos/': typeof AppLojaCardapioProdutosIndexRoute
+  '/app/loja/relatorios/entregas/': typeof AppLojaRelatoriosEntregasIndexRoute
   '/api/public/storefront/$slug/atendimento/validar': typeof ApiPublicStorefrontSlugAtendimentoValidarRoute
   '/api/public/storefront/$slug/carrinho/cotacao': typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   '/api/public/storefront/$slug/produtos/$productId': typeof ApiPublicStorefrontSlugProdutosProductIdRoute
@@ -915,6 +925,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/app/loja/relatorios/entregas/'
     | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
@@ -994,6 +1005,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos'
+    | '/app/loja/relatorios/entregas'
     | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
@@ -1084,6 +1096,7 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
     | '/app/loja/cardapio/produtos/'
+    | '/app/loja/relatorios/entregas/'
     | '/api/public/storefront/$slug/atendimento/validar'
     | '/api/public/storefront/$slug/carrinho/cotacao'
     | '/api/public/storefront/$slug/produtos/$productId'
@@ -1707,6 +1720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioProdutosNovoRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/relatorios/entregas/': {
+      id: '/app/loja/relatorios/entregas/'
+      path: '/relatorios/entregas'
+      fullPath: '/app/loja/relatorios/entregas/'
+      preLoaderRoute: typeof AppLojaRelatoriosEntregasIndexRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
     '/api/public/storefront/$slug/atendimento/validar': {
       id: '/api/public/storefront/$slug/atendimento/validar'
       path: '/validar'
@@ -1964,6 +1984,7 @@ interface AppLojaRouteChildren {
   AppLojaEntregadoresRoute: typeof AppLojaEntregadoresRouteWithChildren
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
+  AppLojaRelatoriosEntregasIndexRoute: typeof AppLojaRelatoriosEntregasIndexRoute
 }
 
 const AppLojaRouteChildren: AppLojaRouteChildren = {
@@ -1973,6 +1994,7 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaEntregadoresRoute: AppLojaEntregadoresRouteWithChildren,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
+  AppLojaRelatoriosEntregasIndexRoute: AppLojaRelatoriosEntregasIndexRoute,
 }
 
 const AppLojaRouteWithChildren =

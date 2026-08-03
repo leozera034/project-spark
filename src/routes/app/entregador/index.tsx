@@ -28,6 +28,7 @@ import {
   useAcceptDeliveryAssignment,
   useDeclineDeliveryAssignment
 } from "@/store/couriers/hooks/useCouriers";
+import { useMyCourierDeliveryCounter } from "@/courier/reports/courier-counter.queries";
 import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/courier.formatters";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -237,6 +238,26 @@ function CourierDashboard() {
             </Card>
           </section>
         )}
+
+        {/* Contador de Entregas (Fase 20) */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" /> Suas Entregas Concluídas
+          </h2>
+          <Card className="bg-emerald-500 text-white border-none shadow-md overflow-hidden">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Hoje</p>
+                <p className="text-3xl font-black">{useMyCourierDeliveryCounter().data?.today ?? 0}</p>
+              </div>
+              <div className="h-10 w-px bg-white/20" />
+              <div className="space-y-0.5 text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Este Mês</p>
+                <p className="text-xl font-bold">{useMyCourierDeliveryCounter().data?.currentMonth ?? 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Entrega Ativa (Destaque) */}
         {activeDelivery && (

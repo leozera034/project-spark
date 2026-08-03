@@ -616,3 +616,10 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Consequência:** o botão "Mapa" faz uma busca textual por endereço + bairro + cidade.
 - **Riscos evitados:** endereço impreciso por GPS mal calibrado; custo de API de mapas.
 - **Status:** aprovada
+
+## [2026-08-03]
+### D-079: Definição de Fato de Entrega Concluída
+A métrica de "entrega realizada" deve obrigatoriamente validar o estado final de ambos os registros: `orders.status = 'entregue'` AND `deliveries.status = 'concluida'`.
+
+### D-080: Exclusão Financeira em Relatórios Operacionais
+Relatórios de entregas e contadores de entregadores não devem processar ou exibir valores de taxas de entrega ou totais de pedidos para evitar exposição de dados sensíveis na interface operacional.
