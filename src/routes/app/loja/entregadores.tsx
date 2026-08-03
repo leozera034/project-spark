@@ -150,7 +150,8 @@ function CourierListPage() {
                     <UserCircle className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
-                    courier.presenceStatus === 'online' ? 'bg-teal-500' : 'bg-muted-foreground/30'
+                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'online' ? 'bg-teal-500' : 
+                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'sem_sinal' ? 'bg-amber-500 animate-pulse' : 'bg-muted-foreground/30'
                   }`} />
                 </div>
                 <div>
@@ -179,11 +180,9 @@ function CourierListPage() {
               <div className="flex items-center gap-4">
                 <div className="hidden text-right sm:block">
                   <div className="text-sm font-medium">
-                    {courier.canAcceptDeliveries ? (
-                      <span className="text-teal-600 dark:text-teal-400">Recebendo entregas</span>
-                    ) : (
-                      <span className="text-muted-foreground">Pausado</span>
-                    )}
+                    <Badge variant={availabilityLabel(courier) === "Disponível" ? "brand" : "secondary"}>
+                      {availabilityLabel(courier)}
+                    </Badge>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
