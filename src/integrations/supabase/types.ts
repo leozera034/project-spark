@@ -233,6 +233,47 @@ export type Database = {
           },
         ]
       }
+      courier_action_intents: {
+        Row: {
+          action: string
+          courier_id: string
+          created_at: string
+          delivery_id: string | null
+          id: string
+          idempotency_key: string
+          result: Json | null
+          store_id: string
+        }
+        Insert: {
+          action: string
+          courier_id: string
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          idempotency_key: string
+          result?: Json | null
+          store_id: string
+        }
+        Update: {
+          action?: string
+          courier_id?: string
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          idempotency_key?: string
+          result?: Json | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_action_intents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courier_auth_identities: {
         Row: {
           auth_user_id: string
@@ -549,6 +590,7 @@ export type Database = {
       deliveries: {
         Row: {
           accepted_at: string | null
+          arrived_at_store_at: string | null
           assigned_at: string | null
           assigned_by_user_id: string | null
           cancelled_at: string | null
@@ -568,6 +610,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          arrived_at_store_at?: string | null
           assigned_at?: string | null
           assigned_by_user_id?: string | null
           cancelled_at?: string | null
@@ -587,6 +630,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          arrived_at_store_at?: string | null
           assigned_at?: string | null
           assigned_by_user_id?: string | null
           cancelled_at?: string | null
@@ -712,6 +756,62 @@ export type Database = {
           },
           {
             foreignKeyName: "delivery_events_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_occurrences: {
+        Row: {
+          code: string
+          courier_id: string | null
+          created_at: string
+          delivery_id: string
+          id: string
+          note: string | null
+          requires_store_attention: boolean
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by_user_id: string | null
+          store_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          code: string
+          courier_id?: string | null
+          created_at?: string
+          delivery_id: string
+          id?: string
+          note?: string | null
+          requires_store_attention?: boolean
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          store_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          code?: string
+          courier_id?: string | null
+          created_at?: string
+          delivery_id?: string
+          id?: string
+          note?: string | null
+          requires_store_attention?: boolean
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          store_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_occurrences_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -2119,6 +2219,7 @@ export type Database = {
           accepts_pickup: boolean
           address_line: string | null
           city: string
+          courier_acceptance_required: boolean
           created_at: string
           document: string | null
           email: string | null
@@ -2141,6 +2242,7 @@ export type Database = {
           accepts_pickup?: boolean
           address_line?: string | null
           city?: string
+          courier_acceptance_required?: boolean
           created_at?: string
           document?: string | null
           email?: string | null
@@ -2163,6 +2265,7 @@ export type Database = {
           accepts_pickup?: boolean
           address_line?: string | null
           city?: string
+          courier_acceptance_required?: boolean
           created_at?: string
           document?: string | null
           email?: string | null
@@ -2333,6 +2436,14 @@ export type Database = {
       }
     }
     Functions: {
+      accept_my_delivery_assignment: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
+        }
+        Returns: Json
+      }
       accept_store_order: {
         Args: {
           _expected_version: number
@@ -2454,6 +2565,14 @@ export type Database = {
         Args: { _slot: string; _store_id: string }
         Returns: Json
       }
+      complete_my_delivery: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
+        }
+        Returns: Json
+      }
       complete_my_initial_password_change: { Args: never; Returns: boolean }
       complete_store_pickup_order: {
         Args: {
@@ -2461,6 +2580,22 @@ export type Database = {
           _internal_note?: string
           _order_id: string
           _store_id: string
+        }
+        Returns: Json
+      }
+      confirm_my_arrival_at_store: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
+        }
+        Returns: Json
+      }
+      confirm_my_order_pickup: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
         }
         Returns: Json
       }
@@ -2537,6 +2672,15 @@ export type Database = {
         }
         Returns: Json
       }
+      decline_my_delivery_assignment: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
+          _reason_code: string
+        }
+        Returns: Json
+      }
       detach_option_group_from_product: {
         Args: {
           _option_group_id: string
@@ -2544,6 +2688,10 @@ export type Database = {
           _store_id: string
         }
         Returns: Json
+      }
+      fail_courier_provisioning_admin: {
+        Args: { _idempotency_key: string; _store_id: string }
+        Returns: undefined
       }
       get_courier_management_counts: {
         Args: { _store_id: string }
@@ -2556,6 +2704,8 @@ export type Database = {
         Args: { _id: string; _store_id: string }
         Returns: Json
       }
+      get_my_courier_operational_context: { Args: never; Returns: Json }
+      get_my_delivery_detail: { Args: { _delivery_id: string }; Returns: Json }
       get_my_store_configuration: {
         Args: { _store_id?: string }
         Returns: Json
@@ -2589,6 +2739,7 @@ export type Database = {
         Args: { _store_id?: string }
         Returns: Json
       }
+      heartbeat_my_courier_presence: { Args: never; Returns: Json }
       list_eligible_couriers_for_delivery: {
         Args: { _order_id: string; _store_id: string }
         Returns: Json
@@ -2649,6 +2800,10 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      list_store_delivery_occurrences: {
+        Args: { _order_id: string; _store_id: string }
+        Returns: Json
+      }
       mark_store_order_ready: {
         Args: {
           _expected_version: number
@@ -2669,6 +2824,22 @@ export type Database = {
       }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      provision_store_courier_admin: {
+        Args: {
+          _actor_user_id: string
+          _auth_user_id: string
+          _can_accept_deliveries: boolean
+          _full_name: string
+          _idempotency_key: string
+          _is_active: boolean
+          _login_identifier: string
+          _phone: string
+          _request_hash: string
+          _store_id: string
+          _synthetic_email: string
+        }
+        Returns: Json
+      }
       reassign_delivery_courier: {
         Args: {
           _courier_id: string
@@ -2727,6 +2898,29 @@ export type Database = {
         Args: { _prices: Json; _product_id: string; _store_id: string }
         Returns: Json
       }
+      report_my_delivery_occurrence: {
+        Args: {
+          _code: string
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
+          _note: string
+        }
+        Returns: Json
+      }
+      resolve_courier_create_store_admin: {
+        Args: { _actor_user_id: string; _store_id: string }
+        Returns: string
+      }
+      resolve_store_delivery_occurrence: {
+        Args: {
+          _expected_version: number
+          _occurrence_id: string
+          _resolution_note?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       set_catalog_category_active: {
         Args: {
           _expected_updated_at?: string
@@ -2744,6 +2938,8 @@ export type Database = {
         Args: { _expected_updated_at?: string; _id: string; _store_id: string }
         Returns: Json
       }
+      set_my_courier_offline: { Args: never; Returns: Json }
+      set_my_courier_online: { Args: never; Returns: Json }
       set_option_group_active: {
         Args: {
           _expected_updated_at?: string
@@ -2799,6 +2995,14 @@ export type Database = {
           _id: string
           _is_active: boolean
           _store_id: string
+        }
+        Returns: Json
+      }
+      start_my_delivery: {
+        Args: {
+          _delivery_id: string
+          _expected_version: number
+          _idempotency_key: string
         }
         Returns: Json
       }
