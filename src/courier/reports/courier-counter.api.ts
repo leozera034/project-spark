@@ -5,7 +5,7 @@ export async function getMyCourierDeliveryCounter(
   startDate?: string,
   endDate?: string
 ): Promise<CourierDeliveryCounter> {
-  const { data, error } = await supabase.rpc("get_my_courier_delivery_counter", {
+  const { data, error } = await (supabase.rpc as any)("get_my_courier_delivery_counter", {
     _start_date: startDate,
     _end_date: endDate
   });
@@ -17,7 +17,7 @@ export async function listMyCompletedDeliveries(
   limit = 50,
   offset = 0
 ): Promise<CourierDeliveryHistory> {
-  const { data, error } = await supabase.rpc("list_my_completed_deliveries", {
+  const { data, error } = await (supabase.rpc as any)("list_my_completed_deliveries", {
     _limit: limit,
     _offset: offset
   });

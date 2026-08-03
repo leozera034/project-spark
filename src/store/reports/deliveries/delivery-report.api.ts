@@ -12,7 +12,7 @@ export async function getStoreDeliveryReportSummary(
   startDate?: string,
   endDate?: string
 ): Promise<DeliveryReportSummary> {
-  const { data, error } = await supabase.rpc("get_my_store_delivery_report_summary", {
+  const { data, error } = await (supabase.rpc as any)("get_my_store_delivery_report_summary", {
     _period_type: periodType,
     _start_date: startDate,
     _end_date: endDate
@@ -26,7 +26,7 @@ export async function getStoreDeliveryReportSeries(
   startDate?: string,
   endDate?: string
 ): Promise<DeliveryReportSeries> {
-  const { data, error } = await supabase.rpc("get_my_store_delivery_report_series", {
+  const { data, error } = await (supabase.rpc as any)("get_my_store_delivery_report_series", {
     _period_type: periodType,
     _start_date: startDate,
     _end_date: endDate
@@ -40,7 +40,7 @@ export async function listStoreDeliveryReportByCourier(
   startDate?: string,
   endDate?: string
 ): Promise<DeliveryReportComparison> {
-  const { data, error } = await supabase.rpc("list_my_store_delivery_report_by_courier", {
+  const { data, error } = await (supabase.rpc as any)("list_my_store_delivery_report_by_courier", {
     _period_type: periodType,
     _start_date: startDate,
     _end_date: endDate
@@ -57,7 +57,7 @@ export async function listStoreCompletedDeliveries(
   limit = 50,
   offset = 0
 ): Promise<DeliveryReportHistory> {
-  const { data, error } = await supabase.rpc("list_my_store_completed_deliveries", {
+  const { data, error } = await (supabase.rpc as any)("list_my_store_completed_deliveries", {
     _period_type: periodType,
     _start_date: startDate,
     _end_date: endDate,
