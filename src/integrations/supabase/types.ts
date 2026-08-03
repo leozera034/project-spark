@@ -2073,6 +2073,56 @@ export type Database = {
           },
         ]
       }
+      store_provisioning_intents: {
+        Row: {
+          created_at: string
+          failure_reason: string | null
+          id: string
+          idempotency_key: string
+          origin: string
+          owner_user_id: string | null
+          request_hash: string
+          requested_by: string | null
+          status: string
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          idempotency_key: string
+          origin?: string
+          owner_user_id?: string | null
+          request_hash: string
+          requested_by?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          origin?: string
+          owner_user_id?: string | null
+          request_hash?: string
+          requested_by?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_provisioning_intents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           auto_open_by_hours: boolean
@@ -2557,6 +2607,7 @@ export type Database = {
         }
         Returns: Json
       }
+      check_public_store_slug: { Args: { _slug: string }; Returns: Json }
       check_store_slug_availability: {
         Args: { _slug: string; _store_id: string }
         Returns: Json
@@ -2691,6 +2742,10 @@ export type Database = {
       }
       fail_courier_provisioning_admin: {
         Args: { _idempotency_key: string; _store_id: string }
+        Returns: undefined
+      }
+      fail_store_provisioning: {
+        Args: { _idempotency_key: string; _reason: string }
         Returns: undefined
       }
       get_courier_management_counts: {
@@ -2837,6 +2892,24 @@ export type Database = {
           _request_hash: string
           _store_id: string
           _synthetic_email: string
+        }
+        Returns: Json
+      }
+      provision_store_with_owner: {
+        Args: {
+          _city: string
+          _idempotency_key: string
+          _origin?: string
+          _owner_full_name: string
+          _owner_user_id: string
+          _phone: string
+          _plan_code?: string
+          _request_hash: string
+          _requested_by?: string
+          _segment: string
+          _slug: string
+          _state: string
+          _store_name: string
         }
         Returns: Json
       }
