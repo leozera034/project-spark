@@ -60,7 +60,7 @@ function CourierDashboard() {
   useEffect(() => {
     if (context?.onlineIntent && isOnline) {
       const interval = setInterval(() => {
-        heartbeat.mutate({});
+        heartbeat.mutate(undefined as any);
       }, 120000);
       return () => clearInterval(interval);
     }
