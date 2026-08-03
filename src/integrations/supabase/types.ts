@@ -2689,6 +2689,10 @@ export type Database = {
         }
         Returns: Json
       }
+      fail_courier_provisioning_admin: {
+        Args: { _idempotency_key: string; _store_id: string }
+        Returns: undefined
+      }
       get_courier_management_counts: {
         Args: { _store_id: string }
         Returns: Json
@@ -2820,6 +2824,22 @@ export type Database = {
       }
       normalize_label: { Args: { _value: string }; Returns: string }
       normalize_store_slug: { Args: { _value: string }; Returns: string }
+      provision_store_courier_admin: {
+        Args: {
+          _actor_user_id: string
+          _auth_user_id: string
+          _can_accept_deliveries: boolean
+          _full_name: string
+          _idempotency_key: string
+          _is_active: boolean
+          _login_identifier: string
+          _phone: string
+          _request_hash: string
+          _store_id: string
+          _synthetic_email: string
+        }
+        Returns: Json
+      }
       reassign_delivery_courier: {
         Args: {
           _courier_id: string
@@ -2887,6 +2907,10 @@ export type Database = {
           _note: string
         }
         Returns: Json
+      }
+      resolve_courier_create_store_admin: {
+        Args: { _actor_user_id: string; _store_id: string }
+        Returns: string
       }
       resolve_store_delivery_occurrence: {
         Args: {
