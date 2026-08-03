@@ -58,6 +58,7 @@ export const createStoreCourier = createServerFn({ method: "POST" })
     const syntheticEmail = `${data.loginIdentifier}@courier.pediuaqui.internal`;
     const temporaryPassword = generateTemporaryPassword();
 
+
     // 3. Criar no Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: syntheticEmail,
@@ -95,7 +96,8 @@ export const createStoreCourier = createServerFn({ method: "POST" })
         _can_accept_deliveries: data.canAcceptDeliveries,
         _is_active: data.isActive,
         _idempotency_key: data.idempotencyKey,
-        _request_hash: null,
+        _request_hash: "",
+
       },
     );
 
