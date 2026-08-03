@@ -206,7 +206,7 @@ function Home() {
               <Link to="/entrar/entregador">Sou entregador</Link>
             </Button>
             <Button asChild variant="brand" size="sm">
-              <Link to="/entrar/loja">Entrar na minha loja</Link>
+              <Link to="/criar-loja">Criar minha loja</Link>
             </Button>
           </div>
         </div>
@@ -241,7 +241,7 @@ function Home() {
 
             <Reveal delay={220} className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
-                <Link to="/entrar/loja">
+                <Link to="/criar-loja">
                   Quero minha loja online
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
@@ -371,7 +371,7 @@ function Home() {
                   size="touch"
                   className="mt-7 w-full"
                 >
-                  <Link to="/entrar/loja">Começar com o {plan.name}</Link>
+                  <Link to="/criar-loja">Começar com o {plan.name}</Link>
                 </Button>
               </Reveal>
             ))}

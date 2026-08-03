@@ -17,6 +17,7 @@ export const APP_ROUTES = {
 export const PUBLIC_ROUTE_PREFIXES = [
   "/",
   "/loja",
+  "/criar-loja",
   "/preview",
   "/design-system",
   "/entrar",
