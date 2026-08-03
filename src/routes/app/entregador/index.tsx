@@ -99,9 +99,9 @@ function CourierDashboard() {
 
   const handleToggleOnline = () => {
     if (context?.onlineIntent) {
-      setOffline.mutate({});
+      setOffline.mutate(undefined as any);
     } else {
-      setOnline.mutate({});
+      setOnline.mutate(undefined as any);
     }
   };
 
