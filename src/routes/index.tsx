@@ -241,7 +241,7 @@ function Home() {
 
             <Reveal delay={220} className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
-                <Link to="/entrar/loja">
+                <Link to="/criar-loja">
                   Quero minha loja online
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
