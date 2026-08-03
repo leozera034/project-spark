@@ -28,6 +28,7 @@ import {
   useAcceptDeliveryAssignment,
   useDeclineDeliveryAssignment
 } from "@/store/couriers/hooks/useCouriers";
+import { useMyCourierDeliveryCounter } from "@/courier/reports/courier-counter.queries";
 import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/courier.formatters";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
