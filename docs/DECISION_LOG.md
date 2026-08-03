@@ -623,3 +623,12 @@ A métrica de "entrega realizada" deve obrigatoriamente validar o estado final d
 
 ### D-080: Exclusão Financeira em Relatórios Operacionais
 Relatórios de entregas e contadores de entregadores não devem processar ou exibir valores de taxas de entrega ou totais de pedidos para evitar exposição de dados sensíveis na interface operacional.
+
+### D-081: Suspensão Administrativa de Loja
+A suspensão manual de loja bloqueia novos pedidos públicos mas preserva a integridade de todos os dados e o acompanhamento de pedidos já aceitos.
+
+### D-082: Saúde Sanitizada da Plataforma
+Dashboards globais exibem apenas contagens agregadas de volume, proibindo o acesso a PII (nomes/telefones) ou dados financeiros detalhados por administradores.
+
+### D-083: Auditoria Global Imutável
+Toda ação administrativa de escrita deve ser registrada em private.platform_audit_log contendo o ator, a ação e o contexto do alvo.
