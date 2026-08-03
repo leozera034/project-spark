@@ -306,7 +306,7 @@ function CourierDetailPage() {
                       <Badge variant="brand" className="text-[10px]">{courier.currentAssignment.deliveryStatus}</Badge>
                     </div>
                     <Button asChild variant="link" size="sm" className="h-auto p-0 text-xs">
-                      <Link to={`/app/loja/pedidos/${courier.currentAssignment.deliveryId}`}>Ver Entrega</Link>
+                      <Link to="/app/loja/pedidos" search={{ open: courier.currentAssignment.deliveryId }}>Ver Entrega</Link>
                     </Button>
                   </div>
                 ) : (
