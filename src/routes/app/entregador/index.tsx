@@ -33,6 +33,8 @@ import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/c
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { CourierAlerts } from "@/notifications/courier/CourierAlerts";
+
 
 export const Route = createFileRoute("/app/entregador/")({
   component: CourierDashboard,
@@ -170,6 +172,7 @@ function CourierDashboard() {
       </header>
 
       <main className="p-4 space-y-6 max-w-lg mx-auto">
+        <CourierAlerts />
         {/* Status de Disponibilidade */}
         <Card className={cn(
           "border-2 transition-colors",

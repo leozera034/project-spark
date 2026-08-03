@@ -645,3 +645,16 @@ Dashboards globais exibem apenas contagens agregadas de volume, proibindo o aces
 
 ### D-083: Auditoria Global Imutável
 Toda ação administrativa de escrita deve ser registrada em private.platform_audit_log contendo o ator, a ação e o contexto do alvo.
+
+## [2026-08-04]
+### D-086 — Áudio via Osciladores Web Audio
+- **Decisão:** Alertas sonoros usam osciladores nativos da Web Audio API em vez de arquivos MP3/WAV.
+- **Motivo:** Garantir funcionamento offline, evitar latência de rede e simplificar a gestão de assets no MVP.
+
+### D-087 — Liderança de Aba para Áudio
+- **Decisão:** Apenas a aba considerada "Líder" via BroadcastChannel pode emitir sons.
+- **Motivo:** Prevenir "cacofonia" sonora quando o usuário tem várias abas do painel abertas.
+
+### D-088 — Projeção de Alertas Sanitizada
+- **Decisão:** Alertas operacionais são calculados no banco e devolvidos via RPC sanitizada, ocultando nomes e valores.
+- **Motivo:** Segurança e conformidade com RLS, permitindo que a interface saiba "que algo está errado" sem ter acesso a "quem" ou "quanto".
