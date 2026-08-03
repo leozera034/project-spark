@@ -1,28 +1,5 @@
 /**
- * For the code present, I get the error below.
- * 
- * Please think step-by-step in order to resolve it.
- * ```
- * build failed with exit status 1: Build failed with 1 error:
- * 
- * [PARSE_ERROR] Identifier `AppLojaEntregadoresRoute` has already been declared
- *      ╭─[ src/routeTree.gen.ts:220:7 ]
- *      │
- *  220 │ co...[truncated]
- * 
- * stderr:
- *  (file:///dev-server/node_modules/@tanstack/start-plugin-core/dist/esm/vite/planning.js:95:23)
- *     at async Object.buildApp (file:///dev-server/node_modules/@tanstack/start-plugin-core/dist/esm/vite/plugin.js:113:8)
- *     at async Object.buildApp (file:///dev-server/node_modules/vite/dist/node/chunks/node.js:33475:6)
- *     at async CAC.<anonymous> (file:///dev-server/node_modules/vite/dist/node/cli.js:776:3) {
- *   errors: [Getter/Setter]
- * }
- * error: script "build:dev" exited with code 1
- * 
- * stdout:
- * vite v8.1.5 building client environment for development...
- * transforming...✓ 1931 modules transformed.
- * ```
+ * Index Route
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 

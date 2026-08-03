@@ -298,8 +298,21 @@ Status possíveis: `aprovada`, `revisada`, `revogada`.
 - **Decisão:** toda decisão de permissão passa por `private.has_permission(acao, loja)`, que usa apenas `auth.uid()`, exige perfil e vínculo ativos e nega por padrão. Nenhuma policy reimplementa lógica de papel.
 - **Motivo:** lógica de papel espalhada em dezenas de policies diverge com o tempo.
 - **Consequência:** a matriz de papéis por ação vive em `private.permission_roles`, versionada em código.
-- **Riscos evitados:** regra contraditória entre tabelas; escalada de privilégio por policy esquecida.
 - **Status:** aprovada
+
+### D-084 — Imutabilidade de Pagamentos via Triggers
+- **Data:** 2026-08-03
+- **Decisão:** `subscription_payments` possui triggers de banco que lançam exceções em qualquer tentativa de `UPDATE` ou `DELETE`.
+- **Motivo:** registros financeiros e de auditoria devem ser persistentes e inalteráveis.
+- **Consequência:** correções de pagamento devem ser feitas via novos lançamentos negativos ou estornos informativos, preservando o histórico original.
+- **Status:** aprovada
+
+### D-085 — Valores Monetários em Centavos (Inteiros)
+- **Data:** 2026-08-03
+- **Decisão:** todas as colunas financeiras (`plans`, `subscriptions`, `payments`) usam `integer` representando centavos.
+- **Motivo:** evitar erros de arredondamento de ponto flutuante comuns em JS/PostgreSQL.
+- **Status:** aprovada
+
 
 ### D-040 — Contexto de permissões é orientação de interface
 - **Data:** 2026-07-31
