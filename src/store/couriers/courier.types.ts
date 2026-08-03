@@ -1,154 +1,124 @@
 /**
- * Fase 18 — contratos da gestão de entregadores.
+ * Fase 19 — tipos operacionais do entregador.
  *
- * Nenhum campo financeiro, contador ou ranking existe aqui por decisão de
- * escopo. Presença (`presenceStatus`) e disponibilidade são conceitos
- * distintos e nunca são usados como sinônimos.
+ * Sincronizado com os retornos das RPCs get_my_courier_operational_context
+ * e get_my_delivery_detail.
  */
 
-export type CourierAccountFilter = "ativo" | "inativo";
-export type CourierPresenceFilter = "online" | "offline";
-export type CourierAvailabilityFilter = "disponivel" | "ocupado";
+export type DeliveryStatus =
+  | "atribuida"
+  | "aceita"
+  | "coletada"
+  | "em_rota"
+  | "concluida"
+  | "cancelada"
+  | "pendente";
 
-/** Presença derivada: intenção declarada + sinal recente. */
-export type CourierPresence = "online" | "offline" | "sem_sinal";
+export type CourierOperationalAllowedAction =
+  | "accept"
+  | "decline"
+  | "confirm_arrival"
+  | "confirm_pickup"
+  | "start_delivery"
+  | "complete_delivery"
+  | "report_occurrence";
 
-export type CourierAllowedAction =
-  | "update"
-  | "activate"
-  | "deactivate"
-  | "reset_access"
-  | "assign";
-
-export interface CourierAssignmentSummary {
-  deliveryId: string;
-  orderNumber: number | null;
-  deliveryStatus: string;
-  assignedAt?: string | null;
-}
-
-export interface CourierListItem {
-  courierId: string;
-  displayName: string;
-  phoneMasked: string | null;
-  isActive: boolean;
-  canAcceptDeliveries: boolean;
-  presenceStatus: "online" | "offline";
-  lastSeenAt: string | null;
-  currentAssignment: CourierAssignmentSummary | null;
-  createdAt: string;
-  updatedAt: string;
-  version: number;
-  allowedActions: CourierAllowedAction[];
-}
-
-export interface CourierListPayload {
-  storeId: string;
-  serverNow: string;
-  couriers: CourierListItem[];
-}
-
-export interface CourierCounts {
-  active: number;
-  inactive: number;
-  online: number;
-  busy: number;
-  unassignedDeliveries: number;
-}
-
-export interface CourierHistoryEntry {
-  occurredAt: string;
-  action: string;
-  fields: unknown;
-  reasonCode: string | null;
-}
-
-export interface CourierDetail {
-  courierId: string;
-  displayName: string;
-  phone: string | null;
-  loginIdentifier: string | null;
-  loginEnabled: boolean;
-  requiresPasswordChange: boolean;
-  isActive: boolean;
-  canAcceptDeliveries: boolean;
-  presenceStatus: "online" | "offline";
-  lastSeenAt: string | null;
-  currentAssignment: CourierAssignmentSummary | null;
-  createdAt: string;
-  updatedAt: string;
-  version: number;
-  history: CourierHistoryEntry[];
-  allowedActions: CourierAllowedAction[];
-}
-
-export type CourierEligibility = "eligible" | "confirm" | "blocked";
-
-export interface EligibleCourier {
-  courierId: string;
-  displayName: string;
-  presenceStatus: "online" | "offline";
-  lastSeenAt: string | null;
-  canAcceptDeliveries: boolean;
-  hasActiveDelivery: boolean;
-  eligibility: CourierEligibility;
-  blockingReason: string | null;
-  version: number;
-}
-
-export interface DeliveryAssignmentHistoryEntry {
-  occurredAt: string;
-  kind: string;
-  reasonCode: string | null;
-  courierName: string | null;
-  previousCourierName: string | null;
-  version: number | null;
-}
-
-export interface DeliveryAssignment {
-  applicable: boolean;
-  orderStatus?: string;
-  canAssign?: boolean;
-  delivery?: {
-    deliveryId: string;
-    status: string;
-    version: number;
-    assignedAt: string | null;
-    courier: {
-      courierId: string;
-      displayName: string;
-      presenceStatus: "online" | "offline";
-      isActive: boolean;
-    } | null;
-    history: DeliveryAssignmentHistoryEntry[];
-  } | null;
-}
-
-export interface StoreDeliveryOccurrence {
+export interface DeliveryOccurrence {
   occurrenceId: string;
   code: string;
   note: string | null;
   requiresStoreAttention: boolean;
-  courierName: string | null;
-  createdAt: string;
   resolvedAt: string | null;
+  createdAt: string;
   version: number;
 }
 
-/** Retorno do cadastro. A senha temporária aparece uma única vez. */
-export interface CourierCreationResult {
-  courierId: string;
-  created: boolean;
-  loginIdentifier: string;
-  temporaryPassword: string | null;
+export interface DeliveryPickupInfo {
+  storeName: string;
+  address: string;
+  phone: string;
 }
 
-export interface CourierCreateInput {
-  storeId: string | null;
-  fullName: string;
+export interface DeliveryCustomerInfo {
+  firstName: string;
   phone: string;
-  loginIdentifier: string;
+  neighborhood: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  reference: string | null;
+  notes: string | null;
+}
+
+export interface DeliveryPaymentInfo {
+  method: string;
+  kind: string;
+  needsChange: boolean;
+  changeFor: number | null;
+  orderAmount: number;
+  instructions: string | null;
+}
+
+export interface DeliveryProjection {
+  deliveryId: string;
+  reduced: boolean;
+  status: DeliveryStatus;
+  version: number;
+  assignedAt: string | null;
+  orderNumber: number;
+  storeName?: string;
+  neighborhood?: string | null;
+  allowedActions: CourierOperationalAllowedAction[];
+  
+  // Detalhes completos (quando reduced=false)
+  orderId?: string;
+  orderStatus?: string;
+  orderVersion?: number;
+  acceptanceRequired?: boolean;
+  acceptedAt?: string | null;
+  arrivedAtStoreAt?: string | null;
+  pickedUpAt?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  pickup?: DeliveryPickupInfo;
+  customer?: DeliveryCustomerInfo;
+  payment?: DeliveryPaymentInfo;
+  occurrences?: DeliveryOccurrence[];
+  requiresStoreAttention?: boolean;
+}
+
+export interface CourierOperationalContext {
+  courierId: string;
+  displayName: string;
+  storeName: string;
+  storePublicAddress: string;
+  storePhone: string;
+  accountStatus: "ativo" | "inativo";
   canAcceptDeliveries: boolean;
-  isActive: boolean;
-  idempotencyKey: string;
+  acceptanceRequired: boolean;
+  onlineIntent: boolean;
+  presenceStatus: "online" | "offline" | "sem_sinal";
+  lastSeenAt: string | null;
+  pendingAssignment: DeliveryProjection | null;
+  activeDelivery: DeliveryProjection | null;
+  serverNow: string;
+  version: number;
+}
+
+export interface CourierPresenceResult {
+  courierId: string;
+  onlineIntent: boolean;
+  presenceStatus: "online" | "offline" | "sem_sinal";
+  lastSeenAt: string;
+  hasActiveDelivery: boolean;
+  version: number;
+}
+
+export interface DeliveryActionResult {
+  ok: boolean;
+  deliveryId: string;
+  status?: string;
+  version: number;
+  occurrenceId?: string;
+  released?: boolean;
 }
