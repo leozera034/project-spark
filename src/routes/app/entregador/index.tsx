@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { useOnlineStatus } from "@/kitchen/useKitchenOrders";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/app/entregador/index")({
+export const Route = createFileRoute("/app/entregador/")({
   component: CourierDashboard,
 });
 
@@ -137,8 +137,9 @@ function CourierDashboard() {
               <p className="text-[10px] font-bold uppercase opacity-60">Hoje</p>
             </CardContent>
           </Card>
-          <Card asChild className="bg-background cursor-pointer hover:bg-slate-50 transition-colors">
+          <Card className="bg-background cursor-pointer hover:bg-slate-50 transition-colors">
             <Link to="/preview/entregador/historico">
+
               <CardContent className="p-4 flex flex-col items-center justify-center text-center space-y-1">
                 <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center mb-1">
                   <History className="h-5 w-5 text-slate-600" />
@@ -148,6 +149,7 @@ function CourierDashboard() {
               </CardContent>
             </Link>
           </Card>
+
         </div>
 
         {/* Notificações / Alertas */}
