@@ -60,10 +60,12 @@ function NewCourierPage() {
     
     try {
       const data = await createCourier.mutateAsync({
-        ...formData,
-        storeId,
-        idempotencyKey
+        data: {
+          ...formData,
+          idempotencyKey
+        }
       });
+
       
       setResult({
         loginIdentifier: data.loginIdentifier,
