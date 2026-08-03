@@ -7,6 +7,7 @@ import {
   useResetCourierAccess
 } from "@/store/couriers/hooks/useCouriers";
 import { useAuth } from "@/auth/useAuth";
+import type { CourierHistoryEntry } from "@/store/couriers/courier.types";
 import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
