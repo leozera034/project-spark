@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 
 /**
  * Indicadores globais de saúde do SaaS.
@@ -27,15 +28,15 @@ export interface PlatformStoreItem {
 
 export const getPlatformHealth = createServerFn({ method: "GET" })
   .handler(async () => {
-    const { data, error } = await supabase.rpc('get_platform_health_summary');
+    const { data, error } = await (supabase.rpc as any)('get_platform_health_summary');
     if (error) throw error;
     return data as PlatformHealthSummary;
   });
 
 export const listPlatformStores = createServerFn({ method: "GET" })
-  .input((d: { search?: string; status?: string; limit?: number; offset?: number }) => d)
+  .validator((d: { search?: string; status?: string; limit?: number; offset?: number }) => d)
   .handler(async ({ data: input }) => {
-    const { data, error } = await supabase.rpc('list_platform_stores', {
+    const { data, error } = await (supabase.rpc as any)('list_platform_stores', {
       _search: input.search,
       _status: input.status,
       _limit: input.limit || 50,
@@ -46,9 +47,11 @@ export const listPlatformStores = createServerFn({ method: "GET" })
   });
 
 export const adminSuspendStore = createServerFn({ method: "POST" })
-  .input((d: { storeId: string; reason: string }) => d)
+  .validator((d: { storeId: string; reason: string }) => 
+    z.object({ storeId: z.string().uuid(), reason: z.string().min(1) }).parse(d)
+  )
   .handler(async ({ data }) => {
-    const { error } = await supabase.rpc('admin_suspend_store', {
+    const { error } = await (supabase.rpc as any)('admin_suspend_store', {
       _store_id: data.storeId,
       _reason: data.reason
     });
@@ -57,9 +60,11 @@ export const adminSuspendStore = createServerFn({ method: "POST" })
   });
 
 export const adminReactivateStore = createServerFn({ method: "POST" })
-  .input((d: { storeId: string }) => d)
+  .validator((d: { storeId: string }) => 
+    z.object({ storeId: z.string().uuid() }).parse(d)
+  )
   .handler(async ({ data }) => {
-    const { error } = await supabase.rpc('admin_reactivate_store', {
+    const { error } = await (supabase.rpc as any)('admin_reactivate_store', {
       _store_id: data.storeId
     });
     if (error) throw error;
