@@ -40,6 +40,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/feedback/ErrorState";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/loja/entregadores/$courierId")({
   component: CourierDetailPage,
@@ -117,12 +118,10 @@ function CourierDetailPage() {
     try {
       const res = await resetAccess.mutateAsync({
         data: {
-          storeId,
-          courierId,
-          expectedVersion: courier.version
+          courier_id: courierId
         }
       });
-      setResetResult(res.temporaryPassword);
+      setResetResult(res.temporary_password);
     } catch (err) {}
   };
 
