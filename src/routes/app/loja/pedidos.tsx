@@ -12,6 +12,7 @@ import {
   Bike,
   Clock,
   RadioTower,
+  Printer,
   RefreshCw,
   Search,
   ShoppingBag,
@@ -46,6 +47,7 @@ import {
   useTransitionReasons,
 } from "@/store-orders/useStoreOrders";
 import { StoreOperationalAlerts } from "@/notifications/store/StoreOperationalAlerts";
+import { printOrderReceipt } from "@/lib/thermal-receipt";
 import {
   ACTION_LABEL,
   ORDER_QUEUES,
@@ -267,6 +269,7 @@ function OrdersPanel() {
 
       <OrderDetailDialog
         storeId={storeId}
+        storeName={stores.find((store) => store.id === storeId)?.name ?? "Loja"}
         orderId={openOrderId}
         onClose={() => setOpenOrderId(null)}
       />
@@ -489,10 +492,12 @@ function ReasonDialog({
 
 function OrderDetailDialog({
   storeId,
+  storeName,
   orderId,
   onClose,
 }: {
   storeId: string | null;
+  storeName: string;
   orderId: string | null;
   onClose: () => void;
 }) {
@@ -572,6 +577,12 @@ function OrderDetailDialog({
             </p>
 
             <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={() => printOrderReceipt(detail, { name: storeName })}
+              >
+                <Printer className="size-4" /> Imprimir cupom (80mm)
+              </Button>
               <OrderActions
                 storeId={storeId}
                 order={{
