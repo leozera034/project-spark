@@ -43,7 +43,7 @@ export const createStoreCourier = createServerFn({ method: "POST" })
       "resolve_courier_create_store_admin",
       {
         _actor_user_id: context.userId,
-        _store_id: null, // Deixa o banco derivar do vínculo do ator
+        _store_id: undefined, // Deixa o banco derivar do vínculo do ator
       },
     );
 
