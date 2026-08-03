@@ -33,7 +33,7 @@ export const Route = createFileRoute("/app/loja/entregadores")({
 
 function CourierListPage() {
   const { authContext } = useAuth();
-  const storeId = authContext?.store_id ?? null;
+  const storeId = authContext?.store_ids?.[0] ?? null;
   const [search, setSearch] = useState("");
   
   const { data: counts } = useCourierCounts(storeId);
