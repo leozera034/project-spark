@@ -245,7 +245,7 @@ function CourierDetailPage() {
                 </div>
               ) : (
                 <div className="divide-y border-t">
-                  {courier.history.map((entry, idx) => (
+                  {courier.history.map((entry: CourierHistoryEntry, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-4 text-sm">
                       <div className="min-w-[140px] text-muted-foreground">
                         {new Date(entry.occurredAt).toLocaleString("pt-BR")}

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/auth/useAuth";
 import { useCourierList, useCourierCounts } from "@/store/couriers/hooks/useCouriers";
+import type { CourierListItem } from "@/store/couriers/courier.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -39,7 +40,7 @@ function CourierListPage() {
   const { data: counts } = useCourierCounts(storeId);
   const { data: payload, isLoading } = useCourierList(storeId);
 
-  const filteredCouriers = payload?.couriers.filter(c => 
+  const filteredCouriers = payload?.couriers.filter((c: CourierListItem) => 
     c.displayName.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
@@ -136,7 +137,7 @@ function CourierListPage() {
             <p className="text-sm text-muted-foreground">Tente mudar sua busca ou adicione um novo.</p>
           </div>
         ) : (
-          filteredCouriers.map((courier) => (
+          filteredCouriers.map((courier: CourierListItem) => (
             <Link
               key={courier.courierId}
               to="/app/loja/entregadores/$courierId"
