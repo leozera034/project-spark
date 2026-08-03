@@ -206,7 +206,7 @@ function Home() {
               <Link to="/entrar/entregador">Sou entregador</Link>
             </Button>
             <Button asChild variant="brand" size="sm">
-              <Link to="/entrar/loja">Entrar na minha loja</Link>
+              <Link to="/criar-loja">Criar minha loja</Link>
             </Button>
           </div>
         </div>
@@ -371,7 +371,7 @@ function Home() {
                   size="touch"
                   className="mt-7 w-full"
                 >
-                  <Link to="/entrar/loja">Começar com o {plan.name}</Link>
+                  <Link to="/criar-loja">Começar com o {plan.name}</Link>
                 </Button>
               </Reveal>
             ))}
