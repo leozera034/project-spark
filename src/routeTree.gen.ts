@@ -30,6 +30,7 @@ import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
 import { Route as PreviewIndexRouteImport } from './routes/preview/index'
 import { Route as PreviewAdminRouteImport } from './routes/preview/admin'
 import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
+import { Route as PreviewDemoRouteImport } from './routes/preview/demo'
 import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
 import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
@@ -202,6 +203,11 @@ const PreviewAdminRoute = PreviewAdminRouteImport.update({
 const PreviewClienteRoute = PreviewClienteRouteImport.update({
   id: '/cliente',
   path: '/cliente',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewDemoRoute = PreviewDemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => PreviewRoute,
 } as any)
 const PreviewEntregadorRoute = PreviewEntregadorRouteImport.update({
@@ -594,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
+  '/preview/demo': typeof PreviewDemoRoute
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
@@ -678,6 +685,7 @@ export interface FileRoutesByTo {
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
   '/pedido/$': typeof PedidoSplatRoute
+  '/preview/demo': typeof PreviewDemoRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
@@ -766,6 +774,7 @@ export interface FileRoutesById {
   '/pedido/$': typeof PedidoSplatRoute
   '/preview/admin': typeof PreviewAdminRouteWithChildren
   '/preview/cliente': typeof PreviewClienteRouteWithChildren
+  '/preview/demo': typeof PreviewDemoRoute
   '/preview/entregador': typeof PreviewEntregadorRouteWithChildren
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
@@ -859,6 +868,7 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
+    | '/preview/demo'
     | '/preview/entregador'
     | '/preview/loja'
     | '/admin/'
@@ -943,6 +953,7 @@ export interface FileRouteTypes {
     | '/entrar/entregador'
     | '/entrar/loja'
     | '/pedido/$'
+    | '/preview/demo'
     | '/admin'
     | '/preview'
     | '/app/entregador/entrega'
@@ -1030,6 +1041,7 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/preview/admin'
     | '/preview/cliente'
+    | '/preview/demo'
     | '/preview/entregador'
     | '/preview/loja'
     | '/admin/'
@@ -1270,6 +1282,13 @@ declare module '@tanstack/react-router' {
       path: '/cliente'
       fullPath: '/preview/cliente'
       preLoaderRoute: typeof PreviewClienteRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/demo': {
+      id: '/preview/demo'
+      path: '/demo'
+      fullPath: '/preview/demo'
+      preLoaderRoute: typeof PreviewDemoRouteImport
       parentRoute: typeof PreviewRoute
     }
     '/preview/entregador': {
@@ -1889,6 +1908,7 @@ const PreviewLojaRouteWithChildren = PreviewLojaRoute._addFileChildren(
 interface PreviewRouteChildren {
   PreviewAdminRoute: typeof PreviewAdminRouteWithChildren
   PreviewClienteRoute: typeof PreviewClienteRouteWithChildren
+  PreviewDemoRoute: typeof PreviewDemoRoute
   PreviewEntregadorRoute: typeof PreviewEntregadorRouteWithChildren
   PreviewLojaRoute: typeof PreviewLojaRouteWithChildren
   PreviewIndexRoute: typeof PreviewIndexRoute
@@ -1897,6 +1917,7 @@ interface PreviewRouteChildren {
 const PreviewRouteChildren: PreviewRouteChildren = {
   PreviewAdminRoute: PreviewAdminRouteWithChildren,
   PreviewClienteRoute: PreviewClienteRouteWithChildren,
+  PreviewDemoRoute: PreviewDemoRoute,
   PreviewEntregadorRoute: PreviewEntregadorRouteWithChildren,
   PreviewLojaRoute: PreviewLojaRouteWithChildren,
   PreviewIndexRoute: PreviewIndexRoute,
@@ -2066,13 +2087,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
