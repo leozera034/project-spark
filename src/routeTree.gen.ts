@@ -248,11 +248,6 @@ const AppLojaEntregadoresRoute = AppLojaEntregadoresRouteImport.update({
   path: '/entregadores',
   getParentRoute: () => AppLojaRoute,
 } as any)
-const AppLojaEntregadoresRoute = AppLojaEntregadoresRouteImport.update({
-  id: '/entregadores',
-  path: '/entregadores',
-  getParentRoute: () => AppLojaRoute,
-} as any)
 const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -1327,13 +1322,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaEntregadoresRouteImport
       parentRoute: typeof AppLojaRoute
     }
-    '/app/loja/entregadores': {
-      id: '/app/loja/entregadores'
-      path: '/entregadores'
-      fullPath: '/app/loja/entregadores'
-      preLoaderRoute: typeof AppLojaEntregadoresRouteImport
-      parentRoute: typeof AppLojaRoute
-    }
     '/app/loja/pedidos': {
       id: '/app/loja/pedidos'
       path: '/pedidos'
@@ -1973,7 +1961,6 @@ interface AppLojaRouteChildren {
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
   AppLojaCozinhaRoute: typeof AppLojaCozinhaRoute
-  AppLojaEntregadoresRoute: typeof AppLojaEntregadoresRoute
   AppLojaEntregadoresRoute: typeof AppLojaEntregadoresRouteWithChildren
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
@@ -1983,7 +1970,6 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
   AppLojaCozinhaRoute: AppLojaCozinhaRoute,
-  AppLojaEntregadoresRoute: AppLojaEntregadoresRoute,
   AppLojaEntregadoresRoute: AppLojaEntregadoresRouteWithChildren,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
@@ -2058,3 +2044,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
