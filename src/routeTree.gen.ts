@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as CriarLojaRouteImport } from './routes/criar-loja'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as RecuperarAcessoRouteImport } from './routes/recuperar-acesso'
@@ -75,6 +76,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CriarLojaRoute = CriarLojaRouteImport.update({
+  id: '/criar-loja',
+  path: '/criar-loja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -377,6 +383,7 @@ const ApiPublicStorefrontSlugProdutosProductIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/criar-loja': typeof CriarLojaRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
@@ -435,6 +442,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/criar-loja': typeof CriarLojaRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
@@ -490,6 +498,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/criar-loja': typeof CriarLojaRoute
   '/design-system': typeof DesignSystemRoute
   '/loja': typeof LojaRouteWithChildren
   '/recuperar-acesso': typeof RecuperarAcessoRoute
@@ -551,6 +560,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/criar-loja'
     | '/design-system'
     | '/loja'
     | '/recuperar-acesso'
@@ -609,6 +619,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/criar-loja'
     | '/design-system'
     | '/loja'
     | '/recuperar-acesso'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/criar-loja'
     | '/design-system'
     | '/loja'
     | '/recuperar-acesso'
@@ -723,6 +735,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  CriarLojaRoute: typeof CriarLojaRoute
   DesignSystemRoute: typeof DesignSystemRoute
   LojaRoute: typeof LojaRouteWithChildren
   RecuperarAcessoRoute: typeof RecuperarAcessoRoute
@@ -755,6 +768,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/criar-loja': {
+      id: '/criar-loja'
+      path: '/criar-loja'
+      fullPath: '/criar-loja'
+      preLoaderRoute: typeof CriarLojaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -1328,6 +1348,7 @@ const ApiPublicStorefrontSlugRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  CriarLojaRoute: CriarLojaRoute,
   DesignSystemRoute: DesignSystemRoute,
   LojaRoute: LojaRouteWithChildren,
   RecuperarAcessoRoute: RecuperarAcessoRoute,
@@ -1348,13 +1369,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
