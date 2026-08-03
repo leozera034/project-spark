@@ -1,3 +1,8 @@
+/**
+ * O avanço está consistente, mas nenhuma das Fases 19 e 19 está concluída. Há também um ponto crítico: a senha compartilhada foi exposta na conversa. Essas contas devem existir somente em ambiente de teste e a senha precisa ser rotacionada ou as contas removidas após o QA.
+ * 
+ * Segue...
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";

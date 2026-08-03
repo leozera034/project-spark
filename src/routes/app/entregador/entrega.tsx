@@ -136,7 +136,7 @@ function DeliveryDetail() {
         {/* Card de Coleta (Loja) */}
         <Card className={cn(
           "border-2",
-          ["atribuida", "aceita", "chegou_na_loja"].includes(status) ? "border-brand shadow-md" : "opacity-60 border-slate-200"
+          ["atribuida", "aceita", "chegou_na_loja"].includes(status as string) ? "border-brand shadow-md" : "opacity-60 border-slate-200"
         )}>
           <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -169,8 +169,8 @@ function DeliveryDetail() {
         {/* Card de Entrega (Cliente) */}
         <Card className={cn(
           "border-2",
-          ["em_rota"].includes(status) ? "border-brand shadow-md" : "border-slate-200",
-          ["atribuida", "aceita", "chegou_na_loja"].includes(status) && "opacity-40"
+          ["em_rota"].includes(status as string) ? "border-brand shadow-md" : "border-slate-200",
+          ["atribuida", "aceita", "chegou_na_loja"].includes(status as string) && "opacity-40"
         )}>
           <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -303,7 +303,7 @@ function DeliveryDetail() {
             </Button>
           )}
 
-          {status === "chegou_na_loja" && (
+          {(status as string) === "chegou_na_loja" && (
             <Button 
               className="w-full h-16 text-xl font-black shadow-lg animate-in fade-in zoom-in bg-emerald-600 hover:bg-emerald-700" 
               onClick={() => handleAction(pickupOrder)}

@@ -33,6 +33,7 @@ import { Route as PreviewClienteRouteImport } from './routes/preview/cliente'
 import { Route as PreviewEntregadorRouteImport } from './routes/preview/entregador'
 import { Route as PreviewLojaRouteImport } from './routes/preview/loja'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
+import { Route as AppEntregadorEntregaRouteImport } from './routes/app/entregador/entrega'
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
@@ -215,6 +216,11 @@ const PreviewLojaRoute = PreviewLojaRouteImport.update({
 const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppEntregadorRoute,
+} as any)
+const AppEntregadorEntregaRoute = AppEntregadorEntregaRouteImport.update({
+  id: '/entrega',
+  path: '/entrega',
   getParentRoute: () => AppEntregadorRoute,
 } as any)
 const AppLojaIndexRoute = AppLojaIndexRouteImport.update({
@@ -590,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
+  '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
@@ -670,6 +677,7 @@ export interface FileRoutesByTo {
   '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/preview': typeof PreviewIndexRoute
+  '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/entregadores': typeof AppLojaEntregadoresRouteWithChildren
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
@@ -758,6 +766,7 @@ export interface FileRoutesById {
   '/preview/loja': typeof PreviewLojaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/preview/': typeof PreviewIndexRoute
+  '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
@@ -849,6 +858,7 @@ export interface FileRouteTypes {
     | '/preview/loja'
     | '/admin/'
     | '/preview/'
+    | '/app/entregador/entrega'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
@@ -929,6 +939,7 @@ export interface FileRouteTypes {
     | '/pedido/$'
     | '/admin'
     | '/preview'
+    | '/app/entregador/entrega'
     | '/app/loja/cozinha'
     | '/app/loja/entregadores'
     | '/app/loja/pedidos'
@@ -1016,6 +1027,7 @@ export interface FileRouteTypes {
     | '/preview/loja'
     | '/admin/'
     | '/preview/'
+    | '/app/entregador/entrega'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
@@ -1271,6 +1283,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/entregador/'
       preLoaderRoute: typeof AppEntregadorIndexRouteImport
+      parentRoute: typeof AppEntregadorRoute
+    }
+    '/app/entregador/entrega': {
+      id: '/app/entregador/entrega'
+      path: '/entrega'
+      fullPath: '/app/entregador/entrega'
+      preLoaderRoute: typeof AppEntregadorEntregaRouteImport
       parentRoute: typeof AppEntregadorRoute
     }
     '/app/loja/': {
@@ -1879,10 +1898,12 @@ const PreviewRouteWithChildren =
   PreviewRoute._addFileChildren(PreviewRouteChildren)
 
 interface AppEntregadorRouteChildren {
+  AppEntregadorEntregaRoute: typeof AppEntregadorEntregaRoute
   AppEntregadorIndexRoute: typeof AppEntregadorIndexRoute
 }
 
 const AppEntregadorRouteChildren: AppEntregadorRouteChildren = {
+  AppEntregadorEntregaRoute: AppEntregadorEntregaRoute,
   AppEntregadorIndexRoute: AppEntregadorIndexRoute,
 }
 
