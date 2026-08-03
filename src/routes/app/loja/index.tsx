@@ -51,6 +51,10 @@ function StoreHome() {
           <Link to="/app/loja/cozinha">Modo cozinha</Link>
         </Button>
         <Button asChild variant="outline">
+          <Link to="/app/loja/entregadores">Entregadores</Link>
+        </Button>
+
+        <Button asChild variant="outline">
           <Link to="/app/loja/cardapio">Gerenciar cardápio</Link>
         </Button>
 
