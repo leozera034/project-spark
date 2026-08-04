@@ -138,5 +138,15 @@ export const createStoreAccount = createServerFn({ method: "POST" })
     }
 
     const result = provisioned as { store_id: string; slug: string };
+
+    // Loja de autocadastro nasce publicável: 14 dias de cortesia já valendo.
+    try {
+      await supabaseAdmin.from("stores").update({ status: "ativa" }).eq("id", result.store_id);
+    } catch {
+      // publicação pode ser feita depois pelo painel
+    }
+
+
     return { storeId: result.store_id, slug: result.slug };
+
   });
