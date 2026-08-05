@@ -43,8 +43,8 @@ export const createStoreCourier = createServerFn({ method: "POST" })
       "resolve_courier_create_store_admin",
       {
         _actor_user_id: context.userId,
-        _store_id: context.userId, // O banco ignora se o ator não for admin global
-      } as any,
+        _store_id: null, // resolve a loja a partir dos papeis ativos do ator
+      } as never,
     );
 
 

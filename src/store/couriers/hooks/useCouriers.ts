@@ -26,7 +26,7 @@ import {
   reportMyDeliveryOccurrence,
 } from "../courier.api";
 import { resetCourierAccess } from "@/lib/courier-access.functions";
-import { createStoreCourier } from "@/lib/courier-provisioning.server";
+import { createStoreCourier } from "@/lib/courier-provisioning.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { extractCode, toFriendlyMessage } from "@/store-config/errors";
 import type { DeliveryActionResult, CourierPresenceResult } from "../courier.types";
