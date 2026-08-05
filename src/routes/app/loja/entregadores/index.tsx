@@ -28,7 +28,7 @@ import { derivePresence, PRESENCE_LABEL, availabilityLabel } from "@/store/couri
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export const Route = createFileRoute("/app/loja/entregadores")({
+export const Route = createFileRoute("/app/loja/entregadores/")({
   component: CourierListPage,
 });
 

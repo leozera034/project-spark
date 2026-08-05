@@ -96,7 +96,7 @@ function NewCourierPage() {
           <CardContent className="p-6 space-y-6">
             <div className="space-y-4 text-sm">
               <p className="text-muted-foreground leading-relaxed">
-                O acesso foi provisionado. Por segurança, a senha temporária abaixo será exibida **apenas uma vez**.
+                O acesso foi provisionado. Por segurança, a senha temporária abaixo será exibida apenas uma vez.
               </p>
               
               <div className="rounded-lg bg-muted p-4 space-y-4">
