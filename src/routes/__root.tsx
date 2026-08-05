@@ -132,7 +132,10 @@ function RootComponent() {
           <SkipToContent />
           <RouteProgress />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <div id="conteudo">
+            <Outlet />
+          </div>
+
           <ThemedToaster />
         </AuthProvider>
       </ThemeProvider>
