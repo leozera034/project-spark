@@ -7,6 +7,7 @@ import {
   fetchCourierDetail,
   fetchCourierList,
   fetchEligibleCouriers,
+  fetchDeliveryAssignment,
   updateCourier,
   activateCourier,
   deactivateCourier,
@@ -136,6 +137,14 @@ export function useEligibleCouriers(storeId: string | null, orderId: string) {
     queryKey: ["couriers", "eligible", storeId, orderId],
     queryFn: () => fetchEligibleCouriers(storeId, orderId),
     enabled: !!storeId && !!orderId,
+  });
+}
+
+export function useDeliveryAssignment(storeId: string | null, orderId: string) {
+  return useQuery({
+    queryKey: ["couriers", "assignment", storeId, orderId],
+    queryFn: () => fetchDeliveryAssignment(storeId, orderId),
+    enabled: Boolean(storeId && orderId),
   });
 }
 

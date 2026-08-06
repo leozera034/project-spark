@@ -49,6 +49,11 @@ import {
 import { StoreOperationalAlerts } from "@/notifications/store/StoreOperationalAlerts";
 import { printOrderReceipt } from "@/lib/thermal-receipt";
 import {
+  useAssignCourier,
+  useDeliveryAssignment,
+  useEligibleCouriers,
+} from "@/store/couriers/hooks/useCouriers";
+import {
   ACTION_LABEL,
   ORDER_QUEUES,
   STATUS_LABEL,
@@ -593,6 +598,10 @@ function OrderDetailDialog({
               />
             </div>
 
+            {detail.fulfillment === "entrega" ? (
+              <DeliveryAssignmentPanel storeId={storeId} orderId={detail.id} />
+            ) : null}
+
             <Separator />
 
             <div>
@@ -630,5 +639,65 @@ function OrderDetailDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DeliveryAssignmentPanel({
+  storeId,
+  orderId,
+}: {
+  storeId: string | null;
+  orderId: string;
+}) {
+  const assignmentQuery = useDeliveryAssignment(storeId, orderId);
+  const eligibleQuery = useEligibleCouriers(storeId, orderId);
+  const assign = useAssignCourier();
+  const assignment = assignmentQuery.data;
+
+  if (assignmentQuery.isLoading) {
+    return <Skeleton className="h-24 w-full rounded-xl" />;
+  }
+
+  if (!assignment?.applicable || !assignment.delivery) return null;
+
+  return (
+    <section className="space-y-3 rounded-lg border border-border p-4">
+      <div>
+        <h3 className="font-semibold">Entregador</h3>
+        <p className="text-xs text-muted-foreground">
+          {assignment.delivery.courier
+            ? `Atribuído a ${assignment.delivery.courier.displayName}`
+            : "Escolha quem fará esta entrega."}
+        </p>
+      </div>
+
+      {eligibleQuery.isLoading ? (
+        <Skeleton className="h-10 w-full rounded-md" />
+      ) : (eligibleQuery.data?.length ?? 0) === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum entregador ativo disponível.</p>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {eligibleQuery.data?.map((courier) => (
+            <Button
+              key={courier.courierId}
+              type="button"
+              variant={assignment.delivery?.courier?.courierId === courier.courierId ? "default" : "outline"}
+              disabled={assign.isPending || courier.eligibility === "blocked" || Boolean(assignment.delivery?.courier)}
+              onClick={() =>
+                assign.mutate({
+                  storeId,
+                  orderId,
+                  courierId: courier.courierId,
+                  expectedDeliveryVersion: assignment.delivery?.version ?? 0,
+                })
+              }
+            >
+              {courier.displayName}
+              {courier.presenceStatus === "offline" ? " · offline" : ""}
+            </Button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
