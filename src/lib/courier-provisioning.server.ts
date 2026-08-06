@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { courierIdentifierToSyntheticEmail } from "@/auth/courierIdentifier";
 import type { CourierCreationResult } from "@/store/couriers/courier.types";
 
 export const courierCreationSchema = z.object({
@@ -43,7 +44,7 @@ export async function provisionCourierForStore(
     throw new Error("NAO_AUTORIZADO");
   }
 
-  const syntheticEmail = `${data.loginIdentifier}@courier.pediuaqui.internal`;
+  const syntheticEmail = await courierIdentifierToSyntheticEmail(data.loginIdentifier);
   const temporaryPassword = generateTemporaryPassword();
   const requestHash = await hashRequest(
     [data.fullName, data.phone, data.loginIdentifier, data.canAcceptDeliveries, data.isActive].join("|"),
