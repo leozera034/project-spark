@@ -34,8 +34,6 @@ export const Route = createFileRoute("/app/loja/entregadores/novo")({
 
 function NewCourierPage() {
   const navigate = useNavigate();
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
   const createCourier = useCreateCourier();
   const [copied, setCopied] = useState(false);
   

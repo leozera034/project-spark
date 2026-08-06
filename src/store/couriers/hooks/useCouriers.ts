@@ -51,7 +51,10 @@ export function useCourierCounts(storeId: string | null) {
 export function useCourierDetail(storeId: string | null, courierId: string | undefined) {
   return useQuery({
     queryKey: ["couriers", "detail", storeId, courierId],
-    queryFn: () => fetchCourierDetail(storeId, courierId!),
+    queryFn: () => {
+      if (!courierId) throw new Error("Entregador não informado.");
+      return fetchCourierDetail(storeId, courierId);
+    },
     enabled: !!storeId && !!courierId,
   });
 }
