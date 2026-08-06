@@ -5,5 +5,5 @@ import { courierCreationSchema, provisionCourierForStore } from "@/lib/courier-p
 
 export const createStoreCourier = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => courierCreationSchema.parse(data))
+  .inputValidator((data: unknown) => courierCreationSchema.parse(data))
   .handler(({ data, context }) => provisionCourierForStore(data, context.userId));
