@@ -394,7 +394,7 @@ function Home() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="brand" size="touch">
-                <Link to="/entrar/loja">Entrar na minha loja</Link>
+                <Link to="/entrar/loja" search={{ retorno: undefined }}>Entrar na minha loja</Link>
               </Button>
               <Button asChild variant="outline" size="touch" className="border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground">
                 <Link to="/entrar/entregador">Acesso do entregador</Link>
@@ -416,7 +416,7 @@ function Home() {
             <h3 className="text-sm font-semibold">Acessos</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/entrar/loja" className="transition-colors hover:text-foreground">
+                <Link to="/entrar/loja" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
                   Painel da loja
                 </Link>
               </li>
@@ -426,7 +426,7 @@ function Home() {
                 </Link>
               </li>
               <li>
-                <Link to="/entrar/admin" className="transition-colors hover:text-foreground">
+                <Link to="/entrar/admin" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
                   Administração da plataforma
                 </Link>
               </li>
