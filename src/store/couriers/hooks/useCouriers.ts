@@ -7,6 +7,7 @@ import {
   fetchCourierDetail,
   fetchCourierList,
   fetchEligibleCouriers,
+  fetchDeliveryAssignment,
   updateCourier,
   activateCourier,
   deactivateCourier,
@@ -51,7 +52,10 @@ export function useCourierCounts(storeId: string | null) {
 export function useCourierDetail(storeId: string | null, courierId: string | undefined) {
   return useQuery({
     queryKey: ["couriers", "detail", storeId, courierId],
-    queryFn: () => fetchCourierDetail(storeId, courierId!),
+    queryFn: () => {
+      if (!courierId) throw new Error("Entregador não informado.");
+      return fetchCourierDetail(storeId, courierId);
+    },
     enabled: !!storeId && !!courierId,
   });
 }
@@ -133,6 +137,14 @@ export function useEligibleCouriers(storeId: string | null, orderId: string) {
     queryKey: ["couriers", "eligible", storeId, orderId],
     queryFn: () => fetchEligibleCouriers(storeId, orderId),
     enabled: !!storeId && !!orderId,
+  });
+}
+
+export function useDeliveryAssignment(storeId: string | null, orderId: string) {
+  return useQuery({
+    queryKey: ["couriers", "assignment", storeId, orderId],
+    queryFn: () => fetchDeliveryAssignment(storeId, orderId),
+    enabled: Boolean(storeId && orderId),
   });
 }
 

@@ -329,7 +329,7 @@ function CreateStorePage() {
 
             <p className="text-center text-xs text-muted-foreground">
               Já tem conta?{" "}
-              <Link to="/entrar/loja" className="underline underline-offset-4">
+              <Link to="/entrar/loja" search={{ retorno: undefined }} className="underline underline-offset-4">
                 Entrar na loja
               </Link>
             </p>
