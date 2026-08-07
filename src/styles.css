@@ -385,26 +385,40 @@
   box-shadow: var(--shadow-focus);
 }
 
-/* --- superficies e microinteracoes do storefront --- */
+/* --- superficies e microinteracoes estilo iOS --- */
 @utility panel {
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: calc(var(--radius) + 4px);
+  background-color: color-mix(in oklab, var(--color-card) 88%, transparent);
+  backdrop-filter: saturate(170%) blur(18px);
+  border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+  border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-e1);
 }
 
 @utility panel-raised {
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: calc(var(--radius) + 6px);
+  background-color: color-mix(in oklab, var(--color-card) 90%, transparent);
+  backdrop-filter: saturate(180%) blur(24px);
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  border-radius: calc(var(--radius) + 10px);
   box-shadow: var(--shadow-e2);
 }
 
-@utility glass-bar {
-  background-color: color-mix(in oklab, var(--color-background) 82%, transparent);
-  backdrop-filter: saturate(180%) blur(12px);
-  -webkit-backdrop-filter: saturate(180%) blur(12px);
+@utility panel-vivid {
+  position: relative;
+  border-radius: calc(var(--radius) + 12px);
+  border: 1px solid color-mix(in oklab, var(--color-primary) 28%, transparent);
+  background-image: linear-gradient(
+    140deg,
+    color-mix(in oklab, var(--color-primary) 16%, var(--color-card)),
+    color-mix(in oklab, var(--color-highlight) 10%, var(--color-card))
+  );
+  box-shadow: var(--shadow-e3);
 }
+
+@utility glass-bar {
+  background-color: color-mix(in oklab, var(--color-background) 72%, transparent);
+  backdrop-filter: saturate(190%) blur(20px);
+}
+
 
 @utility tappable {
   transition:
