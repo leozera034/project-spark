@@ -116,7 +116,7 @@
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 1.125rem;
 
   /* superficies — off-white quente (#F8F5F0) */
   --background: oklch(0.9705 0.0062 84.6);
@@ -130,28 +130,28 @@
   --popover-foreground: oklch(0.1979 0.0107 207.05);
 
   /* marca — teal #0FB5A5 */
-  --brand: oklch(0.7 0.152 181);
+  --brand: oklch(0.74 0.188 178);
   --brand-foreground: oklch(0.16 0.02 226.88);
-  --brand-strong: oklch(0.605 0.138 181);
+  --brand-strong: oklch(0.645 0.176 178);
   --brand-soft: oklch(0.955 0.048 181);
   --brand-soft-foreground: oklch(0.5 0.12 181);
   --carbon: oklch(0.1959 0.0199 226.26);
   --carbon-foreground: oklch(0.9828 0.0032 197.1);
 
   /* destaque quente — ambar #F59E0B */
-  --highlight: oklch(0.785 0.192 63);
+  --highlight: oklch(0.775 0.215 55);
   --highlight-foreground: oklch(0.1959 0.0199 226.26);
   --highlight-soft: oklch(0.955 0.068 72);
   --highlight-soft-foreground: oklch(0.48 0.145 55);
 
   /* acoes */
-  --primary: oklch(0.605 0.138 181);
+  --primary: oklch(0.64 0.178 178);
   --primary-foreground: oklch(0.99 0.005 197.1);
   --secondary: oklch(0.9515 0.0074 84.6);
   --secondary-foreground: oklch(0.2524 0.0253 222.38);
   --muted: oklch(0.9515 0.0074 84.6);
   --muted-foreground: oklch(0.481 0.0154 89.2);
-  --accent: oklch(0.955 0.048 181);
+  --accent: oklch(0.945 0.072 180);
   --accent-foreground: oklch(0.5 0.12 181);
   --destructive: oklch(0.575 0.212 27.5);
   --destructive-foreground: oklch(0.9828 0.0032 197.1);
@@ -160,7 +160,7 @@
   --border: oklch(0.9075 0.0086 84.6);
   --border-strong: oklch(0.8505 0.0122 84.6);
   --input: oklch(0.8805 0.0104 84.6);
-  --ring: oklch(0.7 0.152 181);
+  --ring: oklch(0.74 0.188 178);
 
 
   /* feedback */
@@ -195,10 +195,10 @@
   --sidebar-ring: oklch(0.6563 0.1178 181.68);
 
   /* elevacao */
-  --elevation-1: 0 1px 2px 0 oklch(0.1959 0.0199 226.26 / 0.06);
-  --elevation-2: 0 4px 12px -2px oklch(0.1959 0.0199 226.26 / 0.1);
-  --elevation-3: 0 16px 40px -12px oklch(0.1959 0.0199 226.26 / 0.18);
-  --elevation-focus: 0 0 0 3px oklch(0.6563 0.1178 181.68 / 0.35);
+  --elevation-1: 0 1px 3px 0 oklch(0.1959 0.0199 226.26 / 0.07);
+  --elevation-2: 0 8px 24px -8px oklch(0.1959 0.0199 226.26 / 0.16);
+  --elevation-3: 0 24px 60px -18px oklch(0.24 0.09 190 / 0.28);
+  --elevation-focus: 0 0 0 4px oklch(0.74 0.188 178 / 0.32);
 }
 
 .dark {
@@ -212,15 +212,15 @@
   --popover: oklch(0.2245 0.0236 225.41);
   --popover-foreground: oklch(0.9828 0.0032 197.1);
 
-  --brand: oklch(0.8 0.158 180.24);
+  --brand: oklch(0.83 0.185 178);
   --brand-foreground: oklch(0.1659 0.0163 226.88);
-  --brand-strong: oklch(0.735 0.155 178.49);
+  --brand-strong: oklch(0.765 0.182 178);
   --brand-soft: oklch(0.2524 0.0253 222.38);
   --brand-soft-foreground: oklch(0.8534 0.1073 181.98);
   --carbon: oklch(0.1959 0.0199 226.26);
   --carbon-foreground: oklch(0.9828 0.0032 197.1);
 
-  --primary: oklch(0.7896 0.134 180.24);
+  --primary: oklch(0.82 0.178 178);
   --primary-foreground: oklch(0.1659 0.0163 226.88);
   --secondary: oklch(0.2524 0.0253 222.38);
   --secondary-foreground: oklch(0.9828 0.0032 197.1);
@@ -234,7 +234,7 @@
   --border: oklch(0.3107 0.0278 218.64);
   --border-strong: oklch(0.3774 0.0319 217.96);
   --input: oklch(0.3774 0.0319 217.96);
-  --ring: oklch(0.7896 0.134 180.24);
+  --ring: oklch(0.82 0.178 178);
 
   --success: oklch(0.7 0.128 164.34);
   --success-foreground: oklch(0.1659 0.0163 226.88);
@@ -249,7 +249,7 @@
   --info-foreground: oklch(0.1659 0.0163 226.88);
   --info-soft: oklch(0.3 0.06 248.8);
 
-  --highlight: oklch(0.815 0.178 68);
+  --highlight: oklch(0.82 0.205 62);
   --highlight-foreground: oklch(0.1659 0.0163 226.88);
   --highlight-soft: oklch(0.3 0.055 74);
   --highlight-soft-foreground: oklch(0.86 0.1 78);
@@ -270,10 +270,10 @@
   --sidebar-border: oklch(0.3107 0.0278 218.64);
   --sidebar-ring: oklch(0.7896 0.134 180.24);
 
-  --elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
-  --elevation-2: 0 4px 12px -2px oklch(0 0 0 / 0.5);
-  --elevation-3: 0 16px 40px -12px oklch(0 0 0 / 0.6);
-  --elevation-focus: 0 0 0 3px oklch(0.7896 0.134 180.24 / 0.35);
+  --elevation-1: 0 1px 3px 0 oklch(0 0 0 / 0.45);
+  --elevation-2: 0 8px 24px -8px oklch(0 0 0 / 0.55);
+  --elevation-3: 0 24px 60px -18px oklch(0.5 0.14 185 / 0.35);
+  --elevation-focus: 0 0 0 4px oklch(0.82 0.178 178 / 0.35);
 }
 
 @layer base {
