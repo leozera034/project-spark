@@ -1,275 +1,353 @@
--- Migration: Phase 22 - Plans, Subscriptions and Payments Foundation
--- Implementation of global plans, store subscriptions and manual payments with immutable audit logs.
+-- Fase 22 — evolução do billing existente para contrato em centavos.
+--
+-- A Fase 04 já criou plans, store_subscriptions, subscription_payments e o enum
+-- subscription_status. Esta migration NÃO cria uma segunda fundação: evolui as
+-- tabelas existentes, preserva os dados/colunas legadas durante a transição e
+-- instala as RPCs usadas pelo módulo atual de billing.
 
--- 1. ENUMS
+-- 1. Tipos novos que realmente não existiam na fundação ----------------------
 CREATE TYPE public.plan_status AS ENUM ('draft', 'active', 'archived');
-CREATE TYPE public.subscription_status AS ENUM ('active', 'past_due', 'suspended_payment', 'trialing', 'canceled');
 CREATE TYPE public.payment_method AS ENUM ('manual_transfer', 'pix_manual', 'cash', 'other');
 CREATE TYPE public.payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 
--- 2. TABLES
+-- subscription_status permanece canônico no vocabulário original:
+-- ativa | inadimplente | suspensa | cortesia | cancelada.
 
--- Global Plans
-CREATE TABLE public.plans (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    code text UNIQUE NOT NULL,
-    name text NOT NULL,
-    description text,
-    monthly_amount_cents integer NOT NULL CHECK (monthly_amount_cents >= 0),
-    currency text NOT NULL DEFAULT 'BRL',
-    grace_days integer NOT NULL DEFAULT 3 CHECK (grace_days >= 0),
-    reminder_days_before integer NOT NULL DEFAULT 5 CHECK (reminder_days_before >= 0),
-    status public.plan_status NOT NULL DEFAULT 'draft',
-    is_archived boolean NOT NULL DEFAULT false,
-    version integer NOT NULL DEFAULT 1,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    created_by uuid REFERENCES auth.users(id),
-    updated_by uuid REFERENCES auth.users(id)
-);
+-- 2. Plans: adicionar contrato monetário em centavos -------------------------
+ALTER TABLE public.plans
+  ADD COLUMN monthly_amount_cents integer,
+  ADD COLUMN currency text NOT NULL DEFAULT 'BRL',
+  ADD COLUMN grace_days integer NOT NULL DEFAULT 3,
+  ADD COLUMN reminder_days_before integer NOT NULL DEFAULT 5,
+  ADD COLUMN status public.plan_status,
+  ADD COLUMN is_archived boolean NOT NULL DEFAULT false,
+  ADD COLUMN version integer NOT NULL DEFAULT 1,
+  ADD COLUMN created_by uuid REFERENCES auth.users(id),
+  ADD COLUMN updated_by uuid REFERENCES auth.users(id);
 
--- Store Subscriptions
-CREATE TABLE public.store_subscriptions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    store_id uuid NOT NULL REFERENCES public.stores(id),
-    plan_id uuid NOT NULL REFERENCES public.plans(id),
-    status public.subscription_status NOT NULL DEFAULT 'trialing',
-    current_period_start timestamptz NOT NULL DEFAULT now(),
-    current_period_end timestamptz NOT NULL,
-    trial_end timestamptz,
-    cancel_at_period_end boolean NOT NULL DEFAULT false,
-    canceled_at timestamptz,
-    suspended_at timestamptz,
-    next_billing_date timestamptz NOT NULL,
-    version integer NOT NULL DEFAULT 1,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE(store_id)
-);
+UPDATE public.plans
+   SET monthly_amount_cents = round(monthly_price * 100)::integer,
+       status = CASE WHEN is_active THEN 'active'::public.plan_status ELSE 'archived'::public.plan_status END,
+       is_archived = NOT is_active
+ WHERE monthly_amount_cents IS NULL OR status IS NULL;
 
--- Subscription Payments (Immutable Audit Log Pattern)
-CREATE TABLE public.subscription_payments (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    store_id uuid NOT NULL REFERENCES public.stores(id),
-    subscription_id uuid NOT NULL REFERENCES public.store_subscriptions(id),
-    amount_due_cents integer NOT NULL CHECK (amount_due_cents >= 0),
-    amount_paid_cents integer NOT NULL DEFAULT 0 CHECK (amount_paid_cents >= 0),
-    discount_amount_cents integer NOT NULL DEFAULT 0 CHECK (discount_amount_cents >= 0),
-    currency text NOT NULL DEFAULT 'BRL',
-    due_date date NOT NULL,
-    paid_at timestamptz,
-    status public.payment_status NOT NULL DEFAULT 'pending',
-    payment_method public.payment_method,
-    notes text,
-    audit_immutable boolean NOT NULL DEFAULT true CHECK (audit_immutable = true),
-    created_at timestamptz NOT NULL DEFAULT now(),
-    created_by uuid REFERENCES auth.users(id)
-);
+ALTER TABLE public.plans
+  ALTER COLUMN monthly_amount_cents SET NOT NULL,
+  ALTER COLUMN status SET NOT NULL,
+  ALTER COLUMN status SET DEFAULT 'draft';
 
--- 3. SECURITY & RLS
+ALTER TABLE public.plans
+  ADD CONSTRAINT plans_monthly_amount_cents_check CHECK (monthly_amount_cents >= 0),
+  ADD CONSTRAINT plans_phase22_grace_days_check CHECK (grace_days >= 0),
+  ADD CONSTRAINT plans_reminder_days_before_check CHECK (reminder_days_before >= 0);
 
--- Plans (Read: Auth, Write: Admin)
-ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
-GRANT SELECT ON public.plans TO authenticated;
-GRANT ALL ON public.plans TO service_role;
+-- 3. Assinaturas: adicionar período/versionamento modernos -------------------
+ALTER TABLE public.store_subscriptions
+  ADD COLUMN current_period_start timestamptz,
+  ADD COLUMN trial_end timestamptz,
+  ADD COLUMN cancel_at_period_end boolean NOT NULL DEFAULT false,
+  ADD COLUMN suspended_at timestamptz,
+  ADD COLUMN next_billing_date timestamptz,
+  ADD COLUMN version integer NOT NULL DEFAULT 1;
 
-CREATE POLICY "Admin can manage plans"
+UPDATE public.store_subscriptions
+   SET current_period_start = coalesce(
+         current_period_start,
+         started_at::timestamp AT TIME ZONE 'America/Sao_Paulo'
+       ),
+       next_billing_date = coalesce(
+         next_billing_date,
+         CASE
+           WHEN current_period_end IS NOT NULL
+             THEN current_period_end::timestamp AT TIME ZONE 'America/Sao_Paulo'
+           ELSE (started_at::timestamp AT TIME ZONE 'America/Sao_Paulo') + interval '1 month'
+         END
+       ),
+       trial_end = CASE
+         WHEN status = 'cortesia' AND trial_end IS NULL
+           THEN coalesce(
+             current_period_end::timestamp AT TIME ZONE 'America/Sao_Paulo',
+             (started_at::timestamp AT TIME ZONE 'America/Sao_Paulo') + interval '14 days'
+           )
+         ELSE trial_end
+       END;
+
+ALTER TABLE public.store_subscriptions
+  ALTER COLUMN current_period_start SET NOT NULL,
+  ALTER COLUMN current_period_start SET DEFAULT now(),
+  ALTER COLUMN next_billing_date SET NOT NULL;
+
+-- 4. Pagamentos: evoluir log manual para centavos/imutabilidade ---------------
+ALTER TABLE public.subscription_payments
+  ADD COLUMN amount_due_cents integer,
+  ADD COLUMN amount_paid_cents integer,
+  ADD COLUMN discount_amount_cents integer NOT NULL DEFAULT 0,
+  ADD COLUMN currency text NOT NULL DEFAULT 'BRL',
+  ADD COLUMN due_date date,
+  ADD COLUMN payment_method public.payment_method,
+  ADD COLUMN audit_immutable boolean NOT NULL DEFAULT true,
+  ADD COLUMN created_by uuid REFERENCES auth.users(id);
+
+UPDATE public.subscription_payments
+   SET amount_due_cents = coalesce(amount_due_cents, round(amount * 100)::integer),
+       amount_paid_cents = coalesce(
+         amount_paid_cents,
+         CASE WHEN status IN ('pago','cortesia') THEN round(amount * 100)::integer ELSE 0 END
+       ),
+       due_date = coalesce(due_date, reference_month, created_at::date);
+
+ALTER TABLE public.subscription_payments
+  ALTER COLUMN amount_due_cents SET NOT NULL,
+  ALTER COLUMN amount_paid_cents SET NOT NULL,
+  ALTER COLUMN amount_paid_cents SET DEFAULT 0,
+  ALTER COLUMN due_date SET NOT NULL,
+  ALTER COLUMN reference_month DROP NOT NULL;
+
+-- O modelo Phase22 é log imutável por evento, portanto mais de um lançamento no
+-- mesmo mês é permitido. A constraint antiga de uma linha por mês impediria
+-- pagamentos/ajustes manuais independentes.
+ALTER TABLE public.subscription_payments
+  DROP CONSTRAINT IF EXISTS subscription_payments_month_unique;
+
+ALTER TABLE public.subscription_payments
+  ADD CONSTRAINT subscription_payments_amount_due_cents_check CHECK (amount_due_cents >= 0),
+  ADD CONSTRAINT subscription_payments_amount_paid_cents_check CHECK (amount_paid_cents >= 0),
+  ADD CONSTRAINT subscription_payments_discount_cents_check CHECK (discount_amount_cents >= 0),
+  ADD CONSTRAINT subscription_payments_audit_immutable_check CHECK (audit_immutable = true);
+
+-- 5. RLS: reaproveitar a matriz central de permissões -------------------------
+-- Policies de leitura da Fase 06 continuam válidas para loja/plataforma.
+-- Ações administrativas novas são restritas às permissões platform.* já
+-- definidas por private.has_permission.
+
+CREATE POLICY plans_platform_manage_phase22
 ON public.plans
-FOR ALL
-TO authenticated
-USING (private.has_platform_permission('manage_plans'));
+FOR ALL TO authenticated
+USING (private.has_permission('platform.plans.manage', NULL))
+WITH CHECK (private.has_permission('platform.plans.manage', NULL));
 
--- Store Subscriptions (Read: Store Staff, Write: Admin)
-ALTER TABLE public.store_subscriptions ENABLE ROW LEVEL SECURITY;
-GRANT SELECT ON public.store_subscriptions TO authenticated;
-GRANT ALL ON public.store_subscriptions TO service_role;
-
-CREATE POLICY "Users can view their own store subscription"
+CREATE POLICY subscriptions_platform_payment_update_phase22
 ON public.store_subscriptions
-FOR SELECT
-TO authenticated
-USING (private.current_store_id() = store_id);
+FOR UPDATE TO authenticated
+USING (private.has_permission('platform.billing.register_payment', NULL))
+WITH CHECK (private.has_permission('platform.billing.register_payment', NULL));
 
-CREATE POLICY "Admin can manage subscriptions"
-ON public.store_subscriptions
-FOR ALL
-TO authenticated
-USING (private.has_platform_permission('manage_subscriptions'));
-
--- Subscription Payments (Read: Store Staff, Write: Admin, Delete/Update: BLOCKED)
-ALTER TABLE public.subscription_payments ENABLE ROW LEVEL SECURITY;
-GRANT SELECT, INSERT ON public.subscription_payments TO authenticated;
-GRANT ALL ON public.subscription_payments TO service_role;
-
--- NO UPDATE/DELETE POLICIES = DENIED BY DEFAULT
-CREATE POLICY "Users can view their own store payments"
+CREATE POLICY subscription_payments_platform_insert_phase22
 ON public.subscription_payments
-FOR SELECT
-TO authenticated
-USING (private.current_store_id() = store_id);
+FOR INSERT TO authenticated
+WITH CHECK (private.has_permission('platform.billing.register_payment', NULL));
 
-CREATE POLICY "Admin can insert payments"
-ON public.subscription_payments
-FOR INSERT
-TO authenticated
-WITH CHECK (private.has_platform_permission('manage_payments'));
-
-CREATE POLICY "Admin can view all payments"
-ON public.subscription_payments
-FOR SELECT
-TO authenticated
-USING (private.has_platform_permission('manage_payments'));
-
--- 4. IMMUTABILITY TRIGGERS
+-- 6. Imutabilidade do ledger de pagamentos ----------------------------------
 CREATE OR REPLACE FUNCTION private.prevent_mutation()
-RETURNS TRIGGER AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO 'public','pg_temp'
+AS $$
 BEGIN
-    RAISE EXCEPTION 'Audit log entries are immutable and cannot be modified or deleted.';
+  RAISE EXCEPTION 'Audit log entries are immutable and cannot be modified or deleted.';
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
+DROP TRIGGER IF EXISTS tr_prevent_payment_update ON public.subscription_payments;
+DROP TRIGGER IF EXISTS tr_prevent_payment_delete ON public.subscription_payments;
 CREATE TRIGGER tr_prevent_payment_update
 BEFORE UPDATE ON public.subscription_payments
 FOR EACH ROW EXECUTE FUNCTION private.prevent_mutation();
-
 CREATE TRIGGER tr_prevent_payment_delete
 BEFORE DELETE ON public.subscription_payments
 FOR EACH ROW EXECUTE FUNCTION private.prevent_mutation();
 
--- 5. RPCs
-
--- List subscriptions for platform admin
-CREATE OR REPLACE FUNCTION private.list_platform_subscriptions(_search text DEFAULT NULL, _status text DEFAULT NULL, _limit int DEFAULT 50, _offset int DEFAULT 0)
-RETURNS json
+-- 7. Núcleo privado do billing ------------------------------------------------
+CREATE OR REPLACE FUNCTION private.list_platform_subscriptions(
+  _search text DEFAULT NULL,
+  _status text DEFAULT NULL,
+  _limit integer DEFAULT 50,
+  _offset integer DEFAULT 0
+) RETURNS json
 LANGUAGE plpgsql
+STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path TO 'public','private','pg_temp'
 AS $$
 DECLARE
-    _total int;
-    _items json;
+  _total integer;
+  _items json;
 BEGIN
-    IF NOT private.has_platform_permission('manage_subscriptions') THEN
-        RAISE EXCEPTION 'Unauthorized';
-    END IF;
+  IF NOT private.has_permission('platform.billing.view', NULL) THEN
+    RAISE EXCEPTION 'FORBIDDEN' USING ERRCODE = 'P0001';
+  END IF;
+  IF _limit < 1 OR _limit > 200 OR _offset < 0 THEN
+    RAISE EXCEPTION 'INVALID_PAGINATION' USING ERRCODE = 'P0001';
+  END IF;
 
-    SELECT count(*) INTO _total
+  SELECT count(*) INTO _total
     FROM public.store_subscriptions sub
     JOIN public.stores s ON s.id = sub.store_id
-    WHERE (_search IS NULL OR s.name ILIKE '%' || _search || '%' OR s.slug ILIKE '%' || _search || '%')
-      AND (_status IS NULL OR sub.status::text = _status);
+   WHERE (_search IS NULL OR s.name ILIKE '%' || _search || '%' OR s.slug ILIKE '%' || _search || '%')
+     AND (_status IS NULL OR sub.status::text = _status);
 
-    SELECT json_agg(t) INTO _items
+  SELECT coalesce(json_agg(t), '[]'::json) INTO _items
     FROM (
-        SELECT 
-            sub.id,
-            sub.store_id,
-            s.name as store_name,
-            s.slug as store_slug,
-            p.name as plan_name,
-            sub.status,
-            sub.current_period_end,
-            sub.next_billing_date
-        FROM public.store_subscriptions sub
-        JOIN public.stores s ON s.id = sub.store_id
-        JOIN public.plans p ON p.id = sub.plan_id
-        WHERE (_search IS NULL OR s.name ILIKE '%' || _search || '%' OR s.slug ILIKE '%' || _search || '%')
-          AND (_status IS NULL OR sub.status::text = _status)
-        ORDER BY sub.created_at DESC
-        LIMIT _limit
-        OFFSET _offset
+      SELECT
+        sub.id,
+        sub.store_id,
+        s.name AS store_name,
+        s.slug AS store_slug,
+        p.name AS plan_name,
+        p.monthly_amount_cents,
+        p.currency,
+        sub.status,
+        sub.current_period_end,
+        sub.next_billing_date,
+        sub.version
+      FROM public.store_subscriptions sub
+      JOIN public.stores s ON s.id = sub.store_id
+      JOIN public.plans p ON p.id = sub.plan_id
+      WHERE (_search IS NULL OR s.name ILIKE '%' || _search || '%' OR s.slug ILIKE '%' || _search || '%')
+        AND (_status IS NULL OR sub.status::text = _status)
+      ORDER BY sub.created_at DESC
+      LIMIT _limit OFFSET _offset
     ) t;
 
-    RETURN json_build_object('items', COALESCE(_items, '[]'::json), 'total', _total);
+  RETURN json_build_object('items', _items, 'total', _total);
 END;
 $$;
 
--- Register manual payment
 CREATE OR REPLACE FUNCTION private.register_manual_payment(
-    _subscription_id uuid,
-    _amount_paid_cents integer,
-    _discount_amount_cents integer DEFAULT 0,
-    _payment_method public.payment_method DEFAULT 'manual_transfer',
-    _notes text DEFAULT NULL
-)
-RETURNS uuid
+  _subscription_id uuid,
+  _amount_paid_cents integer,
+  _discount_amount_cents integer DEFAULT 0,
+  _payment_method public.payment_method DEFAULT 'manual_transfer',
+  _notes text DEFAULT NULL
+) RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path TO 'public','private','pg_temp'
 AS $$
 DECLARE
-    _sub public.store_subscriptions;
-    _payment_id uuid;
+  _sub public.store_subscriptions;
+  _payment_id uuid;
+  _legacy_amount numeric(10,2);
 BEGIN
-    IF NOT private.has_platform_permission('manage_payments') THEN
-        RAISE EXCEPTION 'Unauthorized';
-    END IF;
+  IF NOT private.has_permission('platform.billing.register_payment', NULL) THEN
+    RAISE EXCEPTION 'FORBIDDEN' USING ERRCODE = 'P0001';
+  END IF;
+  IF coalesce(_amount_paid_cents, -1) < 0 OR coalesce(_discount_amount_cents, -1) < 0 THEN
+    RAISE EXCEPTION 'INVALID_AMOUNT' USING ERRCODE = 'P0001';
+  END IF;
 
-    SELECT * INTO _sub FROM public.store_subscriptions WHERE id = _subscription_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Subscription not found';
-    END IF;
+  SELECT * INTO _sub
+    FROM public.store_subscriptions
+   WHERE id = _subscription_id
+   FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'NOT_FOUND' USING ERRCODE = 'P0001';
+  END IF;
 
-    -- Insert immutable payment record
-    INSERT INTO public.subscription_payments (
-        store_id,
-        subscription_id,
-        amount_due_cents,
-        amount_paid_cents,
-        discount_amount_cents,
-        due_date,
-        paid_at,
-        status,
-        payment_method,
-        notes,
-        created_by
-    ) VALUES (
-        _sub.store_id,
-        _sub.id,
-        0, -- Manual registration for credit
-        _amount_paid_cents,
-        _discount_amount_cents,
-        CURRENT_DATE,
-        now(),
-        'completed',
-        _payment_method,
-        _notes,
-        auth.uid()
-    ) RETURNING id INTO _payment_id;
+  _legacy_amount := round((_amount_paid_cents::numeric / 100.0), 2);
 
-    -- Update subscription period
-    UPDATE public.store_subscriptions
-    SET 
-        status = 'active',
-        current_period_start = now(),
-        current_period_end = now() + interval '1 month',
-        next_billing_date = now() + interval '1 month',
-        updated_at = now(),
-        version = version + 1
-    WHERE id = _subscription_id;
+  INSERT INTO public.subscription_payments (
+    store_id,
+    subscription_id,
+    reference_month,
+    amount,
+    status,
+    paid_at,
+    method_note,
+    registered_by,
+    notes,
+    amount_due_cents,
+    amount_paid_cents,
+    discount_amount_cents,
+    currency,
+    due_date,
+    payment_method,
+    audit_immutable,
+    created_by
+  ) VALUES (
+    _sub.store_id,
+    _sub.id,
+    date_trunc('month', current_date)::date,
+    _legacy_amount,
+    'pago',
+    now(),
+    _payment_method::text,
+    auth.uid(),
+    nullif(btrim(coalesce(_notes, '')), ''),
+    0,
+    _amount_paid_cents,
+    _discount_amount_cents,
+    'BRL',
+    current_date,
+    _payment_method,
+    true,
+    auth.uid()
+  ) RETURNING id INTO _payment_id;
 
-    -- Log audit
-    INSERT INTO private.platform_audit_log (action, details, created_by)
-    VALUES (
-        'manual_payment_registered',
-        jsonb_build_object(
-            'subscription_id', _subscription_id,
-            'payment_id', _payment_id,
-            'amount', _amount_paid_cents
-        ),
-        auth.uid()
-    );
+  UPDATE public.store_subscriptions
+     SET status = 'ativa',
+         current_period_start = now(),
+         current_period_end = (current_date + interval '1 month')::date,
+         next_billing_date = now() + interval '1 month',
+         updated_at = now(),
+         version = version + 1
+   WHERE id = _subscription_id;
 
-    RETURN _payment_id;
+  INSERT INTO public.audit_logs
+    (store_id, actor_user_id, actor_kind, action, entity, entity_id, context)
+  VALUES (
+    _sub.store_id,
+    auth.uid(),
+    'admin',
+    'platform.billing.manual_payment_registered',
+    'subscription_payments',
+    _payment_id,
+    jsonb_build_object('subscriptionId', _subscription_id, 'paymentId', _payment_id)
+  );
+
+  RETURN _payment_id;
 END;
 $$;
 
--- Add permissions to enum (needs to be done in a separate block if enum exists)
-DO $$
-BEGIN
-    ALTER TYPE public.app_permission ADD VALUE IF NOT EXISTS 'manage_plans';
-    ALTER TYPE public.app_permission ADD VALUE IF NOT EXISTS 'manage_subscriptions';
-    ALTER TYPE public.app_permission ADD VALUE IF NOT EXISTS 'manage_payments';
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+REVOKE ALL ON FUNCTION private.list_platform_subscriptions(text,text,integer,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.register_manual_payment(uuid,integer,integer,public.payment_method,text) FROM PUBLIC;
+
+-- 8. Wrappers públicos usados por supabase.rpc -------------------------------
+CREATE OR REPLACE FUNCTION public.list_platform_subscriptions(
+  _search text DEFAULT NULL,
+  _status text DEFAULT NULL,
+  _limit integer DEFAULT 50,
+  _offset integer DEFAULT 0
+) RETURNS json
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public','private','pg_temp'
+AS $$
+  SELECT private.list_platform_subscriptions(_search, _status, _limit, _offset)
+$$;
+
+CREATE OR REPLACE FUNCTION public.register_manual_payment(
+  _subscription_id uuid,
+  _amount_paid_cents integer,
+  _discount_amount_cents integer DEFAULT 0,
+  _payment_method public.payment_method DEFAULT 'manual_transfer',
+  _notes text DEFAULT NULL
+) RETURNS uuid
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO 'public','private','pg_temp'
+AS $$
+  SELECT private.register_manual_payment(
+    _subscription_id,
+    _amount_paid_cents,
+    _discount_amount_cents,
+    _payment_method,
+    _notes
+  )
+$$;
+
+REVOKE ALL ON FUNCTION public.list_platform_subscriptions(text,text,integer,integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.register_manual_payment(uuid,integer,integer,public.payment_method,text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.list_platform_subscriptions(text,text,integer,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.register_manual_payment(uuid,integer,integer,public.payment_method,text) TO authenticated;
