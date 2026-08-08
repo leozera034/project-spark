@@ -49,7 +49,6 @@ jobs:
             | sort -z \
             | xargs -0 -I{} cp "{}" .ci/state-db/supabase/migrations/
 
-          # Fase 18 efetiva: estrutura de delivery, gestao e transicao de pedido.
           cp supabase/migrations/20260802183724_6762713c-1cd7-425d-99d0-b4f53fa8228e.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802183933_d16e989c-5140-491b-bd2a-447b71254d8f.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802184111_8b66408a-944c-49da-9b37-1d91652904c0.sql .ci/state-db/supabase/migrations/
