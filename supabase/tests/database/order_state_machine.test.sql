@@ -103,9 +103,9 @@ update state_test_context
 
 select ok((select delivery_order_id is not null from state_test_context), 'pedido de entrega criado');
 
--- Sessao real da loja: todas as mutacoes abaixo usam exclusivamente as RPCs
--- publicas concedidas a authenticated. Leituras diretas de tabelas ficam fora
--- deste role e sao usadas apenas pelo harness para verificar invariantes.
+-- Client-facing mutations run exactly as the app: authenticated role + JWT and
+-- public RPC wrappers. Direct table reads remain unavailable to authenticated;
+-- RESET ROLE is used only by the harness to inspect resulting invariants.
 set local role authenticated;
 select set_config('request.jwt.claim.sub', (select actor_id::text from state_test_context), true);
 select set_config(
@@ -116,10 +116,7 @@ select set_config(
 
 select is(auth.uid(), (select actor_id from state_test_context), 'sessao operacional da loja resolvida');
 
--- ---------------------------------------------------------------------
--- Retirada: aguardando_confirmacao -> aceito -> em_preparo ->
--- aguardando_retirada -> retirado. Nunca cria delivery.
--- ---------------------------------------------------------------------
+-- Retirada: aguardando_confirmacao -> aceito -> em_preparo -> aguardando_retirada -> retirado.
 insert into state_transition_results (label, result)
 select
   'pickup_accept',
@@ -205,10 +202,7 @@ select throws_ok(
   'pedido retirado nao pode ser finalizado novamente'
 );
 
--- ---------------------------------------------------------------------
--- Entrega: aguardando_confirmacao -> aceito -> em_preparo ->
--- aguardando_entregador. Criacao da delivery acontece no servidor.
--- ---------------------------------------------------------------------
+-- Entrega: aguardando_confirmacao -> aceito -> em_preparo -> aguardando_entregador.
 select is(
   public.accept_store_order(
     (select store_id from state_test_context),
@@ -260,9 +254,8 @@ select ok(
   'delivery pendente nao atribui entregador automaticamente'
 );
 
--- Invariante interna: ensure_delivery_for_order e deliberadamente privada e
--- nunca e chamada pelo browser. O harness a executa como owner apenas para
--- provar que repeticao nao duplica a responsabilidade logistica.
+-- Internal idempotency helper is intentionally private; only the harness owner
+-- invokes it to prove repeat execution cannot duplicate delivery responsibility.
 select ok(
   private.ensure_delivery_for_order(
     (select store_id from state_test_context),
