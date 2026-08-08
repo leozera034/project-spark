@@ -47,7 +47,12 @@ export function SaleModeCard({
     setUnit(product.measurement_unit === "unit" ? "kg" : product.measurement_unit);
     setMinimum(String(product.minimum_quantity ?? 1));
     setStep(String(product.quantity_step ?? 1));
-  }, [product.sale_mode, product.measurement_unit, product.minimum_quantity, product.quantity_step]);
+  }, [
+    product.sale_mode,
+    product.measurement_unit,
+    product.minimum_quantity,
+    product.quantity_step,
+  ]);
 
   async function save() {
     if (!storeId) return;
