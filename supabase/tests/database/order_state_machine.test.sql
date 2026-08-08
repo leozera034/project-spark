@@ -15,7 +15,13 @@ create temp table state_test_context (
   delivery_order_id uuid
 );
 
+create temp table state_transition_results (
+  label text primary key,
+  result jsonb not null
+);
+
 grant select on state_test_context to authenticated;
+grant select, insert on state_transition_results to authenticated;
 
 insert into state_test_context (store_id, actor_id, payment_id, area_id, product_id)
 select
@@ -107,12 +113,19 @@ select set_config(
 
 select is(auth.uid(), (select actor_id from state_test_context), 'sessao operacional da loja resolvida');
 
-select is(
+-- Executa a mutacao fora de qualquer wrapper pgTAP. Se o backend ainda
+-- sofrer SIGSEGV aqui, a causa esta no caminho SQL da transicao e nao em is().
+insert into state_transition_results (label, result)
+select
+  'pickup_accept',
   private.transition_store_order(
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context),
     'accept', 1
-  )->>'status',
+  );
+
+select is(
+  (select result->>'status' from state_transition_results where label = 'pickup_accept'),
   'aceito',
   'retirada pode ser aceita'
 );
