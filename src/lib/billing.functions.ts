@@ -5,12 +5,15 @@ import { z } from "zod";
 export const listSubscriptions = createServerFn({ method: "GET" })
   .validator((d: { search?: string; status?: string; limit?: number; offset?: number }) => d)
   .handler(async ({ data: input }) => {
-    const { data, error } = await (supabase.rpc as any)("list_platform_subscriptions", {
-      _search: input.search,
-      _status: input.status,
-      _limit: input.limit || 50,
-      _offset: input.offset || 0,
-    });
+    const { data, error } = await supabase.rpc(
+      "list_platform_subscriptions" as never,
+      {
+        _search: input.search,
+        _status: input.status,
+        _limit: input.limit || 50,
+        _offset: input.offset || 0,
+      } as never,
+    );
     if (error) throw error;
     return data;
   });
@@ -35,13 +38,16 @@ export const registerPayment = createServerFn({ method: "POST" })
         .parse(d),
   )
   .handler(async ({ data }) => {
-    const { error } = await (supabase.rpc as any)("register_manual_payment", {
-      _subscription_id: data.subscriptionId,
-      _amount_paid_cents: data.amountCents,
-      _discount_amount_cents: data.discountCents || 0,
-      _payment_method: data.method,
-      _notes: data.notes,
-    });
+    const { error } = await supabase.rpc(
+      "register_manual_payment" as never,
+      {
+        _subscription_id: data.subscriptionId,
+        _amount_paid_cents: data.amountCents,
+        _discount_amount_cents: data.discountCents || 0,
+        _payment_method: data.method,
+        _notes: data.notes,
+      } as never,
+    );
     if (error) throw error;
     return { success: true };
   });
