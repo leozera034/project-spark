@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,34 +20,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout audit branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Format final branding tool
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        run: bunx prettier --write tools/generate-brand-assets.mjs
-
-      - name: Commit branding tool formatting
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        shell: bash
-        run: |
-          if git diff --quiet -- tools/generate-brand-assets.mjs; then
-            echo "No branding tool formatting required."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/generate-brand-assets.mjs
-          git commit -m "Format brand asset generator"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
         run: bunx tsc --noEmit
@@ -67,7 +47,9 @@ jobs:
 
           for (const result of report) {
             const file = path.relative(process.cwd(), result.filePath).replaceAll('\\', '/');
-            for (const message of result.messages) annotations.push({ file, ...message });
+            for (const message of result.messages) {
+              annotations.push({ file, ...message });
+            }
           }
 
           const escape = (value) => String(value ?? '')
@@ -78,8 +60,11 @@ jobs:
           for (const item of annotations.slice(0, 100)) {
             const level = item.severity === 2 ? 'error' : 'warning';
             const rule = item.ruleId ? `${item.ruleId}: ` : '';
-            console.log(`::${level} file=${item.file},line=${Number(item.line || 1)},col=${Number(item.column || 1)}::${escape(rule + item.message)}`);
+            const line = Number(item.line || 1);
+            const column = Number(item.column || 1);
+            console.log(`::${level} file=${item.file},line=${line},col=${column}::${escape(rule + item.message)}`);
           }
+
           console.log(`ESLint: ${annotations.length} ocorrência(s) encontrada(s).`);
           NODE
           exit "$status"
