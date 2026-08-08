@@ -58,7 +58,9 @@ function InitialPasswordChangePage() {
       setPassword("");
       setConfirmation("");
       await navigate({
-        to: (authContext ? routeForContext({ ...authContext, requires_password_change: false }) : "/") as never,
+        to: (authContext
+          ? routeForContext({ ...authContext, requires_password_change: false })
+          : "/") as never,
         replace: true,
       });
     } catch (cause) {
@@ -76,7 +78,9 @@ function InitialPasswordChangePage() {
         <button
           type="button"
           className="underline underline-offset-4"
-          onClick={() => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.courierSignIn as never }))}
+          onClick={() =>
+            void signOut("local").then(() => navigate({ to: AUTH_ROUTES.courierSignIn as never }))
+          }
         >
           Sair
         </button>

@@ -177,7 +177,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await refreshAuthContext();
       },
     };
-  }, [session, user, authContext, isInitializing, isRecoverySession, refreshAuthContext, signInWithEmail]);
+  }, [
+    session,
+    user,
+    authContext,
+    isInitializing,
+    isRecoverySession,
+    refreshAuthContext,
+    signInWithEmail,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

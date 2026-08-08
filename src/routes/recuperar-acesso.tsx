@@ -56,8 +56,8 @@ function RecoveryPage() {
     >
       {sent ? (
         <p role="status" className="rounded-md bg-muted p-4 text-sm text-foreground">
-          Se existir uma conta com esse e-mail, o link de redefinição foi enviado. Verifique também a
-          caixa de spam.
+          Se existir uma conta com esse e-mail, o link de redefinição foi enviado. Verifique também
+          a caixa de spam.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>

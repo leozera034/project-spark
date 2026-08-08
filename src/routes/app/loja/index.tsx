@@ -3,7 +3,6 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/auth/useAuth";
 import { Button } from "@/components/ui/button";
 
-
 export const Route = createFileRoute("/app/loja/")({
   head: () => ({
     meta: [
@@ -63,6 +62,5 @@ function StoreHome() {
         </Button>
       </div>
     </main>
-
   );
 }

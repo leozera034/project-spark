@@ -48,11 +48,7 @@ export type CartDocument = {
 };
 
 export type CartLineIssue =
-  | "sold_out"
-  | "unavailable"
-  | "invalid_configuration"
-  | "unpriceable"
-  | "price_changed";
+  "sold_out" | "unavailable" | "invalid_configuration" | "unpriceable" | "price_changed";
 
 export type CartQuoteLine = {
   lineId: string;

@@ -113,7 +113,8 @@ function SlugCard() {
       </div>
       <Alert>
         <AlertDescription>
-          Ao mudar o endereço, o link antigo deixa de funcionar. Avise seus clientes antes de salvar.
+          Ao mudar o endereço, o link antigo deixa de funcionar. Avise seus clientes antes de
+          salvar.
         </AlertDescription>
       </Alert>
     </SectionForm>

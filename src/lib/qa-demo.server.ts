@@ -11,7 +11,7 @@
  */
 import { createHash, timingSafeEqual } from "node:crypto";
 
-import { useSession } from "@tanstack/react-start/server";
+import { useSession as getServerSession } from "@tanstack/react-start/server";
 
 const ALLOWED_ENVS = new Set(["preview", "development", "staging"]);
 
@@ -173,7 +173,7 @@ export async function unlockDemoCapability(accessKey: string) {
     return { ok: false as const, reason: "invalid_key" as const };
   }
 
-  const session = await useSession<QaSession>(sessionConfig());
+  const session = await getServerSession<QaSession>(sessionConfig());
   await session.update({ unlockedAt: Date.now(), env: process.env["APP_ENV"] });
   console.info("[qa-demo] unlock autorizado");
   return { ok: true as const };
@@ -181,7 +181,7 @@ export async function unlockDemoCapability(accessKey: string) {
 
 export async function readDemoCapability() {
   if (!isDemoEnvironmentEnabled()) return { valid: false as const };
-  const session = await useSession<QaSession>(sessionConfig());
+  const session = await getServerSession<QaSession>(sessionConfig());
   const unlockedAt = session.data.unlockedAt ?? 0;
   const sameEnv = session.data.env === process.env["APP_ENV"];
   const fresh = Date.now() - unlockedAt < CAPABILITY_TTL_MS;
@@ -190,7 +190,7 @@ export async function readDemoCapability() {
 
 export async function clearDemoCapability() {
   if (!isDemoEnvironmentEnabled()) return { ok: true as const };
-  const session = await useSession<QaSession>(sessionConfig());
+  const session = await getServerSession<QaSession>(sessionConfig());
   await session.clear();
   return { ok: true as const };
 }
@@ -232,9 +232,11 @@ export async function issueDemoMagicLink(profileId: string) {
   const profile = DEMO_PROFILES.find((item) => item.id === profileId);
   if (!profile) return { ok: false as const, reason: "unknown_profile" as const };
 
-  const email = profile.email ?? (profile.courierOf
-    ? await resolveCourierEmail(profile.courierOf.storeId, profile.courierOf.index)
-    : null);
+  const email =
+    profile.email ??
+    (profile.courierOf
+      ? await resolveCourierEmail(profile.courierOf.storeId, profile.courierOf.index)
+      : null);
 
   if (!email) return { ok: false as const, reason: "account_missing" as const };
 

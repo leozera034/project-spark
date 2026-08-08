@@ -53,12 +53,7 @@ export interface CatalogOverview {
 }
 
 export type ProductStatusFilter =
-  | "todos"
-  | "ativos"
-  | "inativos"
-  | "esgotados"
-  | "destaques"
-  | "arquivados";
+  "todos" | "ativos" | "inativos" | "esgotados" | "destaques" | "arquivados";
 
 export const PRODUCT_STATUS_FILTERS: { value: ProductStatusFilter; label: string }[] = [
   { value: "todos", label: "Todos" },
@@ -89,7 +84,10 @@ export function formatPriceBRL(value: number): string {
 }
 
 export function parsePriceInput(value: string): number | null {
-  const cleaned = value.replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}\b)/g, "").replace(",", ".");
+  const cleaned = value
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\.(?=\d{3}\b)/g, "")
+    .replace(",", ".");
   if (cleaned.trim() === "") return null;
   const parsed = Number(cleaned);
   if (!Number.isFinite(parsed) || parsed < 0) return null;

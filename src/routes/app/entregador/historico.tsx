@@ -74,7 +74,7 @@ function CourierHistory() {
                   {metric.label}
                 </p>
                 <p className="mt-1 text-2xl font-extrabold tabular-nums">
-                  {counter.isLoading ? "–" : metric.value ?? 0}
+                  {counter.isLoading ? "–" : (metric.value ?? 0)}
                 </p>
               </CardContent>
             </Card>

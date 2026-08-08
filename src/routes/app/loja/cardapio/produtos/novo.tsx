@@ -3,11 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { createProduct } from "@/catalog/api";
 import { useCatalog } from "@/catalog/CatalogProvider";
-import {
-  ProductForm,
-  initialProductValues,
-  type ProductFormValues,
-} from "@/catalog/ProductForm";
+import { ProductForm, initialProductValues, type ProductFormValues } from "@/catalog/ProductForm";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 

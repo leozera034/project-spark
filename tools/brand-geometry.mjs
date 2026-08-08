@@ -16,9 +16,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 /** Contornos tipograficos (Inter) ja convertidos para paths. Sem dependencia de fonte instalada. */
-export const TEXT = JSON.parse(
-  fs.readFileSync(path.join(here, "brand-text-paths.json"), "utf8"),
-);
+export const TEXT = JSON.parse(fs.readFileSync(path.join(here, "brand-text-paths.json"), "utf8"));
 
 export const COLORS = {
   carbon950: "#071014",
@@ -107,7 +105,10 @@ export function horizontalLockup({ base, accent, wordFill, id }) {
   const gap = 96;
   const wordX = SYMBOL_BOX.x + SYMBOL_BOX.w + gap;
   const capTop = 256 - capHeight / 2;
-  const markup = [symbolMarkup({ base, accent, id }), wordmarkMarkup({ fill: wordFill, capHeight, x: wordX, capTop })].join("\n");
+  const markup = [
+    symbolMarkup({ base, accent, id }),
+    wordmarkMarkup({ fill: wordFill, capHeight, x: wordX, capTop }),
+  ].join("\n");
   const box = {
     x: SYMBOL_BOX.x,
     y: SYMBOL_BOX.y,
@@ -124,7 +125,10 @@ export function stackedLockup({ base, accent, wordFill, id }) {
   const width = wordmarkWidth(capHeight);
   const wordX = 256 - width / 2;
   const capTop = SYMBOL_BOX.y + SYMBOL_BOX.h + gap;
-  const markup = [symbolMarkup({ base, accent, id }), wordmarkMarkup({ fill: wordFill, capHeight, x: wordX, capTop })].join("\n");
+  const markup = [
+    symbolMarkup({ base, accent, id }),
+    wordmarkMarkup({ fill: wordFill, capHeight, x: wordX, capTop }),
+  ].join("\n");
   const left = Math.min(SYMBOL_BOX.x, wordX);
   const right = Math.max(SYMBOL_BOX.x + SYMBOL_BOX.w, wordX + width);
   return {

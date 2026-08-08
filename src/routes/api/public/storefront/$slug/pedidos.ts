@@ -66,7 +66,8 @@ export const Route = createFileRoute("/api/public/storefront/$slug/pedidos")({
           }
 
           const body = await request.text();
-          if (body.length > MAX_BODY_BYTES) return json({ ok: false, error: "invalid_request" }, 413);
+          if (body.length > MAX_BODY_BYTES)
+            return json({ ok: false, error: "invalid_request" }, 413);
 
           const parsed = checkoutRequestSchema.parse({
             ...(JSON.parse(body || "{}") as Record<string, unknown>),

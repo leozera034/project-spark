@@ -1,16 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { 
-  useStoreDeliveryReportSummary, 
-  useStoreDeliveryReportSeries, 
-  useStoreDeliveryReportComparison, 
-  useStoreCompletedDeliveries 
+import {
+  useStoreDeliveryReportSummary,
+  useStoreDeliveryReportSeries,
+  useStoreDeliveryReportComparison,
+  useStoreCompletedDeliveries,
 } from "@/store/reports/deliveries/delivery-report.queries";
 import { DeliveryReportPeriodType } from "@/store/reports/deliveries/delivery-report.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -23,14 +36,19 @@ export const Route = createFileRoute("/app/loja/relatorios/entregas/")({
 
 function StoreDeliveryReports() {
   const [period, setPeriod] = useState<DeliveryReportPeriodType>("today");
-  
+
   const summaryQuery = useStoreDeliveryReportSummary(period);
   const seriesQuery = useStoreDeliveryReportSeries(period);
   const comparisonQuery = useStoreDeliveryReportComparison(period);
   const historyQuery = useStoreCompletedDeliveries(period);
 
-  const isLoading = summaryQuery.isLoading || seriesQuery.isLoading || comparisonQuery.isLoading || historyQuery.isLoading;
-  const isError = summaryQuery.isError || seriesQuery.isError || comparisonQuery.isError || historyQuery.isError;
+  const isLoading =
+    summaryQuery.isLoading ||
+    seriesQuery.isLoading ||
+    comparisonQuery.isLoading ||
+    historyQuery.isLoading;
+  const isError =
+    summaryQuery.isError || seriesQuery.isError || comparisonQuery.isError || historyQuery.isError;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -41,7 +59,7 @@ function StoreDeliveryReports() {
             Acompanhamento operacional de entregas concluídas.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Select value={period} onValueChange={(v) => setPeriod(v as DeliveryReportPeriodType)}>
             <SelectTrigger className="w-[180px]">
@@ -53,10 +71,10 @@ function StoreDeliveryReports() {
               <SelectItem value="month">Este mês</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button 
-            variant="outline" 
-            size="icon" 
+
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => {
               summaryQuery.refetch();
               seriesQuery.refetch();
@@ -90,12 +108,16 @@ function StoreDeliveryReports() {
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-20" /> : (
-              <div className="text-2xl font-bold">{summaryQuery.data?.completedDeliveries ?? 0}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {summaryQuery.data?.completedDeliveries ?? 0}
+              </div>
             )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -104,17 +126,21 @@ function StoreDeliveryReports() {
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-8 w-20" /> : (
-              <div className="text-2xl font-bold">{summaryQuery.data?.couriersWithCompletions ?? 0}</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {summaryQuery.data?.couriersWithCompletions ?? 0}
+              </div>
             )}
           </CardContent>
         </Card>
 
         {summaryQuery.data?.timezone && (
           <div className="flex items-end pb-2">
-             <span className="text-[10px] text-muted-foreground opacity-50 uppercase tracking-widest">
-               Fuso: {summaryQuery.data.timezone}
-             </span>
+            <span className="text-[10px] text-muted-foreground opacity-50 uppercase tracking-widest">
+              Fuso: {summaryQuery.data.timezone}
+            </span>
           </div>
         )}
       </div>
@@ -135,11 +161,17 @@ function StoreDeliveryReports() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                [1, 2, 3].map(i => (
+                [1, 2, 3].map((i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="ml-auto h-4 w-8" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-8" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (comparisonQuery.data?.rows.length ?? 0) > 0 ? (
@@ -147,8 +179,10 @@ function StoreDeliveryReports() {
                   <TableRow key={row.courierId}>
                     <TableCell className="font-medium">{row.courierName}</TableCell>
                     <TableCell>
-                      <span className={`text-xs ${row.courierStatus === 'ativo' ? 'text-teal-600' : 'text-muted-foreground'}`}>
-                        {row.courierStatus === 'ativo' ? 'Ativo' : 'Inativo'}
+                      <span
+                        className={`text-xs ${row.courierStatus === "ativo" ? "text-teal-600" : "text-muted-foreground"}`}
+                      >
+                        {row.courierStatus === "ativo" ? "Ativo" : "Inativo"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">{row.completed_deliveries}</TableCell>
@@ -182,11 +216,17 @@ function StoreDeliveryReports() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                [1, 2, 3].map(i => (
+                [1, 2, 3].map((i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="ml-auto h-4 w-24" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-12" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-24" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (historyQuery.data?.items.length ?? 0) > 0 ? (

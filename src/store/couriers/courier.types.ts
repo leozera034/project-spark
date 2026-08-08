@@ -11,12 +11,7 @@ export type CourierAvailabilityFilter = "disponivel" | "ocupado";
 /** Presença derivada: intenção declarada + sinal recente. */
 export type CourierPresence = "online" | "offline" | "sem_sinal";
 
-export type CourierAllowedAction =
-  | "update"
-  | "activate"
-  | "deactivate"
-  | "reset_access"
-  | "assign";
+export type CourierAllowedAction = "update" | "activate" | "deactivate" | "reset_access" | "assign";
 
 export interface CourierAssignmentSummary {
   deliveryId: string;
@@ -153,13 +148,7 @@ export interface CourierCreateInput {
 // --- Tipos Operacionais (Fase 19) ---
 
 export type DeliveryStatus =
-  | "atribuida"
-  | "aceita"
-  | "coletada"
-  | "em_rota"
-  | "concluida"
-  | "cancelada"
-  | "pendente";
+  "atribuida" | "aceita" | "coletada" | "em_rota" | "concluida" | "cancelada" | "pendente";
 
 export type CourierOperationalAllowedAction =
   | "accept"
@@ -216,7 +205,7 @@ export interface DeliveryProjection {
   storeName?: string;
   neighborhood?: string | null;
   allowedActions: CourierOperationalAllowedAction[];
-  
+
   // Detalhes completos (quando reduced=false)
   orderId?: string;
   orderStatus?: string;

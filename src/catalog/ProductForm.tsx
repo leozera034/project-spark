@@ -203,9 +203,7 @@ export function ProductForm({
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border border-border p-4">
-            <p className="font-medium text-foreground">
-              {values.name.trim() || "Nome do produto"}
-            </p>
+            <p className="font-medium text-foreground">{values.name.trim() || "Nome do produto"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               {values.description.trim() || "A descrição aparece aqui para o cliente."}
             </p>

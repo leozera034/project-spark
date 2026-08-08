@@ -1,10 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import type {
-  StoreConfiguration,
-  StoreOperationalPreview,
-  StoreOption,
-} from "./types";
+import type { StoreConfiguration, StoreOperationalPreview, StoreOption } from "./types";
 
 const BRANDING_BUCKET = "store-branding";
 const ALLOWED_MIME = ["image/png", "image/jpeg", "image/webp"];
@@ -26,7 +22,9 @@ export async function listMyStores(): Promise<StoreOption[]> {
 }
 
 export async function fetchStoreConfiguration(storeId: string | null): Promise<StoreConfiguration> {
-  return unwrap(await rpc("get_my_store_configuration", { _store_id: storeId })) as StoreConfiguration;
+  return unwrap(
+    await rpc("get_my_store_configuration", { _store_id: storeId }),
+  ) as StoreConfiguration;
 }
 
 export async function fetchOperationalPreview(
@@ -250,9 +248,7 @@ export async function reorderPaymentMethods(
 /** URL assinada temporária. Nunca é persistida no banco nem em logs. */
 export async function signBrandingUrl(path: string | null): Promise<string | null> {
   if (!path) return null;
-  const { data, error } = await supabase.storage
-    .from(BRANDING_BUCKET)
-    .createSignedUrl(path, 300);
+  const { data, error } = await supabase.storage.from(BRANDING_BUCKET).createSignedUrl(path, 300);
   if (error) return null;
   return data?.signedUrl ?? null;
 }

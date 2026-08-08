@@ -36,7 +36,9 @@ export function PasswordField({
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
           aria-invalid={Boolean(error)}
-          aria-describedby={[error ? errorId : null, describedBy].filter(Boolean).join(" ") || undefined}
+          aria-describedby={
+            [error ? errorId : null, describedBy].filter(Boolean).join(" ") || undefined
+          }
           disabled={disabled}
           className="h-12 pr-12 text-base"
         />
@@ -46,7 +48,11 @@ export function PasswordField({
           className="absolute inset-y-0 right-0 flex h-12 w-12 items-center justify-center rounded-md text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
         >
-          {visible ? <EyeOff className="size-5" aria-hidden /> : <Eye className="size-5" aria-hidden />}
+          {visible ? (
+            <EyeOff className="size-5" aria-hidden />
+          ) : (
+            <Eye className="size-5" aria-hidden />
+          )}
         </button>
       </div>
       {error ? (

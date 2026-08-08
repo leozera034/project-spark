@@ -117,11 +117,7 @@ function CartPage() {
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" />
                 <div className="flex-1">
                   <p>{cart.quoteMessage}</p>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-sm"
-                    onClick={cart.revalidate}
-                  >
+                  <Button variant="link" className="h-auto p-0 text-sm" onClick={cart.revalidate}>
                     Tentar novamente
                   </Button>
                 </div>
@@ -194,7 +190,10 @@ function CartPage() {
                     {issues.length > 0 ? (
                       <div className="mt-3 space-y-1">
                         {issues.map((issue) => (
-                          <p key={issue} className="flex items-center gap-2 text-sm text-destructive">
+                          <p
+                            key={issue}
+                            className="flex items-center gap-2 text-sm text-destructive"
+                          >
                             <TriangleAlert className="size-4 shrink-0" />
                             {messageForLineStatus(issue)}
                           </p>
@@ -379,7 +378,6 @@ function CartPage() {
               Telefone e forma de pagamento são confirmados na próxima tela. Nenhum pedido foi
               enviado ainda.
             </p>
-
           </div>
         </div>
       ) : null}

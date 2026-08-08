@@ -28,9 +28,7 @@ export function VariantPricesCard({
   const rows = useMemo(
     () =>
       builder.groups.flatMap((group) =>
-        group.items
-          .filter((item) => !item.is_archived)
-          .map((item) => ({ group, item })),
+        group.items.filter((item) => !item.is_archived).map((item) => ({ group, item })),
       ),
     [builder.groups],
   );

@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyCourierDeliveryCounter, listMyCompletedDeliveries } from "./courier-counter.api";
 
 export const courierReportKeys = {
-  all: ['courier-reports'] as const,
-  counter: (start?: string, end?: string) => [...courierReportKeys.all, 'counter', { start, end }] as const,
-  history: (page = 0) => [...courierReportKeys.all, 'history', { page }] as const,
+  all: ["courier-reports"] as const,
+  counter: (start?: string, end?: string) =>
+    [...courierReportKeys.all, "counter", { start, end }] as const,
+  history: (page = 0) => [...courierReportKeys.all, "history", { page }] as const,
 };
 
 export function useMyCourierDeliveryCounter(start?: string, end?: string) {

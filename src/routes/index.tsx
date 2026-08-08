@@ -131,10 +131,22 @@ const pillars = [
 ];
 
 const steps = [
-  { title: "Configure a loja", text: "Dados, horários, bairros, taxas, pedido mínimo e formas de pagamento." },
-  { title: "Monte o cardápio", text: "Categorias, produtos, variações, adicionais, pizza por sabores e venda por peso." },
-  { title: "Receba e produza", text: "Pedido cai no painel, cozinha acompanha e o alerta sonoro avisa a equipe." },
-  { title: "Entregue e acompanhe", text: "Atribua o entregador, acompanhe a rota e conte apenas entregas concluídas." },
+  {
+    title: "Configure a loja",
+    text: "Dados, horários, bairros, taxas, pedido mínimo e formas de pagamento.",
+  },
+  {
+    title: "Monte o cardápio",
+    text: "Categorias, produtos, variações, adicionais, pizza por sabores e venda por peso.",
+  },
+  {
+    title: "Receba e produza",
+    text: "Pedido cai no painel, cozinha acompanha e o alerta sonoro avisa a equipe.",
+  },
+  {
+    title: "Entregue e acompanhe",
+    text: "Atribua o entregador, acompanhe a rota e conte apenas entregas concluídas.",
+  },
 ];
 
 const plans = [
@@ -190,13 +202,22 @@ function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <BrandLogo className="h-7 sm:h-8" />
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <a href="#recursos" className="text-muted-foreground transition-colors hover:text-foreground">
+            <a
+              href="#recursos"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
               Recursos
             </a>
-            <a href="#como-funciona" className="text-muted-foreground transition-colors hover:text-foreground">
+            <a
+              href="#como-funciona"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
               Como funciona
             </a>
-            <a href="#planos" className="text-muted-foreground transition-colors hover:text-foreground">
+            <a
+              href="#planos"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
               Planos
             </a>
           </nav>
@@ -246,13 +267,21 @@ function Home() {
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="touch" className="w-full border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground sm:w-auto">
+              <Button
+                asChild
+                variant="outline"
+                size="touch"
+                className="w-full border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground sm:w-auto"
+              >
                 <a href="#planos">Ver planos e mensalidade</a>
               </Button>
             </Reveal>
 
             <Reveal delay={300} className="mt-12 max-w-xl">
-              <form onSubmit={openStore} className="rounded-xl border border-border/40 bg-background/95 p-4 text-foreground shadow-e2">
+              <form
+                onSubmit={openStore}
+                className="rounded-xl border border-border/40 bg-background/95 p-4 text-foreground shadow-e2"
+              >
                 <label htmlFor="slug-loja" className="text-sm font-semibold">
                   Já conhece a loja? Abra o cardápio dela
                 </label>
@@ -306,7 +335,12 @@ function Home() {
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Como funciona</h2>
             <ol className="mt-10 grid gap-6 md:grid-cols-4">
               {steps.map((step, index) => (
-                <Reveal as="li" key={step.title} delay={index * 80} className="rounded-xl bg-background p-6 shadow-e1">
+                <Reveal
+                  as="li"
+                  key={step.title}
+                  delay={index * 80}
+                  className="rounded-xl bg-background p-6 shadow-e1"
+                >
                   <span className="inline-flex size-8 items-center justify-center rounded-full bg-carbon text-sm font-bold text-carbon-foreground">
                     {index + 1}
                   </span>
@@ -330,7 +364,9 @@ function Home() {
         </section>
 
         <section id="planos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Mensalidade fixa, sem comissão</h2>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Mensalidade fixa, sem comissão
+          </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Você paga pela plataforma, não por pedido. O faturamento da sua venda continua inteiro
             com você.
@@ -394,9 +430,16 @@ function Home() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="brand" size="touch">
-                <Link to="/entrar/loja" search={{ retorno: undefined }}>Entrar na minha loja</Link>
+                <Link to="/entrar/loja" search={{ retorno: undefined }}>
+                  Entrar na minha loja
+                </Link>
               </Button>
-              <Button asChild variant="outline" size="touch" className="border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground">
+              <Button
+                asChild
+                variant="outline"
+                size="touch"
+                className="border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground"
+              >
                 <Link to="/entrar/entregador">Acesso do entregador</Link>
               </Button>
             </div>
@@ -416,7 +459,11 @@ function Home() {
             <h3 className="text-sm font-semibold">Acessos</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/entrar/loja" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
+                <Link
+                  to="/entrar/loja"
+                  search={{ retorno: undefined }}
+                  className="transition-colors hover:text-foreground"
+                >
                   Painel da loja
                 </Link>
               </li>
@@ -426,7 +473,11 @@ function Home() {
                 </Link>
               </li>
               <li>
-                <Link to="/entrar/admin" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
+                <Link
+                  to="/entrar/admin"
+                  search={{ retorno: undefined }}
+                  className="transition-colors hover:text-foreground"
+                >
                   Administração da plataforma
                 </Link>
               </li>

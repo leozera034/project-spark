@@ -84,7 +84,7 @@ function OrdersPanel() {
   const [queueKey, setQueueKey] = useState(ORDER_QUEUES[0].key);
   const [search, setSearch] = useState("");
   const [delayedOnly, setDelayedOnly] = useState(false);
-  const fulfillmentParams = Route.useSearch() as any;
+  const fulfillmentParams = Route.useSearch() as { open?: string };
   const [fulfillment, setFulfillment] = useState<"entrega" | "retirada" | null>(null);
   const [openOrderId, setOpenOrderId] = useState<string | null>(fulfillmentParams?.open || null);
 
@@ -264,7 +264,11 @@ function OrdersPanel() {
               </Button>
             ) : null}
             {listQuery.cursor ? (
-              <Button variant="ghost" className="mt-2 w-full" onClick={() => listQuery.setCursor(null)}>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                onClick={() => listQuery.setCursor(null)}
+              >
                 Voltar ao início da fila
               </Button>
             ) : null}
@@ -681,8 +685,16 @@ function DeliveryAssignmentPanel({
             <Button
               key={courier.courierId}
               type="button"
-              variant={assignment.delivery?.courier?.courierId === courier.courierId ? "default" : "outline"}
-              disabled={assign.isPending || courier.eligibility === "blocked" || Boolean(assignment.delivery?.courier)}
+              variant={
+                assignment.delivery?.courier?.courierId === courier.courierId
+                  ? "default"
+                  : "outline"
+              }
+              disabled={
+                assign.isPending ||
+                courier.eligibility === "blocked" ||
+                Boolean(assignment.delivery?.courier)
+              }
               onClick={() =>
                 assign.mutate({
                   storeId,

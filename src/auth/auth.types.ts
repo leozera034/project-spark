@@ -3,12 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 export type AccountEnvironment = "platform_admin" | "store" | "courier" | "unconfigured";
 
 export type AppRole =
-  | "admin_plataforma"
-  | "proprietario"
-  | "gerente"
-  | "atendente"
-  | "cozinha"
-  | "entregador";
+  "admin_plataforma" | "proprietario" | "gerente" | "atendente" | "cozinha" | "entregador";
 
 /** Contexto retornado por get_my_auth_context(). Nunca contém senha, token ou e-mail sintético. */
 export interface AuthContextData {

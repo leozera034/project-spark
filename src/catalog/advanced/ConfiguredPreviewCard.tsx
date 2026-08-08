@@ -35,9 +35,7 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
   const product = builder.product;
 
   const variants = builder.variants.filter((v) => v.is_active && !v.is_archived);
-  const groups = builder.groups.filter(
-    (g) => g.is_active && !g.is_archived && g.link_is_active,
-  );
+  const groups = builder.groups.filter((g) => g.is_active && !g.is_archived && g.link_is_active);
 
   const [variantId, setVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(String(product.minimum_quantity ?? 1));
@@ -184,9 +182,7 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
                         <Checkbox
                           id={`prev-${item.id}`}
                           checked={current > 0}
-                          onCheckedChange={(v) =>
-                            toggle(group.id, item.id, single, v ? 1 : 0)
-                          }
+                          onCheckedChange={(v) => toggle(group.id, item.id, single, v ? 1 : 0)}
                         />
                       )}
                       <Label htmlFor={`prev-${item.id}`} className="flex-1 font-normal">

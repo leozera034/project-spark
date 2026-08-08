@@ -23,11 +23,7 @@ export function normalizeHexColor(value: string | null | undefined): string | nu
 
 function channels(hex: string): [number, number, number] {
   const n = normalizeHexColor(hex) ?? STORE_THEME_FALLBACK.primary;
-  return [
-    parseInt(n.slice(1, 3), 16),
-    parseInt(n.slice(3, 5), 16),
-    parseInt(n.slice(5, 7), 16),
-  ];
+  return [parseInt(n.slice(1, 3), 16), parseInt(n.slice(3, 5), 16), parseInt(n.slice(5, 7), 16)];
 }
 
 function relativeLuminance(hex: string): number {
@@ -79,10 +75,18 @@ export function validateStoreTheme(
   const accent = normalizeHexColor(accentInput);
 
   if (!primary) {
-    issues.push({ field: "primary", code: "formato", message: "Informe uma cor no formato #RRGGBB." });
+    issues.push({
+      field: "primary",
+      code: "formato",
+      message: "Informe uma cor no formato #RRGGBB.",
+    });
   }
   if (!accent) {
-    issues.push({ field: "accent", code: "formato", message: "Informe uma cor no formato #RRGGBB." });
+    issues.push({
+      field: "accent",
+      code: "formato",
+      message: "Informe uma cor no formato #RRGGBB.",
+    });
   }
 
   const p = primary ?? STORE_THEME_FALLBACK.primary;

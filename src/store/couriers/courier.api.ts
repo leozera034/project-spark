@@ -21,9 +21,16 @@ import type {
   DeliveryActionResult,
 } from "./courier.types";
 
-const rpc = supabase.rpc.bind(supabase) as any;
+type RpcResult = {
+  data: unknown;
+  error: { message: string } | null;
+};
 
-function unwrap<T>(result: { data: unknown; error: { message: string } | null }): T {
+type CourierRpc = (name: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+
+const rpc = supabase.rpc.bind(supabase) as unknown as CourierRpc;
+
+function unwrap<T>(result: RpcResult): T {
   if (result.error) throw new Error(result.error.message);
   if (result.data == null) throw new Error("NOT_FOUND");
   return result.data as T;
@@ -201,27 +208,19 @@ export async function resolveDeliveryOccurrence(input: {
  */
 
 export async function fetchMyCourierOperationalContext(): Promise<CourierOperationalContext> {
-  return unwrap<CourierOperationalContext>(
-    await rpc("get_my_courier_operational_context", {})
-  );
+  return unwrap<CourierOperationalContext>(await rpc("get_my_courier_operational_context", {}));
 }
 
 export async function setMyCourierOnline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_online", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_online", {}));
 }
 
 export async function setMyCourierOffline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_offline", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_offline", {}));
 }
 
 export async function heartbeatMyCourierPresence(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("heartbeat_my_courier_presence", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("heartbeat_my_courier_presence", {}));
 }
 
 export async function acceptMyDeliveryAssignment(input: {
@@ -234,7 +233,7 @@ export async function acceptMyDeliveryAssignment(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -250,7 +249,7 @@ export async function declineMyDeliveryAssignment(input: {
       _expected_version: input.expectedVersion,
       _reason_code: input.reasonCode,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -264,7 +263,7 @@ export async function confirmMyArrivalAtStore(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -278,7 +277,7 @@ export async function confirmMyOrderPickup(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -292,7 +291,7 @@ export async function startMyDelivery(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -306,7 +305,7 @@ export async function completeMyDelivery(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -324,6 +323,6 @@ export async function reportMyDeliveryOccurrence(input: {
       _note: input.note ?? null,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }

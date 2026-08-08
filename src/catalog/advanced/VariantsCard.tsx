@@ -65,7 +65,8 @@ export function VariantsCard({
 
   function parseDraft(d: Draft) {
     const price = parsePriceInput(d.price);
-    const quantity = d.packageQuantity.trim() === "" ? null : Number(d.packageQuantity.replace(",", "."));
+    const quantity =
+      d.packageQuantity.trim() === "" ? null : Number(d.packageQuantity.replace(",", "."));
     const unit = d.packageUnit === "none" ? null : (d.packageUnit as MeasurementUnit);
     return { price, quantity, unit };
   }
@@ -123,7 +124,12 @@ export function VariantsCard({
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
     const done = await run(
-      () => reorderVariants(storeId, product.id, next.map((v) => v.id)),
+      () =>
+        reorderVariants(
+          storeId,
+          product.id,
+          next.map((v) => v.id),
+        ),
       "Ordem atualizada.",
     );
     if (done) onSaved();
@@ -163,10 +169,7 @@ export function VariantsCard({
               placeholder="500"
               onChange={(e) => set({ ...d, packageQuantity: e.target.value })}
             />
-            <Select
-              value={d.packageUnit}
-              onValueChange={(v) => set({ ...d, packageUnit: v })}
-            >
+            <Select value={d.packageUnit} onValueChange={(v) => set({ ...d, packageUnit: v })}>
               <SelectTrigger aria-label="Unidade da embalagem">
                 <SelectValue />
               </SelectTrigger>
@@ -214,7 +217,11 @@ export function VariantsCard({
                       <div className="space-y-3">
                         {fields(editDraft, setEditDraft, `var-edit-${variant.id}`)}
                         <div className="flex gap-2">
-                          <Button size="sm" disabled={isBusy} onClick={() => void saveEdit(variant)}>
+                          <Button
+                            size="sm"
+                            disabled={isBusy}
+                            onClick={() => void saveEdit(variant)}
+                          >
                             Salvar
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
@@ -282,7 +289,8 @@ export function VariantsCard({
                                 disabled={isBusy}
                                 onClick={() =>
                                   void run(
-                                    () => setDefaultVariant(storeId!, variant.id, variant.updated_at),
+                                    () =>
+                                      setDefaultVariant(storeId!, variant.id, variant.updated_at),
                                     "Variação padrão definida.",
                                   ).then(onSaved)
                                 }
@@ -317,7 +325,12 @@ export function VariantsCard({
                                 onClick={() =>
                                   void run(
                                     () =>
-                                      archiveVariant(storeId!, variant.id, true, variant.updated_at),
+                                      archiveVariant(
+                                        storeId!,
+                                        variant.id,
+                                        true,
+                                        variant.updated_at,
+                                      ),
                                     "Variação arquivada.",
                                   ).then(onSaved)
                                 }
@@ -369,7 +382,9 @@ export function VariantsCard({
                 <p className="text-sm font-medium text-foreground">Nova variação</p>
                 {fields(draft, setDraft, "var-new")}
                 <Button
-                  disabled={isBusy || draft.name.trim() === "" || parsePriceInput(draft.price) === null}
+                  disabled={
+                    isBusy || draft.name.trim() === "" || parsePriceInput(draft.price) === null
+                  }
                   onClick={() => void add()}
                 >
                   Adicionar variação

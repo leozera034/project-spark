@@ -29,7 +29,6 @@ const buttonVariants = cva(
         icon: "size-10",
         iconTouch: "h-12 w-12 rounded-lg",
       },
-
     },
     defaultVariants: {
       variant: "default",

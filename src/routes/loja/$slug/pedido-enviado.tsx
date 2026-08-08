@@ -132,17 +132,13 @@ function OrderSentPage() {
         ) : null}
       </div>
 
-      {order.trackingToken ? (
-        <TrackingLinkActions slug={slug} token={order.trackingToken} />
-      ) : null}
-
+      {order.trackingToken ? <TrackingLinkActions slug={slug} token={order.trackingToken} /> : null}
 
       <Button asChild variant="outline" className="mt-3 w-full">
         <Link to="/loja/$slug" params={{ slug }}>
           Voltar ao cardápio
         </Link>
       </Button>
-
     </main>
   );
 }

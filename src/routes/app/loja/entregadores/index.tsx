@@ -5,26 +5,24 @@ import { useCourierList, useCourierCounts } from "@/store/couriers/hooks/useCour
 import type { CourierListItem } from "@/store/couriers/courier.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  ChevronRight, 
+import {
+  Plus,
+  Search,
+  Filter,
+  ChevronRight,
   UserCircle,
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription 
-} from "@/components/ui/card";
-import { derivePresence, PRESENCE_LABEL, availabilityLabel } from "@/store/couriers/courier.formatters";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  derivePresence,
+  PRESENCE_LABEL,
+  availabilityLabel,
+} from "@/store/couriers/courier.formatters";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -36,13 +34,14 @@ function CourierListPage() {
   const { authContext } = useAuth();
   const storeId = authContext?.store_ids?.[0] ?? null;
   const [search, setSearch] = useState("");
-  
+
   const { data: counts } = useCourierCounts(storeId);
   const { data: payload, isLoading } = useCourierList(storeId);
 
-  const filteredCouriers = payload?.couriers.filter((c: CourierListItem) => 
-    c.displayName.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const filteredCouriers =
+    payload?.couriers.filter((c: CourierListItem) =>
+      c.displayName.toLowerCase().includes(search.toLowerCase()),
+    ) || [];
 
   return (
     <main className="container mx-auto max-w-6xl px-4 py-8">
@@ -103,9 +102,7 @@ function CourierListPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-brand">
-              {counts?.unassignedDeliveries ?? 0}
-            </div>
+            <div className="text-2xl font-bold text-brand">{counts?.unassignedDeliveries ?? 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -113,8 +110,8 @@ function CourierListPage() {
       <div className="mb-6 flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar por nome..." 
+          <Input
+            placeholder="Buscar por nome..."
             className="pl-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -128,13 +125,18 @@ function CourierListPage() {
       <div className="grid gap-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 w-full animate-pulse rounded-xl bg-surface/50 border border-border" />
+            <div
+              key={i}
+              className="h-24 w-full animate-pulse rounded-xl bg-surface/50 border border-border"
+            />
           ))
         ) : filteredCouriers.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12 text-center">
             <UserCircle className="mb-4 h-12 w-12 text-muted-foreground/30" />
             <h3 className="text-lg font-medium">Nenhum entregador encontrado</h3>
-            <p className="text-sm text-muted-foreground">Tente mudar sua busca ou adicione um novo.</p>
+            <p className="text-sm text-muted-foreground">
+              Tente mudar sua busca ou adicione um novo.
+            </p>
           </div>
         ) : (
           filteredCouriers.map((courier: CourierListItem) => (
@@ -149,24 +151,39 @@ function CourierListPage() {
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                     <UserCircle className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
-                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'online' ? 'bg-teal-500' : 
-                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'sem_sinal' ? 'bg-amber-500 animate-pulse' : 'bg-muted-foreground/30'
-                  }`} />
+                  <div
+                    className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
+                      derivePresence(
+                        courier.presenceStatus === "online",
+                        courier.lastSeenAt,
+                        payload?.serverNow,
+                      ) === "online"
+                        ? "bg-teal-500"
+                        : derivePresence(
+                              courier.presenceStatus === "online",
+                              courier.lastSeenAt,
+                              payload?.serverNow,
+                            ) === "sem_sinal"
+                          ? "bg-amber-500 animate-pulse"
+                          : "bg-muted-foreground/30"
+                    }`}
+                  />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{courier.displayName}</span>
                     {!courier.isActive && (
-                      <Badge variant="outline" className="text-[10px] uppercase">Inativo</Badge>
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        Inativo
+                      </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {courier.lastSeenAt 
+                      {courier.lastSeenAt
                         ? `Ativo ${formatDistanceToNow(new Date(courier.lastSeenAt), { addSuffix: true, locale: ptBR })}`
-                        : 'Nunca visto'}
+                        : "Nunca visto"}
                     </span>
                     {courier.currentAssignment && (
                       <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
@@ -180,7 +197,9 @@ function CourierListPage() {
               <div className="flex items-center gap-4">
                 <div className="hidden text-right sm:block">
                   <div className="text-sm font-medium">
-                    <Badge variant={availabilityLabel(courier) === "Disponível" ? "brand" : "secondary"}>
+                    <Badge
+                      variant={availabilityLabel(courier) === "Disponível" ? "brand" : "secondary"}
+                    >
                       {availabilityLabel(courier)}
                     </Badge>
                   </div>

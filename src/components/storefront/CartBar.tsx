@@ -16,11 +16,13 @@ export function CartBar({ slug }: { slug: string }) {
 
   const units = itemCount;
 
-
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 glass-bar animate-[cart-bar-in_320ms_cubic-bezier(0.22,1,0.36,1)_both] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto max-w-3xl px-1 sm:px-2">
-        <Button asChild className="group h-14 w-full justify-between rounded-2xl px-4 text-base shadow-e2 transition-shadow duration-200 hover:shadow-e3">
+        <Button
+          asChild
+          className="group h-14 w-full justify-between rounded-2xl px-4 text-base shadow-e2 transition-shadow duration-200 hover:shadow-e3"
+        >
           <Link to="/loja/$slug/carrinho" params={{ slug }}>
             <span className="flex items-center gap-2">
               <ShoppingBag className="size-5 transition-transform duration-300 ease-out group-hover:-translate-y-0.5" />

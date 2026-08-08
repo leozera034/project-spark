@@ -108,7 +108,10 @@ const radii = [
   { name: "full", className: "rounded-full" },
 ];
 
-const orderStates: Array<{ label: string; variant: "info" | "warning" | "brandSoft" | "success" | "danger" }> = [
+const orderStates: Array<{
+  label: string;
+  variant: "info" | "warning" | "brandSoft" | "success" | "danger";
+}> = [
   { label: "Recebido", variant: "info" },
   { label: "Em preparo", variant: "warning" },
   { label: "Saiu para entrega", variant: "brandSoft" },
@@ -169,7 +172,12 @@ function DesignSystemPage() {
                     asset.dark ? "bg-carbon" : "bg-surface-muted dark:bg-foreground"
                   }`}
                 >
-                  <img src={asset.src} alt={asset.label} data-no-dim className="max-h-16 w-auto max-w-full" />
+                  <img
+                    src={asset.src}
+                    alt={asset.label}
+                    data-no-dim
+                    className="max-h-16 w-auto max-w-full"
+                  />
                 </div>
                 <div className="p-3">
                   <p className="text-sm font-medium">{asset.label}</p>
@@ -202,8 +210,12 @@ function DesignSystemPage() {
             <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
               <ul className="space-y-2 text-muted-foreground">
                 <li>Área de respiro mínima igual à largura da haste do símbolo.</li>
-                <li>Tamanho mínimo: 24px de altura para o símbolo, 20px para o bloco horizontal.</li>
-                <li>Em fundo escuro, usar a versão branca; em impressão de uma cor, a monocromática.</li>
+                <li>
+                  Tamanho mínimo: 24px de altura para o símbolo, 20px para o bloco horizontal.
+                </li>
+                <li>
+                  Em fundo escuro, usar a versão branca; em impressão de uma cor, a monocromática.
+                </li>
               </ul>
               <ul className="space-y-2 text-muted-foreground">
                 <li>Não aplicar sombra, contorno, gradiente, 3D ou brilho.</li>
@@ -260,7 +272,10 @@ function DesignSystemPage() {
         >
           <div className="space-y-5">
             {typeScale.map((t) => (
-              <div key={t.label} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-6">
+              <div
+                key={t.label}
+                className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-6"
+              >
                 <code className="w-28 shrink-0 font-mono text-xs text-muted-foreground">
                   {t.label}
                 </code>
@@ -296,7 +311,9 @@ function DesignSystemPage() {
               <div className="flex flex-wrap gap-3">
                 {radii.map((r) => (
                   <div key={r.name} className="text-center">
-                    <div className={`size-16 border border-border bg-surface-muted ${r.className}`} />
+                    <div
+                      className={`size-16 border border-border bg-surface-muted ${r.className}`}
+                    />
                     <code className="mt-1 block font-mono text-xs text-muted-foreground">
                       {r.name}
                     </code>
@@ -365,7 +382,9 @@ function DesignSystemPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Campos</CardTitle>
-                <CardDescription>Rótulos sempre visíveis, nunca apenas placeholder.</CardDescription>
+                <CardDescription>
+                  Rótulos sempre visíveis, nunca apenas placeholder.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

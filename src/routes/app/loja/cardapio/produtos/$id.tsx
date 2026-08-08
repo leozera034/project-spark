@@ -12,11 +12,7 @@ import {
 } from "@/catalog/api";
 import { CatalogImage } from "@/catalog/CatalogImage";
 import { useCatalog } from "@/catalog/CatalogProvider";
-import {
-  ProductForm,
-  initialProductValues,
-  type ProductFormValues,
-} from "@/catalog/ProductForm";
+import { ProductForm, initialProductValues, type ProductFormValues } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -112,9 +108,7 @@ function EditarProduto() {
       {product.is_archived ? (
         <Alert>
           <AlertTitle>Produto arquivado</AlertTitle>
-          <AlertDescription>
-            Restaure o produto na lista para voltar a editá-lo.
-          </AlertDescription>
+          <AlertDescription>Restaure o produto na lista para voltar a editá-lo.</AlertDescription>
         </Alert>
       ) : null}
 

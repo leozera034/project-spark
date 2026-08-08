@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { audioManager } from './audio-manager';
+import { useState, useCallback, useEffect } from "react";
+import { audioManager } from "./audio-manager";
 
 export function useAudioUnlock() {
   const [isUnlocked, setIsUnlocked] = useState(false);

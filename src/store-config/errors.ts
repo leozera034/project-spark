@@ -47,9 +47,7 @@ export function isConflictError(error: unknown): boolean {
 
 export function extractCode(error: unknown): string | null {
   const raw =
-    typeof error === "string"
-      ? error
-      : ((error as { message?: string } | null)?.message ?? "");
+    typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
   const token = raw.trim().split(/\s|:/)[0]?.toUpperCase() ?? "";
   return token in MESSAGES ? token : null;
 }
