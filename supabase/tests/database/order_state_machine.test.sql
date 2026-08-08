@@ -103,6 +103,9 @@ update state_test_context
 
 select ok((select delivery_order_id is not null from state_test_context), 'pedido de entrega criado');
 
+-- Sessao real da loja: todas as mutacoes abaixo usam exclusivamente as RPCs
+-- publicas concedidas a authenticated. Leituras diretas de tabelas ficam fora
+-- deste role e sao usadas apenas pelo harness para verificar invariantes.
 set local role authenticated;
 select set_config('request.jwt.claim.sub', (select actor_id::text from state_test_context), true);
 select set_config(
@@ -114,8 +117,8 @@ select set_config(
 select is(auth.uid(), (select actor_id from state_test_context), 'sessao operacional da loja resolvida');
 
 -- ---------------------------------------------------------------------
--- Retirada: usa exatamente os wrappers RPC públicos usados pela aplicação.
--- aguardando_confirmacao -> aceito -> em_preparo -> aguardando_retirada -> retirado.
+-- Retirada: aguardando_confirmacao -> aceito -> em_preparo ->
+-- aguardando_retirada -> retirado. Nunca cria delivery.
 -- ---------------------------------------------------------------------
 insert into state_transition_results (label, result)
 select
@@ -133,11 +136,13 @@ select is(
   'retirada pode ser aceita pela RPC publica'
 );
 
+reset role;
 select is(
   (select version from public.orders where id = (select pickup_order_id from state_test_context)),
   2,
   'aceite incrementa version para 2'
 );
+set local role authenticated;
 
 select throws_ok(
   format(
@@ -171,11 +176,13 @@ select is(
   'retirada pronta vai para aguardando_retirada'
 );
 
+reset role;
 select is(
   (select count(*) from public.deliveries where order_id = (select pickup_order_id from state_test_context)),
   0::bigint,
   'retirada nunca cria delivery'
 );
+set local role authenticated;
 
 select is(
   public.complete_store_pickup_order(
@@ -199,7 +206,8 @@ select throws_ok(
 );
 
 -- ---------------------------------------------------------------------
--- Entrega: aguardando_confirmacao -> aceito -> em_preparo -> aguardando_entregador.
+-- Entrega: aguardando_confirmacao -> aceito -> em_preparo ->
+-- aguardando_entregador. Criacao da delivery acontece no servidor.
 -- ---------------------------------------------------------------------
 select is(
   public.accept_store_order(
@@ -234,6 +242,7 @@ select is(
   'entrega pronta vai para aguardando_entregador'
 );
 
+reset role;
 select is(
   (select count(*) from public.deliveries where order_id = (select delivery_order_id from state_test_context)),
   1::bigint,
@@ -251,9 +260,9 @@ select ok(
   'delivery pendente nao atribui entregador automaticamente'
 );
 
--- Invariante interna: executada como owner do banco, pois ensure_delivery_for_order
--- e deliberadamente privada e nao faz parte da superficie RPC do usuario.
-reset role;
+-- Invariante interna: ensure_delivery_for_order e deliberadamente privada e
+-- nunca e chamada pelo browser. O harness a executa como owner apenas para
+-- provar que repeticao nao duplica a responsabilidade logistica.
 select ok(
   private.ensure_delivery_for_order(
     (select store_id from state_test_context),
@@ -269,7 +278,6 @@ select is(
 );
 
 set local role authenticated;
-
 select throws_ok(
   format(
     'select public.mark_store_order_ready(%L::uuid,%L::uuid,4,null)',
@@ -280,6 +288,7 @@ select throws_ok(
   'pedido ja aguardando entregador nao aceita mark_ready novamente'
 );
 
+reset role;
 select is(
   (select count(*)
      from public.order_status_history
@@ -289,7 +298,6 @@ select is(
   'historico registra exatamente as tres transicoes operacionais da loja'
 );
 
-reset role;
 select is(
   (select status::text from public.orders where id = (select delivery_order_id from state_test_context)),
   'aguardando_entregador',
