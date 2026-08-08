@@ -11,6 +11,10 @@ export function normalizeSlug(raw: string): string | null {
   return SLUG_RE.test(slug) ? slug : null;
 }
 
+function hasControlCharacters(value: string): boolean {
+  return Array.from(value).some((char) => char.charCodeAt(0) <= 0x1f);
+}
+
 /**
  * Aceita apenas caminhos internos da mesma loja, como
  * `/loja/minha-loja?produto=<uuid>`.
@@ -21,7 +25,7 @@ export function sanitizeReturnPath(raw: unknown, slug: string): string | null {
   if (value.length === 0 || value.length > 300) return null;
   if (!value.startsWith("/")) return null;
   if (value.startsWith("//")) return null;
-  if (/[\u0000-\u001f]/.test(value)) return null;
+  if (hasControlCharacters(value)) return null;
   if (/^\/*[a-z][a-z0-9+.-]*:/i.test(value)) return null;
 
   const canonical = normalizeSlug(slug);
