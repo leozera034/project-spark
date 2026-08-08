@@ -6,8 +6,7 @@ on:
       - "supabase/**"
       - ".github/workflows/db-order-state-machine.yml"
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "supabase/**"
       - ".github/workflows/db-order-state-machine.yml"
@@ -40,21 +39,15 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf .ci/state-db
-          mkdir -p .ci/state-db/supabase/migrations
-          mkdir -p .ci/state-db/supabase/tests/database
-
+          mkdir -p .ci/state-db/supabase/migrations .ci/state-db/supabase/tests/database
           cp supabase/config.toml .ci/state-db/supabase/config.toml
-
           find supabase/migrations -maxdepth 1 -type f -name '20260731*.sql' -print0 \
             | sort -z \
             | xargs -0 -I{} cp "{}" .ci/state-db/supabase/migrations/
-
           cp supabase/migrations/20260802183724_6762713c-1cd7-425d-99d0-b4f53fa8228e.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802183933_d16e989c-5140-491b-bd2a-447b71254d8f.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802184111_8b66408a-944c-49da-9b37-1d91652904c0.sql .ci/state-db/supabase/migrations/
-
           cp supabase/tests/database/order_state_machine.test.sql .ci/state-db/supabase/tests/database/
-
           echo "State-machine migration count: $(find .ci/state-db/supabase/migrations -type f -name '*.sql' | wc -l)"
 
       - name: Start isolated state-machine database
@@ -75,15 +68,11 @@ jobs:
         run: |
           set -euo pipefail
           DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
-          test -n "$DB_CONTAINER"
-          docker exec -i "$DB_CONTAINER" \
-            psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres \
+          docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres \
             < supabase/tests/database/order_state_machine_probe.sql
 
       - name: Run order state-machine pgTAP suite
-        run: |
-          supabase --workdir .ci/state-db test db \
-            supabase/tests/database/order_state_machine.test.sql
+        run: supabase --workdir .ci/state-db test db supabase/tests/database/order_state_machine.test.sql
 
       - name: Capture PostgreSQL diagnostics
         if: ${{ failure() }}
