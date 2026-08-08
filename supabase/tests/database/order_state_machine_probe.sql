@@ -80,6 +80,30 @@ select private.has_permission(
   (select store_id from state_probe_context)
 );
 
+\echo '[probe] has_permission orders.start_preparation'
+select private.has_permission(
+  'orders.start_preparation'::public.app_permission,
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] has_permission orders.cancel'
+select private.has_permission(
+  'orders.cancel'::public.app_permission,
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] has_permission kitchen.start_preparation'
+select private.has_permission(
+  'kitchen.start_preparation'::public.app_permission,
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] has_permission couriers.update'
+select private.has_permission(
+  'couriers.update'::public.app_permission,
+  (select store_id from state_probe_context)
+);
+
 \echo '[probe] order_allowed_actions for accepted pickup'
 select private.order_allowed_actions(
   'aceito'::public.order_status,
