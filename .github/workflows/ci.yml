@@ -31,48 +31,22 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Apply exact lint fixes
+      - name: Format final branding tool
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
+        run: bunx prettier --write tools/generate-brand-assets.mjs
+
+      - name: Commit branding tool formatting
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
         shell: bash
         run: |
-          python3 <<'PY'
-          from pathlib import Path
-
-          def replace_once(path: str, old: str, new: str, label: str) -> None:
-              file = Path(path)
-              text = file.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected 1 occurrence, found {count}")
-              file.write_text(text.replace(old, new, 1))
-
-          replace_once(
-              "src/routes/app/loja/pedidos.tsx",
-              "  const fulfillmentParams = Route.useSearch() as any;",
-              "  const fulfillmentParams = Route.useSearch() as { open?: string };",
-              "orders search typing",
-          )
-          replace_once(
-              "src/routes/app/loja/entregadores/$courierId.tsx",
-              "    } catch (err) {}",
-              "    } catch {\n      // O hook já exibe a falha de redefinição; mantemos a credencial anterior intacta.\n    }",
-              "courier reset catch",
-          )
-          PY
-          bunx prettier --write src/routes/app/loja/pedidos.tsx 'src/routes/app/loja/entregadores/$courierId.tsx'
-
-      - name: Commit exact lint fixes
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        shell: bash
-        run: |
-          if git diff --quiet -- src/routes/app/loja/pedidos.tsx 'src/routes/app/loja/entregadores/$courierId.tsx'; then
-            echo "No targeted changes required."
+          if git diff --quiet -- tools/generate-brand-assets.mjs; then
+            echo "No branding tool formatting required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/routes/app/loja/pedidos.tsx 'src/routes/app/loja/entregadores/$courierId.tsx'
-          git commit -m "Fix remaining targeted lint blockers"
+          git add tools/generate-brand-assets.mjs
+          git commit -m "Format brand asset generator"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
@@ -87,13 +61,20 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const path = require('path');
+
           const report = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
           const annotations = [];
+
           for (const result of report) {
             const file = path.relative(process.cwd(), result.filePath).replaceAll('\\', '/');
             for (const message of result.messages) annotations.push({ file, ...message });
           }
-          const escape = (value) => String(value ?? '').replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+
+          const escape = (value) => String(value ?? '')
+            .replaceAll('%', '%25')
+            .replaceAll('\r', '%0D')
+            .replaceAll('\n', '%0A');
+
           for (const item of annotations.slice(0, 100)) {
             const level = item.severity === 2 ? 'error' : 'warning';
             const rule = item.ruleId ? `${item.ruleId}: ` : '';
