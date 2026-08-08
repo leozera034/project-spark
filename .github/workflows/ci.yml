@@ -31,69 +31,23 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Apply canonical formatting on audit branch
+      - name: Apply canonical source formatting on audit branch
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        run: |
-          bunx prettier --write \
-            src/catalog/advanced/ProductGroupsCard.tsx \
-            src/catalog/advanced/OptionGroupLibrary.tsx \
-            src/catalog/advanced/ConfiguredPreviewCard.tsx \
-            src/catalog/advanced/VariantsCard.tsx \
-            src/catalog/advanced/VariantPricesCard.tsx \
-            src/catalog/advanced/SaleModeCard.tsx \
-            src/catalog/ProductForm.tsx \
-            src/catalog/CatalogProvider.tsx \
-            src/catalog/types.ts \
-            src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx \
-            src/components/storefront/CustomerWizard.tsx \
-            src/components/storefront/CartBar.tsx \
-            src/components/feedback/NotFoundPage.tsx \
-            src/components/auth/PasswordField.tsx
+        run: bunx prettier --write src
 
-      - name: Commit canonical formatting on audit branch
+      - name: Commit canonical source formatting on audit branch
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
         shell: bash
         run: |
-          if git diff --quiet -- \
-            src/catalog/advanced/ProductGroupsCard.tsx \
-            src/catalog/advanced/OptionGroupLibrary.tsx \
-            src/catalog/advanced/ConfiguredPreviewCard.tsx \
-            src/catalog/advanced/VariantsCard.tsx \
-            src/catalog/advanced/VariantPricesCard.tsx \
-            src/catalog/advanced/SaleModeCard.tsx \
-            src/catalog/ProductForm.tsx \
-            src/catalog/CatalogProvider.tsx \
-            src/catalog/types.ts \
-            src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx \
-            src/components/storefront/CustomerWizard.tsx \
-            src/components/storefront/CartBar.tsx \
-            src/components/feedback/NotFoundPage.tsx \
-            src/components/auth/PasswordField.tsx; then
-            echo "No formatting changes required."
+          if git diff --quiet -- src; then
+            echo "No source formatting changes required."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            src/catalog/advanced/ProductGroupsCard.tsx \
-            src/catalog/advanced/OptionGroupLibrary.tsx \
-            src/catalog/advanced/ConfiguredPreviewCard.tsx \
-            src/catalog/advanced/VariantsCard.tsx \
-            src/catalog/advanced/VariantPricesCard.tsx \
-            src/catalog/advanced/SaleModeCard.tsx \
-            src/catalog/ProductForm.tsx \
-            src/catalog/CatalogProvider.tsx \
-            src/catalog/types.ts \
-            src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx \
-            src/components/storefront/CustomerWizard.tsx \
-            src/components/storefront/CartBar.tsx \
-            src/components/feedback/NotFoundPage.tsx \
-            src/components/auth/PasswordField.tsx
-          git commit -m "Format final files for CI"
+          git add src
+          git commit -m "Normalize source formatting"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
