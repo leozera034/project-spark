@@ -27,6 +27,41 @@ select actor_id, store_id, 'proprietario'::public.app_role, true
 from state_probe_context
 on conflict do nothing;
 
+-- Minimal wrappers created only inside this transaction. They isolate whether
+-- nesting has_permission inside PL/pgSQL is enough to reproduce the backend
+-- crash, independently from the production allowed-actions implementation.
+create or replace function private._audit_probe_nested_permission(_store_id uuid)
+returns boolean
+language plpgsql
+stable
+security invoker
+set search_path to 'public', 'private', 'pg_temp'
+as $function$
+begin
+  return private.has_permission('orders.start_preparation', _store_id);
+end;
+$function$;
+
+create or replace function private._audit_probe_action_array(_store_id uuid)
+returns text[]
+language plpgsql
+stable
+security invoker
+set search_path to 'public', 'private', 'pg_temp'
+as $function$
+declare
+  _actions text[] := '{}'::text[];
+begin
+  if private.has_permission('orders.start_preparation', _store_id) then
+    _actions := array_append(_actions, 'start_preparation');
+  end if;
+  return _actions;
+end;
+$function$;
+
+grant execute on function private._audit_probe_nested_permission(uuid) to authenticated;
+grant execute on function private._audit_probe_action_array(uuid) to authenticated;
+
 with created as (
   insert into public.orders (
     store_id,
@@ -101,6 +136,16 @@ select private.has_permission(
 \echo '[probe] has_permission couriers.update'
 select private.has_permission(
   'couriers.update'::public.app_permission,
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] minimal nested permission wrapper'
+select private._audit_probe_nested_permission(
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] minimal nested permission + array wrapper'
+select private._audit_probe_action_array(
   (select store_id from state_probe_context)
 );
 
