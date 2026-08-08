@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, private, extensions, pg_temp;
 
-select plan(18);
+select plan(19);
 
 -- ---------------------------------------------------------------------
 -- Fixtures: identidade de loja A e um pedido real da loja B.
@@ -14,6 +14,8 @@ create temp table tenant_test_context (
   actor_id uuid not null,
   brasa_order_id uuid
 );
+
+grant select on tenant_test_context to authenticated;
 
 insert into tenant_test_context (aurora_id, brasa_id, actor_id)
 select
