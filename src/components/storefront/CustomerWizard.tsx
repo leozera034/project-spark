@@ -13,7 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { shortAddressLine } from "@/storefront/customer/address-normalization";
 import { WIZARD_MESSAGES } from "@/storefront/customer/customer-wizard.errors";
-import { isAddressStep, nextAddressStep, progressLabel } from "@/storefront/customer/customer-wizard.machine";
+import {
+  isAddressStep,
+  nextAddressStep,
+  progressLabel,
+} from "@/storefront/customer/customer-wizard.machine";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/customer-wizard.types";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -81,11 +85,7 @@ function StepShell({
       <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="mx-auto flex w-full max-w-md gap-3 sm:max-w-lg">
           {onBack ? (
-            <Button
-              variant="outline"
-              className="h-13 min-h-[52px] rounded-xl"
-              onClick={onBack}
-            >
+            <Button variant="outline" className="h-13 min-h-[52px] rounded-xl" onClick={onBack}>
               Voltar
             </Button>
           ) : null}
@@ -93,7 +93,6 @@ function StepShell({
         </div>
       </div>
     </main>
-
   );
 }
 
@@ -489,11 +488,7 @@ export function CustomerWizard() {
           progress={progress}
           onBack={back}
           footer={
-            <Button
-              className={PRIMARY}
-              disabled={draft.street.trim().length < 3}
-              onClick={advance}
-            >
+            <Button className={PRIMARY} disabled={draft.street.trim().length < 3} onClick={advance}>
               Continuar
             </Button>
           }

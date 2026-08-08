@@ -44,8 +44,8 @@ export function NotFoundPage() {
         </h1>
 
         <p className="mx-auto mt-4 max-w-md text-pretty text-base text-muted-foreground">
-          O endereço que você abriu não existe, mudou de lugar ou o link está incompleto.
-          Nada de errado com o seu pedido — é só um caminho que não leva a lugar nenhum.
+          O endereço que você abriu não existe, mudou de lugar ou o link está incompleto. Nada de
+          errado com o seu pedido — é só um caminho que não leva a lugar nenhum.
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
