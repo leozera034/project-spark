@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,105 +20,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout audit branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Apply targeted courier UI fixes
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        shell: bash
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-
-          def replace_count(text: str, old: str, new: str, expected: int, label: str) -> str:
-              count = text.count(old)
-              if count != expected:
-                  raise SystemExit(f"{label}: expected {expected} occurrence(s), found {count}")
-              return text.replace(old, new)
-
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
-              return replace_count(text, old, new, 1, label)
-
-          index_path = Path("src/routes/app/entregador/index.tsx")
-          text = index_path.read_text()
-          text = replace_once(
-              text,
-              "  const heartbeat = useCourierHeartbeat();\n  const accept = useAcceptDeliveryAssignment();\n  const decline = useDeclineDeliveryAssignment();",
-              "  const { mutate: sendHeartbeat } = useCourierHeartbeat();\n  const accept = useAcceptDeliveryAssignment();\n  const decline = useDeclineDeliveryAssignment();\n  const deliveryCounter = useMyCourierDeliveryCounter();",
-              "dashboard hook setup",
-          )
-          text = replace_once(text, "        heartbeat.mutate(undefined as any);", "        sendHeartbeat();", "heartbeat call")
-          text = replace_once(
-              text,
-              "  }, [context?.onlineIntent, isOnline]);",
-              "  }, [context?.onlineIntent, isOnline, sendHeartbeat]);",
-              "heartbeat dependencies",
-          )
-          text = replace_once(text, "      setOffline.mutate(undefined as any);", "      setOffline.mutate();", "offline mutation")
-          text = replace_once(text, "      setOnline.mutate(undefined as any);", "      setOnline.mutate();", "online mutation")
-          text = replace_once(text, "{useMyCourierDeliveryCounter().data?.today ?? 0}", "{deliveryCounter.data?.today ?? 0}", "today counter")
-          text = replace_once(text, "{useMyCourierDeliveryCounter().data?.currentMonth ?? 0}", "{deliveryCounter.data?.currentMonth ?? 0}", "month counter")
-          index_path.write_text(text)
-
-          delivery_path = Path("src/routes/app/entregador/entrega.tsx")
-          text = delivery_path.read_text()
-          text = replace_once(
-              text,
-              'export const Route = createFileRoute("/app/entregador/entrega")({\n  component: DeliveryDetail,\n});',
-              'export const Route = createFileRoute("/app/entregador/entrega")({\n  component: DeliveryDetail,\n});\n\ntype DeliveryActionMutation = {\n  mutateAsync: (input: {\n    deliveryId: string;\n    expectedVersion: number;\n    idempotencyKey: string;\n  }) => Promise<unknown>;\n};',
-              "delivery mutation type",
-          )
-          text = replace_once(text, "  const handleAction = async (mutation: any) => {", "  const handleAction = async (mutation: DeliveryActionMutation) => {", "delivery action typing")
-          text = replace_count(
-              text,
-              "    } catch (e) {}",
-              "    } catch {\n      // O hook já apresenta a mensagem de erro e preserva a tela para nova tentativa.\n    }",
-              2,
-              "empty catches",
-          )
-          text = replace_count(
-              text,
-              '["atribuida", "aceita", "chegou_na_loja"].includes(status as string)',
-              '["atribuida", "aceita"].includes(status)',
-              2,
-              "invalid arrived status references",
-          )
-          text = replace_once(
-              text,
-              '["em_rota"].includes(status as string) ? "border-brand shadow-md" : "border-slate-200"',
-              'status === "em_rota" ? "border-brand shadow-md" : "border-slate-200"',
-              "route card status",
-          )
-          text = replace_once(text, '          {status === "aceita" && (', '          {delivery.allowedActions.includes("confirm_arrival") && (', "arrival action source")
-          text = replace_once(text, '          {(status as string) === "chegou_na_loja" && (', '          {delivery.allowedActions.includes("confirm_pickup") && (', "pickup action source")
-          text = replace_once(text, '          {status === "coletada" && (', '          {delivery.allowedActions.includes("start_delivery") && (', "start delivery action source")
-          text = replace_once(text, '          {status === "em_rota" && (', '          {delivery.allowedActions.includes("complete_delivery") && (', "complete delivery action source")
-          delivery_path.write_text(text)
-          PY
-
-          bunx prettier --write src/routes/app/entregador/index.tsx src/routes/app/entregador/entrega.tsx
-
-      - name: Commit targeted courier UI fixes
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
-        shell: bash
-        run: |
-          if git diff --quiet -- src/routes/app/entregador/index.tsx src/routes/app/entregador/entrega.tsx; then
-            echo "No courier UI fixes required."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/routes/app/entregador/index.tsx src/routes/app/entregador/entrega.tsx
-          git commit -m "Fix courier dashboard hooks and delivery actions"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
         run: bunx tsc --noEmit
@@ -132,18 +41,30 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const path = require('path');
+
           const report = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
           const annotations = [];
+
           for (const result of report) {
             const file = path.relative(process.cwd(), result.filePath).replaceAll('\\', '/');
-            for (const message of result.messages) annotations.push({ file, ...message });
+            for (const message of result.messages) {
+              annotations.push({ file, ...message });
+            }
           }
-          const escape = (value) => String(value ?? '').replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+
+          const escape = (value) => String(value ?? '')
+            .replaceAll('%', '%25')
+            .replaceAll('\r', '%0D')
+            .replaceAll('\n', '%0A');
+
           for (const item of annotations.slice(0, 100)) {
             const level = item.severity === 2 ? 'error' : 'warning';
             const rule = item.ruleId ? `${item.ruleId}: ` : '';
-            console.log(`::${level} file=${item.file},line=${Number(item.line || 1)},col=${Number(item.column || 1)}::${escape(rule + item.message)}`);
+            const line = Number(item.line || 1);
+            const column = Number(item.column || 1);
+            console.log(`::${level} file=${item.file},line=${line},col=${column}::${escape(rule + item.message)}`);
           }
+
           console.log(`ESLint: ${annotations.length} ocorrência(s) encontrada(s).`);
           NODE
           exit "$status"
