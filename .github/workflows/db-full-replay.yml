@@ -49,6 +49,7 @@ jobs:
       - name: Verify migration table
         shell: bash
         run: |
+          set -euo pipefail
           DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
           test -n "$DB_CONTAINER"
           EXPECTED="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')"
@@ -58,8 +59,23 @@ jobs:
           test "$APPLIED" = "$EXPECTED"
 
       - name: Run billing and provisioning smoke tests
+        shell: bash
         run: |
-          supabase test db supabase/tests/database/billing_rebuild_smoke.test.sql
+          set +e
+          LOG_FILE="$(mktemp)"
+          supabase test db supabase/tests/database/billing_rebuild_smoke.test.sql 2>&1 | tee "$LOG_FILE"
+          RC=${PIPESTATUS[0]}
+
+          if [ "$RC" -ne 0 ]; then
+            echo
+            echo "=== Concise pgTAP failure diagnostics ==="
+            grep -nE 'not ok|ERROR:|Failed|Tests:|Result:|Dubious|Parse errors|psql:.*(ERROR|NOTICE)' "$LOG_FILE" | tail -120 || true
+            echo
+            echo "=== Tail of smoke output ==="
+            tail -120 "$LOG_FILE" || true
+          fi
+
+          exit "$RC"
 
       - name: Capture PostgreSQL diagnostics
         if: ${{ failure() }}
