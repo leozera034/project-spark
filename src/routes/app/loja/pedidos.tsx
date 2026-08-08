@@ -84,7 +84,7 @@ function OrdersPanel() {
   const [queueKey, setQueueKey] = useState(ORDER_QUEUES[0].key);
   const [search, setSearch] = useState("");
   const [delayedOnly, setDelayedOnly] = useState(false);
-  const fulfillmentParams = Route.useSearch() as any;
+  const fulfillmentParams = Route.useSearch() as { open?: string };
   const [fulfillment, setFulfillment] = useState<"entrega" | "retirada" | null>(null);
   const [openOrderId, setOpenOrderId] = useState<string | null>(fulfillmentParams?.open || null);
 

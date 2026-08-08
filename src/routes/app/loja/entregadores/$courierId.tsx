@@ -123,7 +123,9 @@ function CourierDetailPage() {
         },
       });
       setResetResult(res.temporary_password);
-    } catch (err) {}
+    } catch {
+      // O hook já exibe a falha de redefinição; mantemos a credencial anterior intacta.
+    }
   };
 
   const copyPassword = () => {
