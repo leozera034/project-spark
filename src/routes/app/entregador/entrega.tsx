@@ -45,6 +45,14 @@ export const Route = createFileRoute("/app/entregador/entrega")({
   component: DeliveryDetail,
 });
 
+type DeliveryActionMutation = {
+  mutateAsync: (input: {
+    deliveryId: string;
+    expectedVersion: number;
+    idempotencyKey: string;
+  }) => Promise<unknown>;
+};
+
 function DeliveryDetail() {
   const navigate = useNavigate();
   const { data: context, isLoading, isError, refetch } = useMyCourierOperationalContext();
@@ -83,7 +91,7 @@ function DeliveryDetail() {
     );
   }
 
-  const handleAction = async (mutation: any) => {
+  const handleAction = async (mutation: DeliveryActionMutation) => {
     try {
       await mutation.mutateAsync({
         deliveryId: delivery.deliveryId,
@@ -91,7 +99,9 @@ function DeliveryDetail() {
         idempotencyKey: crypto.randomUUID(),
       });
       // O hook invalida a query, o que recarrega os dados
-    } catch (e) {}
+    } catch {
+      // O hook já apresenta a mensagem de erro e preserva a tela para nova tentativa.
+    }
   };
 
   const handleReportOccurrence = async () => {
@@ -105,7 +115,9 @@ function DeliveryDetail() {
       });
       setIsOccurrenceOpen(false);
       setOccurrenceNote("");
-    } catch (e) {}
+    } catch {
+      // O hook já apresenta a mensagem de erro e preserva a tela para nova tentativa.
+    }
   };
 
   const status = delivery.status;
@@ -135,7 +147,7 @@ function DeliveryDetail() {
         <Card
           className={cn(
             "border-2",
-            ["atribuida", "aceita", "chegou_na_loja"].includes(status as string)
+            ["atribuida", "aceita"].includes(status)
               ? "border-brand shadow-md"
               : "opacity-60 border-slate-200",
           )}
@@ -185,8 +197,8 @@ function DeliveryDetail() {
         <Card
           className={cn(
             "border-2",
-            ["em_rota"].includes(status as string) ? "border-brand shadow-md" : "border-slate-200",
-            ["atribuida", "aceita", "chegou_na_loja"].includes(status as string) && "opacity-40",
+            status === "em_rota" ? "border-brand shadow-md" : "border-slate-200",
+            ["atribuida", "aceita"].includes(status) && "opacity-40",
           )}
         >
           <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
@@ -336,7 +348,7 @@ function DeliveryDetail() {
       {/* Action Bar Flutuante Fixa na Base */}
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t shadow-2xl z-20">
         <div className="max-w-lg mx-auto">
-          {status === "aceita" && (
+          {delivery.allowedActions.includes("confirm_arrival") && (
             <Button
               className="w-full h-16 text-xl font-black shadow-lg animate-in fade-in zoom-in"
               variant="brand"
@@ -347,7 +359,7 @@ function DeliveryDetail() {
             </Button>
           )}
 
-          {(status as string) === "chegou_na_loja" && (
+          {delivery.allowedActions.includes("confirm_pickup") && (
             <Button
               className="w-full h-16 text-xl font-black shadow-lg animate-in fade-in zoom-in bg-emerald-600 hover:bg-emerald-700"
               onClick={() => handleAction(pickupOrder)}
@@ -357,7 +369,7 @@ function DeliveryDetail() {
             </Button>
           )}
 
-          {status === "coletada" && (
+          {delivery.allowedActions.includes("start_delivery") && (
             <Button
               className="w-full h-16 text-xl font-black shadow-lg animate-in fade-in zoom-in"
               variant="brand"
@@ -368,7 +380,7 @@ function DeliveryDetail() {
             </Button>
           )}
 
-          {status === "em_rota" && (
+          {delivery.allowedActions.includes("complete_delivery") && (
             <Button
               className="w-full h-16 text-xl font-black shadow-lg animate-in fade-in zoom-in bg-emerald-600 hover:bg-emerald-700"
               onClick={() => handleAction(completeDelivery)}

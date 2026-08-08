@@ -54,19 +54,20 @@ function CourierDashboard() {
 
   const setOnline = useSetCourierOnline();
   const setOffline = useSetCourierOffline();
-  const heartbeat = useCourierHeartbeat();
+  const { mutate: sendHeartbeat } = useCourierHeartbeat();
   const accept = useAcceptDeliveryAssignment();
   const decline = useDeclineDeliveryAssignment();
+  const deliveryCounter = useMyCourierDeliveryCounter();
 
   // Heartbeat a cada 2 minutos se estiver online
   useEffect(() => {
     if (context?.onlineIntent && isOnline) {
       const interval = setInterval(() => {
-        heartbeat.mutate(undefined as any);
+        sendHeartbeat();
       }, 120000);
       return () => clearInterval(interval);
     }
-  }, [context?.onlineIntent, isOnline]);
+  }, [context?.onlineIntent, isOnline, sendHeartbeat]);
 
   if (isLoading) {
     return (
@@ -101,9 +102,9 @@ function CourierDashboard() {
 
   const handleToggleOnline = () => {
     if (context?.onlineIntent) {
-      setOffline.mutate(undefined as any);
+      setOffline.mutate();
     } else {
-      setOnline.mutate(undefined as any);
+      setOnline.mutate();
     }
   };
 
@@ -265,18 +266,14 @@ function CourierDashboard() {
             <CardContent className="p-4 flex items-center justify-between">
               <div className="space-y-0.5">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Hoje</p>
-                <p className="text-3xl font-black">
-                  {useMyCourierDeliveryCounter().data?.today ?? 0}
-                </p>
+                <p className="text-3xl font-black">{deliveryCounter.data?.today ?? 0}</p>
               </div>
               <div className="h-10 w-px bg-white/20" />
               <div className="space-y-0.5 text-right">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
                   Este Mês
                 </p>
-                <p className="text-xl font-bold">
-                  {useMyCourierDeliveryCounter().data?.currentMonth ?? 0}
-                </p>
+                <p className="text-xl font-bold">{deliveryCounter.data?.currentMonth ?? 0}</p>
               </div>
             </CardContent>
           </Card>
