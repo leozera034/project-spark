@@ -1,8 +1,4 @@
 -- Contas de teste (ambiente de desenvolvimento)
---
--- Os perfis/papeis abaixo sao fixtures inertes quando os respectivos usuarios
--- Auth nao existem. Nao criamos auth.users por SQL: credenciais de QA devem ser
--- provisionadas pelo fluxo de Auth apropriado do ambiente.
 insert into public.user_profiles (id, full_name, display_name, phone, is_active) values
   ('e0db8a21-3d8e-4d94-99a5-2acd57f4b30a','Ana Admin','Ana','(62) 90000-0001',true),
   ('7821539e-bde2-45b4-b93d-bfbf2f69f80c','Paulo Proprietário','Paulo','(62) 90000-0002',true),
@@ -30,18 +26,7 @@ insert into public.couriers (id, store_id, user_id, full_name, phone, vehicle, p
   ('00000000-0000-4000-8000-0000000c0002','00000000-0000-4000-8000-000000000205','d8b6d153-1420-4c37-8ef4-aa67e1b885a2','Bia Entregadora','(62) 90000-0008','Bicicleta',null,'ativo',false,true)
 on conflict (id, store_id) do nothing;
 
--- courier_auth_identities possui FK real para auth.users. Em ambientes em que
--- as contas QA foram provisionadas, cria/recupera o vinculo normalmente. Em
--- banco limpo, simplesmente nao cria uma identidade de login impossivel.
-insert into public.courier_auth_identities
-  (store_id, courier_id, auth_user_id, login_identifier, synthetic_email,
-   requires_password_change, is_login_enabled)
-select v.store_id, v.courier_id, v.auth_user_id, v.login_identifier,
-       v.synthetic_email, v.requires_password_change, v.is_login_enabled
-from (values
-  ('00000000-0000-4000-8000-000000000205'::uuid,'00000000-0000-4000-8000-0000000c0001'::uuid,'45f228bf-e077-4323-a523-342b63a036b3'::uuid,'carlos.aurora'::text,'45a254b483e0fba8c7acd66234102c34@courier.pediuaqui.internal'::text,false,true),
-  ('00000000-0000-4000-8000-000000000205'::uuid,'00000000-0000-4000-8000-0000000c0002'::uuid,'d8b6d153-1420-4c37-8ef4-aa67e1b885a2'::uuid,'bia.aurora'::text,'07984d4510598c79e0a5867931fa38d1@courier.pediuaqui.internal'::text,true,true)
-) as v(store_id, courier_id, auth_user_id, login_identifier, synthetic_email,
-       requires_password_change, is_login_enabled)
-join auth.users au on au.id = v.auth_user_id
+insert into public.courier_auth_identities (store_id, courier_id, auth_user_id, login_identifier, synthetic_email, requires_password_change, is_login_enabled) values
+  ('00000000-0000-4000-8000-000000000205','00000000-0000-4000-8000-0000000c0001','45f228bf-e077-4323-a523-342b63a036b3','carlos.aurora','45a254b483e0fba8c7acd66234102c34@courier.pediuaqui.internal', false, true),
+  ('00000000-0000-4000-8000-000000000205','00000000-0000-4000-8000-0000000c0002','d8b6d153-1420-4c37-8ef4-aa67e1b885a2','bia.aurora','07984d4510598c79e0a5867931fa38d1@courier.pediuaqui.internal', true, true)
 on conflict do nothing;
