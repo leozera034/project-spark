@@ -69,6 +69,22 @@ jobs:
           supabase --workdir .ci/state-db test db \
             supabase/tests/database/order_state_machine.test.sql
 
+      - name: Capture PostgreSQL crash diagnostics
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          set +e
+          echo "=== Docker containers ==="
+          docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+          echo
+          for container in $(docker ps -a --format '{{.Names}}' | grep -E '^supabase_db_' || true); do
+            echo "=== PostgreSQL logs: ${container} ==="
+            docker logs --tail 500 "${container}" 2>&1 || true
+          done
+          echo
+          echo "=== Kernel/OOM hints ==="
+          dmesg 2>/dev/null | tail -100 || true
+
       - name: Stop isolated Supabase database
         if: ${{ always() }}
         run: supabase --workdir .ci/state-db stop --no-backup
