@@ -36,7 +36,7 @@ on conflict (id) do update set is_active = true;
 insert into public.user_roles (user_id, store_id, role, is_active)
 select actor_id, aurora_id, 'proprietario'::public.app_role, true
 from tenant_test_context
-on conflict (user_id, store_id, role) do update set is_active = true;
+on conflict do nothing;
 
 -- Mantem a Brasa aberta apenas durante a transacao de teste.
 update public.store_settings
