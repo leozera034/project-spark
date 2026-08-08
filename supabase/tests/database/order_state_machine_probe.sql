@@ -111,6 +111,18 @@ select private.order_allowed_actions(
   (select store_id from state_probe_context)
 );
 
+\echo '[probe] kitchen_allowed_actions for accepted order'
+select private.kitchen_allowed_actions(
+  'aceito'::public.order_status,
+  (select store_id from state_probe_context)
+);
+
+\echo '[probe] courier_allowed_actions for active courier'
+select private.courier_allowed_actions(
+  (select store_id from state_probe_context),
+  'ativo'::public.courier_status
+);
+
 reset role;
 
 \echo '[probe] orders UPDATE + triggers'
