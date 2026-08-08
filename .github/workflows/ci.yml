@@ -38,8 +38,12 @@ jobs:
             src/catalog/advanced/ProductGroupsCard.tsx \
             src/catalog/advanced/OptionGroupLibrary.tsx \
             src/catalog/advanced/ConfiguredPreviewCard.tsx \
+            src/catalog/advanced/VariantsCard.tsx \
+            src/catalog/advanced/VariantPricesCard.tsx \
+            src/catalog/advanced/SaleModeCard.tsx \
             src/catalog/ProductForm.tsx \
             src/catalog/CatalogProvider.tsx \
+            src/catalog/types.ts \
             src/auth/auth.types.ts \
             src/auth/AuthProvider.tsx
 
@@ -51,8 +55,12 @@ jobs:
             src/catalog/advanced/ProductGroupsCard.tsx \
             src/catalog/advanced/OptionGroupLibrary.tsx \
             src/catalog/advanced/ConfiguredPreviewCard.tsx \
+            src/catalog/advanced/VariantsCard.tsx \
+            src/catalog/advanced/VariantPricesCard.tsx \
+            src/catalog/advanced/SaleModeCard.tsx \
             src/catalog/ProductForm.tsx \
             src/catalog/CatalogProvider.tsx \
+            src/catalog/types.ts \
             src/auth/auth.types.ts \
             src/auth/AuthProvider.tsx; then
             echo "No formatting changes required."
@@ -65,11 +73,15 @@ jobs:
             src/catalog/advanced/ProductGroupsCard.tsx \
             src/catalog/advanced/OptionGroupLibrary.tsx \
             src/catalog/advanced/ConfiguredPreviewCard.tsx \
+            src/catalog/advanced/VariantsCard.tsx \
+            src/catalog/advanced/VariantPricesCard.tsx \
+            src/catalog/advanced/SaleModeCard.tsx \
             src/catalog/ProductForm.tsx \
             src/catalog/CatalogProvider.tsx \
+            src/catalog/types.ts \
             src/auth/auth.types.ts \
             src/auth/AuthProvider.tsx
-          git commit -m "Format files for CI"
+          git commit -m "Format remaining files for CI"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
