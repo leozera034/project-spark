@@ -229,15 +229,16 @@ export async function issueDemoMagicLink(profileId: string) {
     return { ok: false as const, reason: "unauthorized" as const };
   }
 
-  const profile = DEMO_PROFILES.find((candidate) => candidate.id === profileId);
-  if (!profile) return { ok: false as const, reason: "profile_not_found" as const };
+  const profile = DEMO_PROFILES.find((item) => item.id === profileId);
+  if (!profile) return { ok: false as const, reason: "unknown_profile" as const };
 
   const email =
     profile.email ??
     (profile.courierOf
       ? await resolveCourierEmail(profile.courierOf.storeId, profile.courierOf.index)
       : null);
-  if (!email) return { ok: false as const, reason: "account_unavailable" as const };
+
+  if (!email) return { ok: false as const, reason: "account_missing" as const };
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.auth.admin.generateLink({
@@ -245,15 +246,26 @@ export async function issueDemoMagicLink(profileId: string) {
     email,
   });
 
-  if (error || !data.properties?.hashed_token) {
-    console.error("[qa-demo] magic link falhou", error?.message);
-    return { ok: false as const, reason: "magic_link_failed" as const };
+  if (error || !data?.properties?.hashed_token) {
+    console.error("[qa-demo] falha ao gerar magic link", { profileId });
+    return { ok: false as const, reason: "link_failed" as const };
   }
 
+  console.info("[qa-demo] magic link emitido", { profileId });
   return {
     ok: true as const,
     tokenHash: data.properties.hashed_token,
     redirectTo: profile.redirectTo,
-    profileLabel: profile.label,
   };
+}
+
+export function listDemoProfiles() {
+  assertDemoEnvironment();
+  return DEMO_PROFILES.map(({ id, label, description, group, redirectTo }) => ({
+    id,
+    label,
+    description,
+    group,
+    redirectTo,
+  }));
 }
