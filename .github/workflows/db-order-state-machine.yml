@@ -64,6 +64,17 @@ jobs:
           supabase --workdir .ci/state-db start \
             -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
+      - name: Run plain SQL transition probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
+          test -n "$DB_CONTAINER"
+          echo "Using database container: $DB_CONTAINER"
+          docker exec -i "$DB_CONTAINER" \
+            psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres \
+            < supabase/tests/database/order_state_machine_probe.sql
+
       - name: Run order state-machine pgTAP suite
         run: |
           supabase --workdir .ci/state-db test db \
