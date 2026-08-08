@@ -8,11 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  archiveNeighborhood,
-  reorderNeighborhoods,
-  upsertNeighborhood,
-} from "@/store-config/api";
+import { archiveNeighborhood, reorderNeighborhoods, upsertNeighborhood } from "@/store-config/api";
 import { formatCurrencyInput, parseCurrencyInput } from "@/store-config/form-kit";
 import { useStoreConfig } from "@/store-config/StoreConfigProvider";
 import { resolveEta, resolveMinOrder, type StoreConfigNeighborhood } from "@/store-config/types";
@@ -133,9 +129,7 @@ function BairrosSection() {
                     <p className="text-sm font-medium text-foreground">{item.name}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Taxa R$ {formatCurrencyInput(item.delivery_fee)} · Mínimo R${" "}
-                      {formatCurrencyInput(
-                        resolveMinOrder(item, settings?.min_order_amount ?? 0),
-                      )}{" "}
+                      {formatCurrencyInput(resolveMinOrder(item, settings?.min_order_amount ?? 0))}{" "}
                       · {resolveEta(item, settings?.default_prep_minutes)} min
                     </p>
                     {item.notes ? (

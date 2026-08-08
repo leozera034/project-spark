@@ -26,12 +26,11 @@
 
 @theme inline {
   --font-sans:
-    "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+    "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
   --font-display:
     "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-
 
   --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 4px);
@@ -92,7 +91,6 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-highlight-soft: var(--highlight-soft);
   --color-highlight-soft-foreground: var(--highlight-soft-foreground);
-
 
   /* --- estados de pedido e feedback --- */
   --color-success: var(--success);
@@ -161,7 +159,6 @@
   --border-strong: oklch(0.8505 0.0122 84.6);
   --input: oklch(0.8805 0.0104 84.6);
   --ring: oklch(0.74 0.188 178);
-
 
   /* feedback */
   --success: oklch(0.487 0.1 164.34);
@@ -253,7 +250,6 @@
   --highlight-foreground: oklch(0.1659 0.0163 226.88);
   --highlight-soft: oklch(0.3 0.055 74);
   --highlight-soft-foreground: oklch(0.86 0.1 78);
-
 
   --chart-1: oklch(0.7896 0.134 180.24);
   --chart-2: oklch(0.8534 0.1073 181.98);
@@ -418,7 +414,6 @@
   background-color: color-mix(in oklab, var(--color-background) 72%, transparent);
   backdrop-filter: saturate(190%) blur(20px);
 }
-
 
 @utility tappable {
   transition:

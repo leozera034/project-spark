@@ -264,7 +264,11 @@ function OrdersPanel() {
               </Button>
             ) : null}
             {listQuery.cursor ? (
-              <Button variant="ghost" className="mt-2 w-full" onClick={() => listQuery.setCursor(null)}>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                onClick={() => listQuery.setCursor(null)}
+              >
                 Voltar ao início da fila
               </Button>
             ) : null}
@@ -681,8 +685,16 @@ function DeliveryAssignmentPanel({
             <Button
               key={courier.courierId}
               type="button"
-              variant={assignment.delivery?.courier?.courierId === courier.courierId ? "default" : "outline"}
-              disabled={assign.isPending || courier.eligibility === "blocked" || Boolean(assignment.delivery?.courier)}
+              variant={
+                assignment.delivery?.courier?.courierId === courier.courierId
+                  ? "default"
+                  : "outline"
+              }
+              disabled={
+                assign.isPending ||
+                courier.eligibility === "blocked" ||
+                Boolean(assignment.delivery?.courier)
+              }
               onClick={() =>
                 assign.mutate({
                   storeId,

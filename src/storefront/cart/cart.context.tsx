@@ -324,7 +324,11 @@ export function CartProvider({ slug, children }: { slug: string; children: React
       mutate((lines) =>
         lines.map((line) =>
           line.lineId === lineId
-            ? { ...line, quantity: clampQuantity(quantity, line), updatedAt: new Date().toISOString() }
+            ? {
+                ...line,
+                quantity: clampQuantity(quantity, line),
+                updatedAt: new Date().toISOString(),
+              }
             : line,
         ),
       );
@@ -354,7 +358,11 @@ export function CartProvider({ slug, children }: { slug: string; children: React
       mutate((lines) =>
         lines.map((line) =>
           line.lineId === lineId
-            ? { ...line, notes: notes.trim() ? notes.slice(0, 280) : null, updatedAt: new Date().toISOString() }
+            ? {
+                ...line,
+                notes: notes.trim() ? notes.slice(0, 280) : null,
+                updatedAt: new Date().toISOString(),
+              }
             : line,
         ),
       );

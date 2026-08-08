@@ -222,7 +222,8 @@ export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog>
       is_featured: Boolean(p.is_featured),
       minimum_quantity: Number(p.minimum_quantity ?? 1),
       quantity_step: Number(p.quantity_step ?? 1),
-      max_quantity: p.max_quantity === null || p.max_quantity === undefined ? null : Number(p.max_quantity),
+      max_quantity:
+        p.max_quantity === null || p.max_quantity === undefined ? null : Number(p.max_quantity),
       allows_notes: Boolean(p.allows_notes),
       image_url: p.image_path ? (signed.get(p.image_path) ?? null) : null,
     })),
@@ -395,4 +396,3 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
     validation_errors: [],
   };
 }
-

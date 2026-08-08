@@ -70,7 +70,6 @@ export async function fetchOrders(
   };
 }
 
-
 export async function fetchOrderDetail(
   storeId: string | null,
   orderId: string,

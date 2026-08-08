@@ -2,11 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  fetchOperationalPreview,
-  fetchStoreConfiguration,
-  listMyStores,
-} from "./api";
+import { fetchOperationalPreview, fetchStoreConfiguration, listMyStores } from "./api";
 import { extractCode, toFriendlyMessage } from "./errors";
 import type { StoreConfiguration, StoreOperationalPreview, StoreOption } from "./types";
 

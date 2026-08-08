@@ -27,7 +27,11 @@ import type { StoreOrderAction, StoreOrderStatus } from "./types";
 const FALLBACK_POLL_MS = 20_000;
 
 export function useMyStores() {
-  return useQuery({ queryKey: ["store-orders", "stores"], queryFn: listMyStores, staleTime: 60_000 });
+  return useQuery({
+    queryKey: ["store-orders", "stores"],
+    queryFn: listMyStores,
+    staleTime: 60_000,
+  });
 }
 
 export interface QueueFilters {
@@ -166,7 +170,9 @@ export function useOrderTransition(storeId: string | null) {
         const code = extractCode(error);
         if (code === "VERSION_CONFLICT") {
           await queryClient.invalidateQueries({ queryKey: ["store-orders"] });
-          toast.error("Este pedido mudou em outro aparelho. A tela foi atualizada — confira antes de repetir.");
+          toast.error(
+            "Este pedido mudou em outro aparelho. A tela foi atualizada — confira antes de repetir.",
+          );
           return false;
         }
         if (code === "INVALID_TRANSITION") {

@@ -15,11 +15,7 @@ import { StorefrontError, computePublicPrice, loadPublicCatalog } from "@/lib/st
 import { validatePublicFulfillment } from "@/lib/fulfillment.server";
 
 export type CartLineStatus =
-  | "ok"
-  | "sold_out"
-  | "unavailable"
-  | "invalid_configuration"
-  | "unpriceable";
+  "ok" | "sold_out" | "unavailable" | "invalid_configuration" | "unpriceable";
 
 export type CartQuoteLine = {
   lineId: string;
@@ -148,7 +144,9 @@ export async function quotePublicCart(input: CartQuoteRequest): Promise<CartQuot
   );
 
   const deliveryFee =
-    parsed.fulfillmentType === "entrega" && fulfillment?.isValid ? (fulfillment.deliveryFee ?? 0) : null;
+    parsed.fulfillmentType === "entrega" && fulfillment?.isValid
+      ? (fulfillment.deliveryFee ?? 0)
+      : null;
 
   const minimumOrderAmount = fulfillment?.minimumOrderAmount ?? null;
   const minimumOrderMet = minimumOrderAmount === null || subtotal >= minimumOrderAmount;

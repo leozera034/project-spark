@@ -85,8 +85,6 @@ export function uiCan(
   return granted.some(
     (g) =>
       g.permission === permission &&
-      (storeId === undefined || storeId === null
-        ? g.store_id === null
-        : g.store_id === storeId),
+      (storeId === undefined || storeId === null ? g.store_id === null : g.store_id === storeId),
   );
 }

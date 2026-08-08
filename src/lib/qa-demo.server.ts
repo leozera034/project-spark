@@ -232,9 +232,11 @@ export async function issueDemoMagicLink(profileId: string) {
   const profile = DEMO_PROFILES.find((item) => item.id === profileId);
   if (!profile) return { ok: false as const, reason: "unknown_profile" as const };
 
-  const email = profile.email ?? (profile.courierOf
-    ? await resolveCourierEmail(profile.courierOf.storeId, profile.courierOf.index)
-    : null);
+  const email =
+    profile.email ??
+    (profile.courierOf
+      ? await resolveCourierEmail(profile.courierOf.storeId, profile.courierOf.index)
+      : null);
 
   if (!email) return { ok: false as const, reason: "account_missing" as const };
 

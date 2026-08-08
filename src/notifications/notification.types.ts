@@ -1,4 +1,4 @@
-export type AlertSeverity = 'info' | 'warning' | 'critical';
+export type AlertSeverity = "info" | "warning" | "critical";
 
 export interface BaseAlert {
   id: string;

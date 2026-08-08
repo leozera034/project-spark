@@ -70,7 +70,8 @@ export const Route = createFileRoute("/api/public/storefront/pedido/status")({
           }
 
           const body = await request.text();
-          if (body.length > MAX_BODY_BYTES) return json({ ok: false, error: "invalid_request" }, 413);
+          if (body.length > MAX_BODY_BYTES)
+            return json({ ok: false, error: "invalid_request" }, 413);
 
           const parsed = trackingRequestSchema.parse(JSON.parse(body || "{}"));
 

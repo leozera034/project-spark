@@ -24,7 +24,8 @@ export const Route = createFileRoute("/redefinir-senha")({
 });
 
 function ResetPasswordPage() {
-  const { updatePassword, authContext, isAuthenticated, isInitializing, refreshAuthContext } = useAuth();
+  const { updatePassword, authContext, isAuthenticated, isInitializing, refreshAuthContext } =
+    useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -72,7 +73,8 @@ function ResetPasswordPage() {
         }
       >
         <p className="text-sm text-muted-foreground">
-          Por segurança, os links de redefinição expiram após pouco tempo e só podem ser usados uma vez.
+          Por segurança, os links de redefinição expiram após pouco tempo e só podem ser usados uma
+          vez.
         </p>
       </AuthShell>
     );

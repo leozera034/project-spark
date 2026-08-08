@@ -131,7 +131,6 @@ export function useResetCourierAccess() {
   });
 }
 
-
 export function useEligibleCouriers(storeId: string | null, orderId: string) {
   return useQuery({
     queryKey: ["couriers", "eligible", storeId, orderId],
@@ -249,7 +248,7 @@ export function useCourierHeartbeat() {
 
 function useDeliveryActionMutation(
   mutationFn: (input: any) => Promise<DeliveryActionResult>,
-  successMsg: string
+  successMsg: string,
 ) {
   const queryClient = useQueryClient();
   return useMutation({

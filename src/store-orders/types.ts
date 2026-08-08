@@ -21,12 +21,7 @@ export type StoreOrderStatus =
 
 /** Ações que o servidor autoriza para o pedido, já filtradas por permissão. */
 export type StoreOrderAction =
-  | "accept"
-  | "start_preparation"
-  | "mark_ready"
-  | "complete_pickup"
-  | "reject"
-  | "cancel";
+  "accept" | "start_preparation" | "mark_ready" | "complete_pickup" | "reject" | "cancel";
 
 export type FulfillmentType = "entrega" | "retirada";
 

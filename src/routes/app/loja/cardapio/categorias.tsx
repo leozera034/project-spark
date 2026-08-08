@@ -276,9 +276,7 @@ function CategoriasPage() {
                                 !category.is_archived,
                                 category.updated_at,
                               ),
-                            category.is_archived
-                              ? "Categoria restaurada."
-                              : "Categoria arquivada.",
+                            category.is_archived ? "Categoria restaurada." : "Categoria arquivada.",
                           )
                         }
                       >

@@ -48,9 +48,7 @@ export function SectionForm({
         <CardContent className="space-y-5">
           {disabled ? (
             <Alert>
-              <AlertDescription>
-                Seu papel permite apenas visualizar esta seção.
-              </AlertDescription>
+              <AlertDescription>Seu papel permite apenas visualizar esta seção.</AlertDescription>
             </Alert>
           ) : null}
           <fieldset disabled={disabled || saving} className="space-y-5">
@@ -186,8 +184,10 @@ export function useSectionForm<T extends object>(initial: T) {
     setBaseline(next);
   }, [serialized]);
 
-  const dirty = useMemo(() => JSON.stringify(value) !== JSON.stringify(baseline), [value, baseline]);
-
+  const dirty = useMemo(
+    () => JSON.stringify(value) !== JSON.stringify(baseline),
+    [value, baseline],
+  );
 
   return {
     value,

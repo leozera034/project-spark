@@ -1,4 +1,4 @@
-export type DeliveryReportPeriodType = 'today' | 'week' | 'month' | 'custom';
+export type DeliveryReportPeriodType = "today" | "week" | "month" | "custom";
 
 export interface DeliveryReportPeriod {
   type: DeliveryReportPeriodType;

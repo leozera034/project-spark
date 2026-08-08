@@ -136,20 +136,22 @@ export function ProductConfigurator({
 
   const toggleMulti = (groupId: string, itemId: string, max: number) =>
     setSelections((prev) => {
-      const exists = prev.find(
-        (s) => s.option_group_id === groupId && s.option_item_id === itemId,
-      );
+      const exists = prev.find((s) => s.option_group_id === groupId && s.option_item_id === itemId);
       if (exists) {
-        return prev.filter(
-          (s) => !(s.option_group_id === groupId && s.option_item_id === itemId),
-        );
+        return prev.filter((s) => !(s.option_group_id === groupId && s.option_item_id === itemId));
       }
       const current = prev.filter((s) => s.option_group_id === groupId).length;
       if (max > 0 && current >= max) return prev;
       return [...prev, { option_group_id: groupId, option_item_id: itemId, quantity: 1 }];
     });
 
-  const bumpQuantity = (groupId: string, itemId: string, delta: number, maxItem: number, maxGroup: number) =>
+  const bumpQuantity = (
+    groupId: string,
+    itemId: string,
+    delta: number,
+    maxItem: number,
+    maxGroup: number,
+  ) =>
     setSelections((prev) => {
       const current = prev.find(
         (s) => s.option_group_id === groupId && s.option_item_id === itemId,
@@ -161,9 +163,7 @@ export function ProductConfigurator({
 
       if (delta > 0 && maxGroup > 0 && groupTotal >= maxGroup) return prev;
       if (next <= 0) {
-        return prev.filter(
-          (s) => !(s.option_group_id === groupId && s.option_item_id === itemId),
-        );
+        return prev.filter((s) => !(s.option_group_id === groupId && s.option_item_id === itemId));
       }
       if (next > maxItem) return prev;
       if (current) {
@@ -181,9 +181,8 @@ export function ProductConfigurator({
 
     const variant = data.variants.find((v) => v.id === variantId) ?? null;
     const itemName = (groupId: string, itemId: string) =>
-      data.option_groups
-        .find((g) => g.id === groupId)
-        ?.items.find((i) => i.id === itemId)?.name ?? "";
+      data.option_groups.find((g) => g.id === groupId)?.items.find((i) => i.id === itemId)?.name ??
+      "";
 
     const input = {
       productId: data.product.id,
@@ -235,9 +234,7 @@ export function ProductConfigurator({
   if (isError || !data) {
     return (
       <div className="space-y-4 py-10 text-center">
-        <p className="text-sm text-muted-foreground">
-          Não conseguimos carregar este item agora.
-        </p>
+        <p className="text-sm text-muted-foreground">Não conseguimos carregar este item agora.</p>
         <Button variant="outline" onClick={onClose}>
           Voltar ao cardápio
         </Button>
@@ -282,11 +279,7 @@ export function ProductConfigurator({
               <h3 className="text-sm font-semibold">Escolha uma opção</h3>
               <p className="text-xs text-muted-foreground">Obrigatório · escolha 1</p>
             </header>
-            <RadioGroup
-              value={variantId ?? ""}
-              onValueChange={setVariantId}
-              className="space-y-2"
-            >
+            <RadioGroup value={variantId ?? ""} onValueChange={setVariantId} className="space-y-2">
               {data.variants.map((variant) => (
                 <label
                   key={variant.id}
@@ -510,9 +503,7 @@ export function ProductConfigurator({
             Falta escolher: {pendingGroups.map((g) => g.name).join(", ")}
           </p>
         ) : null}
-        {cartError ? (
-          <p className="text-center text-xs text-destructive">{cartError}</p>
-        ) : null}
+        {cartError ? <p className="text-center text-xs text-destructive">{cartError}</p> : null}
         <Button
           className="h-12 w-full text-base"
           onClick={submit}

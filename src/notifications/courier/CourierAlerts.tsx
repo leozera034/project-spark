@@ -17,9 +17,11 @@ export function CourierAlerts() {
   const { data: alerts } = useQuery<CourierAlerts>({
     queryKey: ["courier-alerts"],
     queryFn: async () => {
-      const { data, error } = await (supabase.rpc as never as (fn: string) => Promise<{ data: CourierAlerts | null; error: unknown }>)(
-        "get_my_courier_alerts",
-      );
+      const { data, error } = await (
+        supabase.rpc as never as (
+          fn: string,
+        ) => Promise<{ data: CourierAlerts | null; error: unknown }>
+      )("get_my_courier_alerts");
       if (error) throw error;
       return data ?? {};
     },

@@ -74,10 +74,7 @@ function ProdutosPage() {
   const total = query.data?.total ?? 0;
   const canCreate = can.create && activeCategories.some((c) => c.is_active);
 
-  const categoryOptions = useMemo(
-    () => categories.filter((c) => !c.is_archived),
-    [categories],
-  );
+  const categoryOptions = useMemo(() => categories.filter((c) => !c.is_archived), [categories]);
 
   return (
     <div className="space-y-4">
@@ -187,10 +184,7 @@ function ProdutosPage() {
                     {can.update && !product.is_archived ? (
                       <>
                         <Button asChild variant="outline" size="sm">
-                          <Link
-                            to="/app/loja/cardapio/produtos/$id"
-                            params={{ id: product.id }}
-                          >
+                          <Link to="/app/loja/cardapio/produtos/$id" params={{ id: product.id }}>
                             Editar
                           </Link>
                         </Button>
@@ -247,9 +241,7 @@ function ProdutosPage() {
                                   !product.is_featured,
                                   product.updated_at,
                                 ),
-                              product.is_featured
-                                ? "Destaque removido."
-                                : "Produto em destaque.",
+                              product.is_featured ? "Destaque removido." : "Produto em destaque.",
                             ).then(() => query.refetch())
                           }
                         >

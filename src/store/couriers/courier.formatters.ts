@@ -31,7 +31,9 @@ export function accountLabel(isActive: boolean): string {
 }
 
 /** Disponível ≠ online. Disponível é ativo, elegível e sem entrega ativa. */
-export function availabilityLabel(courier: CourierListItem): "Disponível" | "Ocupado" | "Indisponível" {
+export function availabilityLabel(
+  courier: CourierListItem,
+): "Disponível" | "Ocupado" | "Indisponível" {
   if (courier.currentAssignment) return "Ocupado";
   if (!courier.isActive || !courier.canAcceptDeliveries) return "Indisponível";
   return "Disponível";

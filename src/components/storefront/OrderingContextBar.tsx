@@ -29,7 +29,12 @@ export function OrderingContextBar() {
             ? `Entrega em ${shortAddressLine(orderingContext.address)}`
             : "Retirada no estabelecimento"}
         </p>
-        <Button variant="outline" size="sm" className="tappable min-h-[40px] rounded-full active:scale-[0.97]" onClick={reopenWizard}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="tappable min-h-[40px] rounded-full active:scale-[0.97]"
+          onClick={reopenWizard}
+        >
           Alterar
         </Button>
       </div>

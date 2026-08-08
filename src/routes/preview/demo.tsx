@@ -181,7 +181,10 @@ function DemoCenter() {
       </header>
 
       {!state.unlocked ? (
-        <form onSubmit={handleUnlock} className="mt-8 space-y-3 rounded-xl border border-border bg-surface p-5">
+        <form
+          onSubmit={handleUnlock}
+          className="mt-8 space-y-3 rounded-xl border border-border bg-surface p-5"
+        >
           <label htmlFor="qa-key" className="text-sm font-medium">
             Chave de acesso do Preview
           </label>
@@ -193,13 +196,17 @@ function DemoCenter() {
             onChange={(event) => setAccessKey(event.target.value)}
             placeholder="Informe a chave configurada no ambiente"
           />
-          <Button type="submit" disabled={busy === "unlock" || accessKey.length < 8} className="gap-2">
+          <Button
+            type="submit"
+            disabled={busy === "unlock" || accessKey.length < 8}
+            className="gap-2"
+          >
             <KeyRound className="size-4" />
             Liberar Central Demo
           </Button>
           <p className="text-xs text-muted-foreground">
-            A chave é validada no servidor, em tempo constante, e libera uma capacidade temporária de
-            30 minutos.
+            A chave é validada no servidor, em tempo constante, e libera uma capacidade temporária
+            de 30 minutos.
           </p>
         </form>
       ) : (
@@ -237,7 +244,12 @@ function DemoCenter() {
           ))}
 
           <div className="flex flex-wrap gap-3 border-t border-border pt-6">
-            <Button variant="outline" onClick={() => void router.navigate({ to: "/loja/$slug", params: { slug: "mercado-aurora" } })}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                void router.navigate({ to: "/loja/$slug", params: { slug: "mercado-aurora" } })
+              }
+            >
               Abrir cardápio público
             </Button>
             <Button

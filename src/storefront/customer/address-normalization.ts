@@ -7,7 +7,10 @@ import type { AddressDraft, FulfillmentType, LocalSavedAddress } from "./custome
 /** Remove caracteres de controle e colapsa espaços. Nunca interpreta HTML. */
 export function collapseSpaces(value: string): string {
   // eslint-disable-next-line no-control-regex
-  return value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function normalizeForComparison(value: string | null | undefined): string {
@@ -61,7 +64,9 @@ export function confirmationFingerprint(input: {
     normalizeForComparison(address?.referencePoint),
     normalizeForComparison(address?.customLabel ?? address?.label),
     address?.latitude === null || address?.latitude === undefined ? "" : String(address.latitude),
-    address?.longitude === null || address?.longitude === undefined ? "" : String(address.longitude),
+    address?.longitude === null || address?.longitude === undefined
+      ? ""
+      : String(address.longitude),
   ];
   return stableHash(parts.join("~"));
 }

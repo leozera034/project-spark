@@ -1,9 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import {
-  fulfillmentRequestSchema,
-  fulfillmentValidateSchema,
-} from "@/lib/fulfillment-contracts";
+import { fulfillmentRequestSchema, fulfillmentValidateSchema } from "@/lib/fulfillment-contracts";
 
 /** Configuração pública de atendimento: modalidades + bairros ativos. */
 export const fetchStorefrontFulfillment = createServerFn({ method: "GET" })

@@ -93,9 +93,7 @@ export const createStoreAccount = createServerFn({ method: "POST" })
     if (createError || !created?.user) {
       const message = createError?.message ?? "";
       if (/already/i.test(message)) {
-        throw new Error(
-          "Já existe uma conta com esse e-mail. Entre com ela ou use outro e-mail.",
-        );
+        throw new Error("Já existe uma conta com esse e-mail. Entre com ela ou use outro e-mail.");
       }
       throw new Error("Não foi possível criar o acesso do proprietário.");
     }
@@ -146,7 +144,5 @@ export const createStoreAccount = createServerFn({ method: "POST" })
       // publicação pode ser feita depois pelo painel
     }
 
-
     return { storeId: result.store_id, slug: result.slug };
-
   });

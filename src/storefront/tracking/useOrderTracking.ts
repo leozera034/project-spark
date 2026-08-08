@@ -75,9 +75,7 @@ export function useOrderTracking(token: string | null): TrackingState {
 
       const base = data && !FAST_CODES.has(data.status.publicCode) ? SLOW_MS : FAST_MS;
       const delay =
-        failuresRef.current > 0
-          ? Math.min(base * 2 ** failuresRef.current, MAX_BACKOFF_MS)
-          : base;
+        failuresRef.current > 0 ? Math.min(base * 2 ** failuresRef.current, MAX_BACKOFF_MS) : base;
 
       timerRef.current = setTimeout(async () => {
         await tick();

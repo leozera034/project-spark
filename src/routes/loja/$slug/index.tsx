@@ -42,8 +42,7 @@ function StorefrontPage() {
     const filtered = needle
       ? catalog.products.filter(
           (p) =>
-            foldText(p.name).includes(needle) ||
-            foldText(p.description ?? "").includes(needle),
+            foldText(p.name).includes(needle) || foldText(p.description ?? "").includes(needle),
         )
       : catalog.products;
 
@@ -108,7 +107,9 @@ function StorefrontPage() {
               </div>
             )}
             <div className="min-w-0 pb-1.5">
-              <h1 className="text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">{store.name}</h1>
+              <h1 className="text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">
+                {store.name}
+              </h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {store.segment ? `${store.segment} · ` : ""}
                 {store.city}/{store.state}
@@ -119,9 +120,7 @@ function StorefrontPage() {
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                isOpen
-                  ? "bg-success-soft text-success"
-                  : "bg-surface-muted text-muted-foreground"
+                isOpen ? "bg-success-soft text-success" : "bg-surface-muted text-muted-foreground"
               }`}
             >
               <span
@@ -197,7 +196,6 @@ function StorefrontPage() {
         </div>
       </div>
 
-
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
           <EmptyState
@@ -261,7 +259,9 @@ function StorefrontPage() {
                         ) : null}
                         <p
                           className={`mt-2 text-sm font-semibold tabular-nums ${
-                            product.is_sold_out ? "text-muted-foreground" : "text-brand-soft-foreground"
+                            product.is_sold_out
+                              ? "text-muted-foreground"
+                              : "text-brand-soft-foreground"
                           }`}
                         >
                           {product.is_sold_out
@@ -289,7 +289,6 @@ function StorefrontPage() {
         )}
 
         <Separator className="my-6" />
-
 
         <footer className="space-y-4 pb-10 text-sm text-muted-foreground">
           {store.address_line ? (

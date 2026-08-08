@@ -1,5 +1,5 @@
 export function getLocalSetting<T>(key: string, defaultValue: T): T {
-  if (typeof window === 'undefined') return defaultValue;
+  if (typeof window === "undefined") return defaultValue;
   const val = localStorage.getItem(`pediu_aqui_${key}`);
   if (!val) return defaultValue;
   try {
@@ -10,6 +10,9 @@ export function getLocalSetting<T>(key: string, defaultValue: T): T {
 }
 
 export function setLocalSetting(key: string, value: any): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(`pediu_aqui_${key}`, typeof value === 'string' ? value : JSON.stringify(value));
+  if (typeof window === "undefined") return;
+  localStorage.setItem(
+    `pediu_aqui_${key}`,
+    typeof value === "string" ? value : JSON.stringify(value),
+  );
 }

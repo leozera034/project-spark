@@ -6,7 +6,12 @@ import type { CourierCreationResult } from "@/store/couriers/courier.types";
 export const courierCreationSchema = z.object({
   fullName: z.string().trim().min(3).max(100),
   phone: z.string().trim().min(8).max(20),
-  loginIdentifier: z.string().trim().min(4).max(30).regex(/^[a-z0-9._]+$/, "Identificador inválido"),
+  loginIdentifier: z
+    .string()
+    .trim()
+    .min(4)
+    .max(30)
+    .regex(/^[a-z0-9._]+$/, "Identificador inválido"),
   canAcceptDeliveries: z.boolean(),
   isActive: z.boolean(),
   idempotencyKey: z.string().min(10).max(160),
@@ -47,7 +52,9 @@ export async function provisionCourierForStore(
   const syntheticEmail = await courierIdentifierToSyntheticEmail(data.loginIdentifier);
   const temporaryPassword = generateTemporaryPassword();
   const requestHash = await hashRequest(
-    [data.fullName, data.phone, data.loginIdentifier, data.canAcceptDeliveries, data.isActive].join("|"),
+    [data.fullName, data.phone, data.loginIdentifier, data.canAcceptDeliveries, data.isActive].join(
+      "|",
+    ),
   );
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: syntheticEmail,

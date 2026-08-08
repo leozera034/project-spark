@@ -31,15 +31,15 @@ function CourierAppLayout() {
       <header className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 lg:px-8">
         <BrandSymbol className="h-8 w-auto" />
         <div className="flex items-center gap-3">
-        <ThemeToggle />
-        <Button
-          variant="outline"
-          onClick={() =>
-            void signOut("local").then(() => navigate({ to: AUTH_ROUTES.courierSignIn as never }))
-          }
-        >
-          Sair
-        </Button>
+          <ThemeToggle />
+          <Button
+            variant="outline"
+            onClick={() =>
+              void signOut("local").then(() => navigate({ to: AUTH_ROUTES.courierSignIn as never }))
+            }
+          >
+            Sair
+          </Button>
         </div>
       </header>
       <Outlet />

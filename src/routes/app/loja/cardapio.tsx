@@ -75,7 +75,6 @@ function CardapioLayout() {
         </p>
       </header>
 
-
       <nav aria-label="Seções do cardápio" className="rail mt-6 -mx-4 gap-2 px-4">
         <ul className="flex min-w-max gap-2 border-b border-border pb-px">
           {SECTIONS.map((section) => {

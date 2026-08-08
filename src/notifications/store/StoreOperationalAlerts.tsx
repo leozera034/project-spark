@@ -19,9 +19,11 @@ export function StoreOperationalAlerts() {
   const { data: alerts } = useQuery<StoreAlerts>({
     queryKey: ["store-alerts"],
     queryFn: async () => {
-      const { data, error } = await (supabase.rpc as never as (fn: string) => Promise<{ data: StoreAlerts | null; error: unknown }>)(
-        "get_my_store_operational_alerts",
-      );
+      const { data, error } = await (
+        supabase.rpc as never as (
+          fn: string,
+        ) => Promise<{ data: StoreAlerts | null; error: unknown }>
+      )("get_my_store_operational_alerts");
       if (error) throw error;
       return data ?? {};
     },
@@ -64,7 +66,10 @@ export function StoreOperationalAlerts() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="flex items-center justify-between gap-3">
             Pedido aguardando resposta
-            <Badge variant="outline" className="border-none bg-destructive text-destructive-foreground">
+            <Badge
+              variant="outline"
+              className="border-none bg-destructive text-destructive-foreground"
+            >
               Há mais de 60s
             </Badge>
           </AlertTitle>

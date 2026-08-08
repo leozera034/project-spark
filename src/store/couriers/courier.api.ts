@@ -201,27 +201,19 @@ export async function resolveDeliveryOccurrence(input: {
  */
 
 export async function fetchMyCourierOperationalContext(): Promise<CourierOperationalContext> {
-  return unwrap<CourierOperationalContext>(
-    await rpc("get_my_courier_operational_context", {})
-  );
+  return unwrap<CourierOperationalContext>(await rpc("get_my_courier_operational_context", {}));
 }
 
 export async function setMyCourierOnline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_online", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_online", {}));
 }
 
 export async function setMyCourierOffline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_offline", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_offline", {}));
 }
 
 export async function heartbeatMyCourierPresence(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("heartbeat_my_courier_presence", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("heartbeat_my_courier_presence", {}));
 }
 
 export async function acceptMyDeliveryAssignment(input: {
@@ -234,7 +226,7 @@ export async function acceptMyDeliveryAssignment(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -250,7 +242,7 @@ export async function declineMyDeliveryAssignment(input: {
       _expected_version: input.expectedVersion,
       _reason_code: input.reasonCode,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -264,7 +256,7 @@ export async function confirmMyArrivalAtStore(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -278,7 +270,7 @@ export async function confirmMyOrderPickup(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -292,7 +284,7 @@ export async function startMyDelivery(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -306,7 +298,7 @@ export async function completeMyDelivery(input: {
       _delivery_id: input.deliveryId,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }
 
@@ -324,6 +316,6 @@ export async function reportMyDeliveryOccurrence(input: {
       _note: input.note ?? null,
       _expected_version: input.expectedVersion,
       _idempotency_key: input.idempotencyKey,
-    })
+    }),
   );
 }

@@ -85,7 +85,9 @@ export async function validatePublicFulfillment(input: {
   if (!data) throw new StorefrontError("not_found");
 
   const payload = data as Record<string, any>;
-  const area = payload.deliveryArea ? mapArea(payload.deliveryArea as Record<string, unknown>) : null;
+  const area = payload.deliveryArea
+    ? mapArea(payload.deliveryArea as Record<string, unknown>)
+    : null;
 
   return {
     isValid: Boolean(payload.isValid),

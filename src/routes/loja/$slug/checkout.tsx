@@ -21,10 +21,7 @@ import { formatPhone, normalizePhone } from "@/lib/checkout-contracts";
 import { useCart } from "@/storefront/cart/cart.context";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import { CheckoutError, fetchPaymentMethods, postOrder } from "@/storefront/checkout/checkout.api";
-import {
-  CHECKOUT_MESSAGES,
-  messageForCheckoutError,
-} from "@/storefront/checkout/checkout.errors";
+import { CHECKOUT_MESSAGES, messageForCheckoutError } from "@/storefront/checkout/checkout.errors";
 import {
   currentIdempotencyKey,
   rotateIdempotencyKey,
@@ -374,9 +371,7 @@ function CheckoutPage() {
                   <span className="tabular-nums">{view.line.quantity}×</span>{" "}
                   {view.line.productNameSnapshot}
                 </span>
-                <span className="tabular-nums">
-                  {view.total === null ? "—" : brl(view.total)}
-                </span>
+                <span className="tabular-nums">{view.total === null ? "—" : brl(view.total)}</span>
               </li>
             ))}
           </ul>
