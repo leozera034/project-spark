@@ -21,9 +21,16 @@ import type {
   DeliveryActionResult,
 } from "./courier.types";
 
-const rpc = supabase.rpc.bind(supabase) as any;
+type RpcResult = {
+  data: unknown;
+  error: { message: string } | null;
+};
 
-function unwrap<T>(result: { data: unknown; error: { message: string } | null }): T {
+type CourierRpc = (name: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+
+const rpc = supabase.rpc.bind(supabase) as unknown as CourierRpc;
+
+function unwrap<T>(result: RpcResult): T {
   if (result.error) throw new Error(result.error.message);
   if (result.data == null) throw new Error("NOT_FOUND");
   return result.data as T;
