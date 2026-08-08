@@ -134,8 +134,7 @@ for (const [variant, colors] of Object.entries(lockupVariants)) {
     svgDocument({
       ...h,
       title: "Pediu Aqui — SVG master",
-      desc:
-        "Fonte unica de verdade da marca Pediu Aqui. Simbolo geometrico da letra P com faixa de movimento e wordmark em contornos. Todos os demais ativos derivam deste arquivo.",
+      desc: "Fonte unica de verdade da marca Pediu Aqui. Simbolo geometrico da letra P com faixa de movimento e wordmark em contornos. Todos os demais ativos derivam deste arquivo.",
     }),
   );
 }
@@ -195,20 +194,41 @@ written.push("public/favicon.ico");
 /* PWA */
 await writePng(
   path.join(brandDir, "pwa-icon-192x192.png"),
-  iconSvg({ size: 192, bg: COLORS.carbon900, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.62, id: "pwa192" }),
+  iconSvg({
+    size: 192,
+    bg: COLORS.carbon900,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.62,
+    id: "pwa192",
+  }),
   192,
   192,
 );
 await writePng(
   path.join(brandDir, "pwa-icon-512x512.png"),
-  iconSvg({ size: 512, bg: COLORS.carbon900, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.62, id: "pwa512" }),
+  iconSvg({
+    size: 512,
+    bg: COLORS.carbon900,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.62,
+    id: "pwa512",
+  }),
   512,
   512,
 );
 // maskable: conteudo dentro da safe zone de 80% do diametro (ratio 0.46 do lado)
 await writePng(
   path.join(brandDir, "pwa-maskable-512x512.png"),
-  iconSvg({ size: 512, bg: COLORS.carbon900, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.46, id: "pwaMask" }),
+  iconSvg({
+    size: 512,
+    bg: COLORS.carbon900,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.46,
+    id: "pwaMask",
+  }),
   512,
   512,
 );
@@ -216,7 +236,14 @@ await writePng(
 /* iOS — fundo solido, sem transparencia, sem cantos arredondados no arquivo */
 for (const size of [180, 1024]) {
   const name = size === 180 ? "apple-touch-icon-180x180.png" : "ios-app-icon-1024x1024.png";
-  const svg = iconSvg({ size, bg: COLORS.carbon900, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.6, id: `ios${size}` });
+  const svg = iconSvg({
+    size,
+    bg: COLORS.carbon900,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.6,
+    id: `ios${size}`,
+  });
   const buffer = await sharp(Buffer.from(svg), { density: 384 })
     .resize(size, size, { fit: "fill" })
     .flatten({ background: COLORS.carbon900 })
@@ -229,13 +256,27 @@ for (const size of [180, 1024]) {
 /* Android */
 await writePng(
   path.join(brandDir, "android-icon-512x512.png"),
-  iconSvg({ size: 512, bg: COLORS.carbon900, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.6, id: "and512" }),
+  iconSvg({
+    size: 512,
+    bg: COLORS.carbon900,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.6,
+    id: "and512",
+  }),
   512,
   512,
 );
 await writePng(
   path.join(brandDir, "android-adaptive-foreground-432x432.png"),
-  iconSvg({ size: 432, bg: null, base: COLORS.white, accent: COLORS.teal400, contentRatio: 0.45, id: "andFg" }),
+  iconSvg({
+    size: 432,
+    bg: null,
+    base: COLORS.white,
+    accent: COLORS.teal400,
+    contentRatio: 0.45,
+    id: "andFg",
+  }),
   432,
   432,
 );
@@ -247,7 +288,14 @@ await writePng(
 );
 await writePng(
   path.join(brandDir, "android-monochrome-432x432.png"),
-  iconSvg({ size: 432, bg: null, base: COLORS.white, accent: COLORS.white, contentRatio: 0.45, id: "andMono" }),
+  iconSvg({
+    size: 432,
+    bg: null,
+    base: COLORS.white,
+    accent: COLORS.white,
+    contentRatio: 0.45,
+    id: "andMono",
+  }),
   432,
   432,
 );
@@ -270,8 +318,22 @@ function lockupAt({ variant, capHeight, x, capTop, id }) {
   };
 }
 
-function socialSvg({ width, height, logoCap, taglineKey, taglineCap, margin, stackedText = false }) {
-  const logo = lockupAt({ variant: "white", capHeight: logoCap, x: margin, capTop: margin, id: `sc${width}x${height}` });
+function socialSvg({
+  width,
+  height,
+  logoCap,
+  taglineKey,
+  taglineCap,
+  margin,
+  stackedText = false,
+}) {
+  const logo = lockupAt({
+    variant: "white",
+    capHeight: logoCap,
+    x: margin,
+    capTop: margin,
+    id: `sc${width}x${height}`,
+  });
   const tagWidth = textWidth(taglineKey, taglineCap);
   const parts = [
     `  <rect width="${width}" height="${height}" fill="${COLORS.carbon900}"/>`,
@@ -298,25 +360,55 @@ ${parts.join("\n")}
 
 await writePng(
   path.join(brandDir, "og-image-1200x630.png"),
-  socialSvg({ width: 1200, height: 630, logoCap: 74, taglineKey: "tagline", taglineCap: 46, margin: 80 }),
+  socialSvg({
+    width: 1200,
+    height: 630,
+    logoCap: 74,
+    taglineKey: "tagline",
+    taglineCap: 46,
+    margin: 80,
+  }),
   1200,
   630,
 );
 await writePng(
   path.join(brandDir, "twitter-card-1200x600.png"),
-  socialSvg({ width: 1200, height: 600, logoCap: 74, taglineKey: "taglineInst", taglineCap: 46, margin: 80 }),
+  socialSvg({
+    width: 1200,
+    height: 600,
+    logoCap: 74,
+    taglineKey: "taglineInst",
+    taglineCap: 46,
+    margin: 80,
+  }),
   1200,
   600,
 );
 await writePng(
   path.join(brandDir, "social-square-1080x1080.png"),
-  socialSvg({ width: 1080, height: 1080, logoCap: 78, taglineKey: "tagline", taglineCap: 52, margin: 88, stackedText: true }),
+  socialSvg({
+    width: 1080,
+    height: 1080,
+    logoCap: 78,
+    taglineKey: "tagline",
+    taglineCap: 52,
+    margin: 88,
+    stackedText: true,
+  }),
   1080,
   1080,
 );
 await writePng(
   path.join(brandDir, "social-story-1080x1920.png"),
-  socialSvg({ width: 1080, height: 1920, logoCap: 82, taglineKey: "tagline", taglineCap: 56, margin: 96, stackedText: true }),
+  socialSvg({
+    width: 1080,
+    height: 1920,
+    logoCap: 82,
+    taglineKey: "tagline",
+    taglineCap: 56,
+    margin: 96,
+    stackedText: true,
+  }),
   1080,
   1920,
 );
@@ -344,10 +436,30 @@ ${textMarkup("tagline", {
 `;
 }
 
-await writePng(path.join(brandDir, "splash-light-1080x1920.png"), splashSvg({ width: 1080, height: 1920, dark: false }), 1080, 1920);
-await writePng(path.join(brandDir, "splash-dark-1080x1920.png"), splashSvg({ width: 1080, height: 1920, dark: true }), 1080, 1920);
-await writePng(path.join(brandDir, "splash-landscape-light-1920x1080.png"), splashSvg({ width: 1920, height: 1080, dark: false }), 1920, 1080);
-await writePng(path.join(brandDir, "splash-landscape-dark-1920x1080.png"), splashSvg({ width: 1920, height: 1080, dark: true }), 1920, 1080);
+await writePng(
+  path.join(brandDir, "splash-light-1080x1920.png"),
+  splashSvg({ width: 1080, height: 1920, dark: false }),
+  1080,
+  1920,
+);
+await writePng(
+  path.join(brandDir, "splash-dark-1080x1920.png"),
+  splashSvg({ width: 1080, height: 1920, dark: true }),
+  1080,
+  1920,
+);
+await writePng(
+  path.join(brandDir, "splash-landscape-light-1920x1080.png"),
+  splashSvg({ width: 1920, height: 1080, dark: false }),
+  1920,
+  1080,
+);
+await writePng(
+  path.join(brandDir, "splash-landscape-dark-1920x1080.png"),
+  splashSvg({ width: 1920, height: 1080, dark: true }),
+  1920,
+  1080,
+);
 
 console.log(`Pediu Aqui — ${written.length} ativos gerados:`);
 for (const file of written.sort()) console.log(`  ${file}`);
