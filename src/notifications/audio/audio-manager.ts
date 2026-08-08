@@ -1,10 +1,14 @@
 import { getLocalSetting, setLocalSetting } from "@/lib/storage";
 
+type AudioWindow = typeof window & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
 class AudioManager {
   private static instance: AudioManager;
   private context: AudioContext | null = null;
-  private soundEnabled: boolean = false;
-  private volume: number = 0.5;
+  private soundEnabled = false;
+  private volume = 0.5;
 
   private constructor() {
     this.soundEnabled = getLocalSetting("sound_enabled", false);
@@ -18,7 +22,10 @@ class AudioManager {
 
   async unlock() {
     if (!this.context) {
-      this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioWindow = window as AudioWindow;
+      const AudioContextConstructor = window.AudioContext ?? audioWindow.webkitAudioContext;
+      if (!AudioContextConstructor) return false;
+      this.context = new AudioContextConstructor();
     }
     if (this.context.state === "suspended") {
       await this.context.resume();
