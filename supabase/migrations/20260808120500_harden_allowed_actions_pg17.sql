@@ -1,10 +1,15 @@
--- Harden allowed-actions helpers against a PostgreSQL 17.6 backend crash
--- reproduced by the previous LANGUAGE sql implementation shape:
--- VALUES + repeated SECURITY DEFINER permission calls + array_agg(... ORDER BY ...).
+-- Harden allowed-actions helpers against a PostgreSQL 17.6 backend crash.
 --
--- Business rules and output ordering are intentionally unchanged.  The
--- implementation is now sequential PL/pgSQL so each permission check is
--- evaluated only for a state in which the corresponding action can exist.
+-- The audit reproduced a SIGSEGV only when a SECURITY DEFINER allowed-actions
+-- helper nested calls to private.has_permission(...). The same permission calls
+-- execute successfully when invoked directly. These outer helpers do not need
+-- elevated privileges: they only assemble action names while has_permission is
+-- already the single SECURITY DEFINER authorization boundary and derives the
+-- actor exclusively from auth.uid().
+--
+-- Business rules, output ordering and existing function privileges are
+-- intentionally unchanged. CREATE OR REPLACE preserves the existing grants /
+-- revokes; only execution context and implementation shape change.
 
 CREATE OR REPLACE FUNCTION private.order_allowed_actions(
   _status public.order_status,
@@ -13,7 +18,7 @@ CREATE OR REPLACE FUNCTION private.order_allowed_actions(
 ) RETURNS text[]
 LANGUAGE plpgsql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path TO 'public', 'private', 'pg_temp'
 AS $function$
 DECLARE
@@ -72,7 +77,7 @@ CREATE OR REPLACE FUNCTION private.kitchen_allowed_actions(
 ) RETURNS text[]
 LANGUAGE plpgsql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path TO 'public', 'private', 'pg_temp'
 AS $function$
 DECLARE
@@ -102,7 +107,7 @@ CREATE OR REPLACE FUNCTION private.courier_allowed_actions(
 ) RETURNS text[]
 LANGUAGE plpgsql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path TO 'public', 'private', 'pg_temp'
 AS $function$
 DECLARE
