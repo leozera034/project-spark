@@ -45,7 +45,11 @@ jobs:
             src/catalog/CatalogProvider.tsx \
             src/catalog/types.ts \
             src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx
+            src/auth/AuthProvider.tsx \
+            src/components/storefront/CustomerWizard.tsx \
+            src/components/storefront/CartBar.tsx \
+            src/components/feedback/NotFoundPage.tsx \
+            src/components/auth/PasswordField.tsx
 
       - name: Commit canonical formatting on audit branch
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/add-ci-baseline' }}
@@ -62,7 +66,11 @@ jobs:
             src/catalog/CatalogProvider.tsx \
             src/catalog/types.ts \
             src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx; then
+            src/auth/AuthProvider.tsx \
+            src/components/storefront/CustomerWizard.tsx \
+            src/components/storefront/CartBar.tsx \
+            src/components/feedback/NotFoundPage.tsx \
+            src/components/auth/PasswordField.tsx; then
             echo "No formatting changes required."
             exit 0
           fi
@@ -80,8 +88,12 @@ jobs:
             src/catalog/CatalogProvider.tsx \
             src/catalog/types.ts \
             src/auth/auth.types.ts \
-            src/auth/AuthProvider.tsx
-          git commit -m "Format remaining files for CI"
+            src/auth/AuthProvider.tsx \
+            src/components/storefront/CustomerWizard.tsx \
+            src/components/storefront/CartBar.tsx \
+            src/components/feedback/NotFoundPage.tsx \
+            src/components/auth/PasswordField.tsx
+          git commit -m "Format final files for CI"
           git push origin "HEAD:${GITHUB_HEAD_REF}"
 
       - name: Typecheck
