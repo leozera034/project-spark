@@ -88,11 +88,15 @@ export async function validatePublicFulfillment(input: {
   const area = payload.deliveryArea
     ? mapArea(payload.deliveryArea as Record<string, unknown>)
     : null;
+  const fulfillmentType =
+    payload.fulfillmentType === "entrega" || payload.fulfillmentType === "retirada"
+      ? payload.fulfillmentType
+      : null;
 
   return {
     isValid: Boolean(payload.isValid),
     configurationVersion: String(payload.configurationVersion ?? ""),
-    fulfillmentType: payload.fulfillmentType ?? null,
+    fulfillmentType,
     storeIsOpen: Boolean(payload.storeIsOpen),
     deliveryEnabled: Boolean(payload.deliveryEnabled),
     pickupEnabled: Boolean(payload.pickupEnabled),
