@@ -21,9 +21,15 @@ concurrency:
 
 jobs:
   order-state-machine:
-    name: Order and delivery state invariants
+    name: Order and delivery state invariants (CLI ${{ matrix.supabase-cli }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        supabase-cli:
+          - 2.101.0
+          - 2.113.0
 
     steps:
       - name: Checkout
@@ -32,7 +38,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          version: 2.101.0
+          version: ${{ matrix.supabase-cli }}
           github-token: ${{ github.token }}
 
       - name: Build isolated state-machine workdir
@@ -49,25 +55,32 @@ jobs:
             | sort -z \
             | xargs -0 -I{} cp "{}" .ci/state-db/supabase/migrations/
 
-          # Fase 18 efetiva: estrutura de delivery, gestão e transição de pedido
-          # separando retirada de entrega.
+          # Fase 18 efetiva: estrutura de delivery, gestão e transição de pedido.
           cp supabase/migrations/20260802183724_6762713c-1cd7-425d-99d0-b4f53fa8228e.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802183933_d16e989c-5140-491b-bd2a-447b71254d8f.sql .ci/state-db/supabase/migrations/
           cp supabase/migrations/20260802184111_8b66408a-944c-49da-9b37-1d91652904c0.sql .ci/state-db/supabase/migrations/
 
-          # Regressão encontrada pela auditoria: os helpers SQL de allowedActions
-          # derrubam PostgreSQL 17.6. A migration preserva regras e troca somente
-          # a forma de avaliação por PL/pgSQL sequencial.
+          # Candidate hardening kept in the workdir while the audit distinguishes
+          # application-level composition from the PostgreSQL/Supabase image.
           cp supabase/migrations/20260808120500_harden_allowed_actions_pg17.sql .ci/state-db/supabase/migrations/
 
           cp supabase/tests/database/order_state_machine.test.sql .ci/state-db/supabase/tests/database/
 
+          echo "Supabase CLI: ${{ matrix.supabase-cli }}"
           echo "State-machine migration count: $(find .ci/state-db/supabase/migrations -type f -name '*.sql' | wc -l)"
 
       - name: Start isolated state-machine database
         run: |
           supabase --workdir .ci/state-db start \
             -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Report PostgreSQL image
+        shell: bash
+        run: |
+          DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
+          test -n "$DB_CONTAINER"
+          docker inspect --format 'Postgres image: {{.Config.Image}}' "$DB_CONTAINER"
+          docker exec "$DB_CONTAINER" psql -X -U postgres -d postgres -Atc 'select version();'
 
       - name: Run plain SQL transition probe
         shell: bash
