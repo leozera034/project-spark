@@ -26,13 +26,18 @@ import {
   completeMyDelivery,
   reportMyDeliveryOccurrence,
 } from "../courier.api";
+import type { CourierListFilters } from "../courier.api";
 import { resetCourierAccess } from "@/lib/courier-access.functions";
 import { createStoreCourier } from "@/lib/courier-provisioning.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { extractCode, toFriendlyMessage } from "@/store-config/errors";
-import type { DeliveryActionResult, CourierPresenceResult } from "../courier.types";
+import type {
+  CourierOperationalContext,
+  CourierPresenceResult,
+  DeliveryActionResult,
+} from "../courier.types";
 
-export function useCourierList(storeId: string | null, filters: any = {}) {
+export function useCourierList(storeId: string | null, filters: CourierListFilters = {}) {
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   return useQuery({
     queryKey: ["couriers", "list", storeId, filterKey],
@@ -80,7 +85,7 @@ export function useUpdateCourier() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateCourier,
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["couriers"] });
       toast.success("Perfil atualizado!");
     },
@@ -184,21 +189,30 @@ export function useMyCourierOperationalContext() {
   });
 }
 
+function updatePresenceCache(
+  old: CourierOperationalContext | undefined,
+  data: CourierPresenceResult,
+  includeOnlineIntent: boolean,
+): CourierOperationalContext | undefined {
+  if (!old) return old;
+  return {
+    ...old,
+    ...(includeOnlineIntent ? { onlineIntent: data.onlineIntent } : {}),
+    presenceStatus: data.presenceStatus,
+    lastSeenAt: data.lastSeenAt,
+    version: data.version,
+  };
+}
+
 export function useSetCourierOnline() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: setMyCourierOnline,
     onSuccess: (data: CourierPresenceResult) => {
-      queryClient.setQueryData(["courier", "operational-context"], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          onlineIntent: data.onlineIntent,
-          presenceStatus: data.presenceStatus,
-          lastSeenAt: data.lastSeenAt,
-          version: data.version,
-        };
-      });
+      queryClient.setQueryData<CourierOperationalContext>(
+        ["courier", "operational-context"],
+        (old) => updatePresenceCache(old, data, true),
+      );
       toast.success("Você está online.");
     },
     onError: (error) => toast.error(toFriendlyMessage(error)),
@@ -210,16 +224,10 @@ export function useSetCourierOffline() {
   return useMutation({
     mutationFn: setMyCourierOffline,
     onSuccess: (data: CourierPresenceResult) => {
-      queryClient.setQueryData(["courier", "operational-context"], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          onlineIntent: data.onlineIntent,
-          presenceStatus: data.presenceStatus,
-          lastSeenAt: data.lastSeenAt,
-          version: data.version,
-        };
-      });
+      queryClient.setQueryData<CourierOperationalContext>(
+        ["courier", "operational-context"],
+        (old) => updatePresenceCache(old, data, true),
+      );
       toast.success("Você está offline.");
     },
     onError: (error) => toast.error(toFriendlyMessage(error)),
@@ -231,23 +239,18 @@ export function useCourierHeartbeat() {
   return useMutation({
     mutationFn: heartbeatMyCourierPresence,
     onSuccess: (data: CourierPresenceResult) => {
-      queryClient.setQueryData(["courier", "operational-context"], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          presenceStatus: data.presenceStatus,
-          lastSeenAt: data.lastSeenAt,
-          version: data.version,
-        };
-      });
+      queryClient.setQueryData<CourierOperationalContext>(
+        ["courier", "operational-context"],
+        (old) => updatePresenceCache(old, data, false),
+      );
     },
   });
 }
 
 // Ações de Entrega
 
-function useDeliveryActionMutation(
-  mutationFn: (input: any) => Promise<DeliveryActionResult>,
+function useDeliveryActionMutation<TInput>(
+  mutationFn: (input: TInput) => Promise<DeliveryActionResult>,
   successMsg: string,
 ) {
   const queryClient = useQueryClient();
