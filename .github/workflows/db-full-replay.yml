@@ -1,0 +1,70 @@
+name: Full database migration replay
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-full-replay.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-full-replay.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-db-replay-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    name: Replay every migration from zero
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.113.0
+          github-token: ${{ github.token }}
+
+      - name: Report migration inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Migration count: $(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)"
+          find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | sort
+
+      - name: Start Supabase and replay complete history
+        run: |
+          supabase start \
+            -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Verify migration table
+        shell: bash
+        run: |
+          DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
+          test -n "$DB_CONTAINER"
+          docker exec "$DB_CONTAINER" psql -X -U postgres -d postgres -Atc \
+            "select count(*) from supabase_migrations.schema_migrations;"
+
+      - name: Capture PostgreSQL diagnostics
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          set +e
+          docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+          for container in $(docker ps -a --format '{{.Names}}' | grep -E '^supabase_db_' || true); do
+            echo "=== PostgreSQL logs: ${container} ==="
+            docker logs --tail 800 "${container}" 2>&1 || true
+          done
+
+      - name: Stop Supabase
+        if: ${{ always() }}
+        run: supabase stop --no-backup
