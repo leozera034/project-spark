@@ -3,6 +3,7 @@
  * Timeout, abort e normalização de erro.
  */
 import type { CheckoutSubmitResult, PublicPaymentMethod } from "./checkout.types";
+import { rotateIdempotencyKey } from "./checkout.storage";
 
 const TIMEOUT_MS = 20_000;
 
@@ -101,6 +102,16 @@ export async function postOrder(
     if (!payload || typeof payload !== "object" || !("ok" in payload)) {
       throw new CheckoutError("failed");
     }
+
+    // Before the atomicity fix, a failed checkout could leave a partial order
+    // attached to the current idempotency key. The hardened RPC detects that legacy
+    // condition and refuses to replay it. Rotate only for this explicit condition so
+    // the next user retry starts a clean attempt; ordinary network failures keep the
+    // same key and preserve normal idempotent recovery.
+    if (!payload.ok && payload.error === "idempotency_incomplete_order") {
+      rotateIdempotencyKey(slug);
+    }
+
     return payload;
   });
 }
