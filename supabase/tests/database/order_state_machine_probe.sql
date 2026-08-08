@@ -1,10 +1,8 @@
 \set ON_ERROR_STOP on
 \echo '[probe] begin public order-transition surface probe'
 
--- This probe deliberately exercises only the RPC surface granted to the app.
--- Private helpers such as private.transition_store_order and
--- private.order_allowed_actions are revoked from authenticated and must not be
--- called directly by client-facing tests.
+-- Exercise only the RPC surface granted to the application. Private helpers
+-- are intentionally revoked from authenticated and are not client APIs.
 begin;
 set local search_path = public, private, extensions, pg_temp;
 
