@@ -58,8 +58,7 @@ jobs:
 
           test -f .ci/tenant-db/supabase/migrations/20260731023055_f7ba888e-f1ec-4f42-877d-0fa105a827fc.sql
           test -f .ci/tenant-db/supabase/migrations/20260731030426_20e709d5-2ea4-4ca0-ad13-1b16e93eed7f.sql
-          test -f .ci/tenant-db/supabase/migrations/20260731070453_8a9d9dd6-f88d-454a-b975-166df82882b6.sql || \
-            test -f .ci/tenant-db/supabase/migrations/20260731070453_8a9d9dd6-f88d-454a-b975-166df32882b6.sql
+          test -f .ci/tenant-db/supabase/migrations/20260731070453_8a9d9dd6-f88d-454a-b975-166df32882b6.sql
 
           echo "Authorization migration count: $(find .ci/tenant-db/supabase/migrations -type f -name '*.sql' | wc -l)"
 
