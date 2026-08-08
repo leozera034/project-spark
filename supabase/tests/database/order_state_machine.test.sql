@@ -113,21 +113,24 @@ select set_config(
 
 select is(auth.uid(), (select actor_id from state_test_context), 'sessao operacional da loja resolvida');
 
--- Executa a mutacao fora de qualquer wrapper pgTAP. Se o backend ainda
--- sofrer SIGSEGV aqui, a causa esta no caminho SQL da transicao e nao em is().
+-- ---------------------------------------------------------------------
+-- Retirada: usa exatamente os wrappers RPC públicos usados pela aplicação.
+-- aguardando_confirmacao -> aceito -> em_preparo -> aguardando_retirada -> retirado.
+-- ---------------------------------------------------------------------
 insert into state_transition_results (label, result)
 select
   'pickup_accept',
-  private.transition_store_order(
+  public.accept_store_order(
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context),
-    'accept', 1
+    1,
+    null
   );
 
 select is(
   (select result->>'status' from state_transition_results where label = 'pickup_accept'),
   'aceito',
-  'retirada pode ser aceita'
+  'retirada pode ser aceita pela RPC publica'
 );
 
 select is(
@@ -138,7 +141,7 @@ select is(
 
 select throws_ok(
   format(
-    'select private.transition_store_order(%L::uuid,%L::uuid,''accept'',1)',
+    'select public.accept_store_order(%L::uuid,%L::uuid,1,null)',
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context)
   ),
@@ -147,20 +150,22 @@ select throws_ok(
 );
 
 select is(
-  private.transition_store_order(
+  public.start_store_order_preparation(
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context),
-    'start_preparation', 2
+    2,
+    null
   )->>'status',
   'em_preparo',
-  'retirada entra em preparo'
+  'retirada entra em preparo pela RPC publica'
 );
 
 select is(
-  private.transition_store_order(
+  public.mark_store_order_ready(
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context),
-    'mark_ready', 3
+    3,
+    null
   )->>'status',
   'aguardando_retirada',
   'retirada pronta vai para aguardando_retirada'
@@ -173,10 +178,11 @@ select is(
 );
 
 select is(
-  private.transition_store_order(
+  public.complete_store_pickup_order(
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context),
-    'complete_pickup', 4
+    4,
+    null
   )->>'status',
   'retirado',
   'retirada e finalizada somente a partir de aguardando_retirada'
@@ -184,7 +190,7 @@ select is(
 
 select throws_ok(
   format(
-    'select private.transition_store_order(%L::uuid,%L::uuid,''complete_pickup'',5)',
+    'select public.complete_store_pickup_order(%L::uuid,%L::uuid,5,null)',
     (select store_id from state_test_context),
     (select pickup_order_id from state_test_context)
   ),
@@ -192,31 +198,37 @@ select throws_ok(
   'pedido retirado nao pode ser finalizado novamente'
 );
 
+-- ---------------------------------------------------------------------
+-- Entrega: aguardando_confirmacao -> aceito -> em_preparo -> aguardando_entregador.
+-- ---------------------------------------------------------------------
 select is(
-  private.transition_store_order(
+  public.accept_store_order(
     (select store_id from state_test_context),
     (select delivery_order_id from state_test_context),
-    'accept', 1
+    1,
+    null
   )->>'status',
   'aceito',
-  'entrega pode ser aceita'
+  'entrega pode ser aceita pela RPC publica'
 );
 
 select is(
-  private.transition_store_order(
+  public.start_store_order_preparation(
     (select store_id from state_test_context),
     (select delivery_order_id from state_test_context),
-    'start_preparation', 2
+    2,
+    null
   )->>'status',
   'em_preparo',
-  'entrega entra em preparo'
+  'entrega entra em preparo pela RPC publica'
 );
 
 select is(
-  private.transition_store_order(
+  public.mark_store_order_ready(
     (select store_id from state_test_context),
     (select delivery_order_id from state_test_context),
-    'mark_ready', 3
+    3,
+    null
   )->>'status',
   'aguardando_entregador',
   'entrega pronta vai para aguardando_entregador'
@@ -239,12 +251,15 @@ select ok(
   'delivery pendente nao atribui entregador automaticamente'
 );
 
+-- Invariante interna: executada como owner do banco, pois ensure_delivery_for_order
+-- e deliberadamente privada e nao faz parte da superficie RPC do usuario.
+reset role;
 select ok(
   private.ensure_delivery_for_order(
     (select store_id from state_test_context),
     (select delivery_order_id from state_test_context)
   ) is not null,
-  'ensure_delivery_for_order e idempotente e devolve a delivery existente'
+  'ensure_delivery_for_order devolve a delivery existente'
 );
 
 select is(
@@ -253,9 +268,11 @@ select is(
   'repetir ensure_delivery nao duplica delivery'
 );
 
+set local role authenticated;
+
 select throws_ok(
   format(
-    'select private.transition_store_order(%L::uuid,%L::uuid,''mark_ready'',4)',
+    'select public.mark_store_order_ready(%L::uuid,%L::uuid,4,null)',
     (select store_id from state_test_context),
     (select delivery_order_id from state_test_context)
   ),
