@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, private, extensions, pg_temp;
 
-select plan(20);
+select plan(23);
 
 create temp table state_test_context (
   store_id uuid not null,
@@ -46,7 +46,6 @@ select actor_id, store_id, 'proprietario'::public.app_role, true
 from state_test_context
 on conflict do nothing;
 
--- Pedido de retirada.
 with created as (
   select public.storefront_submit_order(
     'brasa-urbana',
@@ -71,7 +70,6 @@ update state_test_context
 
 select ok((select pickup_order_id is not null from state_test_context), 'pedido de retirada criado');
 
--- Pedido de entrega.
 with created as (
   select public.storefront_submit_order(
     'brasa-urbana',
@@ -109,10 +107,6 @@ select set_config(
 
 select is(auth.uid(), (select actor_id from state_test_context), 'sessao operacional da loja resolvida');
 
--- ---------------------------------------------------------------------
--- Retirada: aguardando_confirmacao -> aceito -> em_preparo ->
--- aguardando_retirada -> retirado. Nunca cria delivery.
--- ---------------------------------------------------------------------
 select is(
   private.transition_store_order(
     (select store_id from state_test_context),
@@ -185,9 +179,6 @@ select throws_ok(
   'pedido retirado nao pode ser finalizado novamente'
 );
 
--- ---------------------------------------------------------------------
--- Entrega: pronta -> aguardando_entregador e cria exatamente uma delivery.
--- ---------------------------------------------------------------------
 select is(
   private.transition_store_order(
     (select store_id from state_test_context),
