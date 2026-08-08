@@ -38,6 +38,34 @@ export const priceInputSchema = z.object({
 
 export type PriceInput = z.infer<typeof priceInputSchema>;
 
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as UnknownRecord)
+    : {};
+}
+
+function asRecordArray(value: unknown): UnknownRecord[] {
+  return Array.isArray(value) ? value.map(asRecord) : [];
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function asImagePath(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function asSelectionType(value: unknown): PublicOptionGroup["selection_type"] {
+  return value === "unica" || value === "multipla" || value === "quantidade" ? value : "unica";
+}
+
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -120,24 +148,44 @@ export async function loadPublicStore(rawSlug: string): Promise<PublicStorePaylo
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
-  const settings = (payload.settings ?? {}) as Record<string, any>;
-  const signed = await signMany("store-branding", [settings.logo_path, settings.cover_path]);
+  const payload = asRecord(data);
+  const store = asRecord(payload.store);
+  const settings = asRecord(payload.settings);
+  const logoPath = asImagePath(settings.logo_path);
+  const coverPath = asImagePath(settings.cover_path);
+  const signed = await signMany("store-branding", [logoPath, coverPath]);
 
   return {
-    store: payload.store as PublicStore,
+    store: {
+      id: asString(store.id),
+      slug: asString(store.slug),
+      name: asString(store.name),
+      segment: asNullableString(store.segment),
+      city: asString(store.city),
+      state: asString(store.state),
+      timezone: asString(store.timezone, "America/Sao_Paulo"),
+      phone: asNullableString(store.phone),
+      whatsapp: asNullableString(store.whatsapp),
+      address_line: asNullableString(store.address_line),
+      accepts_delivery: Boolean(store.accepts_delivery),
+      accepts_pickup: Boolean(store.accepts_pickup),
+    },
     settings: {
-      brand_primary: settings.brand_primary ?? "#0f766e",
-      brand_accent: settings.brand_accent ?? "#14b8a6",
-      description: settings.description ?? null,
-      welcome_message: settings.welcome_message ?? null,
-      closed_message: settings.closed_message ?? null,
+      brand_primary: asString(settings.brand_primary, "#0f766e"),
+      brand_accent: asString(settings.brand_accent, "#14b8a6"),
+      description: asNullableString(settings.description),
+      welcome_message: asNullableString(settings.welcome_message),
+      closed_message: asNullableString(settings.closed_message),
       min_order_amount: Number(settings.min_order_amount ?? 0),
       default_prep_minutes: Number(settings.default_prep_minutes ?? 30),
-      logo_url: settings.logo_path ? (signed.get(settings.logo_path) ?? null) : null,
-      cover_url: settings.cover_path ? (signed.get(settings.cover_path) ?? null) : null,
+      logo_url: logoPath ? (signed.get(logoPath) ?? null) : null,
+      cover_url: coverPath ? (signed.get(coverPath) ?? null) : null,
     },
-    hours: (payload.hours ?? []) as PublicStoreHour[],
+    hours: asRecordArray(payload.hours).map((hour) => ({
+      weekday: Number(hour.weekday ?? 0),
+      opens_at: asString(hour.opens_at),
+      closes_at: asString(hour.closes_at),
+    })),
     is_open: Boolean(payload.is_open),
   };
 }
@@ -188,45 +236,54 @@ export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog>
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
-  const categories = (payload.categories ?? []) as Record<string, any>[];
-  const products = (payload.products ?? []) as Record<string, any>[];
-
-  const signed = await signMany("store-catalog", [
-    ...categories.map((c) => c.image_path),
-    ...products.map((p) => p.image_path),
-  ]);
+  const payload = asRecord(data);
+  const categories = asRecordArray(payload.categories);
+  const products = asRecordArray(payload.products);
+  const categoryPaths = categories.map((category) => asImagePath(category.image_path));
+  const productPaths = products.map((product) => asImagePath(product.image_path));
+  const signed = await signMany("store-catalog", [...categoryPaths, ...productPaths]);
 
   return {
-    categories: categories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      description: c.description ?? null,
-      sort_order: Number(c.sort_order ?? 0),
-      image_url: c.image_path ? (signed.get(c.image_path) ?? null) : null,
-    })),
-    products: products.map((p) => ({
-      id: p.id,
-      category_id: p.category_id,
-      name: p.name,
-      description: p.description ?? null,
-      base_price: Number(p.base_price ?? 0),
-      from_price: p.from_price === null || p.from_price === undefined ? null : Number(p.from_price),
-      sale_mode: p.sale_mode,
-      measurement_unit: p.measurement_unit,
-      pricing_unit: p.pricing_unit,
-      unit_label: p.unit_label ?? null,
-      has_variants: Boolean(p.has_variants),
-      has_options: Boolean(p.has_options),
-      is_sold_out: Boolean(p.is_sold_out),
-      is_featured: Boolean(p.is_featured),
-      minimum_quantity: Number(p.minimum_quantity ?? 1),
-      quantity_step: Number(p.quantity_step ?? 1),
-      max_quantity:
-        p.max_quantity === null || p.max_quantity === undefined ? null : Number(p.max_quantity),
-      allows_notes: Boolean(p.allows_notes),
-      image_url: p.image_path ? (signed.get(p.image_path) ?? null) : null,
-    })),
+    categories: categories.map((category) => {
+      const imagePath = asImagePath(category.image_path);
+      return {
+        id: asString(category.id),
+        name: asString(category.name),
+        description: asNullableString(category.description),
+        sort_order: Number(category.sort_order ?? 0),
+        image_url: imagePath ? (signed.get(imagePath) ?? null) : null,
+      };
+    }),
+    products: products.map((product) => {
+      const imagePath = asImagePath(product.image_path);
+      return {
+        id: asString(product.id),
+        category_id: asString(product.category_id),
+        name: asString(product.name),
+        description: asNullableString(product.description),
+        base_price: Number(product.base_price ?? 0),
+        from_price:
+          product.from_price === null || product.from_price === undefined
+            ? null
+            : Number(product.from_price),
+        sale_mode: asString(product.sale_mode),
+        measurement_unit: asString(product.measurement_unit),
+        pricing_unit: asString(product.pricing_unit),
+        unit_label: asNullableString(product.unit_label),
+        has_variants: Boolean(product.has_variants),
+        has_options: Boolean(product.has_options),
+        is_sold_out: Boolean(product.is_sold_out),
+        is_featured: Boolean(product.is_featured),
+        minimum_quantity: Number(product.minimum_quantity ?? 1),
+        quantity_step: Number(product.quantity_step ?? 1),
+        max_quantity:
+          product.max_quantity === null || product.max_quantity === undefined
+            ? null
+            : Number(product.max_quantity),
+        allows_notes: Boolean(product.allows_notes),
+        image_url: imagePath ? (signed.get(imagePath) ?? null) : null,
+      };
+    }),
   };
 }
 
@@ -285,21 +342,22 @@ export async function loadPublicProduct(
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
-  const product = payload.product as Record<string, any>;
-  const signed = await signMany("store-catalog", [product.image_path]);
+  const payload = asRecord(data);
+  const product = asRecord(payload.product);
+  const imagePath = asImagePath(product.image_path);
+  const signed = await signMany("store-catalog", [imagePath]);
 
   return {
     product: {
-      id: product.id,
-      category_id: product.category_id,
-      name: product.name,
-      description: product.description ?? null,
+      id: asString(product.id),
+      category_id: asString(product.category_id),
+      name: asString(product.name),
+      description: asNullableString(product.description),
       base_price: Number(product.base_price ?? 0),
-      sale_mode: product.sale_mode,
-      measurement_unit: product.measurement_unit,
-      pricing_unit: product.pricing_unit,
-      unit_label: product.unit_label ?? null,
+      sale_mode: asString(product.sale_mode),
+      measurement_unit: asString(product.measurement_unit),
+      pricing_unit: asString(product.pricing_unit),
+      unit_label: asNullableString(product.unit_label),
       has_variants: Boolean(product.has_variants),
       is_sold_out: Boolean(product.is_sold_out),
       minimum_quantity: Number(product.minimum_quantity ?? 1),
@@ -309,38 +367,40 @@ export async function loadPublicProduct(
           ? null
           : Number(product.max_quantity),
       allows_notes: Boolean(product.allows_notes),
-      image_url: product.image_path ? (signed.get(product.image_path) ?? null) : null,
+      image_url: imagePath ? (signed.get(imagePath) ?? null) : null,
     },
-    variants: ((payload.variants ?? []) as Record<string, any>[]).map((v) => ({
-      id: v.id,
-      name: v.name,
-      price: Number(v.price ?? 0),
-      is_default: Boolean(v.is_default),
+    variants: asRecordArray(payload.variants).map((variant) => ({
+      id: asString(variant.id),
+      name: asString(variant.name),
+      price: Number(variant.price ?? 0),
+      is_default: Boolean(variant.is_default),
       package_quantity:
-        v.package_quantity === null || v.package_quantity === undefined
+        variant.package_quantity === null || variant.package_quantity === undefined
           ? null
-          : Number(v.package_quantity),
-      package_unit: v.package_unit ?? null,
+          : Number(variant.package_quantity),
+      package_unit: asNullableString(variant.package_unit),
     })),
-    option_groups: ((payload.option_groups ?? []) as Record<string, any>[]).map((g) => ({
-      id: g.id,
-      name: g.name,
-      description: g.description ?? null,
-      selection_type: g.selection_type,
-      is_required: Boolean(g.is_required),
-      min_selections: Number(g.min_selections ?? 0),
-      max_selections: Number(g.max_selections ?? 1),
-      allow_quantity: Boolean(g.allow_quantity),
-      pricing_strategy: g.pricing_strategy,
-      price_effect: g.price_effect,
+    option_groups: asRecordArray(payload.option_groups).map((group) => ({
+      id: asString(group.id),
+      name: asString(group.name),
+      description: asNullableString(group.description),
+      selection_type: asSelectionType(group.selection_type),
+      is_required: Boolean(group.is_required),
+      min_selections: Number(group.min_selections ?? 0),
+      max_selections: Number(group.max_selections ?? 1),
+      allow_quantity: Boolean(group.allow_quantity),
+      pricing_strategy: asString(group.pricing_strategy),
+      price_effect: asString(group.price_effect),
       portion_count:
-        g.portion_count === null || g.portion_count === undefined ? null : Number(g.portion_count),
-      items: ((g.items ?? []) as Record<string, any>[]).map((i) => ({
-        id: i.id,
-        name: i.name,
-        description: i.description ?? null,
-        additional_price: Number(i.additional_price ?? 0),
-        max_quantity: Number(i.max_quantity ?? 1),
+        group.portion_count === null || group.portion_count === undefined
+          ? null
+          : Number(group.portion_count),
+      items: asRecordArray(group.items).map((item) => ({
+        id: asString(item.id),
+        name: asString(item.name),
+        description: asNullableString(item.description),
+        additional_price: Number(item.additional_price ?? 0),
+        max_quantity: Number(item.max_quantity ?? 1),
       })),
     })),
   };
@@ -375,10 +435,10 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
     return { ok: false, error: "unavailable" };
   }
 
-  const payload = (data ?? {}) as Record<string, any>;
+  const payload = asRecord(data);
   if (!payload.ok) return { ok: false, error: String(payload.error ?? "invalid_request") };
 
-  const result = (payload.result ?? {}) as Record<string, any>;
+  const result = asRecord(payload.result);
   const validation = Array.isArray(result.validation_errors)
     ? result.validation_errors.map((code: unknown) => String(code))
     : [];
