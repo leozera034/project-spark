@@ -94,7 +94,9 @@ export function OptionGroupLibrary() {
   const [draft, setDraft] = useState<GroupDraft>(EMPTY_GROUP);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<GroupDraft>(EMPTY_GROUP);
-  const [itemDrafts, setItemDrafts] = useState<Record<string, { name: string; price: string; max: string }>>({});
+  const [itemDrafts, setItemDrafts] = useState<
+    Record<string, { name: string; price: string; max: string }>
+  >({});
 
   const can = overview?.can ?? { view: true, create: false, update: false, archive: false };
 
@@ -239,7 +241,11 @@ export function OptionGroupLibrary() {
             id={`${prefix}-obrig`}
             checked={d.isRequired}
             onCheckedChange={(v) =>
-              set({ ...d, isRequired: Boolean(v), minSelections: v ? Math.max(1, d.minSelections) : d.minSelections })
+              set({
+                ...d,
+                isRequired: Boolean(v),
+                minSelections: v ? Math.max(1, d.minSelections) : d.minSelections,
+              })
             }
           />
           <Label htmlFor={`${prefix}-obrig`}>Escolha obrigatória</Label>
@@ -252,7 +258,11 @@ export function OptionGroupLibrary() {
                 id={`${prefix}-porcoes`}
                 checked={d.portionEnabled}
                 onCheckedChange={(v) =>
-                  set({ ...d, portionEnabled: Boolean(v), portionCount: v ? (d.portionCount ?? 2) : null })
+                  set({
+                    ...d,
+                    portionEnabled: Boolean(v),
+                    portionCount: v ? (d.portionCount ?? 2) : null,
+                  })
                 }
               />
               <Label htmlFor={`${prefix}-porcoes`}>Dividir em porções</Label>

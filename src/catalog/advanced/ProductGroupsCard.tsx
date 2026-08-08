@@ -49,7 +49,12 @@ export function ProductGroupsCard({
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
     const done = await run(
-      () => reorderProductOptionGroups(storeId, product.id, next.map((g) => g.link_id)),
+      () =>
+        reorderProductOptionGroups(
+          storeId,
+          product.id,
+          next.map((g) => g.link_id),
+        ),
       "Ordem dos grupos atualizada.",
     );
     if (done) onSaved();
@@ -94,7 +99,8 @@ export function ProductGroupsCard({
                     {PRICE_EFFECT_LABELS[group.price_effect]}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {group.items.filter((i) => i.is_active && !i.is_archived).length} item(ns) ativo(s)
+                    {group.items.filter((i) => i.is_active && !i.is_archived).length} item(ns)
+                    ativo(s)
                   </p>
                 </div>
 

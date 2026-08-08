@@ -99,7 +99,9 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
       overview: overviewQuery.data ?? null,
       categories,
       activeCategories: categories.filter((c) => !c.is_archived),
-      isLoading: storesQuery.isLoading || (enabled && (overviewQuery.isLoading || categoriesQuery.isLoading)),
+      isLoading:
+        storesQuery.isLoading ||
+        (enabled && (overviewQuery.isLoading || categoriesQuery.isLoading)),
       error: overviewQuery.error
         ? catalogErrorMessage(overviewQuery.error)
         : categoriesQuery.error
