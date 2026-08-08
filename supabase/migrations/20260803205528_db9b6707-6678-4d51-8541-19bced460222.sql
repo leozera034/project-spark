@@ -25,6 +25,7 @@ DECLARE
   _plan_id uuid;
   _plan_price numeric;
   _weekday int;
+  _trial_end timestamptz := now() + interval '14 days';
 BEGIN
   IF coalesce(btrim(_slug), '') <> '' THEN
     _slug_n := public.normalize_store_slug(_slug);
@@ -115,11 +116,13 @@ BEGIN
   IF _plan_id IS NOT NULL THEN
     INSERT INTO public.store_subscriptions
       (store_id, plan_id, status, monthly_price, due_day, grace_days,
-       current_period_end, started_at, notes)
+       current_period_end, started_at, notes,
+       current_period_start, trial_end, next_billing_date, version)
     VALUES
       (_store_id, _plan_id, 'cortesia', _plan_price, 10, 5,
-       (current_date + interval '14 days')::date, current_date,
-       'Período de avaliação de 14 dias criado no provisionamento.');
+       _trial_end::date, current_date,
+       'Período de avaliação de 14 dias criado no provisionamento.',
+       now(), _trial_end, _trial_end, 1);
   END IF;
 
   INSERT INTO public.audit_logs
