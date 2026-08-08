@@ -38,11 +38,14 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
 
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
+          def replace_count(text: str, old: str, new: str, expected: int, label: str) -> str:
               count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected 1 occurrence, found {count}")
-              return text.replace(old, new, 1)
+              if count != expected:
+                  raise SystemExit(f"{label}: expected {expected} occurrence(s), found {count}")
+              return text.replace(old, new)
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              return replace_count(text, old, new, 1, label)
 
           index_path = Path("src/routes/app/entregador/index.tsx")
           text = index_path.read_text()
@@ -52,42 +55,17 @@ jobs:
               "  const { mutate: sendHeartbeat } = useCourierHeartbeat();\n  const accept = useAcceptDeliveryAssignment();\n  const decline = useDeclineDeliveryAssignment();\n  const deliveryCounter = useMyCourierDeliveryCounter();",
               "dashboard hook setup",
           )
-          text = replace_once(
-              text,
-              "        heartbeat.mutate(undefined as any);",
-              "        sendHeartbeat();",
-              "heartbeat call",
-          )
+          text = replace_once(text, "        heartbeat.mutate(undefined as any);", "        sendHeartbeat();", "heartbeat call")
           text = replace_once(
               text,
               "  }, [context?.onlineIntent, isOnline]);",
               "  }, [context?.onlineIntent, isOnline, sendHeartbeat]);",
               "heartbeat dependencies",
           )
-          text = replace_once(
-              text,
-              "      setOffline.mutate(undefined as any);",
-              "      setOffline.mutate();",
-              "offline mutation",
-          )
-          text = replace_once(
-              text,
-              "      setOnline.mutate(undefined as any);",
-              "      setOnline.mutate();",
-              "online mutation",
-          )
-          text = replace_once(
-              text,
-              "{useMyCourierDeliveryCounter().data?.today ?? 0}",
-              "{deliveryCounter.data?.today ?? 0}",
-              "today counter",
-          )
-          text = replace_once(
-              text,
-              "{useMyCourierDeliveryCounter().data?.currentMonth ?? 0}",
-              "{deliveryCounter.data?.currentMonth ?? 0}",
-              "month counter",
-          )
+          text = replace_once(text, "      setOffline.mutate(undefined as any);", "      setOffline.mutate();", "offline mutation")
+          text = replace_once(text, "      setOnline.mutate(undefined as any);", "      setOnline.mutate();", "online mutation")
+          text = replace_once(text, "{useMyCourierDeliveryCounter().data?.today ?? 0}", "{deliveryCounter.data?.today ?? 0}", "today counter")
+          text = replace_once(text, "{useMyCourierDeliveryCounter().data?.currentMonth ?? 0}", "{deliveryCounter.data?.currentMonth ?? 0}", "month counter")
           index_path.write_text(text)
 
           delivery_path = Path("src/routes/app/entregador/entrega.tsx")
@@ -98,23 +76,20 @@ jobs:
               'export const Route = createFileRoute("/app/entregador/entrega")({\n  component: DeliveryDetail,\n});\n\ntype DeliveryActionMutation = {\n  mutateAsync: (input: {\n    deliveryId: string;\n    expectedVersion: number;\n    idempotencyKey: string;\n  }) => Promise<unknown>;\n};',
               "delivery mutation type",
           )
-          text = replace_once(
+          text = replace_once(text, "  const handleAction = async (mutation: any) => {", "  const handleAction = async (mutation: DeliveryActionMutation) => {", "delivery action typing")
+          text = replace_count(
               text,
-              "  const handleAction = async (mutation: any) => {",
-              "  const handleAction = async (mutation: DeliveryActionMutation) => {",
-              "delivery action typing",
-          )
-          if text.count("    } catch (e) {}") != 2:
-              raise SystemExit(f"empty catches: expected 2, found {text.count('    } catch (e) {}')}")
-          text = text.replace(
               "    } catch (e) {}",
               "    } catch {\n      // O hook já apresenta a mensagem de erro e preserva a tela para nova tentativa.\n    }",
+              2,
+              "empty catches",
           )
-          text = replace_once(
+          text = replace_count(
               text,
               '["atribuida", "aceita", "chegou_na_loja"].includes(status as string)',
               '["atribuida", "aceita"].includes(status)',
-              "pickup card status",
+              2,
+              "invalid arrived status references",
           )
           text = replace_once(
               text,
@@ -122,36 +97,10 @@ jobs:
               'status === "em_rota" ? "border-brand shadow-md" : "border-slate-200"',
               "route card status",
           )
-          text = replace_once(
-              text,
-              '["atribuida", "aceita", "chegou_na_loja"].includes(status as string) && "opacity-40"',
-              '["atribuida", "aceita"].includes(status) && "opacity-40"',
-              "route card opacity",
-          )
-          text = replace_once(
-              text,
-              '          {status === "aceita" && (',
-              '          {delivery.allowedActions.includes("confirm_arrival") && (',
-              "arrival action source",
-          )
-          text = replace_once(
-              text,
-              '          {(status as string) === "chegou_na_loja" && (',
-              '          {delivery.allowedActions.includes("confirm_pickup") && (',
-              "pickup action source",
-          )
-          text = replace_once(
-              text,
-              '          {status === "coletada" && (',
-              '          {delivery.allowedActions.includes("start_delivery") && (',
-              "start delivery action source",
-          )
-          text = replace_once(
-              text,
-              '          {status === "em_rota" && (',
-              '          {delivery.allowedActions.includes("complete_delivery") && (',
-              "complete delivery action source",
-          )
+          text = replace_once(text, '          {status === "aceita" && (', '          {delivery.allowedActions.includes("confirm_arrival") && (', "arrival action source")
+          text = replace_once(text, '          {(status as string) === "chegou_na_loja" && (', '          {delivery.allowedActions.includes("confirm_pickup") && (', "pickup action source")
+          text = replace_once(text, '          {status === "coletada" && (', '          {delivery.allowedActions.includes("start_delivery") && (', "start delivery action source")
+          text = replace_once(text, '          {status === "em_rota" && (', '          {delivery.allowedActions.includes("complete_delivery") && (', "complete delivery action source")
           delivery_path.write_text(text)
           PY
 
