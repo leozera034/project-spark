@@ -51,8 +51,15 @@ jobs:
         run: |
           DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
           test -n "$DB_CONTAINER"
-          docker exec "$DB_CONTAINER" psql -X -U postgres -d postgres -Atc \
-            "select count(*) from supabase_migrations.schema_migrations;"
+          EXPECTED="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')"
+          APPLIED="$(docker exec "$DB_CONTAINER" psql -X -U postgres -d postgres -Atc 'select count(*) from supabase_migrations.schema_migrations;')"
+          echo "Expected migrations: $EXPECTED"
+          echo "Applied migrations:  $APPLIED"
+          test "$APPLIED" = "$EXPECTED"
+
+      - name: Run billing and provisioning smoke tests
+        run: |
+          supabase test db supabase/tests/database/billing_rebuild_smoke.test.sql
 
       - name: Capture PostgreSQL diagnostics
         if: ${{ failure() }}
