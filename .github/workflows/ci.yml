@@ -33,7 +33,41 @@ jobs:
         run: bunx tsc --noEmit
 
       - name: Lint
-        run: bun run lint
+        shell: bash
+        run: |
+          set +e
+          bunx eslint . --format json > eslint-report.json
+          status=$?
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const report = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
+          const annotations = [];
+
+          for (const result of report) {
+            const file = path.relative(process.cwd(), result.filePath).replaceAll('\\', '/');
+            for (const message of result.messages) {
+              annotations.push({ file, ...message });
+            }
+          }
+
+          const escape = (value) => String(value ?? '')
+            .replaceAll('%', '%25')
+            .replaceAll('\r', '%0D')
+            .replaceAll('\n', '%0A');
+
+          for (const item of annotations.slice(0, 100)) {
+            const level = item.severity === 2 ? 'error' : 'warning';
+            const rule = item.ruleId ? `${item.ruleId}: ` : '';
+            const line = Number(item.line || 1);
+            const column = Number(item.column || 1);
+            console.log(`::${level} file=${item.file},line=${line},col=${column}::${escape(rule + item.message)}`);
+          }
+
+          console.log(`ESLint: ${annotations.length} ocorrência(s) encontrada(s).`);
+          NODE
+          exit "$status"
 
       - name: Build
         if: ${{ always() }}
