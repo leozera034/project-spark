@@ -21,15 +21,9 @@ concurrency:
 
 jobs:
   order-state-machine:
-    name: Order and delivery state invariants (CLI ${{ matrix.supabase-cli }})
+    name: Order and delivery state invariants
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        supabase-cli:
-          - 2.101.0
-          - 2.113.0
 
     steps:
       - name: Checkout
@@ -38,7 +32,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          version: ${{ matrix.supabase-cli }}
+          version: 2.113.0
           github-token: ${{ github.token }}
 
       - name: Build isolated state-machine workdir
@@ -62,7 +56,6 @@ jobs:
 
           cp supabase/tests/database/order_state_machine.test.sql .ci/state-db/supabase/tests/database/
 
-          echo "Supabase CLI: ${{ matrix.supabase-cli }}"
           echo "State-machine migration count: $(find .ci/state-db/supabase/migrations -type f -name '*.sql' | wc -l)"
 
       - name: Start isolated state-machine database
@@ -84,7 +77,6 @@ jobs:
           set -euo pipefail
           DB_CONTAINER="$(docker ps --format '{{.Names}}' | grep -E '^supabase_db_' | head -1)"
           test -n "$DB_CONTAINER"
-          echo "Using database container: $DB_CONTAINER"
           docker exec -i "$DB_CONTAINER" \
             psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres \
             < supabase/tests/database/order_state_machine_probe.sql
@@ -99,16 +91,11 @@ jobs:
         shell: bash
         run: |
           set +e
-          echo "=== Docker containers ==="
           docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
-          echo
           for container in $(docker ps -a --format '{{.Names}}' | grep -E '^supabase_db_' || true); do
             echo "=== PostgreSQL logs: ${container} ==="
             docker logs --tail 500 "${container}" 2>&1 || true
           done
-          echo
-          echo "=== Kernel/OOM hints ==="
-          dmesg 2>/dev/null | tail -100 || true
 
       - name: Stop isolated Supabase database
         if: ${{ always() }}
