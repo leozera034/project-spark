@@ -1,0 +1,48 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "audit/**"
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Repository hygiene
+        run: npm run test:hygiene
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+
+  database-security-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.SPARK_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        if: env.DATABASE_URL != ''
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Run database security contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/security_contract.sql
+      - name: Explain skipped database contract
+        if: env.DATABASE_URL == ''
+        run: echo "SPARK_DATABASE_URL is not configured; database contract skipped."
