@@ -38,6 +38,10 @@ function mapArea(raw: Record<string, unknown>): PublicDeliveryArea {
   };
 }
 
+function mapFulfillmentType(value: unknown): "entrega" | "retirada" | null {
+  return value === "entrega" || value === "retirada" ? value : null;
+}
+
 export async function loadPublicFulfillment(
   rawSlug: string,
 ): Promise<PublicFulfillmentConfiguration> {
@@ -51,7 +55,7 @@ export async function loadPublicFulfillment(
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
+  const payload = data as Record<string, unknown>;
   return {
     configurationVersion: String(payload.configurationVersion ?? ""),
     deliveryEnabled: Boolean(payload.deliveryEnabled),
@@ -84,13 +88,13 @@ export async function validatePublicFulfillment(input: {
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
+  const payload = data as Record<string, unknown>;
   const area = payload.deliveryArea ? mapArea(payload.deliveryArea as Record<string, unknown>) : null;
 
   return {
     isValid: Boolean(payload.isValid),
     configurationVersion: String(payload.configurationVersion ?? ""),
-    fulfillmentType: payload.fulfillmentType ?? null,
+    fulfillmentType: mapFulfillmentType(payload.fulfillmentType),
     storeIsOpen: Boolean(payload.storeIsOpen),
     deliveryEnabled: Boolean(payload.deliveryEnabled),
     pickupEnabled: Boolean(payload.pickupEnabled),
