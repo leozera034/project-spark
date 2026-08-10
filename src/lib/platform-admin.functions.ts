@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export interface PlatformHealthSummary {
   totalStores: number;
@@ -40,22 +41,29 @@ export interface PlatformStoreItem {
   created_at: string;
 }
 
-export const getPlatformHealth = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await (supabase.rpc as any)("get_platform_health_summary");
-  if (error) throw error;
-  return data as PlatformHealthSummary;
-});
+export const getPlatformHealth = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await (context.supabase.rpc as any)("get_platform_health_summary");
+    if (error) throw error;
+    return data as PlatformHealthSummary;
+  });
 
-export const getPlatformBilling = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await (supabase.rpc as any)("get_platform_billing_summary");
-  if (error) throw error;
-  return data as PlatformBillingSummary;
-});
+export const getPlatformBilling = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await (context.supabase.rpc as any)("get_platform_billing_summary");
+    if (error) throw error;
+    return data as PlatformBillingSummary;
+  });
 
 export const getPlatformRecentErrors = createServerFn({ method: "GET" })
-  .validator((d: { limit?: number }) => z.object({ limit: z.number().int().min(1).max(100).optional() }).parse(d))
-  .handler(async ({ data: input }) => {
-    const { data, error } = await (supabase.rpc as any)("get_platform_recent_errors", {
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ limit: z.number().int().min(1).max(100).optional() }).parse(d),
+  )
+  .handler(async ({ data: input, context }) => {
+    const { data, error } = await (context.supabase.rpc as any)("get_platform_recent_errors", {
       _limit: input.limit ?? 20,
     });
     if (error) throw error;
@@ -63,24 +71,35 @@ export const getPlatformRecentErrors = createServerFn({ method: "GET" })
   });
 
 export const listPlatformStores = createServerFn({ method: "GET" })
-  .validator((d: { search?: string; status?: string; limit?: number; offset?: number }) => d)
-  .handler(async ({ data: input }) => {
-    const { data, error } = await (supabase.rpc as any)("list_platform_stores", {
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        search: z.string().max(120).optional(),
+        status: z.string().max(40).optional(),
+        limit: z.number().int().min(1).max(200).optional(),
+        offset: z.number().int().min(0).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data: input, context }) => {
+    const { data, error } = await (context.supabase.rpc as any)("list_platform_stores", {
       _search: input.search,
       _status: input.status,
-      _limit: input.limit || 50,
-      _offset: input.offset || 0,
+      _limit: input.limit ?? 50,
+      _offset: input.offset ?? 0,
     });
     if (error) throw error;
     return data as { items: PlatformStoreItem[]; total: number };
   });
 
 export const adminSuspendStore = createServerFn({ method: "POST" })
-  .validator((d: { storeId: string; reason: string }) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
     z.object({ storeId: z.string().uuid(), reason: z.string().trim().min(1).max(500) }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const { error } = await (supabase.rpc as any)("admin_suspend_store", {
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase.rpc as any)("admin_suspend_store", {
       _store_id: data.storeId,
       _reason: data.reason,
     });
@@ -89,9 +108,10 @@ export const adminSuspendStore = createServerFn({ method: "POST" })
   });
 
 export const adminReactivateStore = createServerFn({ method: "POST" })
-  .validator((d: { storeId: string }) => z.object({ storeId: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
-    const { error } = await (supabase.rpc as any)("admin_reactivate_store", {
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase.rpc as any)("admin_reactivate_store", {
       _store_id: data.storeId,
     });
     if (error) throw error;
