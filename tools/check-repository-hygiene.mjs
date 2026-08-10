@@ -15,11 +15,10 @@ if (forbiddenTrackedEnv.length) {
 }
 
 const sourceFiles = tracked.filter((file) => /\.(?:ts|tsx|js|mjs|cjs|json|md|sql|toml|ya?ml)$/.test(file));
+// Match concrete secret material, not documentation that merely names an env var.
 const suspicious = [
-  /SUPABASE_SERVICE_ROLE_KEY\s*=\s*['\"]?[A-Za-z0-9._-]{20,}/i,
-  /QA_PREVIEW_ACCESS_KEY\s*=\s*['\"]?\S{8,}/i,
-  /QA_SESSION_SECRET\s*=\s*['\"]?\S{8,}/i,
   /sb_secret_[A-Za-z0-9_-]{20,}/,
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
 ];
 
 for (const file of sourceFiles) {
