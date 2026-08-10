@@ -23,8 +23,8 @@ jobs:
         run: npm install --ignore-scripts
       - name: Repository hygiene
         run: npm run test:hygiene
-      - name: Lint
-        run: npm run lint
+      - name: Logic lint
+        run: npm run lint:ci
       - name: Typecheck
         run: npm run typecheck
       - name: Build
