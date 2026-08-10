@@ -73,7 +73,7 @@ export async function loadPublicPaymentMethods(
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const payload = data as Record<string, any>;
+  const payload = data as Record<string, unknown>;
   return ((payload.methods ?? []) as Record<string, unknown>[]).map((raw) => ({
     id: String(raw.id),
     kind: String(raw.kind ?? "outro"),
@@ -105,7 +105,7 @@ export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitO
   }
   if (!data) throw new StorefrontError("not_found");
 
-  const result = data as Record<string, any>;
+  const result = data as Record<string, unknown>;
 
   if (!result.ok) {
     return {
