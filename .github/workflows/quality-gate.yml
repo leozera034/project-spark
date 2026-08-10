@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run: npm run build
 
-  database-security-contract:
+  database-contracts:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -43,6 +43,9 @@ jobs:
       - name: Run database security contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/security_contract.sql
-      - name: Explain skipped database contract
+      - name: Run operational invariants
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/data_invariants.sql
+      - name: Explain skipped database contracts
         if: env.DATABASE_URL == ''
-        run: echo "SPARK_DATABASE_URL is not configured; database contract skipped."
+        run: echo "SPARK_DATABASE_URL is not configured; database contracts skipped."
