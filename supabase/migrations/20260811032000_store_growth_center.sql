@@ -58,8 +58,7 @@ stable
 security definer
 set search_path = public, pg_temp
 as $$
-declare
-  result jsonb;
+declare result jsonb;
 begin
   if not private.is_store_member(_store_id) then
     raise exception 'forbidden' using errcode = '42501';
@@ -95,8 +94,7 @@ stable
 security definer
 set search_path = public, pg_temp
 as $$
-declare
-  result jsonb;
+declare result jsonb;
 begin
   if not private.is_store_member(_store_id) then
     raise exception 'forbidden' using errcode = '42501';
@@ -133,33 +131,30 @@ $$;
 
 create or replace function public.get_store_revenue_series(_store_id uuid, _days integer default 30)
 returns table(day date, orders bigint, revenue numeric, avg_ticket numeric)
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public, pg_temp
 as $$
-  with guard as (
-    select case when private.is_store_member(_store_id) then true else (select public.raise_forbidden()) end ok
-  ), days as (
-    select generate_series(current_date - (least(greatest(_days,7),90) - 1), current_date, interval '1 day')::date day
+begin
+  if not private.is_store_member(_store_id) then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+
+  return query
+  with days as (
+    select generate_series(current_date - (least(greatest(_days,7),90) - 1), current_date, interval '1 day')::date as d
   )
-  select d.day,
-         count(o.id) filter (where o.status not in ('cancelado','rejeitado'))::bigint as orders,
-         coalesce(sum(o.total_amount) filter (where o.status = 'concluido'),0)::numeric as revenue,
-         coalesce(avg(o.total_amount) filter (where o.status = 'concluido'),0)::numeric as avg_ticket
-  from days d
-  cross join guard
-  left join public.orders o on o.store_id = _store_id and o.created_at >= d.day and o.created_at < d.day + interval '1 day'
-  group by d.day
-  order by d.day;
+  select days.d,
+         count(o.id) filter (where o.status not in ('cancelado','rejeitado'))::bigint,
+         coalesce(sum(o.total_amount) filter (where o.status = 'concluido'),0)::numeric,
+         coalesce(avg(o.total_amount) filter (where o.status = 'concluido'),0)::numeric
+  from days
+  left join public.orders o on o.store_id = _store_id and o.created_at >= days.d and o.created_at < days.d + interval '1 day'
+  group by days.d
+  order by days.d;
+end;
 $$;
-
--- Helper seguro para funcoes SQL que precisam abortar sem PL/pgSQL.
-create or replace function public.raise_forbidden()
-returns boolean language plpgsql volatile security definer set search_path = public, pg_temp
-as $$ begin raise exception 'forbidden' using errcode='42501'; end $$;
-
-revoke all on function public.raise_forbidden() from public, anon, authenticated;
 
 grant execute on function public.get_store_growth_summary(uuid) to authenticated;
 grant execute on function public.list_store_customer_insights(uuid,text,text,integer,integer) to authenticated;
