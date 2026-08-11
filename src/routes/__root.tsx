@@ -10,6 +10,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import purpleCss from "../purple-overrides.css?url";
+import globalPolishCss from "../app-global-polish.css?url";
+import storefrontPolishCss from "../storefront-global.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
@@ -65,6 +67,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: purpleCss },
+      { rel: "stylesheet", href: globalPolishCss },
+      { rel: "stylesheet", href: storefrontPolishCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",

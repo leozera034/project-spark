@@ -3,7 +3,7 @@
  * Mostra sempre o total autoritativo do servidor quando disponível.
  */
 import { Link } from "@tanstack/react-router";
-import { Loader2, ShoppingBag, TriangleAlert } from "lucide-react";
+import { ArrowRight, Loader2, ShoppingBag, TriangleAlert } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
@@ -16,19 +16,28 @@ export function CartBar({ slug }: { slug: string }) {
 
   const units = itemCount;
 
-
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 glass-bar animate-[cart-bar-in_320ms_cubic-bezier(0.22,1,0.36,1)_both] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto max-w-3xl px-1 sm:px-2">
-        <Button asChild className="group h-14 w-full justify-between rounded-2xl px-4 text-base shadow-e2 transition-shadow duration-200 hover:shadow-e3">
+    <div className="fixed inset-x-0 bottom-0 z-40 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto max-w-3xl rounded-[22px] border border-violet-300/10 bg-[#0b0612]/94 p-1.5 shadow-[0_22px_70px_rgba(0,0,0,.58),0_0_38px_rgba(124,58,237,.12)] backdrop-blur-2xl">
+        <Button asChild className="group h-14 w-full justify-between rounded-[17px] px-3.5 text-base shadow-none sm:px-4">
           <Link to="/loja/$slug/carrinho" params={{ slug }}>
-            <span className="flex items-center gap-2">
-              <ShoppingBag className="size-5 transition-transform duration-300 ease-out group-hover:-translate-y-0.5" />
-              Ver carrinho · {units} {units === 1 ? "item" : "itens"}
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10">
+                <ShoppingBag className="size-4.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
+              </span>
+              <span className="min-w-0 text-left">
+                <span className="block truncate text-sm font-bold">Ver carrinho</span>
+                <span className="block text-[11px] font-medium text-white/65">
+                  {units} {units === 1 ? "item" : "itens"}
+                </span>
+              </span>
             </span>
-            <span className="flex items-center gap-2 tabular-nums">
+            <span className="flex items-center gap-2.5 tabular-nums">
               {hasBlockingIssues ? <TriangleAlert className="size-4" /> : null}
-              {quoteState === "loading" ? <Loader2 className="size-4 animate-spin" /> : brl(total)}
+              <span className="font-extrabold">
+                {quoteState === "loading" ? <Loader2 className="size-4 animate-spin" /> : brl(total)}
+              </span>
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
           </Link>
         </Button>
