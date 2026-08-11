@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - "redesign/**"
 
 concurrency:
   group: quality-gate-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
