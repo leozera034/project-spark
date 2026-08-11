@@ -1,0 +1,82 @@
+/* Visual rollout based on the approved Pediu Aqui reference. Pure presentation layer. */
+
+/* Onboarding / create store */
+body:has(#storeName) main {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(124,58,237,.17), transparent 28rem),
+    radial-gradient(circle at 86% 8%, rgba(217,70,239,.10), transparent 24rem),
+    #07030d !important;
+}
+body:has(#storeName) main > div { max-width: 1180px; }
+body:has(#storeName) section.panel {
+  border: 1px solid rgba(196,181,253,.14) !important;
+  border-radius: 28px !important;
+  background: linear-gradient(180deg, rgba(20,12,32,.97), rgba(10,6,17,.99)) !important;
+  box-shadow: 0 34px 90px -34px rgba(76,29,149,.45), inset 0 1px rgba(255,255,255,.03) !important;
+}
+body:has(#storeName) section.panel ol span { height: 5px; }
+body:has(#storeName) section.panel h2 { font-weight: 800; font-size: clamp(1.35rem,3vw,2rem); }
+body:has(#storeName) section.panel input,
+body:has(#storeName) section.panel select { min-height: 52px; border-radius: 14px !important; }
+body:has(#storeName) section.panel button[type="submit"],
+body:has(#storeName) section.panel button:not([type]) { min-height: 52px; border-radius: 14px; }
+
+/* Authentication screens */
+body:has(main a[href="/"]) main form input { min-height: 52px; border-radius: 14px !important; }
+body:has(main a[href="/"]) main form button[type="submit"] { min-height: 52px; border-radius: 14px; font-weight: 800; }
+
+/* Store dashboard */
+body:has(a[href="/app/loja"][aria-current="page"]) main,
+body:has(a[href="/app/loja"][aria-current="page"]) #conteudo { background: #07030d; }
+body:has(a[href="/app/loja"][aria-current="page"]) main .panel {
+  border-radius: 20px !important;
+  background: linear-gradient(150deg, rgba(24,14,38,.96), rgba(11,7,19,.98)) !important;
+}
+body:has(a[href="/app/loja"][aria-current="page"]) main h1 { font-weight: 900; letter-spacing: -.04em; }
+
+/* Orders: compact mobile-first list like the reference */
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main { background: #07030d; }
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main > div { max-width: 1180px; }
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main nav[aria-label="Filas de pedidos"] {
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;
+}
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main nav[aria-label="Filas de pedidos"]::-webkit-scrollbar { display:none; }
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main nav[aria-label="Filas de pedidos"] button {
+  flex: 0 0 auto; border-radius: 999px; min-height: 38px; padding-inline: 16px;
+}
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main input { min-height: 46px; border-radius: 13px !important; }
+body:has(a[href="/app/loja/pedidos"][aria-current="page"]) main [role="dialog"] { border-radius: 24px !important; }
+
+/* Public storefront */
+.storefront-global { color: #fff; }
+.storefront-global .storefront-store-card { border-radius: 24px; }
+.storefront-global .storefront-search { min-height: 48px; border-radius: 14px !important; }
+.storefront-global .storefront-product-card {
+  min-height: 108px;
+  padding: 12px !important;
+  border-radius: 18px !important;
+}
+.storefront-global .storefront-product-card img { width: 84px; height: 84px; object-fit: cover; }
+.storefront-global .storefront-product-card p:first-child { font-weight: 800; letter-spacing: -.015em; }
+.storefront-global .storefront-category-chip { border-radius: 999px; padding-inline: 15px; min-height: 34px; display:inline-flex; align-items:center; }
+
+/* Product sheet/dialog */
+.storefront-global [role="dialog"] img[alt]:first-of-type,
+.storefront-global [data-radix-dialog-content] img[alt]:first-of-type { border-radius: 22px !important; }
+.storefront-global [role="dialog"] label,
+.storefront-global [data-radix-dialog-content] label {
+  border-radius: 14px !important;
+  border-color: rgba(196,181,253,.12) !important;
+  background: rgba(255,255,255,.025);
+}
+.storefront-global [role="dialog"] textarea,
+.storefront-global [data-radix-dialog-content] textarea { border-radius: 14px !important; }
+
+/* Shared mobile app feel */
+@media (max-width: 767px) {
+  .app-premium-topbar { min-height: 58px; }
+  .app-premium-bottom-nav a { min-height: 64px; }
+  body:has(#storeName) main > div { padding-top: max(1rem, env(safe-area-inset-top)); }
+  body:has(#storeName) section.panel { padding: 22px 18px !important; }
+  .storefront-global .storefront-product-card { border-radius: 16px !important; }
+}
