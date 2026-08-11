@@ -345,15 +345,17 @@ export function OptionGroupLibrary() {
                       {!group.is_archived && !group.is_active ? (
                         <Badge variant="secondary">Inativo</Badge>
                       ) : null}
-                      {group.is_required ? <Badge>Obrigatório</Badge> : null}
+                      {group.is_required ? <Badge>Obrigatório</Badge> : <Badge variant="secondary">Opcional</Badge>}
+                      <Badge variant="outline">mín {group.min_selections}</Badge>
+                      <Badge variant="outline">máx {group.max_selections}</Badge>
                       {group.portion_count ? (
                         <Badge variant="outline">{group.portion_count} porções</Badge>
                       ) : null}
                     </div>
                     <CardDescription>
-                      {SELECTION_TYPE_LABELS[group.selection_type]} · mín {group.min_selections} ·
-                      máx {group.max_selections} · {PRICING_STRATEGY_LABELS[group.pricing_strategy]}{" "}
-                      · {PRICE_EFFECT_LABELS[group.price_effect]} · usado em{" "}
+                      {SELECTION_TYPE_LABELS[group.selection_type]} ·{" "}
+                      {PRICING_STRATEGY_LABELS[group.pricing_strategy]} ·{" "}
+                      {PRICE_EFFECT_LABELS[group.price_effect]} · usado em{" "}
                       {group.linked_product_count} produto(s)
                     </CardDescription>
                   </CardHeader>
