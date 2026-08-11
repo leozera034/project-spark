@@ -1,5 +1,5 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Bike, ChefHat, ClipboardList, Home, Settings, ShoppingBag, Store } from "lucide-react";
+import { BarChart3, Bike, ChefHat, ClipboardList, Home, Settings, ShoppingBag, Store, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -9,15 +9,29 @@ import { useAuth } from "@/auth/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type StoreNavItem = {
+  to:
+    | "/app/loja"
+    | "/app/loja/pedidos"
+    | "/app/loja/cozinha"
+    | "/app/loja/cardapio"
+    | "/app/loja/entregadores"
+    | "/app/loja/relatorios/entregas"
+    | "/app/loja/configuracoes/dados";
+  label: string;
+  icon: LucideIcon;
+  exact: boolean;
+};
+
+const NAV: StoreNavItem[] = [
   { to: "/app/loja", label: "Início", icon: Home, exact: true },
-  { to: "/app/loja/pedidos", label: "Pedidos", icon: ClipboardList },
-  { to: "/app/loja/cozinha", label: "Cozinha", icon: ChefHat },
-  { to: "/app/loja/cardapio", label: "Cardápio", icon: ShoppingBag },
-  { to: "/app/loja/entregadores", label: "Entregadores", icon: Bike },
-  { to: "/app/loja/relatorios", label: "Relatórios", icon: BarChart3 },
-  { to: "/app/loja/configuracoes/dados", label: "Configurações", icon: Settings },
-] as const;
+  { to: "/app/loja/pedidos", label: "Pedidos", icon: ClipboardList, exact: false },
+  { to: "/app/loja/cozinha", label: "Cozinha", icon: ChefHat, exact: false },
+  { to: "/app/loja/cardapio", label: "Cardápio", icon: ShoppingBag, exact: false },
+  { to: "/app/loja/entregadores", label: "Entregadores", icon: Bike, exact: false },
+  { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, exact: false },
+  { to: "/app/loja/configuracoes/dados", label: "Configurações", icon: Settings, exact: false },
+];
 
 export const Route = createFileRoute("/app/loja")({
   head: () => ({ meta: [{ name: "robots", content: "noindex,nofollow" }] }),
@@ -61,8 +75,7 @@ function StoreAppLayout() {
               const active = exact ? pathname === to || pathname === `${to}/` : pathname.startsWith(to);
               return (
                 <Link key={to} to={to} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition", active ? "bg-carbon text-carbon-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                  <Icon className={cn("size-4", active ? "text-brand" : "")} />
-                  <span>{label}</span>
+                  <Icon className={cn("size-4", active ? "text-brand" : "")} /><span>{label}</span>
                 </Link>
               );
             })}
