@@ -39,7 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listPublicPlans } from "@/lib/marketing.functions";
+import { listPublicPlans, type PublicPlan } from "@/lib/marketing.functions";
 import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
 import { normalizeStoreSlug } from "@/store-config/slug";
 
