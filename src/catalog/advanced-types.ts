@@ -1,8 +1,6 @@
 /**
- * Fase 10 — motor avançado do catálogo.
- * O modelo é genérico: tamanhos, sabores, adicionais e complementos são todos
- * expressos como variações + grupos de opções. Não existe estrutura específica
- * por segmento.
+ * Motor avançado do catálogo / SHARK.
+ * A categoria da loja fornece defaults; o comportamento final é do produto.
  */
 
 export type ProductSaleMode = "unit" | "measured" | "fixed_package";
@@ -10,6 +8,44 @@ export type MeasurementUnit = "unit" | "kg" | "g" | "l" | "ml";
 export type OptionSelectionType = "unica" | "multipla" | "quantidade";
 export type PricingStrategy = "sum" | "highest_price" | "average_price";
 export type PriceEffect = "additive" | "replace_base";
+export type ProductType =
+  | "simple"
+  | "variant"
+  | "buildable"
+  | "flavors"
+  | "multi_flavor"
+  | "combo"
+  | "kit"
+  | "sized"
+  | "measured"
+  | string;
+
+export type ProductCapabilities = Record<string, boolean | number | string | null>;
+export type ProductPricingRules = {
+  multi_flavor_pricing?: "highest" | "average" | "proportional" | "fixed_size";
+  [key: string]: unknown;
+};
+
+export type OptionGroupRole =
+  | "generic"
+  | "size"
+  | "flavor"
+  | "crust"
+  | "dough"
+  | "addon"
+  | "removal"
+  | "cream"
+  | "fruit"
+  | "topping"
+  | "protein"
+  | "side"
+  | "bread"
+  | "doneness"
+  | "sauce"
+  | "beverage"
+  | "container"
+  | "combo_step"
+  | string;
 
 export interface ProductVariant {
   id: string;
@@ -36,19 +72,26 @@ export interface OptionItem {
   is_archived: boolean;
   sort_order: number;
   updated_at: string;
+  linked_product_id?: string | null;
+  linked_variant_id?: string | null;
+  inventory_quantity?: number | null;
+  metadata?: Record<string, unknown>;
 }
 
 export interface OptionGroup {
   id: string;
   name: string;
   description: string | null;
+  role: OptionGroupRole;
   selection_type: OptionSelectionType;
   is_required: boolean;
   min_selections: number;
   max_selections: number;
+  included_selections: number;
   pricing_strategy: PricingStrategy;
   price_effect: PriceEffect;
   portion_count: number | null;
+  configuration: Record<string, unknown>;
   is_active: boolean;
   is_archived: boolean;
   sort_order: number;
@@ -87,6 +130,10 @@ export interface AdvancedBuilder {
     measurement_unit: MeasurementUnit;
     minimum_quantity: number;
     quantity_step: number;
+    product_type?: ProductType;
+    capabilities?: ProductCapabilities;
+    pricing_rules?: ProductPricingRules;
+    engine_version?: number;
   };
   variants: ProductVariant[];
   groups: LinkedOptionGroup[];
@@ -103,8 +150,10 @@ export interface PreviewSelection {
 export interface PreviewBreakdownRow {
   group_id: string;
   group_name: string;
+  role?: OptionGroupRole;
   pricing_strategy: PricingStrategy;
-  price_effect: PriceEffect;
+  price_effect: PriceEffect | string;
+  included_selections?: number;
   selected_items: number;
   selected_quantity: number;
   value: number;
@@ -112,6 +161,8 @@ export interface PreviewBreakdownRow {
 
 export interface ConfigurationPreview {
   product_id: string;
+  product_type?: ProductType;
+  engine_version?: number;
   variant_id: string | null;
   sale_mode: ProductSaleMode;
   measurement_unit: MeasurementUnit;
@@ -141,17 +192,11 @@ export const MEASUREMENT_LABELS: Record<MeasurementUnit, string> = {
 };
 
 export const MEASUREMENT_SHORT: Record<MeasurementUnit, string> = {
-  unit: "un",
-  kg: "kg",
-  g: "g",
-  l: "L",
-  ml: "ml",
+  unit: "un", kg: "kg", g: "g", l: "L", ml: "ml",
 };
 
 export const SELECTION_TYPE_LABELS: Record<OptionSelectionType, string> = {
-  unica: "Escolha única",
-  multipla: "Escolha múltipla",
-  quantidade: "Escolha por quantidade",
+  unica: "Escolha única", multipla: "Escolha múltipla", quantidade: "Escolha por quantidade",
 };
 
 export const PRICING_STRATEGY_LABELS: Record<PricingStrategy, string> = {
@@ -161,13 +206,13 @@ export const PRICING_STRATEGY_LABELS: Record<PricingStrategy, string> = {
 };
 
 export const PRICE_EFFECT_LABELS: Record<PriceEffect, string> = {
-  additive: "Somar ao preço do produto",
-  replace_base: "Substituir o preço do produto",
+  additive: "Somar ao preço do produto", replace_base: "Substituir o preço do produto",
 };
 
-/** Mensagens do relatório de validação e da prévia, em linguagem da loja. */
 export const CONFIGURATION_MESSAGES: Record<string, string> = {
   PRODUCT_NOT_FOUND: "Produto indisponível.",
+  PRODUCT_UNAVAILABLE: "Este produto está indisponível.",
+  PRODUCT_STOCK_INSUFFICIENT: "Quantidade maior que o estoque disponível.",
   BASE_PRICE_INVALID: "O preço base do produto é inválido.",
   CATEGORY_UNAVAILABLE: "A categoria do produto está inativa ou arquivada.",
   DEFAULT_VARIANT_REQUIRED: "Escolha exatamente uma variação padrão entre as ativas.",
@@ -181,8 +226,7 @@ export const CONFIGURATION_MESSAGES: Record<string, string> = {
   GROUP_WITHOUT_ITEMS: "Há grupo obrigatório sem nenhum item ativo.",
   GROUP_MINIMUM_UNREACHABLE: "Um grupo pede mais itens do que os itens ativos disponíveis.",
   GROUP_REQUIRED_WITHOUT_MINIMUM: "Grupo obrigatório precisa de mínimo de pelo menos 1.",
-  VARIANT_OPTION_PRICES_INCOMPLETE:
-    "Faltam preços por variação em um grupo que substitui o preço do produto.",
+  VARIANT_OPTION_PRICES_INCOMPLETE: "Faltam preços por variação em um grupo que substitui o preço do produto.",
   VARIANT_INVALID: "A variação escolhida não está disponível.",
   VARIANT_REQUIRED: "Escolha uma variação.",
   PACKAGE_REQUIRED: "Escolha uma embalagem.",
@@ -193,6 +237,8 @@ export const CONFIGURATION_MESSAGES: Record<string, string> = {
   OPTION_DUPLICATED: "A mesma opção foi escolhida duas vezes.",
   OPTION_QUANTITY_INVALID: "Quantidade de opção inválida.",
   OPTION_QUANTITY_ABOVE_MAX: "Quantidade de opção acima do máximo permitido.",
+  OPTION_STOCK_INSUFFICIENT: "Uma opção escolhida está sem estoque suficiente.",
+  COMBO_ITEM_UNAVAILABLE: "Uma opção do combo ficou indisponível.",
   PORTIONS_INCOMPLETE: "Complete todas as porções do grupo.",
   SELECTION_BELOW_MINIMUM: "Escolha a quantidade mínima de itens do grupo.",
   SELECTION_ABOVE_MAXIMUM: "Você escolheu itens demais neste grupo.",
@@ -203,8 +249,6 @@ export function configurationMessage(code: string): string {
 }
 
 export function describeVariant(variant: ProductVariant): string {
-  if (variant.package_quantity && variant.package_unit) {
-    return `${variant.name} · ${variant.package_quantity} ${MEASUREMENT_SHORT[variant.package_unit]}`;
-  }
+  if (variant.package_quantity && variant.package_unit) return `${variant.name} · ${variant.package_quantity} ${MEASUREMENT_SHORT[variant.package_unit]}`;
   return variant.name;
 }
