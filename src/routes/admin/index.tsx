@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
   Banknote,
   Building2,
   CircleDollarSign,
@@ -18,7 +17,7 @@ import {
   Users,
   WalletCards,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   useAdminActions,
   usePlatformBilling,
