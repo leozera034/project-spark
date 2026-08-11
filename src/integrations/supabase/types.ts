@@ -2511,6 +2511,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_reactivate_store: {
+        Args: { _store_id: string }
+        Returns: undefined
+      }
+      admin_suspend_store: {
+        Args: { _reason: string; _store_id: string }
+        Returns: undefined
+      }
       archive_catalog_category: {
         Args: {
           _archived: boolean
@@ -2782,6 +2790,9 @@ export type Database = {
         Args: { _id: string; _store_id: string }
         Returns: Json
       }
+      get_platform_billing_summary: { Args: never; Returns: Json }
+      get_platform_health_summary: { Args: never; Returns: Json }
+      get_platform_recent_errors: { Args: { _limit?: number }; Returns: Json }
       get_product_advanced_builder: {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
@@ -2849,6 +2860,15 @@ export type Database = {
       }
       list_option_groups: {
         Args: { _include_archived?: boolean; _store_id?: string }
+        Returns: Json
+      }
+      list_platform_stores: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
         Returns: Json
       }
       list_product_variants: {
