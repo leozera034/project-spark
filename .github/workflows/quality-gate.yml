@@ -39,7 +39,7 @@ jobs:
 
   database-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       DATABASE_URL: ${{ secrets.SPARK_DATABASE_URL }}
     steps:
@@ -53,6 +53,9 @@ jobs:
       - name: Run operational invariants
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/data_invariants.sql
+      - name: Run Shark catalog engine contracts
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/shark_engine_contract.sql
       - name: Explain skipped database contracts
         if: env.DATABASE_URL == ''
         run: echo "SPARK_DATABASE_URL is not configured; database contracts skipped."
