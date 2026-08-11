@@ -2,18 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
   AlertTriangle,
+  ArrowRight,
   Banknote,
+  Building2,
   CircleDollarSign,
   FileWarning,
+  Gauge,
   MoreHorizontal,
   PauseCircle,
   PlayCircle,
   Search,
-  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
   Store,
   Users,
+  WalletCards,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   useAdminActions,
   usePlatformBilling,
@@ -61,6 +66,12 @@ function AdminDashboard() {
   const [suspendingStore, setSuspendingStore] = useState<{ id: string; name: string } | null>(null);
   const [suspendReason, setSuspendReason] = useState("");
 
+  const activeSubscriptions = billing?.activeSubscriptions ?? 0;
+  const mrr = Number(billing?.monthlyRecurringRevenue ?? 0);
+  const averageRevenue = activeSubscriptions > 0 ? mrr / activeSubscriptions : 0;
+  const attentionCount = (health?.suspendedStores ?? 0) + (billing?.delinquentSubscriptions ?? 0) + (errors?.length ?? 0);
+  const platformStatus = attentionCount === 0 ? "Operação estável" : attentionCount <= 3 ? "Atenção moderada" : "Atenção necessária";
+
   async function handleSuspend() {
     if (!suspendingStore || !suspendReason.trim()) return;
     try {
@@ -83,92 +94,109 @@ function AdminDashboard() {
   }
 
   return (
-    <main className="container mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Painel Administrativo</h1>
-        <p className="mt-1 text-muted-foreground">Saúde operacional, lojas, assinaturas e erros da plataforma.</p>
-      </div>
+    <main className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <section id="visao-geral" className="relative overflow-hidden rounded-[30px] border border-violet-300/10 bg-[linear-gradient(135deg,rgba(55,25,88,.74),rgba(19,10,30,.95)_50%,rgba(9,5,15,.98))] p-5 shadow-[0_34px_100px_-50px_rgba(124,58,237,.6)] sm:p-7 lg:p-8">
+        <div className="pointer-events-none absolute -right-24 -top-28 size-80 rounded-full bg-fuchsia-500/10 blur-3xl" />
+        <div className="relative grid gap-6 xl:grid-cols-[1.25fr_.75fr] xl:items-end">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/15 bg-violet-500/10 px-3 py-1 text-xs font-extrabold text-violet-200"><Sparkles className="size-3.5" /> SaaS Command Center</span>
+              <span className={`rounded-full border px-3 py-1 text-xs font-bold ${attentionCount === 0 ? "border-emerald-400/15 bg-emerald-500/10 text-emerald-300" : "border-amber-400/15 bg-amber-500/10 text-amber-300"}`}>{platformStatus}</span>
+            </div>
+            <h1 className="mt-5 font-display text-3xl font-black tracking-[-.045em] text-white sm:text-4xl lg:text-5xl">Controle a plataforma sem perder o pulso da operação.</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/46 sm:text-base">Receita recorrente, lojas, operação e observabilidade reunidas em uma leitura executiva e acionável.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <HeroStat label="MRR" value={billingLoading ? "—" : money.format(mrr)} icon={<CircleDollarSign className="size-4" />} />
+            <HeroStat label="Lojas ativas" value={healthLoading ? "—" : String(health?.activeStores ?? 0)} icon={<Building2 className="size-4" />} />
+          </div>
+        </div>
+      </section>
 
-      <section className="space-y-3" aria-labelledby="operacao-title">
-        <h2 id="operacao-title" className="text-lg font-semibold">Operação</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <HealthCard title="Total de lojas" value={health?.totalStores} subValue={`${health?.activeStores ?? 0} ativas`} icon={<Store className="h-4 w-4 text-muted-foreground" />} loading={healthLoading} />
-          <HealthCard title="Pedidos (24h)" value={health?.ordersLast24h} icon={<Activity className="h-4 w-4 text-muted-foreground" />} loading={healthLoading} />
-          <HealthCard title="Entregadores online" value={health?.activeCouriers} icon={<Users className="h-4 w-4 text-muted-foreground" />} loading={healthLoading} />
-          <HealthCard title="Lojas suspensas" value={health?.suspendedStores} icon={<ShieldAlert className="h-4 w-4 text-destructive" />} loading={healthLoading} colorClass={(health?.suspendedStores ?? 0) > 0 ? "text-destructive" : ""} />
+      <section id="operacao" className="space-y-3" aria-labelledby="operacao-title">
+        <div className="flex items-end justify-between gap-4">
+          <div><p className="text-xs font-extrabold uppercase tracking-[.16em] text-violet-300/70">Tempo real</p><h2 id="operacao-title" className="mt-1 font-display text-xl font-bold text-white">Operação da plataforma</h2></div>
+          <span className="hidden text-xs text-white/32 sm:inline">Indicadores consolidados</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SaasMetric title="Total de lojas" value={health?.totalStores} subValue={`${health?.activeStores ?? 0} ativas`} icon={<Store className="size-5" />} loading={healthLoading} />
+          <SaasMetric title="Pedidos em 24h" value={health?.ordersLast24h} subValue="Volume recente" icon={<Activity className="size-5" />} loading={healthLoading} />
+          <SaasMetric title="Entregadores online" value={health?.activeCouriers} subValue="Disponíveis agora" icon={<Users className="size-5" />} loading={healthLoading} />
+          <SaasMetric title="Lojas suspensas" value={health?.suspendedStores} subValue="Exigem acompanhamento" icon={<AlertTriangle className="size-5" />} loading={healthLoading} danger={(health?.suspendedStores ?? 0) > 0} />
         </div>
       </section>
 
       <section className="space-y-3" aria-labelledby="financeiro-title">
-        <h2 id="financeiro-title" className="text-lg font-semibold">Financeiro recorrente</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard title="MRR contratado" value={billing ? money.format(Number(billing.monthlyRecurringRevenue)) : undefined} subValue={`${billing?.activeSubscriptions ?? 0} assinaturas ativas`} icon={<CircleDollarSign className="h-4 w-4 text-muted-foreground" />} loading={billingLoading} />
-          <MetricCard title="Recebido no mês" value={billing ? money.format(Number(billing.paidCurrentMonth)) : undefined} icon={<Banknote className="h-4 w-4 text-muted-foreground" />} loading={billingLoading} />
-          <HealthCard title="Em cortesia" value={billing?.courtesySubscriptions} icon={<Store className="h-4 w-4 text-muted-foreground" />} loading={billingLoading} />
-          <HealthCard title="Inadimplentes" value={billing?.delinquentSubscriptions} subValue={`${billing?.suspendedSubscriptions ?? 0} assinaturas suspensas`} icon={<AlertTriangle className="h-4 w-4 text-destructive" />} loading={billingLoading} colorClass={(billing?.delinquentSubscriptions ?? 0) > 0 ? "text-destructive" : ""} />
+        <div><p className="text-xs font-extrabold uppercase tracking-[.16em] text-violet-300/70">Receita</p><h2 id="financeiro-title" className="mt-1 font-display text-xl font-bold text-white">Financeiro recorrente</h2></div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SaasMetric title="MRR contratado" value={billing ? money.format(mrr) : undefined} subValue={`${activeSubscriptions} assinaturas ativas`} icon={<CircleDollarSign className="size-5" />} loading={billingLoading} />
+          <SaasMetric title="Recebido no mês" value={billing ? money.format(Number(billing.paidCurrentMonth)) : undefined} subValue="Pagamentos confirmados" icon={<Banknote className="size-5" />} loading={billingLoading} />
+          <SaasMetric title="Receita média" value={billing ? money.format(averageRevenue) : undefined} subValue="Por assinatura ativa" icon={<WalletCards className="size-5" />} loading={billingLoading} />
+          <SaasMetric title="Inadimplentes" value={billing?.delinquentSubscriptions} subValue={`${billing?.suspendedSubscriptions ?? 0} assinaturas suspensas`} icon={<AlertTriangle className="size-5" />} loading={billingLoading} danger={(billing?.delinquentSubscriptions ?? 0) > 0} />
         </div>
       </section>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>Diretório de lojas</CardTitle>
-              <CardDescription>Gestão do ciclo de vida das lojas sem apagar dados.</CardDescription>
+      <div className="grid gap-5 2xl:grid-cols-[1.45fr_.55fr]">
+        <Card id="lojas" className="overflow-hidden">
+          <CardHeader className="border-b border-white/[.06]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div><CardTitle className="font-display text-xl">Diretório de lojas</CardTitle><CardDescription>Gestão do ciclo de vida sem apagar dados ou histórico.</CardDescription></div>
+              <div className="relative w-full lg:w-80"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Buscar por nome ou slug..." className="pl-10" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
             </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar por nome ou slug..." className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} />
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader><TableRow><TableHead className="pl-6">Loja</TableHead><TableHead>Status</TableHead><TableHead>Pedidos</TableHead><TableHead>Criada em</TableHead><TableHead className="w-[58px]" /></TableRow></TableHeader>
+                <TableBody>
+                  {storesLoading ? Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}><TableCell className="pl-6"><Skeleton className="h-5 w-32" /></TableCell><TableCell><Skeleton className="h-5 w-20" /></TableCell><TableCell><Skeleton className="h-5 w-16" /></TableCell><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell></TableRow>
+                  )) : stores?.items.map((store) => (
+                    <TableRow key={store.id}>
+                      <TableCell className="pl-6"><div className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl border border-violet-300/10 bg-violet-500/10 text-violet-300"><Building2 className="size-4" /></span><div className="flex min-w-0 flex-col"><span className="truncate font-semibold text-white">{store.name}</span><span className="truncate text-xs text-muted-foreground">/{store.slug}</span></div></div></TableCell>
+                      <TableCell><StatusBadge status={store.status} /></TableCell>
+                      <TableCell className="font-semibold tabular-nums">{store.total_orders}</TableCell>
+                      <TableCell className="text-muted-foreground">{format(new Date(store.created_at), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Ações de ${store.name}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end"><DropdownMenuLabel>Ações</DropdownMenuLabel><DropdownMenuSeparator />{store.status === "ativa" ? <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setSuspendingStore({ id: store.id, name: store.name })}><PauseCircle className="mr-2 size-4" />Suspender loja</DropdownMenuItem> : store.status === "suspensa" ? <DropdownMenuItem onClick={() => handleReactivate(store.id, store.name)}><PlayCircle className="mr-2 size-4" />Reativar loja</DropdownMenuItem> : null}</DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!storesLoading && stores?.items.length === 0 ? <TableRow><TableCell colSpan={5} className="h-28 text-center text-muted-foreground">Nenhuma loja encontrada.</TableCell></TableRow> : null}
+                </TableBody>
+              </Table>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader><TableRow><TableHead>Loja</TableHead><TableHead>Status</TableHead><TableHead>Pedidos</TableHead><TableHead>Criada em</TableHead><TableHead className="w-[50px]" /></TableRow></TableHeader>
-              <TableBody>
-                {storesLoading ? Array.from({ length: 4 }).map((_, index) => (
-                  <TableRow key={index}><TableCell><Skeleton className="h-5 w-32" /></TableCell><TableCell><Skeleton className="h-5 w-20" /></TableCell><TableCell><Skeleton className="h-5 w-16" /></TableCell><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell></TableRow>
-                )) : stores?.items.map((store) => (
-                  <TableRow key={store.id}>
-                    <TableCell><div className="flex flex-col"><span className="font-medium">{store.name}</span><span className="text-xs text-muted-foreground">/{store.slug}</span></div></TableCell>
-                    <TableCell><StatusBadge status={store.status} /></TableCell>
-                    <TableCell>{store.total_orders}</TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(store.created_at), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Ações de ${store.name}`}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel><DropdownMenuSeparator />
-                          {store.status === "ativa" ? (
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setSuspendingStore({ id: store.id, name: store.name })}><PauseCircle className="mr-2 h-4 w-4" />Suspender loja</DropdownMenuItem>
-                          ) : store.status === "suspensa" ? (
-                            <DropdownMenuItem onClick={() => handleReactivate(store.id, store.name)}><PlayCircle className="mr-2 h-4 w-4" />Reativar loja</DropdownMenuItem>
-                          ) : null}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!storesLoading && stores?.items.length === 0 ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">Nenhuma loja encontrada.</TableCell></TableRow> : null}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><FileWarning className="h-5 w-5" />Erros recentes</CardTitle><CardDescription>Eventos sanitizados capturados pela observabilidade da aplicação.</CardDescription></CardHeader>
-        <CardContent>
-          {errorsLoading ? <div className="space-y-2"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></div> : errors && errors.length > 0 ? (
-            <div className="rounded-md border"><Table><TableHeader><TableRow><TableHead>Quando</TableHead><TableHead>Rota</TableHead><TableHead>Mensagem</TableHead></TableRow></TableHeader><TableBody>{errors.map((item) => <TableRow key={item.id}><TableCell className="whitespace-nowrap text-muted-foreground">{format(new Date(item.createdAt), "dd/MM HH:mm", { locale: ptBR })}</TableCell><TableCell className="font-mono text-xs">{item.route ?? "—"}</TableCell><TableCell className="max-w-xl truncate">{item.message ?? "Erro sem mensagem"}</TableCell></TableRow>)}</TableBody></Table></div>
-          ) : <p className="text-sm text-muted-foreground">Nenhum erro persistido até agora.</p>}
-        </CardContent>
-      </Card>
+        <div className="space-y-5">
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Gauge className="size-5 text-violet-300" />Radar executivo</CardTitle><CardDescription>Pontos que merecem atenção administrativa.</CardDescription></CardHeader>
+            <CardContent className="space-y-3">
+              <RadarRow label="Inadimplentes" value={billing?.delinquentSubscriptions ?? 0} danger={(billing?.delinquentSubscriptions ?? 0) > 0} />
+              <RadarRow label="Lojas suspensas" value={health?.suspendedStores ?? 0} danger={(health?.suspendedStores ?? 0) > 0} />
+              <RadarRow label="Erros recentes" value={errors?.length ?? 0} danger={(errors?.length ?? 0) > 0} />
+              <RadarRow label="Cortesias" value={billing?.courtesySubscriptions ?? 0} />
+            </CardContent>
+          </Card>
+
+          <Card id="observabilidade">
+            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="size-5 text-violet-300" />Observabilidade</CardTitle><CardDescription>Últimos eventos sanitizados da aplicação.</CardDescription></CardHeader>
+            <CardContent>
+              {errorsLoading ? <div className="space-y-2"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div> : errors && errors.length > 0 ? (
+                <div className="space-y-2">{errors.slice(0, 6).map((item) => <div key={item.id} className="rounded-xl border border-white/[.055] bg-white/[.02] p-3"><div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-amber-300">{format(new Date(item.createdAt), "dd/MM HH:mm", { locale: ptBR })}</span><FileWarning className="size-4 text-amber-300/70" /></div><p className="mt-1 truncate text-sm font-medium text-white/72">{item.message ?? "Erro sem mensagem"}</p><p className="mt-1 truncate font-mono text-[11px] text-white/30">{item.route ?? "rota não informada"}</p></div>)}</div>
+              ) : <div className="rounded-2xl border border-emerald-400/10 bg-emerald-500/[.055] p-4"><div className="flex items-center gap-2 text-emerald-300"><ShieldCheck className="size-4" /><span className="text-sm font-bold">Sem erros persistidos</span></div><p className="mt-1 text-xs text-white/38">Nenhum evento recente exige análise.</p></div>}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <Dialog open={Boolean(suspendingStore)} onOpenChange={(open) => { if (!open) setSuspendingStore(null); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="h-5 w-5" />Suspender {suspendingStore?.name}</DialogTitle><DialogDescription>A loja deixa de operar, mas os dados e o histórico são preservados.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="size-5" />Suspender {suspendingStore?.name}</DialogTitle><DialogDescription>A loja deixa de operar, mas os dados e o histórico são preservados.</DialogDescription></DialogHeader>
           <div className="space-y-2 py-4"><label className="text-sm font-medium" htmlFor="suspend-reason">Motivo</label><Input id="suspend-reason" maxLength={500} placeholder="Informe o motivo da suspensão" value={suspendReason} onChange={(event) => setSuspendReason(event.target.value)} /></div>
           <DialogFooter><Button variant="outline" onClick={() => setSuspendingStore(null)}>Cancelar</Button><Button variant="destructive" onClick={handleSuspend} disabled={!suspendReason.trim() || suspend.isPending}>{suspend.isPending ? "Suspendendo..." : "Confirmar suspensão"}</Button></DialogFooter>
         </DialogContent>
@@ -177,17 +205,21 @@ function AdminDashboard() {
   );
 }
 
+function HeroStat({ label, value, icon }: { label: string; value: string; icon: ReactNode }) {
+  return <div className="rounded-2xl border border-white/[.07] bg-black/20 p-4 backdrop-blur"><div className="flex items-center gap-2 text-violet-300">{icon}<span className="text-[11px] font-black uppercase tracking-[.14em] text-white/38">{label}</span></div><p className="mt-3 font-display text-xl font-black tracking-[-.035em] text-white sm:text-2xl">{value}</p></div>;
+}
+
 function StatusBadge({ status }: { status: string }) {
-  if (status === "ativa") return <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600">Ativa</Badge>;
+  if (status === "ativa") return <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-300">Ativa</Badge>;
   if (status === "suspensa") return <Badge variant="destructive">Suspensa</Badge>;
   if (status === "em_implantacao") return <Badge variant="secondary">Implantação</Badge>;
   return <Badge variant="outline">{status}</Badge>;
 }
 
-function HealthCard({ title, value, subValue, icon, loading, colorClass = "" }: { title: string; value?: number; subValue?: string; icon: React.ReactNode; loading: boolean; colorClass?: string }) {
-  return <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">{title}</CardTitle>{icon}</CardHeader><CardContent>{loading ? <Skeleton className="h-8 w-16" /> : <div className={`text-2xl font-bold ${colorClass}`}>{value ?? 0}</div>}{subValue && !loading ? <p className="text-xs text-muted-foreground">{subValue}</p> : null}</CardContent></Card>;
+function SaasMetric({ title, value, subValue, icon, loading, danger = false }: { title: string; value?: number | string; subValue?: string; icon: ReactNode; loading: boolean; danger?: boolean }) {
+  return <Card className="group relative overflow-hidden"><div className="absolute right-0 top-0 size-24 translate-x-8 -translate-y-8 rounded-full bg-violet-500/8 blur-2xl transition group-hover:bg-violet-500/14" /><CardHeader className="relative flex flex-row items-start justify-between space-y-0 pb-2"><div><CardTitle className="text-xs font-extrabold uppercase tracking-[.12em] text-white/38">{title}</CardTitle></div><span className={`grid size-9 place-items-center rounded-xl border ${danger ? "border-red-400/10 bg-red-500/10 text-red-300" : "border-violet-300/10 bg-violet-500/10 text-violet-300"}`}>{icon}</span></CardHeader><CardContent className="relative">{loading ? <Skeleton className="h-9 w-24" /> : <div className={`font-display text-3xl font-black tracking-[-.045em] ${danger ? "text-red-300" : "text-white"}`}>{value ?? 0}</div>}{subValue && !loading ? <p className="mt-1 text-xs text-muted-foreground">{subValue}</p> : null}</CardContent></Card>;
 }
 
-function MetricCard({ title, value, subValue, icon, loading }: { title: string; value?: string; subValue?: string; icon: React.ReactNode; loading: boolean }) {
-  return <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">{title}</CardTitle>{icon}</CardHeader><CardContent>{loading ? <Skeleton className="h-8 w-28" /> : <div className="text-2xl font-bold">{value ?? "R$ 0,00"}</div>}{subValue && !loading ? <p className="text-xs text-muted-foreground">{subValue}</p> : null}</CardContent></Card>;
+function RadarRow({ label, value, danger = false }: { label: string; value: number; danger?: boolean }) {
+  return <div className="flex items-center justify-between rounded-xl border border-white/[.055] bg-white/[.02] px-3.5 py-3"><span className="text-sm text-white/55">{label}</span><span className={`rounded-lg px-2.5 py-1 text-sm font-black tabular-nums ${danger ? "bg-amber-500/10 text-amber-300" : "bg-white/[.045] text-white/72"}`}>{value}</span></div>;
 }
