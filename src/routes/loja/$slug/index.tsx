@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
 
