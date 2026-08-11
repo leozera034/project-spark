@@ -15,6 +15,7 @@ import {
   Menu,
   Settings,
   ShoppingBag,
+  TrendingUp,
   UtensilsCrossed,
   X,
 } from "lucide-react";
@@ -46,7 +47,6 @@ type NavItem = {
   to: string;
   label: string;
   icon: typeof LayoutGrid;
-  /** Exibido também na barra inferior do celular. */
   mobile?: boolean;
 };
 
@@ -55,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app/loja/pedidos", label: "Pedidos", icon: ShoppingBag, mobile: true },
   { to: "/app/loja/cozinha", label: "Cozinha", icon: ChefHat, mobile: true },
   { to: "/app/loja/cardapio", label: "Cardápio", icon: UtensilsCrossed, mobile: true },
+  { to: "/app/loja/crescimento", label: "Crescimento", icon: TrendingUp },
   { to: "/app/loja/entregadores", label: "Entregadores", icon: Bike },
   { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, mobile: true },
   { to: "/app/loja/configuracoes", label: "Configurações", icon: Settings },
@@ -79,7 +80,6 @@ function StoreAppLayout() {
 
   return (
     <div className="min-h-dvh bg-background lg:flex">
-      {/* Sidebar desktop */}
       <aside
         className={cn(
           "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
@@ -88,9 +88,7 @@ function StoreAppLayout() {
       >
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-3">
           {collapsed ? (
-            <span className="flex size-9 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-primary font-display text-sm font-bold">
-              PA
-            </span>
+            <span className="flex size-9 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-primary font-display text-sm font-bold">PA</span>
           ) : (
             <BrandLogo lockup="horizontal" className="h-7 w-auto" />
           )}
@@ -138,15 +136,9 @@ function StoreAppLayout() {
         </div>
       </aside>
 
-      {/* Mobile off-canvas nav */}
       {mobileNavOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            aria-label="Fechar menu"
-            className="absolute inset-0 bg-carbon/60"
-            onClick={() => setMobileNavOpen(false)}
-          />
+          <button type="button" aria-label="Fechar menu" className="absolute inset-0 bg-carbon/60" onClick={() => setMobileNavOpen(false)} />
           <nav
             aria-label="Navegação da loja"
             className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-sidebar text-sidebar-foreground shadow-e2"
@@ -154,15 +146,7 @@ function StoreAppLayout() {
           >
             <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
               <BrandLogo lockup="horizontal" className="h-7 w-auto" />
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Fechar menu"
-                className="text-sidebar-foreground hover:bg-sidebar-accent/60"
-                onClick={() => setMobileNavOpen(false)}
-              >
-                <X className="size-5" />
-              </Button>
+              <Button variant="ghost" size="icon" aria-label="Fechar menu" className="text-sidebar-foreground hover:bg-sidebar-accent/60" onClick={() => setMobileNavOpen(false)}><X className="size-5" /></Button>
             </div>
             <div className="flex-1 space-y-1 overflow-y-auto p-3">
               {NAV_ITEMS.map((item) => {
@@ -192,40 +176,23 @@ function StoreAppLayout() {
       ) : null}
 
       <div className="flex min-h-dvh flex-1 flex-col">
-        {/* Topbar */}
         <header
           className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-card/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:h-16 sm:px-6 lg:px-8"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              aria-label="Abrir menu"
-              onClick={() => setMobileNavOpen(true)}
-            >
-              <Menu className="size-5" />
-            </Button>
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}><Menu className="size-5" /></Button>
             <BrandLogo lockup="horizontal" className="h-6 w-auto lg:hidden" />
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {authContext?.full_name ?? "Equipe"}
-            </span>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="size-4 sm:hidden" />
-              <span className="hidden sm:inline">Sair</span>
-            </Button>
+            <span className="hidden text-sm text-muted-foreground sm:inline">{authContext?.full_name ?? "Equipe"}</span>
+            <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="size-4 sm:hidden" /><span className="hidden sm:inline">Sair</span></Button>
           </div>
         </header>
 
-        <main className="flex-1 pb-20 lg:pb-0">
-          <Outlet />
-        </main>
+        <main className="flex-1 pb-20 lg:pb-0"><Outlet /></main>
 
-        {/* Bottom nav mobile */}
         <nav
           aria-label="Navegação principal"
           className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden"
