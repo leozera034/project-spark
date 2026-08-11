@@ -1,0 +1,107 @@
+:root,
+.dark {
+  --brand: oklch(0.66 0.255 300);
+  --brand-foreground: oklch(0.985 0.002 285);
+  --brand-strong: oklch(0.58 0.26 300);
+  --brand-soft: oklch(0.94 0.045 300);
+  --brand-soft-foreground: oklch(0.47 0.22 300);
+  --primary: oklch(0.62 0.27 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.68 0.25 300);
+  --accent: oklch(0.93 0.06 300);
+  --accent-foreground: oklch(0.47 0.22 300);
+  --sidebar-primary: oklch(0.66 0.255 300);
+  --sidebar-ring: oklch(0.68 0.25 300);
+  --chart-1: oklch(0.66 0.255 300);
+  --chart-3: oklch(0.76 0.19 320);
+  --elevation-focus: 0 0 0 4px oklch(0.66 0.255 300 / 0.28);
+}
+
+body:has(a[href="/entrar/loja"]) { background: #07030d; }
+
+body:has(main a[href="/entrar/loja"]) main.min-h-dvh {
+  --background: oklch(0.105 0.025 300);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0.035 300);
+  --card-foreground: oklch(0.985 0 0);
+  --surface: oklch(0.145 0.035 300);
+  --surface-muted: oklch(0.13 0.03 300);
+  --muted: oklch(0.18 0.035 300);
+  --muted-foreground: oklch(0.72 0.025 300);
+  --border: oklch(0.31 0.06 300);
+  --border-strong: oklch(0.4 0.08 300);
+  --input: oklch(0.32 0.055 300);
+  color: white;
+  background:
+    radial-gradient(circle at 14% 6%, rgba(124,58,237,.20), transparent 31%),
+    radial-gradient(circle at 82% 16%, rgba(217,70,239,.12), transparent 27%),
+    #07030d;
+}
+
+body:has(main a[href="/entrar/loja"]) main.min-h-dvh > div > section:first-child {
+  position: relative;
+}
+
+body:has(main a[href="/entrar/loja"]) main.min-h-dvh > div > section:first-child::after {
+  content: "";
+  display: block;
+  width: min(100%, 560px);
+  aspect-ratio: 760/520;
+  margin-top: 2rem;
+  background: url('/brand/store-onboarding.svg') center/contain no-repeat;
+  filter: drop-shadow(0 28px 70px rgba(124,58,237,.26));
+}
+
+body:has(a[href="/entrar/loja"]) .panel {
+  border-color: rgba(168, 85, 247, 0.18);
+  background: linear-gradient(180deg, rgba(24, 12, 40, 0.97), rgba(11, 6, 19, 0.98));
+  box-shadow: 0 28px 90px rgba(42, 16, 73, 0.28), inset 0 1px rgba(255,255,255,.035);
+}
+
+body:has(a[href="/entrar/loja"]) input,
+body:has(a[href="/entrar/loja"]) textarea,
+body:has(a[href="/entrar/loja"]) select {
+  border-color: rgba(196, 181, 253, 0.2);
+  background: rgba(255,255,255,.035);
+  color: white;
+}
+
+body:has(a[href="/entrar/loja"]) input:focus,
+body:has(a[href="/entrar/loja"]) textarea:focus,
+body:has(a[href="/entrar/loja"]) select:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.14), 0 0 32px rgba(168,85,247,.09);
+}
+
+body:has(a[href="/entrar/loja"]) button[type="submit"],
+body:has(a[href="/entrar/loja"]) button:not([type]),
+body:has(a[href="/entrar/loja"]) a[class*="bg-brand"] {
+  background-image: linear-gradient(100deg, #7c3aed 0%, #a855f7 52%, #ec24e9 100%);
+  color: #fff;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: clamp(-17rem, -11vw, -4rem);
+  bottom: 1rem;
+  width: min(55vw, 780px);
+  aspect-ratio: 920 / 720;
+  background: url('/brand/hero-operations.svg') center/contain no-repeat;
+  opacity: .72;
+  pointer-events: none;
+  filter: drop-shadow(0 30px 70px rgba(124,58,237,.28));
+}
+
+body:has(a[href="#recursos"]) main > section:first-child > * { position: relative; z-index: 1; }
+
+@media (max-width: 1023px) {
+  body:has(a[href="#recursos"]) main > section:first-child::after {
+    width: 90vw;
+    right: -36vw;
+    bottom: 8rem;
+    opacity: .16;
+  }
+  body:has(main a[href="/entrar/loja"]) main.min-h-dvh > div > section:first-child::after { display: none; }
+}

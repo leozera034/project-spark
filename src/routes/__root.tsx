@@ -9,6 +9,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import purpleCss from "../purple-overrides.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
@@ -31,8 +32,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
-  // Build desatualizado em cache (causa comum do "não carregou" no Safari iOS):
-  // a correção real é buscar os módulos novos, uma única vez.
   useEffect(() => {
     if (kind === "stale_build") recoverFromStaleBuild();
   }, [kind]);
@@ -49,7 +48,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -57,7 +55,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Pediu Aqui · Cardápio digital para o seu negócio" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "author", content: "Pediu Aqui" },
-      { name: "theme-color", content: "#0B171C" },
+      { name: "theme-color", content: "#07030D" },
       { name: "apple-mobile-web-app-title", content: "Pediu Aqui" },
       { property: "og:site_name", content: "Pediu Aqui" },
       { property: "og:locale", content: "pt_BR" },
@@ -65,14 +63,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: purpleCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
@@ -82,7 +75,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap",
       },
-
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/brand/apple-touch-icon-180x180.png", sizes: "180x180" },
@@ -101,7 +93,6 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
-        {/* aplica o tema antes da pintura para evitar flash */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
@@ -120,8 +111,6 @@ function ThemedToaster() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  // Autocorreção do caso mais comum de "a página não carregou" em Safari iOS:
-  // navegação para um chunk que não existe mais depois de um deploy.
   useEffect(() => {
     function onRejection(event: PromiseRejectionEvent) {
       if (classifyAppError(event.reason) === "stale_build") recoverFromStaleBuild();
@@ -130,19 +119,15 @@ function RootComponent() {
     return () => window.removeEventListener("unhandledrejection", onRejection);
   }, []);
 
-
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
           <SkipToContent />
           <RouteProgress />
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <div id="conteudo">
             <Outlet />
           </div>
-
           <ThemedToaster />
         </AuthProvider>
       </ThemeProvider>
