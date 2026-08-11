@@ -5,7 +5,6 @@ import {
   Building2,
   LogOut,
   Menu,
-  Settings2,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -17,7 +16,6 @@ import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
