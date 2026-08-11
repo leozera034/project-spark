@@ -1,8 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, BadgeCheck, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, BadgeCheck, ShieldCheck, Sparkles, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+
+const AUTH_FEATURES: Array<{ icon: LucideIcon; label: string }> = [
+  { icon: ShieldCheck, label: "Acesso protegido" },
+  { icon: BadgeCheck, label: "Papéis e permissões" },
+  { icon: Zap, label: "Operação rápida" },
+];
 
 export function AuthShell({
   title,
@@ -38,12 +44,8 @@ export function AuthShell({
             Entre para acompanhar pedidos, equipe, cozinha, entregas e indicadores em uma experiência construída para funcionar bem no celular e no computador.
           </p>
           <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
-            {[
-              [ShieldCheck, "Acesso protegido"],
-              [BadgeCheck, "Papéis e permissões"],
-              [Zap, "Operação rápida"],
-            ].map(([Icon, label]) => (
-              <div key={String(label)} className="rounded-2xl border border-white/8 bg-white/[.035] p-4">
+            {AUTH_FEATURES.map(({ icon: Icon, label }) => (
+              <div key={label} className="rounded-2xl border border-white/8 bg-white/[.035] p-4">
                 <Icon className="size-4 text-[#12d8c1]" />
                 <p className="mt-3 text-xs font-bold text-white/72">{label}</p>
               </div>
