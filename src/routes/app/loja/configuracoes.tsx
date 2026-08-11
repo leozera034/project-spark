@@ -9,6 +9,7 @@ import { StoreConfigProvider, useStoreConfig } from "@/store-config/StoreConfigP
 
 const SECTIONS = [
   { to: "/app/loja/configuracoes/dados", label: "Dados da loja" },
+  { to: "/app/loja/configuracoes/categoria", label: "Categoria" },
   { to: "/app/loja/configuracoes/identidade", label: "Identidade" },
   { to: "/app/loja/configuracoes/horarios", label: "Horários" },
   { to: "/app/loja/configuracoes/atendimento", label: "Atendimento" },
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/app/loja/configuracoes")({
       {
         name: "description",
         content:
-          "Configure dados, identidade, horários, atendimento, bairros e formas de pagamento da sua loja.",
+          "Configure dados, categoria, identidade, horários, atendimento, bairros e formas de pagamento da sua loja.",
       },
       { property: "og:title", content: "Configurações da loja | Pediu Aqui" },
       {
