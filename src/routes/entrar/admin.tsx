@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -62,25 +63,29 @@ function AdminSignInPage() {
 
   return (
     <AuthShell
+      badge="Administração da plataforma"
       title="Administração da plataforma"
       description="Área restrita da equipe Pediu Aqui."
       footer={
-        <div className="flex flex-col gap-2">
-          <Link to={AUTH_ROUTES.recovery} className="underline underline-offset-4">
+        <div className="space-y-4">
+          <Link to={AUTH_ROUTES.recovery} className="inline-flex min-h-11 items-center underline underline-offset-4">
             Esqueci minha senha
           </Link>
-          <Link to="/" className="underline underline-offset-4">
-            Voltar
-          </Link>
+          <p className="border-t border-border pt-4 text-xs text-muted-foreground">
+            Procurando outro acesso?{" "}
+            <Link to={AUTH_ROUTES.storeSignIn} search={{ retorno: undefined }} className="underline underline-offset-4">
+              Entrar na loja
+            </Link>{" "}
+            ·{" "}
+            <Link to={AUTH_ROUTES.courierSignIn} className="underline underline-offset-4">
+              Entregador
+            </Link>
+          </p>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        {error ? (
-          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthAlert message={error} /> : null}
 
         <div className="space-y-2">
           <Label htmlFor="admin-email">E-mail</Label>
@@ -88,6 +93,7 @@ function AdminSignInPage() {
             id="admin-email"
             type="email"
             inputMode="email"
+            enterKeyHint="next"
             autoComplete="username"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -103,6 +109,7 @@ function AdminSignInPage() {
           onChange={setPassword}
           autoComplete="current-password"
           disabled={busy}
+          enterKeyHint="go"
         />
 
         <Button
