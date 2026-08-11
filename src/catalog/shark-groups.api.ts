@@ -10,6 +10,16 @@ function unwrap<T>(result: { data: unknown; error: { message: string } | null })
   return result.data as T;
 }
 
+export type ComboCatalogCandidate = {
+  id: string;
+  name: string;
+  base_price: number;
+  has_variants: boolean;
+  is_available: boolean;
+  is_sold_out: boolean;
+  variants: Array<{ id: string; name: string; price: number; is_default: boolean }>;
+};
+
 export async function updateOptionGroupEngine(params: {
   storeId: string;
   id: string;
@@ -69,6 +79,31 @@ export async function createProductOptionGroupFromTemplate(params: {
     _selection_type: params.selectionType ?? "multipla",
     _portion_count: params.portionCount ?? null,
     _configuration: params.configuration ?? {},
+  }));
+}
+
+export async function listComboCatalogCandidates(storeId: string, excludeProductId: string): Promise<ComboCatalogCandidate[]> {
+  return unwrap<ComboCatalogCandidate[]>(await rpc("list_combo_catalog_candidates", {
+    _store_id: storeId,
+    _exclude_product_id: excludeProductId,
+  }));
+}
+
+export async function createComboChoice(params: {
+  storeId: string;
+  groupId: string;
+  name: string;
+  linkedProductId: string;
+  linkedVariantId?: string | null;
+  priceDifference: number;
+}): Promise<OptionItem> {
+  return unwrap<OptionItem>(await rpc("create_combo_choice", {
+    _store_id: params.storeId,
+    _group_id: params.groupId,
+    _name: params.name,
+    _linked_product_id: params.linkedProductId,
+    _linked_variant_id: params.linkedVariantId ?? null,
+    _price_difference: params.priceDifference,
   }));
 }
 
