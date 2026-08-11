@@ -5,10 +5,10 @@ export type BrandTone = "auto" | BrandFileTone;
 export type BrandLockup = "horizontal" | "stacked";
 export type BrandSymbolTone = "auto" | "carbon-teal" | "carbon" | "teal" | "white";
 
-const GLOBAL_LOGO = "/brand/logo-global-v3.svg";
+const UI_LOGO = "/brand/logo-ui-v4.svg";
 const GLOBAL_SYMBOL = "/brand/symbol-global-v3.svg";
 
-/** Identidade principal do Pediu Aqui. A v3 foi desenhada para funcionar em todas as superficies do SaaS. */
+/** Lockup compacto e legível para header, sidebar, autenticação e telas operacionais. */
 export function BrandLogo({
   lockup = "horizontal",
   tone: _tone = "auto",
@@ -20,7 +20,7 @@ export function BrandLogo({
 }) {
   return (
     <img
-      src={GLOBAL_LOGO}
+      src={UI_LOGO}
       alt="Pediu Aqui"
       data-no-dim
       className={cn(lockup === "horizontal" ? "h-10 w-auto" : "h-24 w-auto", className)}
@@ -29,7 +29,7 @@ export function BrandLogo({
   );
 }
 
-/** Simbolo isolado para app, favicon visual, sidebar, avatar e espacos compactos. */
+/** Símbolo isolado para app, avatar, sidebar compacta e espaços pequenos. */
 export function BrandSymbol({
   tone: _tone = "auto",
   className,
@@ -48,11 +48,11 @@ export function BrandSymbol({
   );
 }
 
-/** Wordmark compacto. Usa o lockup global para manter a marca consistente. */
+/** Wordmark compacto para contextos onde o símbolo já aparece. */
 export function BrandWordmark({ className }: { className?: string }) {
   return (
     <img
-      src={GLOBAL_LOGO}
+      src={UI_LOGO}
       alt="Pediu Aqui"
       data-no-dim
       className={cn("h-8 w-auto", className)}
