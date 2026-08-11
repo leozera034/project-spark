@@ -1,24 +1,18 @@
 import { useState } from "react";
 import { createFileRoute, notFound, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { Store } from "lucide-react";
+import { ArrowLeft, Store } from "lucide-react";
 import { z } from "zod";
 
 import { CustomerWizard } from "@/components/storefront/CustomerWizard";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { StorefrontSkeleton } from "@/components/feedback/Skeletons";
-import {
-  CustomerWizardProvider,
-  useCustomerWizard,
-} from "@/storefront/customer/customer-wizard.context";
+import { CustomerWizardProvider, useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import { CartProvider } from "@/storefront/cart/cart.context";
 import { fetchStorefront } from "@/lib/storefront.functions";
 import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
 
-
 const searchSchema = z.object({
-  /** Produto aberto na folha de montagem. */
   produto: z.string().uuid().optional(),
-  /** Linha do carrinho em edição, quando a montagem veio do carrinho. */
   linha: z.string().max(64).optional(),
 });
 
@@ -40,9 +34,7 @@ export const Route = createFileRoute("/loja/$slug")({
   head: ({ loaderData, params }) => {
     const name = loaderData?.store.store.name ?? "Cardápio digital";
     const city = loaderData?.store.store.city;
-    const description =
-      loaderData?.store.settings.description ??
-      `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
+    const description = loaderData?.store.settings.description ?? `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
     const title = `${name} · Cardápio online`;
     const origin = loaderData?.origin ?? "";
     const url = absoluteUrl(origin, `/loja/${params.slug}`);
@@ -67,60 +59,36 @@ export const Route = createFileRoute("/loja/$slug")({
         { name: "robots", content: "index,follow" },
       ],
       links: [{ rel: "canonical", href: url }],
-
       scripts: [
         {
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@graph": [
-              {
-                "@type": "LocalBusiness",
-                name,
-                description,
-                url,
-                ...(city ? { address: { "@type": "PostalAddress", addressLocality: city } } : {}),
-                hasMenu: url,
-              },
-              {
-                "@type": "BreadcrumbList",
-                itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Início", item: "/" },
-                  { "@type": "ListItem", position: 2, name, item: url },
-                ],
-              },
+              { "@type": "LocalBusiness", name, description, url, ...(city ? { address: { "@type": "PostalAddress", addressLocality: city } } : {}), hasMenu: url },
+              { "@type": "BreadcrumbList", itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+                { "@type": "ListItem", position: 2, name, item: url },
+              ] },
             ],
           }),
         },
       ],
     };
   },
-
   pendingComponent: StorefrontSkeleton,
   pendingMs: 200,
   pendingMinMs: 400,
   errorComponent: () => <StorefrontError />,
-  notFoundComponent: () => (
-    <CenteredMessage
-      title="Loja não encontrada"
-      body="O endereço acessado não corresponde a nenhuma loja ativa."
-    />
-  ),
+  notFoundComponent: () => <CenteredMessage title="Loja não encontrada" body="O endereço acessado não corresponde a nenhuma loja ativa." />,
   component: StorefrontLayout,
 });
 
-/**
- * O wizard sempre precede o cardápio: sem contexto confirmado nesta sessão,
- * a loja não é exibida para pedido. O carrinho vive acima das telas para
- * sobreviver à navegação entre cardápio, item e carrinho.
- */
 function StorefrontLayout() {
   const { slug } = Route.useParams();
   return (
     <CustomerWizardProvider slug={slug}>
-      <CartProvider slug={slug}>
-        <StorefrontGate />
-      </CartProvider>
+      <CartProvider slug={slug}><StorefrontGate /></CartProvider>
     </CustomerWizardProvider>
   );
 }
@@ -128,38 +96,38 @@ function StorefrontLayout() {
 function StorefrontGate() {
   const { orderingContext } = useCustomerWizard();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  // O acompanhamento é aberto por link, muitas vezes em outro aparelho:
-  // nunca pode exigir a jornada de identificação.
   if (pathname.endsWith("/acompanhar")) return <Outlet />;
   if (!orderingContext) return <CustomerWizard />;
   return <Outlet />;
 }
 
-/** Falha de carregamento do cardápio com caminho claro para tentar de novo. */
 function StorefrontError() {
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-6">
-      <ErrorState
-        title="Cardápio indisponível"
-        description="Não conseguimos carregar esta loja agora. Verifique sua conexão e tente novamente."
-        retrying={retrying}
-        onRetry={() => {
-          setRetrying(true);
-          void router.invalidate().finally(() => setRetrying(false));
-        }}
-      />
+    <main className="pa-commerce-page grid min-h-svh place-items-center px-5 py-12">
+      <div className="w-full max-w-lg">
+        <ErrorState
+          title="Cardápio temporariamente indisponível"
+          description="Não conseguimos carregar esta loja agora. Sua conexão pode ter oscilado ou o serviço pode estar se recuperando."
+          retrying={retrying}
+          onRetry={() => { setRetrying(true); void router.invalidate().finally(() => setRetrying(false)); }}
+        />
+      </div>
     </main>
   );
 }
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <Store className="size-10 text-muted-foreground" />
-      <h1 className="text-xl font-semibold">{title}</h1>
-      <p className="text-sm text-muted-foreground">{body}</p>
+    <main className="pa-commerce-page grid min-h-svh place-items-center px-5 py-12">
+      <section className="pa-commerce-card w-full max-w-lg p-8 text-center sm:p-10">
+        <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-[#071318]/5 text-[#778186]"><Store className="size-5" /></div>
+        <p className="mt-5 text-[10px] font-black uppercase tracking-[.14em] text-[#0d9f91]">Pediu Aqui</p>
+        <h1 className="pa-display mt-2 text-2xl font-bold">{title}</h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#778186]">{body}</p>
+        <a href="/" className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#071318]/10 px-4 text-sm font-bold transition hover:bg-[#071318]/4"><ArrowLeft className="size-4" /> Voltar ao início</a>
+      </section>
     </main>
   );
 }
