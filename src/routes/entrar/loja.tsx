@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -62,25 +63,29 @@ function StoreSignInPage() {
 
   return (
     <AuthShell
+      badge="Ambiente da loja"
       title="Entrar na loja"
       description="Use o e-mail cadastrado pela sua loja."
       footer={
-        <div className="flex flex-col gap-2">
-          <Link to={AUTH_ROUTES.recovery} className="underline underline-offset-4">
+        <div className="space-y-4">
+          <Link to={AUTH_ROUTES.recovery} className="inline-flex min-h-11 items-center underline underline-offset-4">
             Esqueci minha senha
           </Link>
-          <Link to="/" className="underline underline-offset-4">
-            Voltar
-          </Link>
+          <p className="border-t border-border pt-4 text-xs text-muted-foreground">
+            Não é da loja?{" "}
+            <Link to={AUTH_ROUTES.courierSignIn} className="underline underline-offset-4">
+              Entrar como entregador
+            </Link>{" "}
+            ·{" "}
+            <Link to={AUTH_ROUTES.adminSignIn} search={{ retorno: undefined }} className="underline underline-offset-4">
+              Administração
+            </Link>
+          </p>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        {error ? (
-          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthAlert message={error} /> : null}
 
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
@@ -88,6 +93,7 @@ function StoreSignInPage() {
             id="email"
             type="email"
             inputMode="email"
+            enterKeyHint="next"
             autoComplete="username"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -103,6 +109,7 @@ function StoreSignInPage() {
           onChange={setPassword}
           autoComplete="current-password"
           disabled={busy}
+          enterKeyHint="go"
         />
 
         <Button

@@ -3,6 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/catalog/PageHeader";
 
 export const Route = createFileRoute("/app/loja/cardapio/")({
   component: CardapioOverview,
@@ -31,6 +32,11 @@ function CardapioOverview() {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Visão geral"
+        description="Acompanhe categorias, produtos e destaques do seu cardápio."
+      />
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
           label="Categorias ativas"

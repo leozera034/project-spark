@@ -86,10 +86,10 @@ function NewCourierPage() {
   if (result) {
     return (
       <main className="container mx-auto max-w-2xl px-4 py-8">
-        <Card className="border-teal-200 dark:border-teal-900 shadow-xl overflow-hidden">
-          <div className="bg-teal-50 dark:bg-teal-950/30 px-6 py-4 border-b border-teal-100 dark:border-teal-900 flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-            <h2 className="font-semibold text-teal-900 dark:text-teal-100">Entregador Criado com Sucesso</h2>
+        <Card className="border-success/30 shadow-xl overflow-hidden">
+          <div className="bg-success-soft px-6 py-4 border-b border-success/20 flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <h2 className="font-semibold text-success-foreground">Entregador Criado com Sucesso</h2>
           </div>
           <CardContent className="p-6 space-y-6">
             <div className="space-y-4 text-sm">
@@ -113,7 +113,7 @@ function NewCourierPage() {
                       variant="outline" 
                       size="icon" 
                       onClick={copyPassword}
-                      className={cn("transition-colors", copied && "text-teal-600 border-teal-600")}
+                      className={cn("transition-colors", copied && "text-success border-success")}
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
@@ -122,8 +122,8 @@ function NewCourierPage() {
               </div>
             </div>
 
-            <Alert variant="destructive" className="bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 border-amber-200 dark:border-amber-900">
-              <ShieldAlert className="h-4 w-4 text-amber-600" />
+            <Alert variant="destructive" className="bg-warning-soft text-warning-foreground border-warning/30">
+              <ShieldAlert className="h-4 w-4 text-warning" />
               <AlertTitle>Atenção</AlertTitle>
               <AlertDescription className="text-xs opacity-90">
                 O entregador deverá trocar esta senha no primeiro acesso ao aplicativo.

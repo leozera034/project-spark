@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ function ResetPasswordPage() {
         title="Link inválido ou expirado"
         description="Peça um novo link de redefinição para continuar."
         footer={
-          <Link to={AUTH_ROUTES.recovery} className="underline underline-offset-4">
+          <Link to={AUTH_ROUTES.recovery} className="inline-flex min-h-11 items-center underline underline-offset-4">
             Pedir novo link
           </Link>
         }
@@ -84,11 +85,7 @@ function ResetPasswordPage() {
       description={authContext ? "Escolha uma senha que só você conheça." : undefined}
     >
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        {error ? (
-          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthAlert message={error} /> : null}
 
         <PasswordField
           label="Nova senha"
@@ -96,6 +93,7 @@ function ResetPasswordPage() {
           onChange={setPassword}
           autoComplete="new-password"
           disabled={busy}
+          enterKeyHint="next"
         />
         <p className="text-sm text-muted-foreground">{describePasswordPolicy()}</p>
 
@@ -105,9 +103,10 @@ function ResetPasswordPage() {
           onChange={setConfirmation}
           autoComplete="new-password"
           disabled={busy}
+          enterKeyHint="go"
         />
 
-        <Button type="submit" disabled={busy} className="w-full text-base" size="lg">
+        <Button type="submit" loading={busy} loadingLabel="Salvando" className="w-full text-base" size="lg">
           {busy ? "Salvando…" : "Salvar nova senha"}
         </Button>
       </form>

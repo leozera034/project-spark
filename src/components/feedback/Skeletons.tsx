@@ -89,3 +89,50 @@ export function StorefrontSkeleton() {
     </SkeletonScreen>
   );
 }
+
+/** Esqueleto do dashboard operacional: KPIs + lista recente. */
+export function DashboardSkeleton() {
+  return (
+    <SkeletonScreen label="Carregando visão geral" className="space-y-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="space-y-2 rounded-xl border border-border p-4">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-7 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3 rounded-xl border border-border p-4">
+        <Skeleton className="h-4 w-32" />
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </SkeletonScreen>
+  );
+}
+
+/** Esqueleto das colunas do modo cozinha, com altura estável dos cartões. */
+export function KitchenSkeleton() {
+  return (
+    <SkeletonScreen label="Carregando cozinha" className="grid gap-4 lg:grid-cols-2">
+      {Array.from({ length: 2 }).map((_, col) => (
+        <div key={col} className="space-y-4 rounded-xl border border-border p-4">
+          <Skeleton className="h-6 w-32" />
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div key={index} className="h-56 rounded-xl border border-border p-4">
+              <Skeleton className="h-8 w-40" />
+              <Skeleton className="mt-4 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-2/3" />
+              <Skeleton className="mt-6 h-12 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </SkeletonScreen>
+  );
+}

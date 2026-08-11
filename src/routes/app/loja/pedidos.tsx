@@ -31,6 +31,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -47,6 +54,7 @@ import {
   useTransitionReasons,
 } from "@/store-orders/useStoreOrders";
 import { StoreOperationalAlerts } from "@/notifications/store/StoreOperationalAlerts";
+import { orderStatusBadgeVariant } from "@/components/store/order-status";
 import { printOrderReceipt } from "@/lib/thermal-receipt";
 import {
   useAssignCourier,
@@ -105,26 +113,26 @@ function OrdersPanel() {
 
   if (storesQuery.isLoading) {
     return (
-      <main className="mx-auto w-full max-w-6xl space-y-4 px-4 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-6 sm:px-6">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-64 w-full rounded-xl" />
-      </main>
+      </div>
     );
   }
 
   if (storesQuery.error || stores.length === 0) {
     return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
         <ErrorState
           title="Sem acesso a pedidos"
           description="Sua conta não está vinculada a nenhuma loja com permissão de fila de pedidos."
         />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       <StoreOperationalAlerts />
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -278,7 +286,7 @@ function OrdersPanel() {
         orderId={openOrderId}
         onClose={() => setOpenOrderId(null)}
       />
-    </main>
+    </div>
   );
 }
 
@@ -308,9 +316,9 @@ function OrderCard({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge variant="secondary">{STATUS_LABEL[order.status]}</Badge>
+        <Badge variant={orderStatusBadgeVariant(order.status)}>{STATUS_LABEL[order.status]}</Badge>
         {order.isDelayed ? (
-          <Badge variant="destructive" className="gap-1">
+          <Badge variant="danger" className="gap-1">
             <Clock className="size-3" /> Atrasado {order.delayMinutes} min
           </Badge>
         ) : null}
@@ -511,18 +519,22 @@ function OrderDetailDialog({
   const detail = detailQuery.data;
 
   return (
-    <Dialog open={Boolean(orderId)} onOpenChange={(next) => (next ? null : onClose())}>
-      <DialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={Boolean(orderId)} onOpenChange={(next) => (next ? null : onClose())}>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-lg"
+      >
+        <SheetHeader className="border-b border-border px-6 py-4 text-left">
+          <SheetTitle>
             {detail ? `Pedido #${detail.orderNumber}` : "Detalhes do pedido"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {detail
               ? `${STATUS_LABEL[detail.status]} · ${detail.fulfillment === "entrega" ? "Entrega" : "Retirada"}`
               : "Carregando informações do pedido."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
 
         {detailQuery.isLoading ? (
           <Skeleton className="h-48 w-full rounded-xl" />
@@ -637,8 +649,9 @@ function OrderDetailDialog({
             onRetry={() => void detailQuery.refetch()}
           />
         )}
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 

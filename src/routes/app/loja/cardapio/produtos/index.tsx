@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageHeader } from "@/components/catalog/PageHeader";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { ListSkeleton } from "@/components/feedback/Skeletons";
@@ -81,6 +82,22 @@ function ProdutosPage() {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Produtos"
+        description="Cadastre itens, defina preço, disponibilidade e organize por categoria."
+        action={
+          canCreate ? (
+            <Button asChild>
+              <Link to="/app/loja/cardapio/produtos/novo">Novo produto</Link>
+            </Button>
+          ) : can.create ? (
+            <span className="text-xs text-muted-foreground">
+              Crie uma categoria ativa para cadastrar produtos.
+            </span>
+          ) : null
+        }
+      />
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="busca">Buscar</Label>
@@ -124,20 +141,9 @@ function ProdutosPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {query.isLoading ? "Carregando…" : `${total} produto(s)`}
-        </p>
-        {canCreate ? (
-          <Button asChild>
-            <Link to="/app/loja/cardapio/produtos/novo">Novo produto</Link>
-          </Button>
-        ) : can.create ? (
-          <span className="text-xs text-muted-foreground">
-            Crie uma categoria ativa para cadastrar produtos.
-          </span>
-        ) : null}
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {query.isLoading ? "Carregando…" : `${total} produto(s)`}
+      </p>
 
       {query.isLoading ? (
         <ListSkeleton rows={4} />

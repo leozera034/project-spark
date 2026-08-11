@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -70,12 +71,13 @@ function InitialPasswordChangePage() {
   return (
     <AuthShell
       tone="operational"
+      badge="Ambiente do entregador"
       title="Crie a sua senha"
       description="A senha temporária serve apenas para o primeiro acesso. Escolha agora uma senha só sua."
       footer={
         <button
           type="button"
-          className="underline underline-offset-4"
+          className="inline-flex min-h-11 items-center underline underline-offset-4"
           onClick={() => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.courierSignIn as never }))}
         >
           Sair
@@ -83,11 +85,7 @@ function InitialPasswordChangePage() {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        {error ? (
-          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-base text-destructive">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthAlert message={error} /> : null}
 
         <PasswordField
           label="Nova senha"
@@ -95,6 +93,7 @@ function InitialPasswordChangePage() {
           onChange={setPassword}
           autoComplete="new-password"
           disabled={busy}
+          enterKeyHint="next"
         />
         <p className="text-sm text-muted-foreground">{describePasswordPolicy()}</p>
 
@@ -104,9 +103,10 @@ function InitialPasswordChangePage() {
           onChange={setConfirmation}
           autoComplete="new-password"
           disabled={busy}
+          enterKeyHint="go"
         />
 
-        <Button type="submit" disabled={busy} className="h-14 w-full text-lg" size="lg">
+        <Button type="submit" loading={busy} loadingLabel="Salvando" className="h-14 w-full text-lg" size="lg">
           {busy ? "Salvando…" : "Salvar e continuar"}
         </Button>
       </form>

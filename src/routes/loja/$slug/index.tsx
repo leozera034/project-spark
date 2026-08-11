@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
 
@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -32,8 +34,10 @@ function StorefrontPage() {
   const { produto, linha } = parentRoute.useSearch();
 
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
 
   const { store, settings, hours, is_open: isOpen } = storePayload;
 
@@ -54,6 +58,29 @@ function StorefrontPage() {
       }))
       .filter((entry) => entry.items.length > 0);
   }, [catalog, term]);
+
+  useEffect(() => {
+    if (grouped.length === 0) return;
+    const elements = grouped
+      .map(({ category }) => document.getElementById(`categoria-${category.id}`))
+      .filter((el): el is HTMLElement => Boolean(el));
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) {
+          const id = visible[0].target.getAttribute("data-category-id");
+          if (id) setActiveCategory(id);
+        }
+      },
+      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [grouped]);
 
   const todayHours = hours.filter((h) => h.weekday === new Date().getDay());
 
@@ -182,7 +209,13 @@ function StorefrontPage() {
                 <a
                   key={category.id}
                   href={`#categoria-${category.id}`}
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setActiveCategory(category.id);
+                    document
+                      .getElementById(`categoria-${category.id}`)
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
                   className={`press shrink-0 rounded-full border px-3.5 py-1.5 text-sm ${
                     activeCategory === category.id
                       ? "border-transparent bg-primary font-semibold text-primary-foreground"
@@ -223,6 +256,7 @@ function StorefrontPage() {
               as="section"
               key={category.id}
               id={`categoria-${category.id}`}
+              data-category-id={category.id}
               className="scroll-mt-32 py-7"
             >
               <div className="flex items-baseline gap-3">
@@ -313,25 +347,44 @@ function StorefrontPage() {
 
       <CartBar slug={slug} />
 
-      <Sheet open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
-        <SheetContent
-          side="bottom"
-          className="flex h-[92svh] flex-col gap-0 rounded-t-2xl px-4 pb-3"
-        >
-          <SheetHeader className="px-0">
-            <SheetTitle className="sr-only">Detalhes do item</SheetTitle>
-          </SheetHeader>
-          {produto ? (
-            <ProductConfigurator
-              slug={slug}
-              productId={produto}
-              storeOpen={isOpen}
-              editLineId={linha ?? null}
-              onClose={closeProduct}
-            />
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      {isMobile ? (
+        <Sheet open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
+          <SheetContent
+            side="bottom"
+            className="flex h-[92svh] flex-col gap-0 rounded-t-2xl px-4 pb-3"
+          >
+            <SheetHeader className="px-0">
+              <SheetTitle className="sr-only">Detalhes do item</SheetTitle>
+            </SheetHeader>
+            {produto ? (
+              <ProductConfigurator
+                slug={slug}
+                productId={produto}
+                storeOpen={isOpen}
+                editLineId={linha ?? null}
+                onClose={closeProduct}
+              />
+            ) : null}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
+          <DialogContent className="flex h-[85svh] max-w-xl flex-col gap-0 overflow-hidden rounded-2xl p-4">
+            <DialogHeader className="p-0">
+              <DialogTitle className="sr-only">Detalhes do item</DialogTitle>
+            </DialogHeader>
+            {produto ? (
+              <ProductConfigurator
+                slug={slug}
+                productId={produto}
+                storeOpen={isOpen}
+                editLineId={linha ?? null}
+                onClose={closeProduct}
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   );
 }

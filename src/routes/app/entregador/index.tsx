@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +15,6 @@ import {
   User,
   AlertTriangle,
   RefreshCcw,
-  Wifi,
-  WifiOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOnlineStatus } from "@/kitchen/useKitchenOrders";
@@ -33,6 +32,17 @@ import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/c
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CourierAlerts } from "@/notifications/courier/CourierAlerts";
+import { PresenceBadge, ConnectivityChip } from "@/components/courier/PresenceBadge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/app/entregador/")({
   component: CourierDashboard,
@@ -58,6 +68,9 @@ function CourierDashboard() {
   const decline = useDeclineDeliveryAssignment();
   const deliveryCounter = useMyCourierDeliveryCounter();
 
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+
   useEffect(() => {
     if (!context?.onlineIntent || !isOnline) return;
 
@@ -70,7 +83,7 @@ function CourierDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 space-y-4">
+      <div className="min-h-dvh bg-background p-4 space-y-4">
         <Skeleton className="h-16 w-full" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -80,7 +93,7 @@ function CourierDashboard() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
+      <div className="min-h-dvh bg-background p-4">
         <ErrorState
           title="Erro ao carregar painel"
           description="Não foi possível sincronizar seus dados operacionais."
@@ -120,11 +133,13 @@ function CourierDashboard() {
     }
   };
 
-  const handleDecline = async () => {
-    if (!pendingAssignment) return;
-    const reason = window.prompt("Por que deseja recusar esta entrega? (Opcional)");
-    if (reason === null) return;
+  const openDecline = () => {
+    setDeclineReason("");
+    setDeclineOpen(true);
+  };
 
+  const confirmDecline = async () => {
+    if (!pendingAssignment) return;
     try {
       await decline.mutateAsync({
         deliveryId: pendingAssignment.deliveryId,
@@ -132,80 +147,71 @@ function CourierDashboard() {
         reasonCode: "other",
         idempotencyKey: crypto.randomUUID(),
       });
+      setDeclineOpen(false);
     } catch {
       // O hook centraliza a mensagem de erro para o entregador.
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-      <header className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-brand/10 flex items-center justify-center text-brand">
-            <User className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="font-bold text-sm leading-tight">{authContext?.full_name}</h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <div
-                className={cn(
-                  "h-2 w-2 rounded-full",
-                  presence === "online"
-                    ? "bg-emerald-500"
-                    : presence === "sem_sinal"
-                      ? "bg-amber-500 animate-pulse"
-                      : "bg-slate-300",
-                )}
-              />
-              <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">
-                {PRESENCE_LABEL[presence]}
-              </span>
-              {!isOnline && (
-                <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">
-                  OFFLINE
-                </Badge>
-              )}
+    <div className="min-h-dvh bg-background pb-24">
+      <header className="sticky top-0 z-10 border-b border-border bg-surface/95 px-4 py-3 shadow-sm backdrop-blur">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">
+              <User className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="font-display text-sm font-bold leading-tight">{authContext?.full_name}</h1>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                  {PRESENCE_LABEL[presence]}
+                </span>
+              </div>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            {isRefetching && <RefreshCcw className="h-4 w-4 animate-spin text-muted-foreground" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sair"
+              onClick={() =>
+                signOut("local").then(() => navigate({ to: "/entrar/entregador" }))
+              }
+            >
+              <Power className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isRefetching && <RefreshCcw className="h-4 w-4 animate-spin text-muted-foreground" />}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              signOut("local").then(() => navigate({ to: "/entrar/entregador" }))
-            }
-          >
-            <Power className="h-5 w-5 text-muted-foreground" />
-          </Button>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <PresenceBadge presence={presence} />
+          <ConnectivityChip isOnline={isOnline} />
         </div>
       </header>
 
-      <main className="p-4 space-y-6 max-w-lg mx-auto">
+      <main className="mx-auto max-w-lg space-y-6 p-4">
         <CourierAlerts />
 
         <Card
           className={cn(
             "border-2 transition-colors",
-            context?.onlineIntent
-              ? "border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/10"
-              : "border-slate-200",
+            context?.onlineIntent ? "border-success/30 bg-success-soft/40" : "border-border",
           )}
         >
-          <CardContent className="p-4 flex items-center justify-between">
+          <CardContent className="flex items-center justify-between p-4">
             <div className="space-y-1">
-              <p className="text-xs font-bold uppercase opacity-60">Sua Disponibilidade</p>
-              <p className="font-semibold text-sm">
-                {context?.onlineIntent ? "Recebendo novas entregas" : "Pausado / Offline"}
+              <p className="text-xs font-bold uppercase text-muted-foreground">Sua disponibilidade</p>
+              <p className="text-sm font-semibold">
+                {context?.onlineIntent ? "Recebendo novas entregas" : "Pausado / offline"}
               </p>
             </div>
             <Button
-              size="sm"
+              size="lg"
               variant={context?.onlineIntent ? "outline" : "brand"}
               onClick={handleToggleOnline}
               disabled={setOnline.isPending || setOffline.isPending || !isOnline}
-              className="h-8 px-4 text-xs font-bold"
+              className="h-12 min-w-[132px] px-4 text-xs font-black"
             >
               {context?.onlineIntent ? "FICAR OFFLINE" : "FICAR ONLINE"}
             </Button>
@@ -213,20 +219,23 @@ function CourierDashboard() {
         </Card>
 
         {pendingAssignment && (
-          <section className="animate-in fade-in slide-in-from-top-4 duration-500">
-            <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20 shadow-xl overflow-hidden">
-              <div className="bg-amber-500 px-4 py-2 flex items-center justify-between text-white">
-                <span className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" /> Nova Entrega Disponível
+          <section
+            className="animate-in fade-in slide-in-from-top-4 duration-500 motion-reduce:animate-none"
+            aria-live="assertive"
+          >
+            <Card className="overflow-hidden border-warning/40 bg-warning-soft shadow-xl">
+              <div className="flex items-center justify-between bg-warning px-4 py-2 text-warning-foreground">
+                <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest">
+                  <AlertTriangle className="h-4 w-4" /> Nova entrega disponível
                 </span>
                 <span className="text-[10px] font-bold">#{pendingAssignment.orderNumber}</span>
               </div>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="space-y-4 p-4">
                 <div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Loja</p>
-                  <p className="font-black text-xl">{context?.storeName}</p>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">Loja</p>
+                  <p className="font-display text-xl font-black">{context?.storeName}</p>
                   {pendingAssignment.neighborhood && (
-                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                    <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>Para: {pendingAssignment.neighborhood}</span>
                     </div>
@@ -236,15 +245,15 @@ function CourierDashboard() {
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <Button
                     variant="outline"
-                    className="h-12 border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold"
-                    onClick={handleDecline}
+                    className="h-14 border-warning/40 font-bold text-warning-foreground"
+                    onClick={openDecline}
                     disabled={decline.isPending || accept.isPending}
                   >
                     RECUSAR
                   </Button>
                   <Button
                     variant="brand"
-                    className="h-12 bg-amber-500 hover:bg-amber-600 border-none font-black text-white"
+                    className="h-14 font-black"
                     onClick={handleAccept}
                     disabled={accept.isPending || decline.isPending}
                   >
@@ -257,20 +266,18 @@ function CourierDashboard() {
         )}
 
         <section className="space-y-3">
-          <h2 className="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" /> Suas Entregas Concluídas
+          <h2 className="flex items-center gap-2 text-sm font-bold uppercase text-muted-foreground">
+            <CheckCircle2 className="h-4 w-4" /> Suas entregas concluídas
           </h2>
-          <Card className="bg-emerald-500 text-white border-none shadow-md overflow-hidden">
-            <CardContent className="p-4 flex items-center justify-between">
+          <Card className="overflow-hidden border-none bg-success text-success-foreground shadow-md">
+            <CardContent className="flex items-center justify-between p-4">
               <div className="space-y-0.5">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Hoje</p>
                 <p className="text-3xl font-black">{deliveryCounter.data?.today ?? 0}</p>
               </div>
-              <div className="h-10 w-px bg-white/20" />
+              <div className="h-10 w-px bg-current opacity-20" />
               <div className="space-y-0.5 text-right">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
-                  Este Mês
-                </p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Este mês</p>
                 <p className="text-xl font-bold">{deliveryCounter.data?.currentMonth ?? 0}</p>
               </div>
             </CardContent>
@@ -279,45 +286,43 @@ function CourierDashboard() {
 
         {activeDelivery && (
           <section className="space-y-3">
-            <h2 className="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
-              <Bike className="h-4 w-4" /> Entrega em Curso
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase text-muted-foreground">
+              <Bike className="h-4 w-4" /> Entrega em curso
             </h2>
-            <Card className="shadow-lg border-brand/20 bg-gradient-to-br from-background to-brand/[0.02]">
+            <Card className="border-brand/30 shadow-lg">
               <CardContent className="p-0">
-                <div className="p-4 space-y-4">
-                  <div className="flex justify-between items-start">
+                <div className="space-y-4 p-4">
+                  <div className="flex items-start justify-between">
                     <div>
                       <p className="text-2xl font-black text-brand">#{activeDelivery.orderNumber}</p>
                       <Badge
                         variant="outline"
-                        className="mt-1 bg-brand/5 border-brand/20 text-brand uppercase text-[10px] font-bold"
+                        className="mt-1 border-brand/30 bg-brand-soft text-[10px] font-bold uppercase text-brand"
                       >
                         {activeDelivery.status.replace("_", " ")}
                       </Badge>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Iniciada</p>
-                      <p className="font-bold flex items-center justify-end gap-1 text-emerald-600 text-sm">
+                      <p className="flex items-center justify-end gap-1 text-sm font-bold text-success">
                         <Clock className="h-3 w-3" /> {relativeTime(activeDelivery.assignedAt)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-2">
-                    <div className="flex gap-3">
-                      <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase">Destino</p>
-                        <p className="font-medium text-sm leading-snug">
-                          {activeDelivery.neighborhood || "Endereço em anexo"}
-                        </p>
-                      </div>
+                  <div className="flex gap-3 pt-2">
+                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs font-bold uppercase text-muted-foreground">Destino</p>
+                      <p className="text-sm font-medium leading-snug">
+                        {activeDelivery.neighborhood || "Endereço em anexo"}
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-muted/30 border-t">
-                  <Button asChild className="w-full h-14 text-lg font-bold shadow-md" variant="brand">
+                <div className="border-t bg-surface-muted p-3">
+                  <Button asChild className="h-16 w-full text-lg font-black shadow-md" variant="brand">
                     <Link to="/app/entregador/entrega">
                       ABRIR PAINEL DE ENTREGA
                       <ChevronRight className="ml-2 h-5 w-5" />
@@ -330,37 +335,31 @@ function CourierDashboard() {
         )}
 
         {!activeDelivery && !pendingAssignment && (
-          <div className="py-12 text-center space-y-3 opacity-40">
-            <div className="h-16 w-16 rounded-full bg-slate-200 dark:bg-slate-800 mx-auto flex items-center justify-center">
+          <div className="space-y-3 py-12 text-center text-muted-foreground">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-muted">
               <Bike className="h-8 w-8" />
             </div>
             <p className="text-sm font-medium">Nenhuma entrega no momento</p>
           </div>
         )}
 
-        <div className="bg-muted/50 rounded-lg p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase opacity-60">
-            {isOnline ? (
-              <Wifi className="h-3 w-3 text-emerald-500" />
-            ) : (
-              <WifiOff className="h-3 w-3 text-destructive" />
-            )}
-            {isOnline ? "Conectado" : "Sem Internet"}
-          </div>
-          <div className="text-[10px] font-bold uppercase opacity-40">
-            v{context?.version || 1}
-          </div>
+        <div className="flex items-center justify-between rounded-lg bg-surface-muted p-3 text-[10px] font-bold uppercase text-muted-foreground">
+          <span>Versão do painel</span>
+          <span>v{context?.version || 1}</span>
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t h-16 flex items-center justify-around px-6 z-20">
-        <Link to="/app/entregador" className="flex flex-col items-center gap-1 text-brand">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-20 flex h-16 items-center justify-around border-t border-border bg-surface px-6"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <Link to="/app/entregador" className="flex min-h-11 flex-col items-center justify-center gap-1 text-brand">
           <Bike className="h-6 w-6" />
           <span className="text-[10px] font-bold">Início</span>
         </Link>
         <Link
           to="/app/entregador/historico"
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-brand"
+          className="flex min-h-11 flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-brand"
         >
           <History className="h-6 w-6" />
           <span className="text-[10px] font-bold">Histórico</span>
@@ -368,12 +367,40 @@ function CourierDashboard() {
         <button
           type="button"
           onClick={() => void signOut()}
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-destructive"
+          className="flex min-h-11 flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-destructive"
         >
           <User className="h-6 w-6" />
           <span className="text-[10px] font-bold">Sair</span>
         </button>
       </nav>
+
+      <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
+        <DialogContent className="max-w-[90vw] rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Recusar esta entrega?</DialogTitle>
+            <DialogDescription>Você pode informar o motivo (opcional).</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="decline-reason" className="text-xs font-bold uppercase text-muted-foreground">
+              Motivo (opcional)
+            </Label>
+            <Textarea
+              id="decline-reason"
+              placeholder="Ex: muito longe, sem combustível..."
+              value={declineReason}
+              onChange={(event) => setDeclineReason(event.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeclineOpen(false)}>
+              Voltar
+            </Button>
+            <Button variant="destructive" onClick={confirmDecline} disabled={decline.isPending}>
+              Confirmar recusa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

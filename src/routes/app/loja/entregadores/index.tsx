@@ -79,7 +79,7 @@ function CourierListPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+            <div className="text-2xl font-bold text-success">
               {counts?.online ?? 0}
             </div>
           </CardContent>
@@ -91,7 +91,7 @@ function CourierListPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-2xl font-bold text-warning">
               {counts?.busy ?? 0}
             </div>
           </CardContent>
@@ -150,8 +150,8 @@ function CourierListPage() {
                     <UserCircle className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
-                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'online' ? 'bg-teal-500' : 
-                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'sem_sinal' ? 'bg-amber-500 animate-pulse' : 'bg-muted-foreground/30'
+                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'online' ? 'bg-success' : 
+                    derivePresence(courier.presenceStatus === 'online', courier.lastSeenAt, payload?.serverNow) === 'sem_sinal' ? 'bg-warning animate-pulse motion-reduce:animate-none' : 'bg-muted-foreground/30'
                   }`} />
                 </div>
                 <div>
@@ -169,7 +169,7 @@ function CourierListPage() {
                         : 'Nunca visto'}
                     </span>
                     {courier.currentAssignment && (
-                      <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                      <span className="flex items-center gap-1 text-warning">
                         <AlertCircle className="h-3 w-3" />
                         Em entrega #{courier.currentAssignment.orderNumber}
                       </span>

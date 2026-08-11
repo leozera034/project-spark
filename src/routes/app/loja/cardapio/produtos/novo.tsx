@@ -10,6 +10,7 @@ import {
 } from "@/catalog/ProductForm";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageHeader } from "@/components/catalog/PageHeader";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/novo")({
   component: NovoProduto,
@@ -65,7 +66,9 @@ function NovoProduto() {
   }
 
   return (
-    <ProductForm
+    <div className="space-y-4">
+      <PageHeader title="Novo produto" description="Preencha os dados abaixo para publicar um novo item no cardápio." />
+      <ProductForm
       categories={activeCategories}
       values={values}
       onChange={setValues}
@@ -74,6 +77,7 @@ function NovoProduto() {
       submitting={isBusy}
       showStatusFields
       submitLabel="Criar produto"
-    />
+      />
+    </div>
   );
 }

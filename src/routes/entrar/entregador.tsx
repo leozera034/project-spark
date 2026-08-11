@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AuthAlert } from "@/components/auth/AuthAlert";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -61,26 +62,30 @@ function CourierSignInPage() {
   return (
     <AuthShell
       tone="operational"
+      badge="Ambiente do entregador"
       title="Entrar"
       description="Use o identificador que a sua loja criou para você."
       footer={
-        <div className="space-y-3">
+        <div className="space-y-4">
           <p>
             Esqueceu a senha? Peça ao responsável da sua loja para redefinir o seu acesso. Ele gera
             uma senha temporária para você.
           </p>
-          <Link to="/" className="inline-block underline underline-offset-4">
-            Voltar
-          </Link>
+          <p className="border-t border-border pt-4 text-xs text-muted-foreground">
+            Não é entregador?{" "}
+            <Link to={AUTH_ROUTES.storeSignIn} search={{ retorno: undefined }} className="underline underline-offset-4">
+              Entrar na loja
+            </Link>{" "}
+            ·{" "}
+            <Link to={AUTH_ROUTES.adminSignIn} search={{ retorno: undefined }} className="underline underline-offset-4">
+              Administração
+            </Link>
+          </p>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        {error ? (
-          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-base text-destructive">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthAlert message={error} /> : null}
 
         <div className="space-y-2">
           <Label htmlFor="identificador" className="text-base">
@@ -90,6 +95,7 @@ function CourierSignInPage() {
             id="identificador"
             type="text"
             inputMode="text"
+            enterKeyHint="next"
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
@@ -108,6 +114,7 @@ function CourierSignInPage() {
           onChange={setPassword}
           autoComplete="current-password"
           disabled={busy}
+          enterKeyHint="go"
         />
 
         <Button

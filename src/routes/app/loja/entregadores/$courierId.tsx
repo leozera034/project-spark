@@ -275,7 +275,7 @@ function CourierDetailPage() {
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "h-3 w-3 rounded-full animate-pulse",
-                  courier.presenceStatus === "online" ? "bg-emerald-500" : "bg-muted-foreground/30"
+                  courier.presenceStatus === "online" ? "bg-success" : "bg-muted-foreground/30"
                 )} />
                 <span className="font-semibold text-lg capitalize">{courier.presenceStatus}</span>
               </div>
@@ -316,9 +316,9 @@ function CourierDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/30 dark:bg-amber-950/10">
+          <Card className="border-warning/30 bg-warning-soft/40">
             <CardHeader>
-              <div className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
+              <div className="flex items-center gap-2 text-warning-foreground">
                 <Lock className="h-4 w-4" />
                 <CardTitle className="text-sm font-bold uppercase tracking-wider">Segurança e Acesso</CardTitle>
               </div>
@@ -328,7 +328,7 @@ function CourierDetailPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Login Habilitado:</span>
                   {courier.loginEnabled ? (
-                    <span className="text-emerald-600 flex items-center gap-1 font-medium"><ShieldCheck className="h-3 w-3" /> SIM</span>
+                    <span className="text-success flex items-center gap-1 font-medium"><ShieldCheck className="h-3 w-3" /> SIM</span>
                   ) : (
                     <span className="text-destructive flex items-center gap-1 font-medium"><ShieldAlert className="h-3 w-3" /> NÃO</span>
                   )}
@@ -345,16 +345,16 @@ function CourierDetailPage() {
 
               {resetResult ? (
                 <div className="rounded border border-amber-300 bg-amber-100 p-3 dark:border-amber-800 dark:bg-amber-900/50">
-                  <Label className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-200">Nova Senha Temporária</Label>
+                  <Label className="text-[10px] uppercase font-bold text-warning-foreground">Nova Senha Temporária</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <code className="flex-1 font-mono text-sm font-bold bg-white dark:bg-black/50 p-1.5 rounded text-center select-all">
                       {resetResult}
                     </code>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-800" onClick={copyPassword}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-warning-foreground" onClick={copyPassword}>
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-[9px] mt-2 text-amber-700 dark:text-amber-300 leading-tight">
+                  <p className="text-[9px] mt-2 text-warning-foreground leading-tight">
                     Exibida apenas uma vez. O entregador deverá trocá-la ao entrar.
                   </p>
                 </div>

@@ -16,6 +16,7 @@ import { CatalogImage } from "@/catalog/CatalogImage";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import type { CatalogCategory } from "@/catalog/types";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/catalog/PageHeader";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,20 +116,27 @@ function CategoriasPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Switch
-            id="arquivadas"
-            checked={showArchived}
-            onCheckedChange={(v) => setShowArchived(Boolean(v))}
-          />
-          <Label htmlFor="arquivadas" className="text-sm text-muted-foreground">
-            Ver arquivadas
-          </Label>
-        </div>
-        {can.create ? (
-          <Button onClick={() => setDraft({ ...EMPTY_DRAFT, open: true })}>Nova categoria</Button>
-        ) : null}
+      <PageHeader
+        title="Categorias"
+        description="Organize a ordem em que os clientes veem as seções do cardápio."
+        action={
+          can.create ? (
+            <Button onClick={() => setDraft({ ...EMPTY_DRAFT, open: true })}>
+              Nova categoria
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="flex items-center gap-2">
+        <Switch
+          id="arquivadas"
+          checked={showArchived}
+          onCheckedChange={(v) => setShowArchived(Boolean(v))}
+        />
+        <Label htmlFor="arquivadas" className="text-sm text-muted-foreground">
+          Ver arquivadas
+        </Label>
       </div>
 
       {visible.length === 0 ? (

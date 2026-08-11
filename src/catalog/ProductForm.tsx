@@ -2,8 +2,9 @@ import { useState } from "react";
 
 import type { CatalogCategory, CatalogProduct } from "./types";
 import { formatPriceBRL, parsePriceInput } from "./types";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -40,6 +41,34 @@ export function initialProductValues(product?: CatalogProduct | null): ProductFo
   };
 }
 
+function RequiredMark() {
+  return (
+    <span aria-hidden="true" className="text-destructive">
+      {" "}*
+    </span>
+  );
+}
+
+function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
+      </CardHeader>
+      <CardContent className="space-y-4">{children}</CardContent>
+    </Card>
+  );
+}
+
 export function ProductForm({
   categories,
   values,
@@ -65,93 +94,124 @@ export function ProductForm({
   const priceInvalid = price === null || price <= 0 || price > 99999;
   const categoryInvalid = values.categoryId === "";
   const invalid = nameInvalid || priceInvalid || categoryInvalid;
+  const categoryName = categories.find((c) => c.id === values.categoryId)?.name;
 
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     onChange({ ...values, [key]: value });
   }
 
+  function handleSubmit() {
+    setTouched(true);
+    if (!invalid) onSubmit();
+  }
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Dados do produto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-categoria">Categoria</Label>
-            <Select value={values.categoryId} onValueChange={(v) => set("categoryId", v)}>
-              <SelectTrigger id="prod-categoria">
-                <SelectValue placeholder="Escolha a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.is_active ? "" : " (inativa)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {touched && categoryInvalid ? (
-              <p className="text-xs text-destructive">Escolha uma categoria.</p>
-            ) : null}
-          </div>
+    <div className="pb-24 lg:pb-0">
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
+        <div className="space-y-4">
+          <FormSection
+            title="Informações básicas"
+            description="Nome, categoria e descrição que o cliente vê no cardápio."
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="prod-categoria">
+                Categoria
+                <RequiredMark />
+              </Label>
+              <Select value={values.categoryId} onValueChange={(v) => set("categoryId", v)}>
+                <SelectTrigger id="prod-categoria" aria-invalid={touched && categoryInvalid}>
+                  <SelectValue placeholder="Escolha a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                      {c.is_active ? "" : " (inativa)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {touched && categoryInvalid ? (
+                <p role="alert" className="text-xs text-destructive">
+                  Escolha uma categoria.
+                </p>
+              ) : null}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-nome">Nome</Label>
-            <Input
-              id="prod-nome"
-              value={values.name}
-              maxLength={80}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="Ex.: Refrigerante lata 350ml"
-            />
-            {touched && nameInvalid ? (
-              <p className="text-xs text-destructive">Use entre 2 e 80 caracteres.</p>
-            ) : null}
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prod-nome">
+                Nome
+                <RequiredMark />
+              </Label>
+              <Input
+                id="prod-nome"
+                value={values.name}
+                maxLength={80}
+                aria-invalid={touched && nameInvalid}
+                onChange={(e) => set("name", e.target.value)}
+                placeholder="Ex.: Refrigerante lata 350ml"
+              />
+              {touched && nameInvalid ? (
+                <p role="alert" className="text-xs text-destructive">
+                  Use entre 2 e 80 caracteres.
+                </p>
+              ) : null}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-desc">Descrição (opcional)</Label>
-            <Textarea
-              id="prod-desc"
-              value={values.description}
-              maxLength={500}
-              rows={4}
-              onChange={(e) => set("description", e.target.value)}
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prod-desc">Descrição (opcional)</Label>
+              <Textarea
+                id="prod-desc"
+                value={values.description}
+                maxLength={500}
+                rows={4}
+                onChange={(e) => set("description", e.target.value)}
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-preco">Preço</Label>
-            <Input
-              id="prod-preco"
-              inputMode="decimal"
-              value={values.price}
-              onChange={(e) => set("price", e.target.value)}
-              placeholder="0,00"
-            />
-            <p className="text-xs text-muted-foreground">
-              {price !== null && price > 0
-                ? `O cliente verá ${formatPriceBRL(price)}`
-                : "Informe o valor cobrado por unidade."}
-            </p>
-            {touched && priceInvalid ? (
-              <p className="text-xs text-destructive">Informe um preço válido maior que zero.</p>
-            ) : null}
-          </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Switch
+                id="prod-obs"
+                checked={values.allowsNotes}
+                onCheckedChange={(v) => set("allowsNotes", Boolean(v))}
+              />
+              <Label htmlFor="prod-obs">Permitir observações do cliente</Label>
+            </div>
+          </FormSection>
 
-          <div className="flex items-center gap-2">
-            <Switch
-              id="prod-obs"
-              checked={values.allowsNotes}
-              onCheckedChange={(v) => set("allowsNotes", Boolean(v))}
-            />
-            <Label htmlFor="prod-obs">Permitir observações do cliente</Label>
-          </div>
+          <FormSection title="Preço" description="Valor cobrado por unidade do produto.">
+            <div className="space-y-1.5">
+              <Label htmlFor="prod-preco">
+                Preço
+                <RequiredMark />
+              </Label>
+              <Input
+                id="prod-preco"
+                inputMode="decimal"
+                value={values.price}
+                aria-invalid={touched && priceInvalid}
+                onChange={(e) => set("price", e.target.value)}
+                placeholder="0,00"
+                className="max-w-[180px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                {price !== null && price > 0
+                  ? `O cliente verá ${formatPriceBRL(price)}`
+                  : "Informe o valor cobrado por unidade."}
+              </p>
+              {touched && priceInvalid ? (
+                <p role="alert" className="text-xs text-destructive">
+                  Informe um preço válido maior que zero.
+                </p>
+              ) : null}
+            </div>
+          </FormSection>
 
           {showStatusFields ? (
-            <div className="space-y-3 border-t border-border pt-4">
+            <FormSection
+              title="Disponibilidade"
+              description="Controle se o produto aparece e como aparece para o cliente."
+            >
               <div className="flex items-center gap-2">
                 <Switch
                   id="prod-ativo"
@@ -176,48 +236,70 @@ export function ProductForm({
                 />
                 <Label htmlFor="prod-esgotado">Já iniciar como esgotado</Label>
               </div>
-            </div>
+            </FormSection>
           ) : null}
 
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button
-              loading={submitting}
-              loadingLabel="Salvando"
-              onClick={() => {
-                setTouched(true);
-                if (!invalid) onSubmit();
-              }}
-            >
+          <div className="hidden flex-wrap gap-2 lg:flex">
+            <Button loading={submitting} loadingLabel="Salvando" onClick={handleSubmit}>
               {submitting ? "Salvando…" : submitLabel}
             </Button>
             <Button variant="ghost" onClick={onCancel} disabled={submitting}>
               Cancelar
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card className="h-fit">
-        <CardHeader>
-          <CardTitle className="text-base">Prévia administrativa</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border border-border p-4">
-            <p className="font-medium text-foreground">
-              {values.name.trim() || "Nome do produto"}
+        <Card className="h-fit lg:sticky lg:top-6">
+          <CardHeader>
+            <CardTitle className="text-base">Prévia no cardápio</CardTitle>
+            <CardDescription>Como o item aparece para o cliente.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border border-border bg-surface p-4">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {categoryName ? (
+                  <span className="text-xs font-medium text-muted-foreground">{categoryName}</span>
+                ) : null}
+                {values.isFeatured ? <Badge>Destaque</Badge> : null}
+                {values.isSoldOut ? <Badge variant="destructive">Esgotado</Badge> : null}
+              </div>
+              <p className="mt-2 font-display font-medium text-foreground">
+                {values.name.trim() || "Nome do produto"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {values.description.trim() || "A descrição aparece aqui para o cliente."}
+              </p>
+              <p className="mt-3 text-lg font-semibold text-foreground">
+                {price !== null && price > 0 ? formatPriceBRL(price) : "R$ 0,00"}
+              </p>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Esta prévia é apenas interna. A vitrine pública do cliente chega em fase posterior.
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {values.description.trim() || "A descrição aparece aqui para o cliente."}
-            </p>
-            <p className="mt-3 text-lg font-semibold text-foreground">
-              {price !== null && price > 0 ? formatPriceBRL(price) : "R$ 0,00"}
-            </p>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Esta prévia é apenas interna. A vitrine pública do cliente chega em fase posterior.
-          </p>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur supports-backdrop-filter:bg-card/80 lg:hidden">
+        <div className="mx-auto flex max-w-5xl gap-2">
+          <Button
+            className="min-h-11 flex-1"
+            loading={submitting}
+            loadingLabel="Salvando"
+            onClick={handleSubmit}
+          >
+            {submitting ? "Salvando…" : submitLabel}
+          </Button>
+          <Button
+            variant="ghost"
+            className="min-h-11"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
