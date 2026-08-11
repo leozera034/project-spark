@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 
 const host = "127.0.0.1";
 const port = 4173;
@@ -29,9 +30,10 @@ const env = {
     process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_ci_smoke_only",
 };
 
+const viteBin = resolve("node_modules/vite/bin/vite.js");
 const child = spawn(
-  process.platform === "win32" ? "npm.cmd" : "npm",
-  ["run", "dev", "--", "--host", host, "--port", String(port), "--strictPort"],
+  process.execPath,
+  [viteBin, "--host", host, "--port", String(port), "--strictPort"],
   { env, stdio: ["ignore", "pipe", "pipe"] },
 );
 
@@ -43,7 +45,7 @@ child.stderr.on("data", (chunk) => {
   output += chunk.toString();
 });
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 
 async function request(path, timeoutMs = 8_000) {
   return fetch(`${origin}${path}`, {
@@ -98,7 +100,7 @@ try {
 } finally {
   child.kill("SIGTERM");
   await Promise.race([
-    new Promise((resolve) => child.once("exit", resolve)),
+    new Promise((resolvePromise) => child.once("exit", resolvePromise)),
     sleep(3_000),
   ]);
   if (child.exitCode === null) child.kill("SIGKILL");
