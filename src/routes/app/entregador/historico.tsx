@@ -51,7 +51,7 @@ function CourierHistory() {
   const items = history.data?.items ?? [];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-24">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b bg-background px-4 py-3">
         <Button asChild variant="ghost" size="icon" aria-label="Voltar">
           <Link to="/app/entregador">

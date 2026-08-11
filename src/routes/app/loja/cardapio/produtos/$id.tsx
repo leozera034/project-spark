@@ -20,8 +20,10 @@ import {
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageHeader } from "@/components/catalog/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -109,6 +111,10 @@ function EditarProduto() {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title={product.name}
+        description="Edite os dados do produto e a configuração avançada de venda."
+      />
       {product.is_archived ? (
         <Alert>
           <AlertTitle>Produto arquivado</AlertTitle>
@@ -127,7 +133,8 @@ function EditarProduto() {
         <TabsContent value="dados" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Imagem do produto</CardTitle>
+              <CardTitle className="text-base">Imagem</CardTitle>
+              <CardDescription>Foto exibida ao lado do produto no cardápio.</CardDescription>
             </CardHeader>
             <CardContent className="flex items-center gap-4">
               <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-24" />
