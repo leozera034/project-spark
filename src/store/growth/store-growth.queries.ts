@@ -12,6 +12,24 @@ import {
   type GrowthSegment,
 } from "@/lib/store-growth.functions";
 
+type CampaignInput = {
+  storeId: string;
+  id?: string | null;
+  name: string;
+  audience: "todos" | GrowthSegment;
+  message: string;
+  status: "rascunho" | "pronta" | "arquivada";
+};
+
+type AutomationInput = {
+  storeId: string;
+  id?: string | null;
+  eventCode: "novo_cliente" | "pedido_concluido" | "cliente_inativo_30d" | "cliente_vip";
+  name: string;
+  enabled: boolean;
+  config?: Record<string, unknown>;
+};
+
 export function useStoreGrowthSummary(storeId: string | null) {
   const fn = useServerFn(getStoreGrowthSummary);
   return useQuery({
@@ -67,26 +85,12 @@ export function useStoreGrowthActions() {
   const saveRuleFn = useServerFn(saveStoreAutomationRule);
 
   const saveCampaign = useMutation({
-    mutationFn: (data: Parameters<typeof saveStoreMarketingCampaign>[0] extends never ? never : {
-      storeId: string;
-      id?: string | null;
-      name: string;
-      audience: "todos" | GrowthSegment;
-      message: string;
-      status: "rascunho" | "pronta" | "arquivada";
-    }) => saveCampaignFn({ data }),
+    mutationFn: (data: CampaignInput) => saveCampaignFn({ data }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
   });
 
   const saveRule = useMutation({
-    mutationFn: (data: {
-      storeId: string;
-      id?: string | null;
-      eventCode: "novo_cliente" | "pedido_concluido" | "cliente_inativo_30d" | "cliente_vip";
-      name: string;
-      enabled: boolean;
-      config?: Record<string, unknown>;
-    }) => saveRuleFn({ data: { ...data, config: data.config ?? {} } }),
+    mutationFn: (data: AutomationInput) => saveRuleFn({ data: { ...data, config: data.config ?? {} } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
   });
 
