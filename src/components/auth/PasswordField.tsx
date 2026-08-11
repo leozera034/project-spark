@@ -12,6 +12,8 @@ export function PasswordField({
   describedBy,
   error,
   disabled,
+  enterKeyHint,
+  autoFocus,
 }: {
   label: string;
   value: string;
@@ -20,6 +22,8 @@ export function PasswordField({
   describedBy?: string;
   error?: string;
   disabled?: boolean;
+  enterKeyHint?: "done" | "next" | "go";
+  autoFocus?: boolean;
 }) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -35,9 +39,11 @@ export function PasswordField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
+          enterKeyHint={enterKeyHint ?? "done"}
           aria-invalid={Boolean(error)}
           aria-describedby={[error ? errorId : null, describedBy].filter(Boolean).join(" ") || undefined}
           disabled={disabled}
+          autoFocus={autoFocus}
           className="h-12 pr-12 text-base"
         />
         <button
@@ -50,7 +56,7 @@ export function PasswordField({
         </button>
       </div>
       {error ? (
-        <p id={errorId} role="alert" className="text-sm text-destructive">
+        <p id={errorId} role="alert" className="text-sm text-danger">
           {error}
         </p>
       ) : null}
