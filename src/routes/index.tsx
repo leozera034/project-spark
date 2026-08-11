@@ -1,54 +1,66 @@
 /**
  * Home pública do Pediu Aqui (produção).
- * Nenhum dado fictício: apenas conteúdo institucional + entradas reais do produto.
+ *
+ * Regra de conteúdo: nada de métrica inventada, depoimento fictício ou
+ * promessa não sustentada pelo produto. Os planos vêm da tabela real `plans`.
  */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ArrowRight,
-  BellRing,
+  BadgeCheck,
   Bike,
+  Building2,
   ChefHat,
   ClipboardList,
+  Coffee,
+  CreditCard,
+  LayoutDashboard,
   MapPin,
+  Pizza,
   Search,
   ShieldCheck,
+  ShoppingBasket,
   Smartphone,
   Store,
-  Timer,
+  UtensilsCrossed,
 } from "lucide-react";
 
-import heroImage from "@/assets/home-hero.jpg";
-import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
+import { ProductMock } from "@/components/marketing/ProductMock";
+import { SiteFooter } from "@/components/marketing/SiteFooter";
+import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { Reveal } from "@/components/motion/Reveal";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { normalizeStoreSlug } from "@/store-config/slug";
+import { listPublicPlans } from "@/lib/marketing.functions";
 import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
+import { normalizeStoreSlug } from "@/store-config/slug";
 
 export const Route = createFileRoute("/")({
   component: Home,
-  loader: async () => ({ origin: await getSiteOrigin() }),
+  loader: async () => {
+    const [origin, plans] = await Promise.all([getSiteOrigin(), listPublicPlans()]);
+    return { origin, plans };
+  },
   head: ({ loaderData }) => {
     const origin = loaderData?.origin ?? "";
     const ogImage = absoluteUrl(origin, OG_IMAGE_PATH);
     const canonical = absoluteUrl(origin, "/");
+    const description =
+      "Cardápio digital, painel de pedidos, modo cozinha, entrega com equipe própria e rastreio do cliente. Mensalidade fixa por loja, sem comissão sobre a sua clientela.";
     return {
       meta: [
-        { title: "Pediu Aqui — cardápio digital, pedidos e entrega própria" },
-        {
-          name: "description",
-          content:
-            "Monte seu cardápio digital, receba pedidos organizados, acompanhe a cozinha e entregue com a sua própria equipe. Sem comissão sobre a sua clientela.",
-        },
-        { property: "og:title", content: "Pediu Aqui — venda no seu próprio cardápio digital" },
-        {
-          property: "og:description",
-          content:
-            "Cardápio digital, painel de pedidos, modo cozinha, app do entregador e rastreio do cliente em uma só plataforma.",
-        },
+        { title: "Pediu Aqui — seu negócio, mais pedidos, mais resultados" },
+        { name: "description", content: description },
+        { property: "og:title", content: "Pediu Aqui — seu negócio, mais pedidos, mais resultados" },
+        { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: canonical },
         { property: "og:image", content: ogImage },
@@ -56,15 +68,11 @@ export const Route = createFileRoute("/")({
         { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "Pediu Aqui — cardápio digital e pedidos" },
-        {
-          name: "twitter:description",
-          content:
-            "Receba pedidos no seu nome, organize a cozinha e entregue com a sua equipe. Mensalidade fixa, sem comissão.",
-        },
+        { name: "twitter:description", content: description },
         { name: "twitter:image", content: ogImage },
         { name: "robots", content: "index,follow" },
       ],
-      links: [{ rel: "canonical", href: canonical }],
+      links: [{ rel: "canonical", href: canonical || "/" }],
       scripts: [
         {
           type: "application/ld+json",
@@ -82,12 +90,7 @@ export const Route = createFileRoute("/")({
                 name: "Pediu Aqui",
                 applicationCategory: "BusinessApplication",
                 operatingSystem: "Web, Android",
-                offers: {
-                  "@type": "Offer",
-                  price: "0",
-                  priceCurrency: "BRL",
-                  description: "Teste inicial sem custo, mensalidade fixa por loja.",
-                },
+                description,
               },
             ],
           }),
@@ -97,83 +100,95 @@ export const Route = createFileRoute("/")({
   },
 });
 
-const pillars = [
-  {
-    icon: Store,
-    title: "Seu endereço, sua marca",
-    text: "Cardápio digital com o nome da loja, suas cores, seus produtos e suas taxas. Nada de vitrine dividida com concorrente.",
-  },
+const features = [
   {
     icon: Smartphone,
-    title: "Pedido em poucos toques",
-    text: "O cliente pede com primeiro nome e telefone. Sem app, sem senha, sem cadastro — menos desistência no caminho.",
+    title: "Cardápio digital",
+    text: "Endereço próprio da loja, identidade visual aplicada, categorias, busca, variações, adicionais, pizza por sabores e venda por peso.",
   },
   {
     icon: ClipboardList,
-    title: "Painel de pedidos de verdade",
-    text: "Filas operacionais, aceite, recusa e transições seguras com controle de concorrência por versão.",
+    title: "Pedidos",
+    text: "Filas operacionais com aceite, recusa e transições protegidas por controle de concorrência. Nada de pedido perdido em conversa.",
   },
   {
     icon: ChefHat,
-    title: "Modo cozinha legível",
-    text: "Projeção mínima, tempo decorrido e ações grandes. Sem dado financeiro e sem dado pessoal na tela da produção.",
+    title: "Cozinha",
+    text: "Projeção mínima para a produção: item, quantidade e tempo decorrido. Sem valor e sem dado pessoal na tela da bancada.",
   },
   {
     icon: Bike,
-    title: "Entrega com equipe própria",
-    text: "Seus entregadores, seu controle. Cada um enxerga apenas as entregas da sua loja, do aceite à porta do cliente.",
+    title: "Entregas",
+    text: "Entregadores da própria loja, atribuição manual, coleta, conclusão e registro de ocorrências no caminho.",
   },
   {
-    icon: MapPin,
-    title: "Rastreio para o cliente",
-    text: "Link de acompanhamento com token seguro: o cliente vê o andamento sem precisar ligar para a loja.",
+    icon: LayoutDashboard,
+    title: "Relatórios",
+    text: "Contador de entregas derivado do fato real de conclusão, com comparação por período. Operacional, sem dado financeiro.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Administração",
+    text: "Ciclo de vida da loja, equipe com papéis, assinatura, auditoria de ações sensíveis e isolamento total entre lojas.",
   },
 ];
 
-const steps = [
-  { title: "Configure a loja", text: "Dados, horários, bairros, taxas, pedido mínimo e formas de pagamento." },
-  { title: "Monte o cardápio", text: "Categorias, produtos, variações, adicionais, pizza por sabores e venda por peso." },
-  { title: "Receba e produza", text: "Pedido cai no painel, cozinha acompanha e o alerta sonoro avisa a equipe." },
-  { title: "Entregue e acompanhe", text: "Atribua o entregador, acompanhe a rota e conte apenas entregas concluídas." },
+const flow = [
+  { icon: Smartphone, title: "O cliente escolhe", text: "Abre o cardápio no celular, monta o item e confirma entrega ou retirada." },
+  { icon: ClipboardList, title: "O pedido entra", text: "Cai na fila do painel com alerta sonoro para a equipe de atendimento." },
+  { icon: ChefHat, title: "A cozinha prepara", text: "Modo cozinha mostra a fila com tempo decorrido e ações grandes de toque." },
+  { icon: Bike, title: "O entregador recebe", text: "Atribuição manual, coleta confirmada e entrega concluída pelo celular." },
+  { icon: MapPin, title: "O gestor acompanha", text: "Status em tempo quase real e rastreio seguro do lado do cliente." },
 ];
 
-const plans = [
+const segments = [
+  { icon: UtensilsCrossed, title: "Restaurantes", text: "Cardápio por categorias, adicionais e observações do pedido." },
+  { icon: ShoppingBasket, title: "Lanchonetes", text: "Combos, variações de tamanho e fluxo rápido de balcão." },
+  { icon: Pizza, title: "Pizzarias", text: "Pizza por múltiplos sabores com regra de preço configurável." },
+  { icon: Coffee, title: "Bares e cafés", text: "Retirada no local, comanda enxuta e operação de horário estendido." },
+  { icon: Store, title: "Mercados e lojas", text: "Catálogo genérico com venda por peso fixo e bairros com taxa própria." },
+  { icon: Building2, title: "Redes com filiais", text: "Cada loja com dados, equipe e cardápio isolados uma da outra." },
+];
+
+const proof = [
+  { icon: ShieldCheck, title: "Isolamento verificado", text: "Cada consulta é filtrada por loja no banco, não apenas na tela." },
+  { icon: BadgeCheck, title: "Preço calculado no servidor", text: "O navegador nunca soma valores: o total vem do servidor a cada mudança." },
+  { icon: CreditCard, title: "Mensalidade fixa", text: "Você paga pelo uso da plataforma, não um percentual de cada venda." },
+];
+
+const faq = [
   {
-    name: "Essencial",
-    price: "R$ 99",
-    highlight: false,
-    features: [
-      "Cardápio digital com domínio próprio da loja",
-      "Painel de pedidos e modo cozinha",
-      "Rastreio do pedido para o cliente",
-      "1 usuário administrador",
-    ],
+    q: "Quanto tempo leva para colocar a loja no ar?",
+    a: "O cadastro cria a loja e o acesso do responsável na mesma hora. Depois é montar o cardápio, definir horários, bairros e formas de pagamento — tudo dentro do painel, sem depender de suporte técnico.",
   },
   {
-    name: "Operação",
-    price: "R$ 179",
-    highlight: true,
-    features: [
-      "Tudo do Essencial",
-      "Equipe com papéis (gerente, atendente, cozinha)",
-      "Entregadores próprios e atribuição manual",
-      "Relatórios de entregas e contador derivado",
-    ],
+    q: "Preciso de aplicativo para o cliente pedir?",
+    a: "Não. O cliente abre o endereço da sua loja no navegador, informa primeiro nome e telefone e finaliza o pedido. Não existe conta nem senha para o cliente.",
   },
   {
-    name: "Rede",
-    price: "R$ 299",
-    highlight: false,
-    features: [
-      "Tudo do Operação",
-      "Múltiplas lojas com isolamento total de dados",
-      "Alertas operacionais e notificações avançadas",
-      "Suporte prioritário assistido",
-    ],
+    q: "Como funciona o pagamento dos pedidos?",
+    a: "Você configura as formas de pagamento aceitas pela loja e o pedido registra a escolha do cliente. O recebimento continua acontecendo entre a loja e o cliente, na entrega ou na retirada.",
+  },
+  {
+    q: "Os entregadores são fornecidos pela plataforma?",
+    a: "Não. A entrega é feita pela sua própria equipe. Você cadastra cada entregador, ele recebe acesso ao painel dele no celular e passa a ver apenas as entregas da sua loja.",
+  },
+  {
+    q: "O cardápio aceita item com variação, adicional e peso?",
+    a: "Sim. O produto pode ter variações (tamanhos), grupos de adicionais com mínimo e máximo, pizza com vários sabores e venda por peso fixo. As regras de preço são validadas no servidor.",
+  },
+  {
+    q: "Meus dados ficam separados dos de outras lojas?",
+    a: "Sim. O isolamento por loja é aplicado no próprio banco de dados, com políticas de acesso por linha e autorização por papel e ação.",
   },
 ];
+
+function currency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 function Home() {
+  const { plans } = Route.useLoaderData();
   const navigate = useNavigate();
   const [slug, setSlug] = useState("");
 
@@ -185,293 +200,468 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <BrandLogo className="h-7 sm:h-8" />
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <a href="#recursos" className="text-muted-foreground transition-colors hover:text-foreground">
-              Recursos
-            </a>
-            <a href="#como-funciona" className="text-muted-foreground transition-colors hover:text-foreground">
-              Como funciona
-            </a>
-            <a href="#planos" className="text-muted-foreground transition-colors hover:text-foreground">
-              Planos
-            </a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link to="/entrar/entregador">Sou entregador</Link>
-            </Button>
-            <Button asChild variant="brand" size="sm">
-              <Link to="/criar-loja">Criar minha loja</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-dvh bg-background text-foreground">
+      <SiteHeader />
 
       <main id="conteudo">
-        <section className="relative overflow-hidden bg-carbon text-carbon-foreground">
-          <img
-            src={heroImage}
-            alt="Hambúrguer, pizza, açaí e suco prontos para entrega"
-            width={1600}
-            height={1104}
-            className="absolute inset-0 size-full object-cover opacity-70"
+        {/* ---------------------------------------------------------- hero */}
+        <section className="relative isolate overflow-hidden bg-carbon text-carbon-foreground">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-40 -top-40 size-[36rem] rounded-full bg-brand/18 blur-[120px]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-carbon via-carbon/85 to-carbon/20" />
-          <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-            <Reveal as="span" className="inline-block">
-              <Badge variant="brand">Feito para o comércio de bairro</Badge>
-            </Reveal>
-            <Reveal
-              as="h1"
-              delay={80}
-              className="mt-6 max-w-3xl text-[clamp(2.1rem,7vw,3.9rem)] font-extrabold leading-[1.03] tracking-tight"
-            >
-              Seu cardápio online, seus pedidos, seus clientes.
-            </Reveal>
-            <Reveal as="p" delay={150} className="mt-6 max-w-2xl text-base opacity-85 sm:text-lg">
-              Chega de anotar pedido no papel e perder venda por mensagem sem resposta. Monte o
-              cardápio, receba os pedidos organizados, acompanhe a cozinha e entregue com a sua
-              própria equipe — com mensalidade fixa e sem comissão sobre a sua clientela.
-            </Reveal>
-
-            <Reveal delay={220} className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
-                <Link to="/criar-loja">
-                  Quero minha loja online
-                  <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="touch" className="w-full border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground sm:w-auto">
-                <a href="#planos">Ver planos e mensalidade</a>
-              </Button>
-            </Reveal>
-
-            <Reveal delay={300} className="mt-12 max-w-xl">
-              <form onSubmit={openStore} className="rounded-xl border border-border/40 bg-background/95 p-4 text-foreground shadow-e2">
-                <label htmlFor="slug-loja" className="text-sm font-semibold">
-                  Já conhece a loja? Abra o cardápio dela
-                </label>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <Input
-                    id="slug-loja"
-                    value={slug}
-                    onChange={(event) => setSlug(event.target.value)}
-                    placeholder="nome-da-loja"
-                    autoComplete="off"
-                    inputMode="url"
-                  />
-                  <Button type="submit" disabled={!normalizeStoreSlug(slug)} className="gap-2">
-                    <Search className="size-4" />
-                    Abrir cardápio
-                  </Button>
-                </div>
-              </form>
-            </Reveal>
-          </div>
-        </section>
-
-        <section id="recursos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
-            Uma plataforma inteira, do cardápio até a porta do cliente
-          </h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Cada ambiente foi desenhado para quem usa: quem vende, quem produz, quem entrega e quem
-            compra.
-          </p>
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {pillars.map((pillar, index) => (
-              <Reveal
-                as="article"
-                key={pillar.title}
-                delay={index * 70}
-                className="hover-lift rounded-xl border border-border bg-surface p-6 shadow-e1"
-              >
-                <span className="inline-flex size-11 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground">
-                  <pillar.icon className="size-5" />
-                </span>
-                <h3 className="mt-5 text-lg font-semibold">{pillar.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{pillar.text}</p>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-56 right-[-10rem] size-[34rem] rounded-full bg-brand/10 blur-[130px]"
+          />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-28">
+            <div>
+              <Reveal as="span" className="inline-block">
+                <Badge variant="brand">Plataforma para o comércio local</Badge>
               </Reveal>
-            ))}
-          </div>
-        </section>
 
-        <section id="como-funciona" className="border-y border-border bg-surface-muted">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Como funciona</h2>
-            <ol className="mt-10 grid gap-6 md:grid-cols-4">
-              {steps.map((step, index) => (
-                <Reveal as="li" key={step.title} delay={index * 80} className="rounded-xl bg-background p-6 shadow-e1">
-                  <span className="inline-flex size-8 items-center justify-center rounded-full bg-carbon text-sm font-bold text-carbon-foreground">
-                    {index + 1}
-                  </span>
-                  <h3 className="mt-4 font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{step.text}</p>
-                </Reveal>
-              ))}
-            </ol>
-            <div className="mt-10 flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-2">
-                <Timer className="size-4 text-brand" /> Tempo decorrido em cada pedido
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <BellRing className="size-4 text-brand" /> Alerta sonoro para pedido sem resposta
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="size-4 text-brand" /> Isolamento total entre lojas
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section id="planos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Mensalidade fixa, sem comissão</h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Você paga pela plataforma, não por pedido. O faturamento da sua venda continua inteiro
-            com você.
-          </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {plans.map((plan, index) => (
               <Reveal
-                as="article"
-                key={plan.name}
-                delay={index * 90}
-                className={
-                  plan.highlight
-                    ? "relative rounded-2xl border-2 border-brand bg-surface p-7 shadow-e2"
-                    : "rounded-2xl border border-border bg-surface p-7 shadow-e1"
-                }
+                as="h1"
+                delay={70}
+                className="mt-6 text-balance font-display text-[clamp(2.25rem,7.5vw,4.25rem)] font-extrabold leading-[1.02] tracking-tight"
               >
-                {plan.highlight ? (
-                  <Badge variant="brand" className="absolute -top-3 left-7">
-                    Mais escolhido
-                  </Badge>
-                ) : null}
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
-                <p className="mt-3 text-3xl font-extrabold tracking-tight">
-                  {plan.price}
-                  <span className="text-sm font-medium text-muted-foreground"> /mês por loja</span>
-                </p>
-                <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2">
-                      <BrandSymbol tone="teal" className="mt-0.5 size-4 shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                Seu negócio, mais pedidos, mais resultados.
+              </Reveal>
+
+              <Reveal
+                as="p"
+                delay={140}
+                className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-carbon-foreground/75 sm:text-lg"
+              >
+                Cardápio digital com a sua marca, pedidos organizados em fila, cozinha acompanhando
+                a produção e entrega feita pela sua própria equipe — em uma plataforma só, com
+                mensalidade fixa e sem comissão sobre a sua clientela.
+              </Reveal>
+
+              <Reveal delay={210} className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
+                  <Link to="/criar-loja">
+                    Criar minha loja
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
                 <Button
                   asChild
-                  variant={plan.highlight ? "brand" : "outline"}
+                  variant="outline"
                   size="touch"
-                  className="mt-7 w-full"
+                  className="w-full border-carbon-foreground/25 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground sm:w-auto"
                 >
-                  <Link to="/criar-loja">Começar com o {plan.name}</Link>
+                  <a href="#operacao">Ver como funciona</a>
                 </Button>
+              </Reveal>
+
+              <Reveal delay={280} className="mt-10 grid gap-3 sm:grid-cols-3">
+                {[
+                  { title: "Configuração guiada", text: "Loja e acesso criados no cadastro." },
+                  { title: "Operação da própria loja", text: "Sua equipe, seus entregadores." },
+                  { title: "Gestão centralizada", text: "Pedidos, cozinha e entregas juntos." },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-carbon-foreground/12 bg-carbon-foreground/[0.04] p-4"
+                  >
+                    <p className="text-sm font-semibold">{item.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-carbon-foreground/65">
+                      {item.text}
+                    </p>
+                  </div>
+                ))}
+              </Reveal>
+            </div>
+
+            <Reveal delay={160} className="relative mx-auto w-full max-w-md pb-10 lg:pb-0">
+              <ProductMock />
+            </Reveal>
+          </div>
+
+          {/* abrir cardápio de uma loja existente */}
+          <div className="relative border-t border-carbon-foreground/10 bg-carbon-foreground/[0.03]">
+            <form
+              onSubmit={openStore}
+              className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 sm:flex-row sm:items-center sm:px-6"
+            >
+              <label
+                htmlFor="slug-loja"
+                className="text-sm font-semibold text-carbon-foreground/80 sm:shrink-0"
+              >
+                Já conhece a loja? Abra o cardápio dela:
+              </label>
+              <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+                <Input
+                  id="slug-loja"
+                  value={slug}
+                  onChange={(event) => setSlug(event.target.value)}
+                  placeholder="nome-da-loja"
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="url"
+                  enterKeyHint="go"
+                  className="bg-background text-foreground sm:max-w-xs"
+                />
+                <Button type="submit" variant="brand" disabled={!normalizeStoreSlug(slug)}>
+                  <Search className="size-4" />
+                  Abrir cardápio
+                </Button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* ----------------------------------------------------- recursos */}
+        <Section id="recursos">
+          <SectionHead
+            eyebrow="Recursos"
+            title="Uma plataforma inteira, do cardápio à porta do cliente"
+            text="Cada ambiente foi desenhado para quem usa: quem vende, quem produz, quem entrega e quem gerencia."
+          />
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, index) => (
+              <Reveal
+                as="article"
+                key={feature.title}
+                delay={index * 60}
+                className="group rounded-2xl border border-border bg-card p-6 shadow-e1 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-e2"
+              >
+                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-foreground">
+                  <feature.icon className="size-5" />
+                </span>
+                <h3 className="mt-5 font-display text-lg font-semibold">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.text}</p>
               </Reveal>
             ))}
           </div>
-          <p className="mt-6 text-xs text-muted-foreground">
-            Valores de referência da plataforma. O plano contratado de cada loja é validado no
-            servidor e aparece no painel administrativo.
-          </p>
+        </Section>
+
+        {/* ------------------------------------------------------ operação */}
+        <section id="operacao" className="border-y border-border bg-carbon text-carbon-foreground">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <Reveal as="p" className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
+              Operação ponta a ponta
+            </Reveal>
+            <Reveal
+              as="h2"
+              delay={60}
+              className="mt-4 max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl"
+            >
+              Do toque do cliente até a porta dele, sem etapa solta
+            </Reveal>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {flow.map((step, index) => (
+                <Reveal
+                  key={step.title}
+                  delay={index * 70}
+                  className="relative rounded-2xl border border-carbon-foreground/12 bg-carbon-foreground/[0.04] p-5"
+                >
+                  <span className="inline-flex size-10 items-center justify-center rounded-xl bg-brand text-brand-foreground">
+                    <step.icon className="size-5" />
+                  </span>
+                  <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-brand">
+                    Etapa {index + 1}
+                  </p>
+                  <h3 className="mt-1.5 font-display text-base font-semibold">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-carbon-foreground/65">
+                    {step.text}
+                  </p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <section className="border-t border-border bg-carbon text-carbon-foreground">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        {/* ----------------------------------------------------- segmentos */}
+        <Section id="segmentos" muted>
+          <SectionHead
+            eyebrow="Para lojas"
+            title="Feito para quem vende comida e conveniência no bairro"
+            text="O catálogo é genérico por decisão de arquitetura: o mesmo motor atende cardápio de restaurante e prateleira de mercado."
+          />
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {segments.map((segment, index) => (
+              <Reveal
+                as="article"
+                key={segment.title}
+                delay={index * 55}
+                className="flex gap-4 rounded-2xl border border-border bg-card p-5 shadow-e1"
+              >
+                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-highlight-soft text-highlight-soft-foreground">
+                  <segment.icon className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-semibold">{segment.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {segment.text}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Section>
+
+        {/* --------------------------------------------- prova de valor */}
+        <Section>
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Pronto para receber o próximo pedido no seu nome?
-              </h2>
-              <p className="mt-2 max-w-xl text-sm opacity-80">
-                Entre com a conta da sua loja e configure tudo em minutos.
+              <SectionHead
+                eyebrow="Por que confiar"
+                title="Garantias de engenharia, não promessa de marketing"
+                text="Não publicamos número de clientes nem depoimento: o que sustentamos aqui é o que está implementado na plataforma."
+              />
+              <div className="mt-10 space-y-4">
+                {proof.map((item, index) => (
+                  <Reveal
+                    key={item.title}
+                    delay={index * 70}
+                    className="flex gap-4 rounded-2xl border border-border bg-card p-5"
+                  >
+                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-foreground">
+                      <item.icon className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold">{item.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        {item.text}
+                      </p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+            <Reveal delay={120} className="mx-auto w-full max-w-md lg:max-w-none">
+              <ProductMock />
+            </Reveal>
+          </div>
+        </Section>
+
+        {/* -------------------------------------------------------- planos */}
+        <Section id="planos" muted>
+          <SectionHead
+            eyebrow="Preços"
+            title="Mensalidade fixa por loja"
+            text="Você paga pelo uso da plataforma. O que a sua loja vende continua sendo inteiramente da sua loja."
+          />
+
+          {plans.length === 0 ? (
+            <div className="mt-12 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+              <p className="font-semibold">Os planos não puderam ser carregados agora</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Recarregue a página ou fale com a nossa equipe para receber os valores vigentes.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="brand" size="touch">
-                <Link to="/entrar/loja" search={{ retorno: undefined }}>Entrar na minha loja</Link>
-              </Button>
-              <Button asChild variant="outline" size="touch" className="border-carbon-foreground/40 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground">
-                <Link to="/entrar/entregador">Acesso do entregador</Link>
-              </Button>
+          ) : (
+            <div className="mt-12 grid gap-5 lg:grid-cols-3">
+              {plans.map((plan, index) => {
+                const featured = index === 1;
+                return (
+                  <Reveal
+                    as="article"
+                    key={plan.code}
+                    delay={index * 80}
+                    className={
+                      featured
+                        ? "relative rounded-3xl border-2 border-brand bg-card p-7 shadow-e3"
+                        : "relative rounded-3xl border border-border bg-card p-7 shadow-e1"
+                    }
+                  >
+                    {featured ? (
+                      <Badge variant="brand" className="absolute -top-3 left-7">
+                        Mais escolhido
+                      </Badge>
+                    ) : null}
+                    <h3 className="font-display text-xl font-bold">{plan.name}</h3>
+                    {plan.description ? (
+                      <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                    ) : null}
+                    <p className="mt-6 flex items-end gap-1.5">
+                      <span className="font-display text-4xl font-extrabold tracking-tight">
+                        {currency(plan.monthly_price)}
+                      </span>
+                      <span className="pb-1 text-sm text-muted-foreground">/mês</span>
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm">
+                      <PlanLimit
+                        label="pedidos por mês"
+                        value={plan.max_orders_month}
+                        unlimited="Pedidos sem limite de volume"
+                      />
+                      <PlanLimit
+                        label="pessoas na equipe"
+                        value={plan.max_team_members}
+                        unlimited="Equipe sem limite de usuários"
+                      />
+                      <PlanLimit
+                        label="entregadores cadastrados"
+                        value={plan.max_couriers}
+                        unlimited="Entregadores sem limite"
+                      />
+                      <PlanFeature>Cardápio digital, pedidos e modo cozinha</PlanFeature>
+                      <PlanFeature>Rastreio do pedido para o cliente</PlanFeature>
+                      <PlanFeature>Relatórios de entregas</PlanFeature>
+                    </ul>
+                    <Button
+                      asChild
+                      variant={featured ? "brand" : "outline"}
+                      size="touch"
+                      className="mt-8 w-full"
+                    >
+                      <Link to="/criar-loja">Começar com {plan.name}</Link>
+                    </Button>
+                  </Reveal>
+                );
+              })}
             </div>
+          )}
+
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            Condições comerciais, período de teste e forma de cobrança são confirmados na
+            contratação da loja.
+          </p>
+        </Section>
+
+        {/* -------------------------------------------------------- dúvidas */}
+        <Section id="duvidas">
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+            <SectionHead
+              eyebrow="Dúvidas frequentes"
+              title="O que as lojas perguntam antes de começar"
+              text="Se a sua dúvida não estiver aqui, ela pode ser tratada durante a criação da loja."
+            />
+            <Reveal>
+              <Accordion type="single" collapsible className="w-full">
+                {faq.map((item, index) => (
+                  <AccordionItem key={item.q} value={`faq-${index}`}>
+                    <AccordionTrigger className="text-left font-semibold">{item.q}</AccordionTrigger>
+                    <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </Reveal>
+          </div>
+        </Section>
+
+        {/* ------------------------------------------------------ CTA final */}
+        <section className="border-t border-border bg-carbon text-carbon-foreground">
+          <div className="relative mx-auto max-w-4xl overflow-hidden px-4 py-20 text-center sm:px-6 sm:py-24">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-0 size-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/20 blur-[110px]"
+            />
+            <Reveal
+              as="h2"
+              className="relative text-balance font-display text-3xl font-extrabold tracking-tight sm:text-5xl"
+            >
+              Coloque a sua loja para receber pedidos hoje
+            </Reveal>
+            <Reveal
+              as="p"
+              delay={80}
+              className="relative mx-auto mt-5 max-w-xl text-pretty text-base text-carbon-foreground/70"
+            >
+              A criação da loja é guiada por etapas curtas. Ao final você já tem o endereço do seu
+              cardápio e o acesso do responsável.
+            </Reveal>
+            <Reveal delay={150} className="relative mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button asChild variant="brand" size="touch" className="w-full sm:w-auto">
+                <Link to="/criar-loja">
+                  Criar minha loja
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="touch"
+                className="w-full border-carbon-foreground/25 bg-transparent text-carbon-foreground hover:bg-carbon-foreground/10 hover:text-carbon-foreground sm:w-auto"
+              >
+                <Link to="/entrar/loja">Já tenho conta</Link>
+              </Button>
+            </Reveal>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
-          <div>
-            <BrandLogo className="h-6" />
-            <p className="mt-3 text-xs text-muted-foreground">
-              A plataforma de pedidos do comércio de bairro.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold">Acessos</h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link to="/entrar/loja" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
-                  Painel da loja
-                </Link>
-              </li>
-              <li>
-                <Link to="/entrar/entregador" className="transition-colors hover:text-foreground">
-                  App do entregador
-                </Link>
-              </li>
-              <li>
-                <Link to="/entrar/admin" search={{ retorno: undefined }} className="transition-colors hover:text-foreground">
-                  Administração da plataforma
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold">Plataforma</h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a href="#recursos" className="transition-colors hover:text-foreground">
-                  Recursos
-                </a>
-              </li>
-              <li>
-                <a href="#planos" className="transition-colors hover:text-foreground">
-                  Planos
-                </a>
-              </li>
-              <li>
-                <Link to="/recuperar-acesso" className="transition-colors hover:text-foreground">
-                  Recuperar acesso
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold">Suporte</h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link to="/design-system" className="transition-colors hover:text-foreground">
-                  Identidade e design system
-                </Link>
-              </li>
-              <li>
-                <Link to="/sem-acesso" className="transition-colors hover:text-foreground">
-                  Problemas de acesso
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-          Pediu Aqui · {new Date().getFullYear()}
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
+  );
+}
+
+/* --------------------------------------------------------- primitivos */
+
+function Section({
+  id,
+  muted = false,
+  children,
+}: {
+  id?: string;
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      className={muted ? "border-y border-border bg-surface-muted" : "bg-background"}
+    >
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">{children}</div>
+    </section>
+  );
+}
+
+function SectionHead({
+  eyebrow,
+  title,
+  text,
+}: {
+  eyebrow: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <Reveal as="p" className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
+        {eyebrow}
+      </Reveal>
+      <Reveal
+        as="h2"
+        delay={60}
+        className="mt-4 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl"
+      >
+        {title}
+      </Reveal>
+      <Reveal as="p" delay={110} className="mt-4 text-pretty text-muted-foreground">
+        {text}
+      </Reveal>
+    </div>
+  );
+}
+
+function PlanFeature({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2.5">
+      <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
+      <span className="text-muted-foreground">{children}</span>
+    </li>
+  );
+}
+
+function PlanLimit({
+  label,
+  value,
+  unlimited,
+}: {
+  label: string;
+  value: number | null;
+  unlimited: string;
+}) {
+  return (
+    <PlanFeature>
+      {value === null ? unlimited : `Até ${value.toLocaleString("pt-BR")} ${label}`}
+    </PlanFeature>
   );
 }
