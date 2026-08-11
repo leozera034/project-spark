@@ -5,7 +5,14 @@ if (!baseUrl) {
   process.exit(0);
 }
 
-const routes = ["/", "/entrar/loja", "/entrar/entregador", "/entrar/admin", "/criar-loja"];
+const routes = [
+  "/api/health",
+  "/",
+  "/entrar/loja",
+  "/entrar/entregador",
+  "/entrar/admin",
+  "/criar-loja",
+];
 const forbiddenBodies = [
   "This page didn't load",
   "Something went wrong on our end",
@@ -19,15 +26,26 @@ for (const path of routes) {
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       redirect: "follow",
+      signal: AbortSignal.timeout(10_000),
       headers: { "user-agent": "PediuAqui-Production-Smoke/1.0" },
     });
     const body = await response.text();
     const forbidden = forbiddenBodies.find((value) => body.includes(value));
+    let invalidHealth = false;
 
-    if (!response.ok || forbidden || !body.trim()) {
+    if (path === "/api/health" && response.ok) {
+      try {
+        const payload = JSON.parse(body);
+        invalidHealth = payload?.ok !== true || payload?.service !== "pediu-aqui";
+      } catch {
+        invalidHealth = true;
+      }
+    }
+
+    if (!response.ok || forbidden || !body.trim() || invalidHealth) {
       failed = true;
       console.error(
-        `✗ ${path}: HTTP ${response.status}${forbidden ? `; encontrou “${forbidden}”` : ""}`,
+        `✗ ${path}: HTTP ${response.status}${forbidden ? `; encontrou “${forbidden}”` : ""}${invalidHealth ? "; health inválido" : ""}`,
       );
     } else {
       console.log(`✓ ${path}: HTTP ${response.status}`);
