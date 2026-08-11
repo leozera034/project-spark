@@ -9,6 +9,10 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "lint:ci": "eslint . --quiet --rule 'prettier/prettier: off'",
+    "typecheck": "tsc --noEmit",
+    "test:hygiene": "node tools/check-repository-hygiene.mjs",
+    "check": "npm run test:hygiene && npm run lint:ci && npm run typecheck && npm run build",
     "format": "prettier --write .",
     "brand:generate": "node tools/generate-brand-assets.mjs"
   },

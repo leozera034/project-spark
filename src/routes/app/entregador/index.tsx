@@ -3,11 +3,11 @@ import { useAuth } from "@/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Bike, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
+import {
+  Bike,
+  MapPin,
+  Clock,
+  CheckCircle2,
   History,
   Power,
   ChevronRight,
@@ -15,26 +15,24 @@ import {
   AlertTriangle,
   RefreshCcw,
   Wifi,
-  WifiOff
+  WifiOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOnlineStatus } from "@/kitchen/useKitchenOrders";
-import { useEffect, useState } from "react";
-import { 
-  useMyCourierOperationalContext, 
-  useSetCourierOnline, 
+import { useEffect } from "react";
+import {
+  useMyCourierOperationalContext,
+  useSetCourierOnline,
   useSetCourierOffline,
   useCourierHeartbeat,
   useAcceptDeliveryAssignment,
-  useDeclineDeliveryAssignment
+  useDeclineDeliveryAssignment,
 } from "@/store/couriers/hooks/useCouriers";
 import { useMyCourierDeliveryCounter } from "@/courier/reports/courier-counter.queries";
 import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/courier.formatters";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 import { CourierAlerts } from "@/notifications/courier/CourierAlerts";
-
 
 export const Route = createFileRoute("/app/entregador/")({
   component: CourierDashboard,
@@ -45,12 +43,12 @@ function CourierDashboard() {
   const isOnline = useOnlineStatus();
   const navigate = useNavigate();
 
-  const { 
-    data: context, 
-    isLoading, 
-    isError, 
+  const {
+    data: context,
+    isLoading,
+    isError,
     refetch,
-    isRefetching
+    isRefetching,
   } = useMyCourierOperationalContext();
 
   const setOnline = useSetCourierOnline();
@@ -58,16 +56,17 @@ function CourierDashboard() {
   const heartbeat = useCourierHeartbeat();
   const accept = useAcceptDeliveryAssignment();
   const decline = useDeclineDeliveryAssignment();
+  const deliveryCounter = useMyCourierDeliveryCounter();
 
-  // Heartbeat a cada 2 minutos se estiver online
   useEffect(() => {
-    if (context?.onlineIntent && isOnline) {
-      const interval = setInterval(() => {
-        heartbeat.mutate(undefined as any);
-      }, 120000);
-      return () => clearInterval(interval);
-    }
-  }, [context?.onlineIntent, isOnline]);
+    if (!context?.onlineIntent || !isOnline) return;
+
+    const interval = window.setInterval(() => {
+      heartbeat.mutate();
+    }, 120000);
+
+    return () => window.clearInterval(interval);
+  }, [context?.onlineIntent, heartbeat, isOnline]);
 
   if (isLoading) {
     return (
@@ -82,7 +81,7 @@ function CourierDashboard() {
   if (isError) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
-        <ErrorState 
+        <ErrorState
           title="Erro ao carregar painel"
           description="Não foi possível sincronizar seus dados operacionais."
           onRetry={() => refetch()}
@@ -94,7 +93,7 @@ function CourierDashboard() {
   const presence = derivePresence(
     context?.onlineIntent ?? false,
     context?.lastSeenAt ?? null,
-    context?.serverNow
+    context?.serverNow,
   );
 
   const activeDelivery = context?.activeDelivery;
@@ -102,9 +101,9 @@ function CourierDashboard() {
 
   const handleToggleOnline = () => {
     if (context?.onlineIntent) {
-      setOffline.mutate(undefined as any);
+      setOffline.mutate();
     } else {
-      setOnline.mutate(undefined as any);
+      setOnline.mutate();
     }
   };
 
@@ -114,33 +113,32 @@ function CourierDashboard() {
       await accept.mutateAsync({
         deliveryId: pendingAssignment.deliveryId,
         expectedVersion: pendingAssignment.version,
-        idempotencyKey: crypto.randomUUID()
+        idempotencyKey: crypto.randomUUID(),
       });
-    } catch (e) {
-      // Erro tratado no hook
+    } catch {
+      // O hook centraliza a mensagem de erro para o entregador.
     }
   };
 
   const handleDecline = async () => {
     if (!pendingAssignment) return;
     const reason = window.prompt("Por que deseja recusar esta entrega? (Opcional)");
-    if (reason === null) return; // Cancelou o prompt
-    
+    if (reason === null) return;
+
     try {
       await decline.mutateAsync({
         deliveryId: pendingAssignment.deliveryId,
         expectedVersion: pendingAssignment.version,
-        reasonCode: "other", // Simplificado para o MVP
-        idempotencyKey: crypto.randomUUID()
+        reasonCode: "other",
+        idempotencyKey: crypto.randomUUID(),
       });
-    } catch (e) {
-      // Erro tratado no hook
+    } catch {
+      // O hook centraliza a mensagem de erro para o entregador.
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-      {/* Header Compacto Mobile-First */}
       <header className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-brand/10 flex items-center justify-center text-brand">
@@ -149,23 +147,36 @@ function CourierDashboard() {
           <div>
             <h1 className="font-bold text-sm leading-tight">{authContext?.full_name}</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <div className={cn(
-                "h-2 w-2 rounded-full", 
-                presence === "online" ? "bg-emerald-500" : 
-                presence === "sem_sinal" ? "bg-amber-500 animate-pulse" : "bg-slate-300"
-              )} />
+              <div
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  presence === "online"
+                    ? "bg-emerald-500"
+                    : presence === "sem_sinal"
+                      ? "bg-amber-500 animate-pulse"
+                      : "bg-slate-300",
+                )}
+              />
               <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">
                 {PRESENCE_LABEL[presence]}
               </span>
               {!isOnline && (
-                <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">OFFLINE</Badge>
+                <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">
+                  OFFLINE
+                </Badge>
               )}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {isRefetching && <RefreshCcw className="h-4 w-4 animate-spin text-muted-foreground" />}
-          <Button variant="ghost" size="icon" onClick={() => signOut("local").then(() => navigate({ to: "/entrar/entregador" }))}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              signOut("local").then(() => navigate({ to: "/entrar/entregador" }))
+            }
+          >
             <Power className="h-5 w-5 text-muted-foreground" />
           </Button>
         </div>
@@ -173,11 +184,15 @@ function CourierDashboard() {
 
       <main className="p-4 space-y-6 max-w-lg mx-auto">
         <CourierAlerts />
-        {/* Status de Disponibilidade */}
-        <Card className={cn(
-          "border-2 transition-colors",
-          context?.onlineIntent ? "border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/10" : "border-slate-200"
-        )}>
+
+        <Card
+          className={cn(
+            "border-2 transition-colors",
+            context?.onlineIntent
+              ? "border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/10"
+              : "border-slate-200",
+          )}
+        >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-xs font-bold uppercase opacity-60">Sua Disponibilidade</p>
@@ -185,7 +200,7 @@ function CourierDashboard() {
                 {context?.onlineIntent ? "Recebendo novas entregas" : "Pausado / Offline"}
               </p>
             </div>
-            <Button 
+            <Button
               size="sm"
               variant={context?.onlineIntent ? "outline" : "brand"}
               onClick={handleToggleOnline}
@@ -197,7 +212,6 @@ function CourierDashboard() {
           </CardContent>
         </Card>
 
-        {/* Notificação de Nova Entrega (Prioridade Máxima) */}
         {pendingAssignment && (
           <section className="animate-in fade-in slide-in-from-top-4 duration-500">
             <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20 shadow-xl overflow-hidden">
@@ -218,18 +232,18 @@ function CourierDashboard() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="h-12 border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold"
                     onClick={handleDecline}
                     disabled={decline.isPending || accept.isPending}
                   >
                     RECUSAR
                   </Button>
-                  <Button 
-                    variant="brand" 
+                  <Button
+                    variant="brand"
                     className="h-12 bg-amber-500 hover:bg-amber-600 border-none font-black text-white"
                     onClick={handleAccept}
                     disabled={accept.isPending || decline.isPending}
@@ -242,7 +256,6 @@ function CourierDashboard() {
           </section>
         )}
 
-        {/* Contador de Entregas (Fase 20) */}
         <section className="space-y-3">
           <h2 className="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" /> Suas Entregas Concluídas
@@ -251,18 +264,19 @@ function CourierDashboard() {
             <CardContent className="p-4 flex items-center justify-between">
               <div className="space-y-0.5">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Hoje</p>
-                <p className="text-3xl font-black">{useMyCourierDeliveryCounter().data?.today ?? 0}</p>
+                <p className="text-3xl font-black">{deliveryCounter.data?.today ?? 0}</p>
               </div>
               <div className="h-10 w-px bg-white/20" />
               <div className="space-y-0.5 text-right">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Este Mês</p>
-                <p className="text-xl font-bold">{useMyCourierDeliveryCounter().data?.currentMonth ?? 0}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                  Este Mês
+                </p>
+                <p className="text-xl font-bold">{deliveryCounter.data?.currentMonth ?? 0}</p>
               </div>
             </CardContent>
           </Card>
         </section>
 
-        {/* Entrega Ativa (Destaque) */}
         {activeDelivery && (
           <section className="space-y-3">
             <h2 className="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
@@ -274,8 +288,11 @@ function CourierDashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-2xl font-black text-brand">#{activeDelivery.orderNumber}</p>
-                      <Badge variant="outline" className="mt-1 bg-brand/5 border-brand/20 text-brand uppercase text-[10px] font-bold">
-                        {activeDelivery.status.replace('_', ' ')}
+                      <Badge
+                        variant="outline"
+                        className="mt-1 bg-brand/5 border-brand/20 text-brand uppercase text-[10px] font-bold"
+                      >
+                        {activeDelivery.status.replace("_", " ")}
                       </Badge>
                     </div>
                     <div className="text-right">
@@ -321,10 +338,13 @@ function CourierDashboard() {
           </div>
         )}
 
-        {/* Resumo de Conectividade */}
         <div className="bg-muted/50 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase opacity-60">
-            {isOnline ? <Wifi className="h-3 w-3 text-emerald-500" /> : <WifiOff className="h-3 w-3 text-destructive" />}
+            {isOnline ? (
+              <Wifi className="h-3 w-3 text-emerald-500" />
+            ) : (
+              <WifiOff className="h-3 w-3 text-destructive" />
+            )}
             {isOnline ? "Conectado" : "Sem Internet"}
           </div>
           <div className="text-[10px] font-bold uppercase opacity-40">
@@ -333,13 +353,15 @@ function CourierDashboard() {
         </div>
       </main>
 
-      {/* Navegação Inferior (Padrão App) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t h-16 flex items-center justify-around px-6 z-20">
         <Link to="/app/entregador" className="flex flex-col items-center gap-1 text-brand">
           <Bike className="h-6 w-6" />
           <span className="text-[10px] font-bold">Início</span>
         </Link>
-        <Link to="/app/entregador/historico" className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-brand">
+        <Link
+          to="/app/entregador/historico"
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-brand"
+        >
           <History className="h-6 w-6" />
           <span className="text-[10px] font-bold">Histórico</span>
         </Link>

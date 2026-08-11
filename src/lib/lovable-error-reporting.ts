@@ -23,13 +23,26 @@ declare global {
   }
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Response
+    ? `Response ${error.status}${error.url ? ` at ${error.url}` : ""}`
+    : error instanceof Error
+      ? error.message
+      : String(error);
+}
+
 export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
+
+  const message = errorMessage(error);
+  const route = window.location.pathname;
+  const boundary = typeof context.boundary === "string" ? context.boundary : undefined;
+
   window.__lovableEvents?.captureException?.(
     error,
     {
       source: "react_error_boundary",
-      route: window.location.pathname,
+      route,
       ...context,
     },
     {
@@ -38,20 +51,27 @@ export function reportLovableError(error: unknown, context: Record<string, unkno
       severity: "error",
     },
   );
-  // Prod React does not rethrow boundary-caught errors to window.onerror, so the
-  // editor's telemetry never sees them. Forward to lovable.js's reporting hook,
-  // which is present only inside the editor preview.
-  // Loaders and server fns commonly throw a raw Response; String(it) is the
-  // opaque "[object Response]", so pull out the status and URL instead.
-  const message =
-    error instanceof Response
-      ? `Response ${error.status}${error.url ? ` at ${error.url}` : ""}`
-      : error instanceof Error
-        ? error.message
-        : String(error);
+
+  // The Lovable preview hook helps while editing, but production also gets its own
+  // sanitized, server-side persisted event in audit_logs.
   window.__lovableReportRuntimeError?.({
     message,
     stack: error instanceof Error ? error.stack : undefined,
-    filename: window.location.pathname,
+    filename: route,
   });
+
+  void import("@/lib/app-observability.functions")
+    .then(({ recordClientError }) =>
+      recordClientError({
+        data: {
+          message,
+          stack: error instanceof Error ? error.stack : undefined,
+          route,
+          source: "react_error_boundary",
+          boundary,
+          userAgent: window.navigator.userAgent,
+        },
+      }),
+    )
+    .catch(() => undefined);
 }
