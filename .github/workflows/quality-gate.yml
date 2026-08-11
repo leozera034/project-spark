@@ -26,6 +26,8 @@ jobs:
         run: npm install --ignore-scripts
       - name: Repository hygiene
         run: npm run test:hygiene
+      - name: Static database migration safety
+        run: npm run test:db-static
       - name: Logic lint
         run: npm run lint:ci
       - name: Typecheck
