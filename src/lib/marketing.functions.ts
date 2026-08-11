@@ -15,7 +15,14 @@ export type PublicPlan = {
   max_couriers: number | null;
 };
 
-export const listPublicPlans = createServerFn({ method: "GET" }).handler(
+/**
+ * A chamada de banco fica isolada numa Server Function. O handler já trata
+ * falhas de Supabase, mas a própria ponte Server Function também pode rejeitar
+ * durante preview/deploy ou navegação com cache antigo. A landing pública não
+ * pode cair inteira só porque a tabela de planos está temporariamente
+ * indisponível, então o wrapper público abaixo também trata essa camada.
+ */
+const listPublicPlansServer = createServerFn({ method: "GET" }).handler(
   async (): Promise<PublicPlan[]> => {
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -31,6 +38,7 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(
         console.error("[marketing] falha ao listar planos", error);
         return [];
       }
+
       return (data ?? []).map((plan) => ({
         code: plan.code,
         name: plan.name,
@@ -46,3 +54,12 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(
     }
   },
 );
+
+export async function listPublicPlans(): Promise<PublicPlan[]> {
+  try {
+    return await listPublicPlansServer();
+  } catch (error) {
+    console.error("[marketing] ponte de planos indisponível", error);
+    return [];
+  }
+}
