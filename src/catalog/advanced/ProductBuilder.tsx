@@ -7,6 +7,7 @@ import { getAdvancedBuilder, listOptionGroups } from "../advanced-api";
 import { catalogErrorMessage } from "../api";
 import { useCatalog } from "../CatalogProvider";
 
+import { ComboBuilderCard } from "./ComboBuilderCard";
 import { ConfiguredPreviewCard } from "./ConfiguredPreviewCard";
 import { ProductGroupsCard } from "./ProductGroupsCard";
 import { SaleModeCard } from "./SaleModeCard";
@@ -40,6 +41,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
       <ValidationSummary report={builder.validation} />
       <SaleModeCard builder={builder} onSaved={refetch} />
       <VariantsCard builder={builder} onSaved={refetch} />
+      <ComboBuilderCard builder={builder} onSaved={refetch} />
       <SmartGroupRulesCard builder={builder} onSaved={refetch} />
       <ProductGroupsCard builder={builder} library={libraryQuery.data ?? []} onSaved={refetch} />
       <VariantPricesCard builder={builder} onSaved={refetch} />
