@@ -16,7 +16,7 @@ permissions:
 jobs:
   app:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +32,8 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: Critical route smoke test
+        run: npm run test:smoke
 
   database-contracts:
     runs-on: ubuntu-latest
