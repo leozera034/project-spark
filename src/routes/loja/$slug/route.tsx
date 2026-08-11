@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, notFound, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { Store } from "lucide-react";
 import { z } from "zod";
 
@@ -25,11 +25,17 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/loja/$slug")({
   validateSearch: searchSchema,
   loader: async ({ params }) => {
-    const [storefront, origin] = await Promise.all([
-      fetchStorefront({ data: { slug: params.slug } }),
-      getSiteOrigin(),
-    ]);
-    return { ...storefront, origin };
+    try {
+      const [storefront, origin] = await Promise.all([
+        fetchStorefront({ data: { slug: params.slug } }),
+        getSiteOrigin(),
+      ]);
+      return { ...storefront, origin };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("not_found")) throw notFound();
+      throw error;
+    }
   },
   head: ({ loaderData, params }) => {
     const name = loaderData?.store.store.name ?? "Cardápio digital";
