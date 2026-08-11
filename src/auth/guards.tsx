@@ -15,12 +15,11 @@ export function AuthLoadingBoundary({ children }: { children: ReactNode }) {
   const { isInitializing } = useAuth();
   if (isInitializing) {
     return (
-      <div
-        className="flex min-h-screen items-center justify-center bg-background"
-        role="status"
-        aria-live="polite"
-      >
-        <span className="text-sm text-muted-foreground">Carregando…</span>
+      <div className="grid min-h-screen place-items-center bg-background" role="status" aria-live="polite">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+          <span className="text-sm font-medium text-muted-foreground">Preparando seu acesso…</span>
+        </div>
       </div>
     );
   }
@@ -40,22 +39,20 @@ export function RequireAuth({ children, signIn }: { children: ReactNode; signIn:
   return <>{children}</>;
 }
 
-export function RequireEnvironment({
-  environment,
-  children,
-}: {
-  environment: AccountEnvironment;
-  children: ReactNode;
-}) {
+export function RequireEnvironment({ environment, children }: { environment: AccountEnvironment; children: ReactNode }) {
   const { authContext } = useAuth();
   if (!authContext) return <Navigate to={AUTH_ROUTES.noAccess} replace />;
   if (authContext.account_environment !== environment) {
-    return <Navigate to={routeForContext(authContext)} replace />;
+    try {
+      return <Navigate to={routeForContext(authContext)} replace />;
+    } catch (error) {
+      console.error("Failed to resolve account environment route", error);
+      return <Navigate to={AUTH_ROUTES.noAccess} replace />;
+    }
   }
   return <>{children}</>;
 }
 
-/** Nenhuma rota autenticada abre enquanto a troca inicial estiver pendente. */
 export function RequirePasswordChangeCompleted({ children }: { children: ReactNode }) {
   const { authContext } = useAuth();
   if (authContext?.requires_password_change) {
@@ -64,11 +61,22 @@ export function RequirePasswordChangeCompleted({ children }: { children: ReactNo
   return <>{children}</>;
 }
 
+/**
+ * Public login pages must never crash because a stale local session cannot be mapped.
+ * If the context is valid we redirect; if it is inconsistent we fail open to the
+ * sign-in screen and let the user recover the session normally.
+ */
 export function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, authContext, isInitializing } = useAuth();
   if (isInitializing) return <AuthLoadingBoundary>{null}</AuthLoadingBoundary>;
   if (isAuthenticated && authContext) {
-    return <Navigate to={routeForContext(authContext)} replace />;
+    try {
+      const target = routeForContext(authContext);
+      return <Navigate to={target} replace />;
+    } catch (error) {
+      console.error("Failed to resolve authenticated public-route redirect", error);
+      return <>{children}</>;
+    }
   }
   return <>{children}</>;
 }
