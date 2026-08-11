@@ -1,0 +1,79 @@
+:root,
+.dark {
+  --brand: oklch(0.66 0.255 300);
+  --brand-foreground: oklch(0.985 0.002 285);
+  --brand-strong: oklch(0.58 0.26 300);
+  --brand-soft: oklch(0.94 0.045 300);
+  --brand-soft-foreground: oklch(0.47 0.22 300);
+  --primary: oklch(0.62 0.27 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.68 0.25 300);
+  --accent: oklch(0.93 0.06 300);
+  --accent-foreground: oklch(0.47 0.22 300);
+  --sidebar-primary: oklch(0.66 0.255 300);
+  --sidebar-ring: oklch(0.68 0.25 300);
+  --chart-1: oklch(0.66 0.255 300);
+  --chart-3: oklch(0.76 0.19 320);
+  --elevation-focus: 0 0 0 4px oklch(0.66 0.255 300 / 0.28);
+}
+
+/* Marketing/auth/onboarding surfaces keep one premium visual language. */
+body:has(a[href="/entrar/loja"]) {
+  background: #07030d;
+}
+
+body:has(a[href="/entrar/loja"]) .panel {
+  border-color: rgba(168, 85, 247, 0.18);
+  background: linear-gradient(180deg, rgba(24, 12, 40, 0.97), rgba(11, 6, 19, 0.98));
+  box-shadow: 0 28px 90px rgba(42, 16, 73, 0.28), inset 0 1px rgba(255,255,255,.035);
+}
+
+body:has(a[href="/entrar/loja"]) input,
+body:has(a[href="/entrar/loja"]) textarea,
+body:has(a[href="/entrar/loja"]) select {
+  border-color: rgba(196, 181, 253, 0.2);
+  background: rgba(255,255,255,.035);
+}
+
+body:has(a[href="/entrar/loja"]) input:focus,
+body:has(a[href="/entrar/loja"]) textarea:focus,
+body:has(a[href="/entrar/loja"]) select:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.14), 0 0 32px rgba(168,85,247,.09);
+}
+
+body:has(a[href="/entrar/loja"]) button[type="submit"],
+body:has(a[href="/entrar/loja"]) button:not([type]),
+body:has(a[href="/entrar/loja"]) a[class*="bg-brand"] {
+  background-image: linear-gradient(100deg, #7c3aed 0%, #a855f7 52%, #ec24e9 100%);
+  color: #fff;
+}
+
+/* Public landing gets a generated visual without depending on remote/CDN assets. */
+body:has(a[href="#recursos"]) main > section:first-child::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: clamp(-17rem, -11vw, -4rem);
+  bottom: 1rem;
+  width: min(55vw, 780px);
+  aspect-ratio: 920 / 720;
+  background: url('/brand/hero-operations.svg') center/contain no-repeat;
+  opacity: .7;
+  pointer-events: none;
+  filter: drop-shadow(0 30px 70px rgba(124,58,237,.28));
+}
+
+body:has(a[href="#recursos"]) main > section:first-child > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1023px) {
+  body:has(a[href="#recursos"]) main > section:first-child::after {
+    width: 90vw;
+    right: -36vw;
+    bottom: 8rem;
+    opacity: .16;
+  }
+}
