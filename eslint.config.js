@@ -36,5 +36,14 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    files: ["**/*.server.ts"],
+    rules: {
+      // TanStack server helpers such as useSession are not React hooks despite
+      // their naming, and RPC JSON boundaries are intentionally decoded at runtime.
+      "react-hooks/rules-of-hooks": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
   eslintPluginPrettier,
 );
