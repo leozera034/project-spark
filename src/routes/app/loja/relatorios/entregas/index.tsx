@@ -33,7 +33,7 @@ function StoreDeliveryReports() {
   const isError = summaryQuery.isError || seriesQuery.isError || comparisonQuery.isError || historyQuery.isError;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="store-report-global mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Relatório de Entregas</h1>
@@ -80,7 +80,6 @@ function StoreDeliveryReports() {
         </Alert>
       )}
 
-      {/* Resumo */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -119,7 +118,6 @@ function StoreDeliveryReports() {
         )}
       </div>
 
-      {/* Comparação Operacional */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Entregas por Entregador</CardTitle>
@@ -147,7 +145,7 @@ function StoreDeliveryReports() {
                   <TableRow key={row.courierId}>
                     <TableCell className="font-medium">{row.courierName}</TableCell>
                     <TableCell>
-                      <span className={`text-xs ${row.courierStatus === 'ativo' ? 'text-teal-600' : 'text-muted-foreground'}`}>
+                      <span className={`text-xs ${row.courierStatus === 'ativo' ? 'text-violet-300' : 'text-muted-foreground'}`}>
                         {row.courierStatus === 'ativo' ? 'Ativo' : 'Inativo'}
                       </span>
                     </TableCell>
@@ -166,7 +164,6 @@ function StoreDeliveryReports() {
         </CardContent>
       </Card>
 
-      {/* Histórico */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Histórico Recente</CardTitle>
