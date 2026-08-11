@@ -4,77 +4,33 @@ import { ArrowLeft, Compass, Home } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 
-/**
- * Página 404 padrão do Pediu Aqui.
- * Usada pelo notFoundComponent da raiz e como defaultNotFoundComponent do router,
- * cobrindo qualquer rota inexistente.
- */
 export function NotFoundPage() {
   return (
-    <main
-      id="conteudo"
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-5 py-16"
-    >
-      {/* halo decorativo da marca */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-brand/15 blur-3xl"
-      />
-
-      <div className="rise-in relative w-full max-w-lg text-center">
-        <div>
-          <Link
-            to="/"
-            className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            aria-label="Pediu Aqui — ir para a página inicial"
-          >
-            <BrandLogo lockup="horizontal" className="h-7 w-auto" />
+    <main id="conteudo" className="pa-error">
+      <section className="pa-error-card relative overflow-hidden">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-[#12d8c1]/10 blur-3xl" />
+        <div className="relative">
+          <Link to="/" className="inline-flex" aria-label="Pediu Aqui — ir para a página inicial">
+            <BrandLogo lockup="horizontal" className="h-7 w-auto brightness-0 invert" />
           </Link>
-        </div>
-
-        <div className="mt-10">
-          <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-            Erro 404
+          <div className="mx-auto mt-9 grid size-13 place-items-center rounded-2xl border border-white/8 bg-white/5 text-[#12d8c1]">
+            <Compass className="size-5" aria-hidden="true" />
+          </div>
+          <p className="mt-5 text-xs font-black uppercase tracking-[.18em] text-[#8ff5e9]">Erro 404</p>
+          <h1 className="pa-display mt-3 text-4xl font-bold sm:text-5xl">Este caminho não existe.</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/56">
+            O endereço pode ter mudado ou o link pode estar incompleto. Você pode voltar ao início ou retornar para a tela anterior.
           </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button asChild size="lg" className="rounded-2xl bg-[#12d8c1] font-extrabold text-[#071318] hover:bg-[#58ead9]">
+              <Link to="/"><Home className="size-4" /> Ir para o início</Link>
+            </Button>
+            <Button type="button" variant="outline" size="lg" className="rounded-2xl border-white/13 bg-white/4 text-white hover:bg-white/8 hover:text-white" onClick={() => { if (typeof window !== "undefined" && window.history.length > 1) window.history.back(); }}>
+              <ArrowLeft className="size-4" /> Voltar
+            </Button>
+          </div>
         </div>
-
-        <h1 className="mt-5 text-[clamp(2.5rem,10vw,4.5rem)] font-bold leading-none tracking-tight text-foreground">
-          Página não encontrada
-        </h1>
-
-        <p className="mx-auto mt-4 max-w-md text-pretty text-base text-muted-foreground">
-          O endereço que você abriu não existe, mudou de lugar ou o link está incompleto.
-          Nada de errado com o seu pedido — é só um caminho que não leva a lugar nenhum.
-        </p>
-
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button asChild variant="brand" size="lg" className="w-full sm:w-auto">
-            <Link to="/">
-              <Home className="h-4 w-4" aria-hidden="true" />
-              Voltar à página inicial
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full sm:w-auto"
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                window.history.back();
-              }
-            }}
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Voltar à página anterior
-          </Button>
-        </div>
-
-        <p className="mt-8 text-sm text-muted-foreground">
-          Se você chegou aqui pelo link de uma loja, confira se o endereço está completo.
-        </p>
-      </div>
+      </section>
     </main>
   );
 }
