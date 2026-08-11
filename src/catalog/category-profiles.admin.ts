@@ -58,13 +58,5 @@ export async function adminSaveCategoryProfile(input: {
 }
 
 export async function listActiveCategoryProfiles(): Promise<AdminCategoryProfile[]> {
-  // Perfis ativos são deliberadamente legíveis por usuários autenticados; a escrita continua restrita ao admin SaaS.
-  const { data, error } = await supabase
-    .from("category_profiles")
-    .select("id,code,name,description,icon,default_capabilities,product_templates,is_active,sort_order,created_at,updated_at")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as AdminCategoryProfile[];
+  return unwrap<AdminCategoryProfile[]>(await rpc("list_active_category_profiles"));
 }
