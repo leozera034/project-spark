@@ -519,18 +519,22 @@ function OrderDetailDialog({
   const detail = detailQuery.data;
 
   return (
-    <Dialog open={Boolean(orderId)} onOpenChange={(next) => (next ? null : onClose())}>
-      <DialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={Boolean(orderId)} onOpenChange={(next) => (next ? null : onClose())}>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-lg"
+      >
+        <SheetHeader className="border-b border-border px-6 py-4 text-left">
+          <SheetTitle>
             {detail ? `Pedido #${detail.orderNumber}` : "Detalhes do pedido"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {detail
               ? `${STATUS_LABEL[detail.status]} · ${detail.fulfillment === "entrega" ? "Entrega" : "Retirada"}`
               : "Carregando informações do pedido."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
 
         {detailQuery.isLoading ? (
           <Skeleton className="h-48 w-full rounded-xl" />
@@ -645,8 +649,9 @@ function OrderDetailDialog({
             onRetry={() => void detailQuery.refetch()}
           />
         )}
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
