@@ -120,6 +120,18 @@ function ThemedToaster() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Autocorreção do caso mais comum de "a página não carregou" em Safari iOS:
+  // navegação para um chunk que não existe mais depois de um deploy.
+  useEffect(() => {
+    function onRejection(event: PromiseRejectionEvent) {
+      if (classifyAppError(event.reason) === "stale_build") recoverFromStaleBuild();
+    }
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => window.removeEventListener("unhandledrejection", onRejection);
+  }, []);
+
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
