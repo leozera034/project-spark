@@ -12,6 +12,7 @@ import {
   Smartphone,
   Store,
   UtensilsCrossed,
+  type LucideIcon,
 } from "lucide-react";
 
 import { ProductMock } from "@/components/marketing/ProductMock";
@@ -80,6 +81,12 @@ const steps = [
   ["04", "Opere e acompanhe", "Cozinha, entrega e gestão trabalham no mesmo fluxo."],
 ] as const;
 
+const heroBenefits: Array<{ icon: LucideIcon; label: string }> = [
+  { icon: BadgeCheck, label: "Configuração guiada" },
+  { icon: Store, label: "Operação da sua loja" },
+  { icon: ShieldCheck, label: "Arquitetura segura" },
+];
+
 function Home() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -136,13 +143,9 @@ function Home() {
               </Reveal>
 
               <Reveal delay={250} className="mt-9 grid gap-3 sm:grid-cols-3">
-                {[
-                  [BadgeCheck, "Configuração guiada"],
-                  [Store, "Operação da sua loja"],
-                  [ShieldCheck, "Arquitetura segura"],
-                ].map(([Icon, label]) => (
+                {heroBenefits.map(({ icon: Icon, label }) => (
                   <div
-                    key={String(label)}
+                    key={label}
                     className="flex items-center gap-2 rounded-xl border border-carbon-foreground/10 bg-carbon-foreground/[.035] px-3 py-3 text-xs font-semibold text-carbon-foreground/70"
                   >
                     <Icon className="size-4 text-brand" /> {label}
