@@ -5,11 +5,11 @@ const port = 4173;
 const origin = `http://${host}:${port}`;
 
 const routes = [
-  { path: "/", status: 200 },
   { path: "/entrar/loja", status: 200 },
   { path: "/entrar/entregador", status: 200 },
   { path: "/entrar/admin", status: 200 },
   { path: "/criar-loja", status: 200 },
+  { path: "/", status: 200 },
 ];
 
 const forbiddenBodies = [
@@ -21,10 +21,10 @@ const forbiddenBodies = [
 
 const env = {
   ...process.env,
-  VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || "https://example.supabase.co",
+  VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || "http://127.0.0.1:9",
   VITE_SUPABASE_PUBLISHABLE_KEY:
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_ci_smoke_only",
-  SUPABASE_URL: process.env.SUPABASE_URL || "https://example.supabase.co",
+  SUPABASE_URL: process.env.SUPABASE_URL || "http://127.0.0.1:9",
   SUPABASE_PUBLISHABLE_KEY:
     process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_ci_smoke_only",
 };
@@ -45,6 +45,14 @@ child.stderr.on("data", (chunk) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+async function request(path, timeoutMs = 8_000) {
+  return fetch(`${origin}${path}`, {
+    redirect: "manual",
+    signal: AbortSignal.timeout(timeoutMs),
+    headers: { "user-agent": "PediuAqui-CI-Smoke/1.0" },
+  });
+}
+
 async function waitForServer() {
   const deadline = Date.now() + 45_000;
   while (Date.now() < deadline) {
@@ -52,7 +60,7 @@ async function waitForServer() {
       throw new Error(`Servidor encerrou antes do smoke test.\n${output}`);
     }
     try {
-      const response = await fetch(origin, { redirect: "manual" });
+      const response = await request("/entrar/loja", 2_500);
       if (response.status > 0) return;
     } catch {
       // Ainda inicializando.
@@ -63,10 +71,7 @@ async function waitForServer() {
 }
 
 async function assertRoute({ path, status }) {
-  const response = await fetch(`${origin}${path}`, {
-    redirect: "manual",
-    headers: { "user-agent": "PediuAqui-CI-Smoke/1.0" },
-  });
+  const response = await request(path);
   const body = await response.text();
 
   if (response.status !== status) {
