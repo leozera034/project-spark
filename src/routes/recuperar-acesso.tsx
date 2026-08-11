@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -48,17 +49,23 @@ function RecoveryPage() {
         <Link
           to={AUTH_ROUTES.storeSignIn}
           search={{ retorno: undefined }}
-          className="underline underline-offset-4"
+          className="inline-flex min-h-11 items-center underline underline-offset-4"
         >
           Voltar para o login
         </Link>
       }
     >
       {sent ? (
-        <p role="status" className="rounded-md bg-muted p-4 text-sm text-foreground">
-          Se existir uma conta com esse e-mail, o link de redefinição foi enviado. Verifique também a
-          caixa de spam.
-        </p>
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border border-success/30 bg-success-soft p-4 text-sm text-success"
+        >
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <p>
+            Se existir uma conta com esse e-mail, o link de redefinição foi enviado. Verifique também
+            a caixa de spam.
+          </p>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-2">
@@ -67,6 +74,7 @@ function RecoveryPage() {
               id="recovery-email"
               type="email"
               inputMode="email"
+              enterKeyHint="go"
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -75,7 +83,7 @@ function RecoveryPage() {
               className="h-12 text-base"
             />
           </div>
-          <Button type="submit" disabled={busy} className="w-full text-base" size="lg">
+          <Button type="submit" loading={busy} loadingLabel="Enviando" className="w-full text-base" size="lg">
             {busy ? "Enviando…" : "Enviar link"}
           </Button>
           <p className="text-sm text-muted-foreground">
