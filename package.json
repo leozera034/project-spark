@@ -12,7 +12,8 @@
     "lint:ci": "eslint . --quiet --rule 'prettier/prettier: off'",
     "typecheck": "tsc --noEmit",
     "test:hygiene": "node tools/check-repository-hygiene.mjs",
-    "check": "npm run test:hygiene && npm run lint:ci && npm run typecheck && npm run build",
+    "test:smoke": "node tools/smoke-routes.mjs",
+    "check": "npm run test:hygiene && npm run lint:ci && npm run typecheck && npm run build && npm run test:smoke",
     "format": "prettier --write .",
     "brand:generate": "node tools/generate-brand-assets.mjs"
   },
