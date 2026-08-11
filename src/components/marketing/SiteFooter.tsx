@@ -12,7 +12,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <BrandLogo lockup="horizontal" variant="white" className="h-7 w-auto" />
+            <BrandLogo lockup="horizontal" tone="white" className="h-7 w-auto" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-carbon-foreground/70">
               Plataforma de cardápio digital, pedidos, cozinha e entrega própria para o comércio
               local. Mensalidade fixa por loja, sem comissão sobre a sua clientela.
