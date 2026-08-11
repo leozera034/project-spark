@@ -6,6 +6,7 @@ const port = 4173;
 const origin = `http://${host}:${port}`;
 
 const routes = [
+  { path: "/api/health", status: 200 },
   { path: "/entrar/loja", status: 200 },
   { path: "/entrar/entregador", status: 200 },
   { path: "/entrar/admin", status: 200 },
@@ -62,8 +63,8 @@ async function waitForServer() {
       throw new Error(`Servidor encerrou antes do smoke test.\n${output}`);
     }
     try {
-      const response = await request("/entrar/loja", 2_500);
-      if (response.status > 0) return;
+      const response = await request("/api/health", 2_500);
+      if (response.status === 200) return;
     } catch {
       // Ainda inicializando.
     }
@@ -87,7 +88,14 @@ async function assertRoute({ path, status }) {
   }
 
   if (!body.trim()) {
-    throw new Error(`${path}: resposta HTML vazia.`);
+    throw new Error(`${path}: resposta vazia.`);
+  }
+
+  if (path === "/api/health") {
+    const payload = JSON.parse(body);
+    if (payload?.ok !== true || payload?.service !== "pediu-aqui") {
+      throw new Error("/api/health: payload inválido.");
+    }
   }
 
   console.log(`✓ ${path} → ${response.status}`);
