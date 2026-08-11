@@ -4,7 +4,7 @@ import { CourierDeliveryCounter, CourierDeliveryHistory } from "./courier-counte
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 
-const rpc = supabase.rpc as RpcCaller;
+const rpc = supabase.rpc as unknown as RpcCaller;
 
 export async function getMyCourierDeliveryCounter(
   startDate?: string,
