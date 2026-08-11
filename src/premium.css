@@ -1,0 +1,66 @@
+/* Pediu Aqui — premium product layer */
+:root {
+  --pa-ink: #071318;
+  --pa-ink-2: #0b1c22;
+  --pa-ink-3: #10272f;
+  --pa-teal: #12d8c1;
+  --pa-teal-2: #0fb7a6;
+  --pa-mint: #8ff5e9;
+  --pa-cream: #f7f5f0;
+  --pa-white: #ffffff;
+  --pa-line: rgba(12, 36, 43, 0.1);
+  --pa-shadow: 0 24px 70px rgba(5, 21, 27, 0.14);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--background);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(18, 216, 193, .28); }
+
+.pa-page { min-height: 100svh; background: var(--background); color: var(--foreground); }
+.pa-shell { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
+.pa-display { font-family: "Sora", "Manrope", sans-serif; letter-spacing: -.045em; }
+.pa-eyebrow { font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--pa-teal-2); }
+.pa-panel { border: 1px solid var(--border); border-radius: 24px; background: color-mix(in oklab, var(--card) 94%, transparent); box-shadow: 0 12px 38px rgba(3, 19, 25, .07); }
+.pa-panel-soft { border: 1px solid color-mix(in oklab, var(--border) 72%, transparent); border-radius: 20px; background: color-mix(in oklab, var(--card) 78%, transparent); }
+.pa-glass { background: rgba(7, 19, 24, .72); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(18px); }
+.pa-grid-bg { background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 36px 36px; }
+
+.pa-app-chrome { min-height: 100svh; background: linear-gradient(180deg, color-mix(in oklab, var(--background) 96%, var(--brand) 4%), var(--background) 280px); }
+.pa-app-header { position: sticky; top: 0; z-index: 30; display:flex; align-items:center; justify-content:space-between; min-height:68px; padding: 12px clamp(16px, 3vw, 32px); border-bottom:1px solid color-mix(in oklab, var(--border) 80%, transparent); background: color-mix(in oklab, var(--background) 90%, transparent); backdrop-filter: blur(18px) saturate(140%); }
+.pa-app-header::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--brand) 45%, transparent), transparent); opacity:.45; }
+
+.pa-auth { min-height:100svh; display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(420px, .95fr); background:var(--pa-ink); color:white; }
+.pa-auth-visual { position:relative; overflow:hidden; padding:clamp(32px, 6vw, 84px); display:flex; flex-direction:column; justify-content:space-between; background: radial-gradient(circle at 20% 15%, rgba(18,216,193,.18), transparent 34%), radial-gradient(circle at 90% 70%, rgba(18,216,193,.09), transparent 30%), linear-gradient(145deg, #071318 0%, #0b1c22 70%, #0d252b 100%); }
+.pa-auth-visual::before { content:""; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:42px 42px; mask-image:linear-gradient(to bottom right,#000,transparent 82%); }
+.pa-auth-copy { position:relative; z-index:1; max-width:640px; }
+.pa-auth-cardwrap { display:flex; align-items:center; justify-content:center; padding:24px; background:var(--pa-cream); color:#101b1f; }
+.pa-auth-card { width:min(100%, 480px); border:1px solid rgba(8,31,38,.1); border-radius:28px; padding:clamp(24px,4vw,42px); background:#fff; box-shadow:var(--pa-shadow); }
+
+.pa-auth-card input { min-height:50px; border-radius:14px; background:#fbfbfa; }
+.pa-auth-card button[type="submit"] { min-height:52px; border-radius:14px; font-weight:800; }
+
+.pa-error { min-height:100svh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 50% 20%, rgba(18,216,193,.13), transparent 34%), var(--pa-ink); color:white; }
+.pa-error-card { width:min(100%, 620px); padding:clamp(28px,5vw,52px); border-radius:30px; border:1px solid rgba(255,255,255,.1); background:rgba(11,28,34,.88); box-shadow:0 36px 100px rgba(0,0,0,.34); text-align:center; }
+
+/* Gives existing operational pages a premium baseline without rewriting business logic. */
+#conteudo main:not(.pa-marketing) { isolation:isolate; }
+#conteudo .rounded-md { border-radius:12px; }
+#conteudo .rounded-lg { border-radius:16px; }
+#conteudo .rounded-xl { border-radius:20px; }
+#conteudo .shadow-sm { box-shadow:0 8px 24px rgba(5,25,31,.06); }
+#conteudo table { border-collapse:separate; border-spacing:0; }
+#conteudo thead { background:color-mix(in oklab,var(--muted) 70%,transparent); }
+#conteudo input, #conteudo textarea, #conteudo select { transition:border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+#conteudo input:focus, #conteudo textarea:focus, #conteudo select:focus { box-shadow:0 0 0 4px color-mix(in oklab,var(--brand) 18%,transparent); }
+
+@media (max-width: 860px) {
+  .pa-auth { grid-template-columns:1fr; background:var(--pa-cream); }
+  .pa-auth-visual { min-height:220px; padding:28px 22px; }
+  .pa-auth-cardwrap { padding:18px 16px 36px; align-items:flex-start; }
+  .pa-auth-card { margin-top:-54px; position:relative; z-index:3; border-radius:24px; }
+}
