@@ -455,7 +455,7 @@ function Home() {
             </div>
           ) : (
             <div className="mt-12 grid gap-5 lg:grid-cols-3">
-              {plans.map((plan, index) => {
+              {plans.map((plan: PublicPlan, index: number) => {
                 const featured = index === 1;
                 return (
                   <Reveal
