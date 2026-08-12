@@ -17,6 +17,7 @@ import internalOpsCss from "../internal-ops-polish.css?url";
 import storefrontExperienceV2Css from "../storefront-experience-v2.css?url";
 import storefrontExperienceV3Css from "../storefront-experience-v3.css?url";
 import storefrontExperienceV4Css from "../storefront-experience-v4.css?url";
+import storefrontExperienceV5Css from "../storefront-experience-v5.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
@@ -80,6 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: storefrontExperienceV2Css },
       { rel: "stylesheet", href: storefrontExperienceV3Css },
       { rel: "stylesheet", href: storefrontExperienceV4Css },
+      { rel: "stylesheet", href: storefrontExperienceV5Css },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
