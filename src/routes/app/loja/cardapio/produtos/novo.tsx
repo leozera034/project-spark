@@ -51,8 +51,9 @@ function NovoProduto() {
   }, [storeId]);
 
   useEffect(() => {
-    if (activeCategories.length === 1 && !values.categoryId) {
-      setValues((current) => ({ ...current, categoryId: activeCategories[0].id }));
+    const onlyCategory = activeCategories.length === 1 ? activeCategories[0] : undefined;
+    if (onlyCategory && !values.categoryId) {
+      setValues((current) => ({ ...current, categoryId: onlyCategory.id }));
     }
   }, [activeCategories, values.categoryId]);
 
@@ -113,10 +114,10 @@ function NovoProduto() {
           <span className={`grid size-9 place-items-center rounded-xl ${step === "details" ? "bg-emerald-500/12 text-emerald-300" : "bg-violet-500/12 text-violet-300"}`}>{step === "details" ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />}</span>
           <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Passo 1</p><p className="text-sm font-bold">Como funciona</p></div>
         </button>
-        <button type="button" onClick={() => step === "details" && setStep("details")} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${step === "details" ? "border-violet-400/35 bg-violet-500/10" : "border-border bg-card/25 opacity-70"}`}>
+        <div className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${step === "details" ? "border-violet-400/35 bg-violet-500/10" : "border-border bg-card/25 opacity-70"}`}>
           <span className="grid size-9 place-items-center rounded-xl bg-muted text-muted-foreground"><PackagePlus className="size-4" /></span>
           <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Passo 2</p><p className="text-sm font-bold">Dados do produto</p></div>
-        </button>
+        </div>
       </div>
 
       {step === "structure" ? (
