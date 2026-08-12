@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, ChevronDown, ChevronUp, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import {
   archiveOptionItem,
   createOptionItem,
   updateOptionGroup,
+  updateOptionItem,
 } from "../advanced-api";
-import type { LinkedOptionGroup } from "../advanced-types";
+import type { LinkedOptionGroup, OptionItem } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
 import { publishSharkOptionGroup, updateOptionGroupEngine } from "../shark-groups.api";
 
@@ -19,6 +20,82 @@ function moneyInputToNumber(value: string) {
   const normalized = value.trim().replace(/\./g, "").replace(",", ".");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function formatMoneyInput(value: number) {
+  return value.toFixed(2).replace(".", ",");
+}
+
+function EditableOptionRow({ item, onSaved }: { item: OptionItem; onSaved: () => void }) {
+  const { storeId, run, isBusy } = useCatalog();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(item.name);
+  const [price, setPrice] = useState(formatMoneyInput(item.additional_price));
+
+  async function save() {
+    if (!storeId || !name.trim()) return;
+    const parsedPrice = moneyInputToNumber(price);
+    if (parsedPrice === null) return;
+    const done = await run(
+      () => updateOptionItem({
+        storeId,
+        id: item.id,
+        name: name.trim(),
+        additionalPrice: parsedPrice,
+        description: item.description ?? "",
+        maxQuantity: item.max_quantity,
+        expectedUpdatedAt: item.updated_at,
+      }),
+      "Opção atualizada.",
+    );
+    if (done) {
+      setEditing(false);
+      onSaved();
+    }
+  }
+
+  async function remove() {
+    if (!storeId) return;
+    const done = await run(
+      () => archiveOptionItem(storeId, item.id, true, item.updated_at),
+      "Opção removida.",
+    );
+    if (done) onSaved();
+  }
+
+  if (editing) {
+    return (
+      <div className="grid gap-2 rounded-xl border border-violet-400/20 bg-violet-500/[.035] p-2.5 sm:grid-cols-[1fr_130px_auto]">
+        <Input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} aria-label="Nome da opção" />
+        <Input value={price} onChange={(event) => setPrice(event.target.value)} inputMode="decimal" aria-label="Acréscimo de preço" />
+        <div className="flex gap-1">
+          <Button type="button" size="icon" variant="ghost" disabled={isBusy || !name.trim()} aria-label="Salvar opção" onClick={() => void save()}>
+            <Save className="size-4" />
+          </Button>
+          <Button type="button" size="icon" variant="ghost" disabled={isBusy} aria-label="Cancelar edição" onClick={() => { setName(item.name); setPrice(formatMoneyInput(item.additional_price)); setEditing(false); }}>
+            <X className="size-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/30 px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{item.name}</p>
+        <p className="text-xs text-muted-foreground">{item.additional_price > 0 ? `+ R$ ${formatMoneyInput(item.additional_price)}` : "Sem acréscimo"}</p>
+      </div>
+      <div className="flex gap-1">
+        <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${item.name}`} disabled={isBusy} onClick={() => setEditing(true)}>
+          <Pencil className="size-4" />
+        </Button>
+        <Button type="button" size="icon" variant="ghost" aria-label={`Remover ${item.name}`} disabled={isBusy} onClick={() => void remove()}>
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function InlineGroupEditor({
@@ -105,15 +182,6 @@ export function InlineGroupEditor({
     }
   }
 
-  async function removeItem(id: string, updatedAt: string) {
-    if (!storeId) return;
-    const done = await run(
-      () => archiveOptionItem(storeId, id, true, updatedAt),
-      "Opção removida.",
-    );
-    if (done) onSaved();
-  }
-
   async function publish() {
     if (!storeId || !canPublish) return;
     const done = await run(async () => {
@@ -128,11 +196,7 @@ export function InlineGroupEditor({
 
   return (
     <div className="rounded-2xl border border-violet-400/18 bg-black/10">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center justify-between gap-3 p-4 text-left"
-      >
+      <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between gap-3 p-4 text-left">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold">{group.name}</span>
@@ -142,9 +206,7 @@ export function InlineGroupEditor({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {activeItems.length} opção{activeItems.length === 1 ? "" : "ões"} · mín {group.min_selections} · máx {group.max_selections}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{activeItems.length} opção{activeItems.length === 1 ? "" : "ões"} · mín {group.min_selections} · máx {group.max_selections}</p>
         </div>
         {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
       </button>
@@ -156,18 +218,9 @@ export function InlineGroupEditor({
               <Label>Nome que o cliente verá</Label>
               <Input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Mínimo</Label>
-              <Input type="number" min={0} max={99} value={min} onChange={(event) => setMin(event.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Máximo</Label>
-              <Input type="number" min={1} max={99} value={max} onChange={(event) => setMax(event.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Incluídos grátis</Label>
-              <Input type="number" min={0} max={99} value={included} onChange={(event) => setIncluded(event.target.value)} />
-            </div>
+            <div className="space-y-1.5"><Label>Mínimo</Label><Input type="number" min={0} max={99} value={min} onChange={(event) => setMin(event.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Máximo</Label><Input type="number" min={1} max={99} value={max} onChange={(event) => setMax(event.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Incluídos grátis</Label><Input type="number" min={0} max={99} value={included} onChange={(event) => setIncluded(event.target.value)} /></div>
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border px-3">
               <span className="text-sm font-medium">Escolha obrigatória</span>
               <Switch checked={required} onCheckedChange={(checked) => setRequired(Boolean(checked))} />
@@ -179,23 +232,11 @@ export function InlineGroupEditor({
           <div className="space-y-2">
             <div>
               <p className="text-sm font-semibold">Opções</p>
-              <p className="text-xs text-muted-foreground">Adicione o que o cliente poderá escolher e informe somente o acréscimo de preço.</p>
+              <p className="text-xs text-muted-foreground">Adicione o que o cliente poderá escolher. O preço informado é somente o acréscimo.</p>
             </div>
 
             {activeItems.length > 0 ? (
-              <div className="space-y-2">
-                {activeItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/30 px-3 py-2.5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.additional_price > 0 ? `+ R$ ${item.additional_price.toFixed(2).replace(".", ",")}` : "Sem acréscimo"}</p>
-                    </div>
-                    <Button type="button" size="icon" variant="ghost" aria-label={`Remover ${item.name}`} disabled={isBusy} onClick={() => void removeItem(item.id, item.updated_at)}>
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <div className="space-y-2">{activeItems.map((item) => <EditableOptionRow key={item.id} item={item} onSaved={onSaved} />)}</div>
             ) : (
               <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">Nenhuma opção ainda. Comece adicionando abaixo.</div>
             )}
@@ -210,16 +251,12 @@ export function InlineGroupEditor({
           </div>
 
           <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" disabled={isBusy || !limitsValid || !name.trim()} onClick={() => void saveRules()}>
-              Salvar rascunho
-            </Button>
+            <Button type="button" variant="outline" disabled={isBusy || !limitsValid || !name.trim()} onClick={() => void saveRules()}>Salvar rascunho</Button>
             <Button type="button" disabled={isBusy || !canPublish || !name.trim()} onClick={() => void publish()}>
               <Check className="mr-1.5 size-4" /> Publicar grupo
             </Button>
           </div>
-          {!canPublish ? (
-            <p className="text-right text-[11px] text-muted-foreground">Para publicar, adicione opções suficientes para cumprir o mínimo configurado.</p>
-          ) : null}
+          {!canPublish ? <p className="text-right text-[11px] text-muted-foreground">Para publicar, adicione opções suficientes para cumprir o mínimo configurado.</p> : null}
         </div>
       ) : null}
     </div>
