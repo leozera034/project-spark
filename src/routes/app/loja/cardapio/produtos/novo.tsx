@@ -18,6 +18,7 @@ import {
 } from "@/catalog/shark-engine.api";
 import {
   applyMealGroupDefaults,
+  applySharkBuildableExperienceDrafts,
   createProductStarterGroupDrafts,
   ensureBuildableBeverageDraft,
 } from "@/catalog/shark-groups.api";
@@ -108,8 +109,11 @@ function NovoProduto() {
           if (intelligence.productType !== "combo" && intelligence.capabilities.beverages === true) {
             await ensureBuildableBeverageDraft(storeId, product.id);
           }
-          if (intelligence.capabilities.proteins === true && intelligence.capabilities.sides === true) {
+          if (intelligence.capabilities.meal_experience === true) {
             await applyMealGroupDefaults(storeId, product.id);
+          }
+          if (intelligence.capabilities.burger_experience === true) {
+            await applySharkBuildableExperienceDrafts(storeId, product.id);
           }
         } catch (error) {
           console.warn("[shark] starter drafts unavailable; product remains valid", error);
