@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Minus, Plus, Sparkles } from "lucide-react";
+import { CheckCircle2, CircleDot, Minus, Plus, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { useCart } from "@/storefront/cart/cart.context";
 import type { PublicProductDetail, PublicOptionGroup } from "@/lib/storefront.server";
 
 type Selection = { option_group_id: string; option_item_id: string; quantity: number };
+type SharkVariant = PublicProductDetail["variants"][number] & { flavor_parts?: number | null };
+type SharkProductDetail = Omit<PublicProductDetail, "variants"> & { variants: SharkVariant[] };
 
 type Props = {
   slug: string;
@@ -26,7 +28,7 @@ type Props = {
   onClose: () => void;
 };
 
-async function fetchProduct(slug: string, productId: string): Promise<PublicProductDetail> {
+async function fetchProduct(slug: string, productId: string): Promise<SharkProductDetail> {
   const res = await fetch(`/api/public/storefront/${slug}/produtos/${productId}`);
   if (!res.ok) throw new Error("indisponivel");
   return res.json();
@@ -52,13 +54,11 @@ function groupInstruction(group: PublicOptionGroup, chosen: number, maxSelection
   const missing = Math.max(0, min - chosen);
   const remaining = Math.max(0, maxSelections - chosen);
   const parts = [group.is_required ? "Obrigatório" : "Opcional"];
-
   if (maxSelections === 1) parts.push("escolha 1");
   else if (maxSelections > 1) parts.push(`até ${maxSelections}`);
   if (min > 0 && maxSelections !== 1) parts.push(`mínimo ${min}`);
   if (missing > 0) parts.push(`faltam ${missing}`);
   else if (remaining > 0 && chosen > 0 && maxSelections > 1) parts.push(`${remaining} restante${remaining > 1 ? "s" : ""}`);
-
   return parts.join(" · ");
 }
 
@@ -67,13 +67,50 @@ function optionPriceLabel(group: PublicOptionGroup, value: number) {
   return group.included_selections > 0 ? `Excedente + ${brl(value)}` : `+ ${brl(value)}`;
 }
 
-export function ProductConfigurator({
-  slug,
-  productId,
-  storeOpen,
-  editLineId = null,
-  onClose,
-}: Props) {
+function flavorRuleLabel(rule: unknown) {
+  if (rule === "highest") return "Preço pelo sabor de maior valor";
+  if (rule === "average") return "Preço pela média dos sabores";
+  if (rule === "proportional") return "Preço proporcional às partes";
+  if (rule === "fixed_size") return "Preço fixo do tamanho";
+  return null;
+}
+
+function slotsFromSelections(selections: Selection[], groupId: string, parts: number) {
+  const slots: Array<string | null> = [];
+  for (const selection of selections.filter((item) => item.option_group_id === groupId)) {
+    for (let index = 0; index < selection.quantity && slots.length < parts; index += 1) {
+      slots.push(selection.option_item_id);
+    }
+  }
+  while (slots.length < parts) slots.push(null);
+  return slots.slice(0, parts);
+}
+
+function selectionsFromSlots(groupId: string, slots: Array<string | null>): Selection[] {
+  const counts = new Map<string, number>();
+  for (const itemId of slots) {
+    if (!itemId) continue;
+    counts.set(itemId, (counts.get(itemId) ?? 0) + 1);
+  }
+  return Array.from(counts.entries()).map(([option_item_id, quantity]) => ({
+    option_group_id: groupId,
+    option_item_id,
+    quantity,
+  }));
+}
+
+function sanitizeSlots(slots: Array<string | null>, maxFlavors: number | null) {
+  if (!maxFlavors) return slots;
+  const allowed = new Set<string>();
+  return slots.map((itemId) => {
+    if (!itemId || allowed.has(itemId)) return itemId;
+    if (allowed.size >= maxFlavors) return null;
+    allowed.add(itemId);
+    return itemId;
+  });
+}
+
+export function ProductConfigurator({ slug, productId, storeOpen, editLineId = null, onClose }: Props) {
   const cart = useCart();
   const navigate = useNavigate();
   const [cartError, setCartError] = useState<string | null>(null);
@@ -85,53 +122,67 @@ export function ProductConfigurator({
 
   const [variantId, setVariantId] = useState<string | null>(null);
   const [selections, setSelections] = useState<Selection[]>([]);
+  const [flavorSlots, setFlavorSlots] = useState<Record<string, Array<string | null>>>({});
+  const [activeFlavorPart, setActiveFlavorPart] = useState<Record<string, number>>({});
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (!data) return;
     const editing = editLineId ? (cart.lines.find((line) => line.lineId === editLineId) ?? null) : null;
+    const baseSelections: Selection[] = editing && editing.productId === data.product.id
+      ? editing.selections.map((s) => ({ option_group_id: s.option_group_id, option_item_id: s.option_item_id, quantity: s.quantity }))
+      : [];
+    const fallback = editing && editing.productId === data.product.id
+      ? data.variants.find((variant) => variant.id === editing.variantId) ?? null
+      : data.variants.find((variant) => variant.is_default) ?? data.variants[0] ?? null;
 
-    if (editing && editing.productId === data.product.id) {
-      setVariantId(editing.variantId);
-      setSelections(editing.selections.map((s) => ({
-        option_group_id: s.option_group_id,
-        option_item_id: s.option_item_id,
-        quantity: s.quantity,
-      })));
-      setQuantity(editing.quantity);
-      setNotes(editing.notes ?? "");
-      return;
-    }
-
-    const fallback = data.variants.find((v) => v.is_default) ?? data.variants[0] ?? null;
     setVariantId(fallback?.id ?? null);
-    setSelections([]);
-    setQuantity(Math.max(data.product.minimum_quantity, data.product.quantity_step));
-    setNotes("");
+    setSelections(baseSelections);
+    setQuantity(editing && editing.productId === data.product.id ? editing.quantity : Math.max(data.product.minimum_quantity, data.product.quantity_step));
+    setNotes(editing && editing.productId === data.product.id ? (editing.notes ?? "") : "");
     setCartError(null);
+
+    const parts = fallback?.flavor_parts ?? fallback?.max_flavors ?? null;
+    const initialSlots: Record<string, Array<string | null>> = {};
+    if (parts && parts > 1) {
+      for (const group of data.option_groups.filter((item) => item.role === "flavor")) {
+        initialSlots[group.id] = slotsFromSelections(baseSelections, group.id, parts);
+      }
+    }
+    setFlavorSlots(initialSlots);
+    setActiveFlavorPart({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, editLineId]);
 
   const groups = data?.option_groups ?? [];
   const selectedVariant = data?.variants.find((variant) => variant.id === variantId) ?? null;
-  const effectiveGroupMax = (group: PublicOptionGroup) =>
-    group.role === "flavor" && selectedVariant?.max_flavors
-      ? Math.min(group.max_selections, selectedVariant.max_flavors)
-      : group.max_selections;
+  const selectedFlavorParts = selectedVariant?.flavor_parts ?? selectedVariant?.max_flavors ?? null;
+  const selectedMaxFlavors = selectedVariant?.max_flavors ?? null;
 
   const countIn = (groupId: string) => selections
     .filter((s) => s.option_group_id === groupId)
     .reduce((total, s) => total + s.quantity, 0);
 
-  const pendingGroups = useMemo(() => groups.filter((group) => {
+  const distinctIn = (groupId: string) => selections.filter((s) => s.option_group_id === groupId).length;
+
+  const effectiveGroupMax = (group: PublicOptionGroup) => {
+    if (group.role !== "flavor") return group.max_selections;
+    if (selectedFlavorParts && selectedFlavorParts > 1) return selectedFlavorParts;
+    if (selectedMaxFlavors) return Math.min(group.max_selections, selectedMaxFlavors);
+    return group.max_selections;
+  };
+
+  const pendingGroups = groups.filter((group) => {
     const chosen = countIn(group.id);
+    if (group.role === "flavor" && selectedFlavorParts && selectedFlavorParts > 1) {
+      if (chosen !== selectedFlavorParts) return true;
+      if (selectedMaxFlavors && distinctIn(group.id) > selectedMaxFlavors) return true;
+      return false;
+    }
     const minimum = group.is_required ? Math.max(1, group.min_selections) : group.min_selections;
     return chosen < minimum || chosen > effectiveGroupMax(group);
-    // effectiveGroupMax depends on selected variant.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [groups, selections, variantId]);
-
+  });
   const isComplete = pendingGroups.length === 0;
 
   const { data: price, isFetching: pricing } = useQuery({
@@ -148,18 +199,47 @@ export function ProductConfigurator({
 
   const changeVariant = (nextId: string) => {
     const next = data?.variants.find((variant) => variant.id === nextId) ?? null;
+    const nextParts = next?.flavor_parts ?? next?.max_flavors ?? null;
+    const maxFlavors = next?.max_flavors ?? null;
+    const flavorGroups = groups.filter((group) => group.role === "flavor");
+    const nonFlavorSelections = selections.filter((selection) => !flavorGroups.some((group) => group.id === selection.option_group_id));
+    const nextSlotsByGroup: Record<string, Array<string | null>> = {};
+    const nextFlavorSelections: Selection[] = [];
+
+    for (const group of flavorGroups) {
+      if (nextParts && nextParts > 1) {
+        const source = flavorSlots[group.id] ?? slotsFromSelections(selections, group.id, nextParts);
+        const resized = Array.from({ length: nextParts }, (_, index) => source[index] ?? null);
+        const sanitized = sanitizeSlots(resized, maxFlavors);
+        nextSlotsByGroup[group.id] = sanitized;
+        nextFlavorSelections.push(...selectionsFromSlots(group.id, sanitized));
+      } else {
+        const legacy = selections.filter((selection) => selection.option_group_id === group.id);
+        nextFlavorSelections.push(...(maxFlavors ? legacy.slice(0, maxFlavors) : legacy));
+      }
+    }
+
     setVariantId(nextId);
-    setSelections((previous) => {
-      if (!next?.max_flavors) return previous;
-      const flavorIds = new Set(groups.filter((group) => group.role === "flavor").map((group) => group.id));
-      let used = 0;
-      return previous.filter((selection) => {
-        if (!flavorIds.has(selection.option_group_id)) return true;
-        if (used + selection.quantity > next.max_flavors!) return false;
-        used += selection.quantity;
-        return true;
-      });
-    });
+    setFlavorSlots(nextSlotsByGroup);
+    setActiveFlavorPart({});
+    setSelections([...nonFlavorSelections, ...nextFlavorSelections]);
+  };
+
+  const chooseFlavorPart = (group: PublicOptionGroup, partIndex: number, itemId: string) => {
+    if (!selectedFlavorParts || selectedFlavorParts <= 1) return;
+    const current = flavorSlots[group.id] ?? slotsFromSelections(selections, group.id, selectedFlavorParts);
+    const next = [...current];
+    next[partIndex] = itemId;
+    if (selectedMaxFlavors && new Set(next.filter((item): item is string => Boolean(item))).size > selectedMaxFlavors) return;
+
+    setFlavorSlots((previous) => ({ ...previous, [group.id]: next }));
+    setSelections((previous) => [
+      ...previous.filter((selection) => selection.option_group_id !== group.id),
+      ...selectionsFromSlots(group.id, next),
+    ]);
+
+    const nextEmpty = next.findIndex((item, index) => index > partIndex && !item);
+    if (nextEmpty >= 0) setActiveFlavorPart((previous) => ({ ...previous, [group.id]: nextEmpty }));
   };
 
   const toggleSingle = (groupId: string, itemId: string) => setSelections((prev) => [
@@ -175,34 +255,21 @@ export function ProductConfigurator({
     return [...prev, { option_group_id: groupId, option_item_id: itemId, quantity: 1 }];
   });
 
-  const bumpQuantity = (
-    groupId: string,
-    itemId: string,
-    delta: number,
-    maxItem: number,
-    maxGroup: number,
-  ) => setSelections((prev) => {
+  const bumpQuantity = (groupId: string, itemId: string, delta: number, maxItem: number, maxGroup: number) => setSelections((prev) => {
     const current = prev.find((s) => s.option_group_id === groupId && s.option_item_id === itemId);
-    const groupTotal = prev
-      .filter((s) => s.option_group_id === groupId)
-      .reduce((total, s) => total + s.quantity, 0);
+    const groupTotal = prev.filter((s) => s.option_group_id === groupId).reduce((total, s) => total + s.quantity, 0);
     const next = (current?.quantity ?? 0) + delta;
-
     if (delta > 0 && maxGroup > 0 && groupTotal >= maxGroup) return prev;
     if (next <= 0) return prev.filter((s) => !(s.option_group_id === groupId && s.option_item_id === itemId));
     if (next > maxItem) return prev;
-    if (current) {
-      return prev.map((s) => s.option_group_id === groupId && s.option_item_id === itemId ? { ...s, quantity: next } : s);
-    }
+    if (current) return prev.map((s) => s.option_group_id === groupId && s.option_item_id === itemId ? { ...s, quantity: next } : s);
     return [...prev, { option_group_id: groupId, option_item_id: itemId, quantity: next }];
   });
 
   const submit = () => {
     if (!data || !price?.ok) return;
     const variant = data.variants.find((v) => v.id === variantId) ?? null;
-    const itemName = (groupId: string, itemId: string) => data.option_groups
-      .find((g) => g.id === groupId)?.items.find((i) => i.id === itemId)?.name ?? "";
-
+    const itemName = (groupId: string, itemId: string) => data.option_groups.find((g) => g.id === groupId)?.items.find((i) => i.id === itemId)?.name ?? "";
     const input = {
       productId: data.product.id,
       productNameSnapshot: data.product.name,
@@ -219,7 +286,6 @@ export function ProductConfigurator({
       lastKnownUnitPrice: price.unit_price ?? 0,
       lastKnownTotal: price.total ?? 0,
     };
-
     if (editLineId) {
       cart.replaceLine(editLineId, input);
       onClose();
@@ -237,22 +303,8 @@ export function ProductConfigurator({
     void navigate({ to: "/loja/$slug", params: { slug }, search: { produto: id }, replace: true });
   };
 
-  if (isPending) return (
-    <div className="space-y-4 p-1">
-      <Skeleton className="h-40 w-full rounded-xl" />
-      <Skeleton className="h-6 w-2/3" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-      <Skeleton className="h-24 w-full" />
-    </div>
-  );
-
-  if (isError || !data) return (
-    <div className="space-y-4 py-10 text-center">
-      <p className="text-sm text-muted-foreground">Não conseguimos carregar este item agora.</p>
-      <Button variant="outline" onClick={onClose}>Voltar ao cardápio</Button>
-    </div>
-  );
+  if (isPending) return <div className="space-y-4 p-1"><Skeleton className="h-40 w-full rounded-xl" /><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-5/6" /><Skeleton className="h-24 w-full" /></div>;
+  if (isError || !data) return <div className="space-y-4 py-10 text-center"><p className="text-sm text-muted-foreground">Não conseguimos carregar este item agora.</p><Button variant="outline" onClick={onClose}>Voltar ao cardápio</Button></div>;
 
   const product = data.product;
   const measured = product.sale_mode === "measured";
@@ -260,13 +312,12 @@ export function ProductConfigurator({
   const step = product.quantity_step || 1;
   const minQty = product.minimum_quantity || step;
   const firstDecisionNumber = data.variants.length > 0 ? 1 : 0;
+  const pricingRule = flavorRuleLabel(product.pricing_rules?.multi_flavor_pricing);
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-6 overflow-y-auto px-1 pb-6">
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="aspect-[16/10] w-full rounded-xl object-cover" />
-        ) : null}
+        {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="aspect-[16/10] w-full rounded-xl object-cover" /> : null}
 
         <div className="space-y-2">
           <h2 className="text-xl font-semibold leading-tight">{product.name}</h2>
@@ -274,7 +325,7 @@ export function ProductConfigurator({
           <div className="flex flex-wrap gap-2">
             {measured ? <Badge variant="secondary">Vendido por {unit} · mínimo {minQty} {unit}</Badge> : null}
             {product.product_type === "combo" ? <Badge variant="secondary">Combo personalizável</Badge> : null}
-            {Boolean(product.capabilities?.multi_flavor) ? <Badge variant="secondary">Permite vários sabores</Badge> : null}
+            {Boolean(product.capabilities?.multi_flavor) ? <Badge variant="secondary">Montagem multi-sabor</Badge> : null}
           </div>
         </div>
 
@@ -282,18 +333,24 @@ export function ProductConfigurator({
           <section className="space-y-3 rounded-2xl border border-border/70 p-4">
             <header className="flex items-start gap-3">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-violet-500/15 text-xs font-black text-violet-200">1</span>
-              <div><h3 className="text-sm font-semibold">Escolha uma opção</h3><p className="text-xs text-muted-foreground">Obrigatório · escolha 1</p></div>
+              <div><h3 className="text-sm font-semibold">Escolha o tamanho</h3><p className="text-xs text-muted-foreground">O tamanho define preço e quantidade de partes.</p></div>
             </header>
             <RadioGroup value={variantId ?? ""} onValueChange={changeVariant} className="space-y-2">
-              {data.variants.map((variant) => (
-                <label key={variant.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
-                  <span className="flex items-center gap-3">
-                    <RadioGroupItem value={variant.id} id={variant.id} />
-                    <span className="text-sm">{variant.name}{variant.package_quantity ? <span className="block text-xs text-muted-foreground">{variant.package_quantity}{UNIT_LABELS[variant.package_unit ?? ""] ?? ""}</span> : null}{variant.max_flavors ? <span className="block text-xs font-medium text-violet-300">até {variant.max_flavors} sabor{variant.max_flavors > 1 ? "es" : ""}</span> : null}</span>
-                  </span>
-                  <span className="text-sm font-medium">{brl(variant.price)}</span>
-                </label>
-              ))}
+              {data.variants.map((variant) => {
+                const parts = variant.flavor_parts ?? variant.max_flavors ?? null;
+                return (
+                  <label key={variant.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3 transition hover:border-violet-400/30">
+                    <span className="flex items-center gap-3">
+                      <RadioGroupItem value={variant.id} id={variant.id} />
+                      <span className="text-sm font-medium">{variant.name}
+                        {variant.package_quantity ? <span className="block text-xs text-muted-foreground">{variant.package_quantity}{UNIT_LABELS[variant.package_unit ?? ""] ?? ""}</span> : null}
+                        {variant.max_flavors ? <span className="block text-xs font-medium text-violet-300">até {variant.max_flavors} sabor{variant.max_flavors > 1 ? "es" : ""}{parts && parts > 1 ? ` · ${parts} partes` : ""}</span> : null}
+                      </span>
+                    </span>
+                    <span className="text-sm font-semibold">{brl(variant.price)}</span>
+                  </label>
+                );
+              })}
             </RadioGroup>
           </section>
         ) : null}
@@ -304,21 +361,86 @@ export function ProductConfigurator({
           const incomplete = pendingGroups.some((g) => g.id === group.id);
           const atLimit = maxSelections > 0 && chosen >= maxSelections;
           const decisionNumber = firstDecisionNumber + groupIndex + 1;
+          const isPortionedFlavor = group.role === "flavor" && Boolean(selectedFlavorParts && selectedFlavorParts > 1);
+
+          if (isPortionedFlavor && selectedFlavorParts) {
+            const slots = flavorSlots[group.id] ?? slotsFromSelections(selections, group.id, selectedFlavorParts);
+            const activePart = Math.min(activeFlavorPart[group.id] ?? Math.max(0, slots.findIndex((item) => !item)), selectedFlavorParts - 1);
+            const safeActivePart = activePart < 0 ? 0 : activePart;
+            const usedFlavorIds = new Set(slots.filter((item): item is string => Boolean(item)));
+            const filled = slots.filter(Boolean).length;
+
+            return (
+              <section key={group.id} className="space-y-4 rounded-3xl border border-violet-400/20 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,.12),transparent_42%),rgba(12,9,24,.45)] p-4">
+                <header className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-black ${incomplete ? "bg-fuchsia-500/15 text-fuchsia-200" : "bg-emerald-500/15 text-emerald-200"}`}>{decisionNumber}</span>
+                    <div>
+                      <h3 className="text-sm font-bold">Monte os sabores por parte</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">{selectedVariant?.name}: preencha {selectedFlavorParts} parte{selectedFlavorParts > 1 ? "s" : ""}{selectedMaxFlavors ? ` usando até ${selectedMaxFlavors} sabores diferentes` : ""}.</p>
+                      {pricingRule ? <p className="mt-1 text-xs font-semibold text-violet-300">{pricingRule}</p> : null}
+                    </div>
+                  </div>
+                  <Badge variant={incomplete ? "destructive" : "secondary"}>{filled}/{selectedFlavorParts}</Badge>
+                </header>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {slots.map((itemId, index) => {
+                    const item = group.items.find((option) => option.id === itemId);
+                    const active = safeActivePart === index;
+                    return (
+                      <button
+                        type="button"
+                        key={`${group.id}-part-${index}`}
+                        onClick={() => setActiveFlavorPart((previous) => ({ ...previous, [group.id]: index }))}
+                        className={`min-h-20 rounded-2xl border p-3 text-left transition ${active ? "border-fuchsia-400/55 bg-fuchsia-500/10 shadow-[0_0_28px_rgba(217,70,239,.10)]" : item ? "border-emerald-400/20 bg-emerald-500/[.045]" : "border-border bg-black/10"}`}
+                      >
+                        <span className="text-[10px] font-black uppercase tracking-[.12em] text-muted-foreground">Parte {index + 1}</span>
+                        <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold leading-tight">{item ? <CheckCircle2 className="size-3.5 shrink-0 text-emerald-300" /> : <CircleDot className="size-3.5 shrink-0 text-violet-300" />}{item?.name ?? "Escolher sabor"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-2xl border border-border/70 bg-black/10 p-3">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div><p className="text-sm font-bold">Sabor da Parte {safeActivePart + 1}</p><p className="text-xs text-muted-foreground">Toque em um sabor para preencher esta parte.</p></div>
+                    {selectedMaxFlavors ? <span className="text-[11px] font-semibold text-violet-300">{usedFlavorIds.size}/{selectedMaxFlavors} sabores</span> : null}
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {group.items.map((item) => {
+                      const current = slots[safeActivePart] === item.id;
+                      const alreadyUsed = usedFlavorIds.has(item.id);
+                      const blockedByDistinctLimit = Boolean(selectedMaxFlavors && !alreadyUsed && !current && usedFlavorIds.size >= selectedMaxFlavors);
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          disabled={blockedByDistinctLimit}
+                          onClick={() => chooseFlavorPart(group, safeActivePart, item.id)}
+                          className={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition ${current ? "border-fuchsia-400/50 bg-fuchsia-500/10" : "border-border bg-background/25 hover:border-violet-400/30"} disabled:cursor-not-allowed disabled:opacity-35`}
+                        >
+                          <span className="flex items-center gap-2 text-sm font-medium">{current ? <CheckCircle2 className="size-4 text-fuchsia-300" /> : <span className="size-4 rounded-full border border-border" />}{item.name}</span>
+                          <span className="text-xs font-semibold text-muted-foreground">{item.additional_price > 0 ? brl(item.additional_price) : "Incluso"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
           return (
             <section key={group.id} className="space-y-3 rounded-2xl border border-border/70 p-4">
               <header className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
                   <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-black ${incomplete ? "bg-fuchsia-500/15 text-fuchsia-200" : chosen > 0 ? "bg-emerald-500/15 text-emerald-200" : "bg-violet-500/15 text-violet-200"}`}>{decisionNumber}</span>
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold">{group.name}</h3>
-                      {group.role === "combo_step" ? <Badge variant="outline">Etapa do combo</Badge> : null}
-                    </div>
+                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{group.name}</h3>{group.role === "combo_step" ? <Badge variant="outline">Etapa do combo</Badge> : null}</div>
                     <p className="mt-1 text-xs text-muted-foreground">{groupInstruction(group, chosen, maxSelections)}</p>
                     {group.role === "flavor" && selectedVariant?.max_flavors ? <p className="mt-1 text-xs font-medium text-violet-300">O tamanho {selectedVariant.name} permite até {selectedVariant.max_flavors} sabor{selectedVariant.max_flavors > 1 ? "es" : ""}.</p> : null}
-                    {group.included_selections > 0 ? (
-                      <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">Até {group.included_selections} escolha{group.included_selections > 1 ? "s" : ""} incluída{group.included_selections > 1 ? "s" : ""} no preço. Excedentes são cobrados individualmente.</p>
-                    ) : null}
+                    {group.included_selections > 0 ? <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">Até {group.included_selections} escolha{group.included_selections > 1 ? "s" : ""} incluída{group.included_selections > 1 ? "s" : ""} no preço. Excedentes são cobrados individualmente.</p> : null}
                   </div>
                 </div>
                 {incomplete ? <Badge variant="destructive" className="shrink-0">Falta escolher</Badge> : chosen > 0 ? <Badge variant="secondary" className="shrink-0"><CheckCircle2 className="mr-1 size-3.5" />{chosen}/{maxSelections}</Badge> : null}
@@ -328,35 +450,13 @@ export function ProductConfigurator({
                 {group.items.map((item) => {
                   const selected = selections.find((s) => s.option_group_id === group.id && s.option_item_id === item.id);
                   const priceLabel = optionPriceLabel(group, item.additional_price);
-
                   if (group.selection_type === "quantidade" || group.allow_quantity) {
-                    return (
-                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
-                        <div className="min-w-0"><p className="truncate text-sm">{item.name}</p>{priceLabel ? <p className="text-xs text-muted-foreground">{priceLabel}</p> : <p className="text-xs text-muted-foreground">Sem acréscimo</p>}</div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Remover ${item.name}`} disabled={!selected} onClick={() => bumpQuantity(group.id, item.id, -1, item.max_quantity, maxSelections)}><Minus className="size-4" /></Button>
-                          <span className="w-5 text-center text-sm tabular-nums">{selected?.quantity ?? 0}</span>
-                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Adicionar ${item.name}`} disabled={atLimit || (selected?.quantity ?? 0) >= item.max_quantity} onClick={() => bumpQuantity(group.id, item.id, 1, item.max_quantity, maxSelections)}><Plus className="size-4" /></Button>
-                        </div>
-                      </div>
-                    );
+                    return <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border p-3"><div className="min-w-0"><p className="truncate text-sm">{item.name}</p>{priceLabel ? <p className="text-xs text-muted-foreground">{priceLabel}</p> : <p className="text-xs text-muted-foreground">Sem acréscimo</p>}</div><div className="flex shrink-0 items-center gap-2"><Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Remover ${item.name}`} disabled={!selected} onClick={() => bumpQuantity(group.id, item.id, -1, item.max_quantity, maxSelections)}><Minus className="size-4" /></Button><span className="w-5 text-center text-sm tabular-nums">{selected?.quantity ?? 0}</span><Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Adicionar ${item.name}`} disabled={atLimit || (selected?.quantity ?? 0) >= item.max_quantity} onClick={() => bumpQuantity(group.id, item.id, 1, item.max_quantity, maxSelections)}><Plus className="size-4" /></Button></div></div>;
                   }
-
                   if (group.selection_type === "unica") {
-                    return (
-                      <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
-                        <span className="flex items-center gap-3"><input type="radio" className="size-4 accent-[var(--brand,currentColor)]" name={group.id} checked={Boolean(selected)} onChange={() => toggleSingle(group.id, item.id)} /><span className="text-sm">{item.name}</span></span>
-                        {priceLabel ? <span className="text-sm">{priceLabel}</span> : <span className="text-xs text-muted-foreground">Incluso</span>}
-                      </label>
-                    );
+                    return <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3"><span className="flex items-center gap-3"><input type="radio" className="size-4 accent-[var(--brand,currentColor)]" name={group.id} checked={Boolean(selected)} onChange={() => toggleSingle(group.id, item.id)} /><span className="text-sm">{item.name}</span></span>{priceLabel ? <span className="text-sm">{priceLabel}</span> : <span className="text-xs text-muted-foreground">Incluso</span>}</label>;
                   }
-
-                  return (
-                    <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
-                      <span className="flex items-center gap-3"><Checkbox checked={Boolean(selected)} onCheckedChange={() => toggleMulti(group.id, item.id, maxSelections)} /><span className="text-sm">{item.name}</span></span>
-                      {priceLabel ? <span className="text-sm">{priceLabel}</span> : <span className="text-xs text-muted-foreground">Sem acréscimo</span>}
-                    </label>
-                  );
+                  return <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3"><span className="flex items-center gap-3"><Checkbox checked={Boolean(selected)} onCheckedChange={() => toggleMulti(group.id, item.id, maxSelections)} /><span className="text-sm">{item.name}</span></span>{priceLabel ? <span className="text-sm">{priceLabel}</span> : <span className="text-xs text-muted-foreground">Sem acréscimo</span>}</label>;
                 })}
               </div>
             </section>
@@ -366,30 +466,16 @@ export function ProductConfigurator({
         <Separator />
         <section className="space-y-3">
           <Label htmlFor="quantidade" className="text-sm font-semibold">{measured ? `Quantidade (${unit})` : "Quantidade"}</Label>
-          <div className="flex items-center gap-3">
-            <Button type="button" size="icon" variant="outline" aria-label="Diminuir quantidade" onClick={() => setQuantity((q) => Math.max(minQty, Number((q - step).toFixed(3))))}><Minus className="size-4" /></Button>
-            <span id="quantidade" className="w-16 text-center text-base tabular-nums">{quantity}{measured ? ` ${unit}` : ""}</span>
-            <Button type="button" size="icon" variant="outline" aria-label="Aumentar quantidade" onClick={() => setQuantity((q) => { const next = Number((q + step).toFixed(3)); if (product.max_quantity && next > product.max_quantity) return q; return next; })}><Plus className="size-4" /></Button>
-          </div>
+          <div className="flex items-center gap-3"><Button type="button" size="icon" variant="outline" aria-label="Diminuir quantidade" onClick={() => setQuantity((q) => Math.max(minQty, Number((q - step).toFixed(3))))}><Minus className="size-4" /></Button><span id="quantidade" className="w-16 text-center text-base tabular-nums">{quantity}{measured ? ` ${unit}` : ""}</span><Button type="button" size="icon" variant="outline" aria-label="Aumentar quantidade" onClick={() => setQuantity((q) => { const next = Number((q + step).toFixed(3)); if (product.max_quantity && next > product.max_quantity) return q; return next; })}><Plus className="size-4" /></Button></div>
         </section>
 
-        {product.allows_notes ? (
-          <section className="space-y-2"><Label htmlFor="observacao" className="text-sm font-semibold">Observação</Label><Textarea id="observacao" value={notes} maxLength={280} onChange={(event) => setNotes(event.target.value)} placeholder="Ex.: sem cebola" /></section>
-        ) : null}
+        {product.allows_notes ? <section className="space-y-2"><Label htmlFor="observacao" className="text-sm font-semibold">Observação</Label><Textarea id="observacao" value={notes} maxLength={280} onChange={(event) => setNotes(event.target.value)} placeholder="Ex.: sem cebola" /></section> : null}
 
         {data.recommendations?.length > 0 && !editLineId ? (
           <section className="space-y-3 rounded-2xl border border-violet-300/10 bg-violet-500/[.035] p-4">
-            <header>
-              <p className="flex items-center gap-2 text-sm font-bold"><Sparkles className="size-4 text-fuchsia-300" />Combina com este item</p>
-              <p className="mt-1 text-xs text-muted-foreground">Sugestões baseadas no que costuma ser pedido junto nesta loja.</p>
-            </header>
+            <header><p className="flex items-center gap-2 text-sm font-bold"><Sparkles className="size-4 text-fuchsia-300" />Combina com este item</p><p className="mt-1 text-xs text-muted-foreground">Sugestões baseadas no que costuma ser pedido junto nesta loja.</p></header>
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {data.recommendations.map(({ product: suggested }) => (
-                <button key={suggested.id} type="button" onClick={() => openRecommendation(suggested.id)} className="w-32 shrink-0 overflow-hidden rounded-xl border border-violet-300/10 bg-black/15 text-left">
-                  {suggested.image_url ? <img src={suggested.image_url} alt="" className="aspect-square w-full object-cover" loading="lazy" /> : <div className="aspect-square w-full bg-gradient-to-br from-violet-950 to-fuchsia-950" />}
-                  <div className="p-2.5"><p className="line-clamp-2 text-xs font-bold leading-tight">{suggested.name}</p><p className="mt-1 text-xs font-semibold text-violet-200">{suggested.has_variants && suggested.from_price !== null ? `a partir de ${brl(suggested.from_price)}` : brl(suggested.base_price)}</p></div>
-                </button>
-              ))}
+              {data.recommendations.map(({ product: suggested }) => <button key={suggested.id} type="button" onClick={() => openRecommendation(suggested.id)} className="w-32 shrink-0 overflow-hidden rounded-xl border border-violet-300/10 bg-black/15 text-left">{suggested.image_url ? <img src={suggested.image_url} alt="" className="aspect-square w-full object-cover" loading="lazy" /> : <div className="aspect-square w-full bg-gradient-to-br from-violet-950 to-fuchsia-950" />}<div className="p-2.5"><p className="line-clamp-2 text-xs font-bold leading-tight">{suggested.name}</p><p className="mt-1 text-xs font-semibold text-violet-200">{suggested.has_variants && suggested.from_price !== null ? `a partir de ${brl(suggested.from_price)}` : brl(suggested.base_price)}</p></div></button>)}
             </div>
           </section>
         ) : null}
