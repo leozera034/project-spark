@@ -33,6 +33,7 @@ export type ProductInventory = {
   low_stock_threshold: number;
   is_low: boolean;
   is_empty: boolean;
+  updated_at: string;
 };
 
 function unwrap<T>(result: { data: unknown; error: { message: string } | null }): T {
@@ -81,13 +82,15 @@ export async function updateProductInventory(params: {
   managed: boolean;
   quantity: number | null;
   lowStockThreshold: number;
+  expectedUpdatedAt: string;
 }): Promise<ProductInventory> {
-  return unwrap<ProductInventory>(await rpc("update_product_inventory", {
+  return unwrap<ProductInventory>(await rpc("update_product_inventory_v2", {
     _store_id: params.storeId,
     _product_id: params.productId,
     _managed: params.managed,
     _quantity: params.quantity,
     _low_stock_threshold: params.lowStockThreshold,
+    _expected_updated_at: params.expectedUpdatedAt,
   }));
 }
 
