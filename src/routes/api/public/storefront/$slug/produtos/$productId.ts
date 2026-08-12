@@ -22,7 +22,13 @@ export const Route = createFileRoute("/api/public/storefront/$slug/produtos/$pro
         const mod = await import("@/lib/storefront.server");
         try {
           const detail = await mod.loadPublicProduct(params.slug, params.productId);
-          return json(detail);
+          const shark = await import("@/lib/storefront-shark-product.server");
+          const augmented = await shark.augmentProductWithSharkFlavorStructure(
+            params.slug,
+            params.productId,
+            detail,
+          );
+          return json(augmented);
         } catch (error) {
           if (error instanceof mod.StorefrontError) {
             return json({ error: error.code }, error.code === "not_found" ? 404 : 503);
