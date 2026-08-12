@@ -14,7 +14,7 @@ import {
 } from "../advanced-api";
 import type { AdvancedBuilder, ProductVariant } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
-import { updateVariantFlavorStructure, type SharkFlavorVariant } from "../shark-variants.api";
+import { updateVariantFlavorStructure } from "../shark-variants.api";
 import { formatPriceBRL, parsePriceInput } from "../types";
 
 type Draft = { name: string; price: string; maxFlavors: string; flavorParts: string };
@@ -27,7 +27,7 @@ function parsePositive(value: string) {
 }
 
 function variantParts(variant: ProductVariant) {
-  return (variant as SharkFlavorVariant).flavor_parts ?? variant.max_flavors ?? null;
+  return variant.flavor_parts ?? variant.max_flavors ?? null;
 }
 
 export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilder; onSaved: () => void }) {
