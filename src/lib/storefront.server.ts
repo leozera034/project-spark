@@ -79,15 +79,21 @@ export type PublicProductCard = {
   product_type: string; capabilities: Record<string, unknown>; engine_version: number; stock_quantity: number | null;
   is_sold_out: boolean; is_featured: boolean; minimum_quantity: number; quantity_step: number; max_quantity: number | null; allows_notes: boolean; image_url: string | null;
 };
-export type PublicCatalog = { categories: PublicCategory[]; products: PublicProductCard[] };
+export type PublicPopularity = { product_id: string; units: number; order_count: number };
+export type PublicCatalog = { categories: PublicCategory[]; products: PublicProductCard[]; popularity: PublicPopularity[] };
 
 export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog> {
   const slug = slugSchema.parse(rawSlug); const db = await admin();
-  const { data, error } = await db.rpc("storefront_catalog", { _slug: slug });
+  const [{ data, error }, popularityResponse] = await Promise.all([
+    db.rpc("storefront_catalog", { _slug: slug }),
+    (db.rpc as any)("storefront_popular_products", { _slug: slug, _days: 60, _limit: 8 }),
+  ]);
   if (error) { console.error("[storefront] catalog rpc failed", error.message); throw new StorefrontError("unavailable"); }
   if (!data) throw new StorefrontError("not_found");
   const payload = data as Record<string, any>; const categories = (payload.categories ?? []) as Record<string, any>[]; const products = (payload.products ?? []) as Record<string, any>[];
   const signed = await signMany("store-catalog", [...categories.map((c) => c.image_path), ...products.map((p) => p.image_path)]);
+  const rawPopularity = popularityResponse?.error ? [] : (popularityResponse?.data ?? []);
+  if (popularityResponse?.error) console.warn("[storefront] popularity unavailable; continuing without ranking", popularityResponse.error.message);
   return {
     categories: categories.map((c) => ({ id: c.id, name: c.name, description: c.description ?? null, sort_order: Number(c.sort_order ?? 0), image_url: c.image_path ? (signed.get(c.image_path) ?? null) : null })),
     products: products.map((p) => ({
@@ -96,6 +102,15 @@ export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog>
       product_type:String(p.product_type??"simple"),capabilities:(p.capabilities??{}) as Record<string,unknown>,engine_version:Number(p.engine_version??1),stock_quantity:p.stock_quantity==null?null:Number(p.stock_quantity),
       is_sold_out:Boolean(p.is_sold_out),is_featured:Boolean(p.is_featured),minimum_quantity:Number(p.minimum_quantity??1),quantity_step:Number(p.quantity_step??1),max_quantity:p.max_quantity==null?null:Number(p.max_quantity),allows_notes:Boolean(p.allows_notes),image_url:p.image_path?(signed.get(p.image_path)??null):null,
     })),
+    popularity: Array.isArray(rawPopularity)
+      ? rawPopularity
+          .map((entry: any) => ({
+            product_id: String(entry?.product_id ?? ""),
+            units: Number(entry?.units ?? 0),
+            order_count: Number(entry?.order_count ?? 0),
+          }))
+          .filter((entry: PublicPopularity) => entry.product_id && entry.units > 0 && entry.order_count > 0)
+      : [],
   };
 }
 
