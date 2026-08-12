@@ -11,12 +11,16 @@ AS $$
 DECLARE
   v_slug text := public.storefront_normalize_slug(_slug);
   v_store uuid;
-  v_profile public.category_profiles;
+  v_profile_id uuid;
+  v_code text;
+  v_name text;
+  v_icon text;
+  v_capabilities jsonb;
 BEGIN
   IF v_slug IS NULL THEN RETURN NULL; END IF;
 
-  SELECT st.id, cp
-    INTO v_store, v_profile
+  SELECT st.id, cp.id, cp.code, cp.name, cp.icon, cp.default_capabilities
+    INTO v_store, v_profile_id, v_code, v_name, v_icon, v_capabilities
     FROM public.stores st
     LEFT JOIN public.category_profiles cp
       ON cp.id = st.category_profile_id
@@ -27,7 +31,7 @@ BEGIN
 
   IF v_store IS NULL THEN RETURN NULL; END IF;
 
-  IF v_profile.id IS NULL THEN
+  IF v_profile_id IS NULL THEN
     RETURN jsonb_build_object(
       'code', null,
       'name', null,
@@ -37,10 +41,10 @@ BEGIN
   END IF;
 
   RETURN jsonb_build_object(
-    'code', v_profile.code,
-    'name', v_profile.name,
-    'icon', v_profile.icon,
-    'default_capabilities', coalesce(v_profile.default_capabilities, '{}'::jsonb)
+    'code', v_code,
+    'name', v_name,
+    'icon', v_icon,
+    'default_capabilities', coalesce(v_capabilities, '{}'::jsonb)
   );
 END;
 $$;
