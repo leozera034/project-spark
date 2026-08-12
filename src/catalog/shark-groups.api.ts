@@ -20,6 +20,24 @@ export type ComboCatalogCandidate = {
   variants: Array<{ id: string; name: string; price: number; is_default: boolean }>;
 };
 
+export type StarterDraft = {
+  group_id: string;
+  link_id: string;
+  key: string;
+  name: string;
+  role: OptionGroupRole;
+};
+
+export async function createProductStarterGroupDrafts(
+  storeId: string,
+  productId: string,
+): Promise<{ created: StarterDraft[]; created_count: number }> {
+  return unwrap(await rpc("create_product_starter_group_drafts", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
 export async function updateOptionGroupEngine(params: {
   storeId: string;
   id: string;
