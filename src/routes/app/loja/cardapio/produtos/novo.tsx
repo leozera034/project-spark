@@ -16,7 +16,11 @@ import {
   PRODUCT_TYPE_LABELS,
   type CategoryProfile,
 } from "@/catalog/shark-engine.api";
-import { createProductStarterGroupDrafts, ensureBuildableBeverageDraft } from "@/catalog/shark-groups.api";
+import {
+  applyMealGroupDefaults,
+  createProductStarterGroupDrafts,
+  ensureBuildableBeverageDraft,
+} from "@/catalog/shark-groups.api";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +107,9 @@ function NovoProduto() {
           await createProductStarterGroupDrafts(storeId, product.id);
           if (intelligence.productType !== "combo" && intelligence.capabilities.beverages === true) {
             await ensureBuildableBeverageDraft(storeId, product.id);
+          }
+          if (intelligence.capabilities.proteins === true && intelligence.capabilities.sides === true) {
+            await applyMealGroupDefaults(storeId, product.id);
           }
         } catch (error) {
           console.warn("[shark] starter drafts unavailable; product remains valid", error);
