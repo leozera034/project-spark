@@ -82,6 +82,15 @@ export type PublicProductCard = {
 export type PublicPopularity = { product_id: string; units: number; order_count: number };
 export type PublicCatalog = { categories: PublicCategory[]; products: PublicProductCard[]; popularity: PublicPopularity[] };
 
+function mapProductCard(p: Record<string, any>, signed: Map<string, string>): PublicProductCard {
+  return {
+    id:p.id,category_id:p.category_id,name:p.name,description:p.description??null,base_price:Number(p.base_price??0),from_price:p.from_price==null?null:Number(p.from_price),
+    sale_mode:p.sale_mode,measurement_unit:p.measurement_unit,pricing_unit:p.pricing_unit,unit_label:p.unit_label??null,has_variants:Boolean(p.has_variants),has_options:Boolean(p.has_options),
+    product_type:String(p.product_type??"simple"),capabilities:(p.capabilities??{}) as Record<string,unknown>,engine_version:Number(p.engine_version??1),stock_quantity:p.stock_quantity==null?null:Number(p.stock_quantity),
+    is_sold_out:Boolean(p.is_sold_out),is_featured:Boolean(p.is_featured),minimum_quantity:Number(p.minimum_quantity??1),quantity_step:Number(p.quantity_step??1),max_quantity:p.max_quantity==null?null:Number(p.max_quantity),allows_notes:Boolean(p.allows_notes),image_url:p.image_path?(signed.get(p.image_path)??null):null,
+  };
+}
+
 export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog> {
   const slug = slugSchema.parse(rawSlug); const db = await admin();
   const [{ data, error }, popularityResponse] = await Promise.all([
@@ -96,19 +105,10 @@ export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog>
   if (popularityResponse?.error) console.warn("[storefront] popularity unavailable; continuing without ranking", popularityResponse.error.message);
   return {
     categories: categories.map((c) => ({ id: c.id, name: c.name, description: c.description ?? null, sort_order: Number(c.sort_order ?? 0), image_url: c.image_path ? (signed.get(c.image_path) ?? null) : null })),
-    products: products.map((p) => ({
-      id:p.id,category_id:p.category_id,name:p.name,description:p.description??null,base_price:Number(p.base_price??0),from_price:p.from_price==null?null:Number(p.from_price),
-      sale_mode:p.sale_mode,measurement_unit:p.measurement_unit,pricing_unit:p.pricing_unit,unit_label:p.unit_label??null,has_variants:Boolean(p.has_variants),has_options:Boolean(p.has_options),
-      product_type:String(p.product_type??"simple"),capabilities:(p.capabilities??{}) as Record<string,unknown>,engine_version:Number(p.engine_version??1),stock_quantity:p.stock_quantity==null?null:Number(p.stock_quantity),
-      is_sold_out:Boolean(p.is_sold_out),is_featured:Boolean(p.is_featured),minimum_quantity:Number(p.minimum_quantity??1),quantity_step:Number(p.quantity_step??1),max_quantity:p.max_quantity==null?null:Number(p.max_quantity),allows_notes:Boolean(p.allows_notes),image_url:p.image_path?(signed.get(p.image_path)??null):null,
-    })),
+    products: products.map((p) => mapProductCard(p, signed)),
     popularity: Array.isArray(rawPopularity)
       ? rawPopularity
-          .map((entry: any) => ({
-            product_id: String(entry?.product_id ?? ""),
-            units: Number(entry?.units ?? 0),
-            order_count: Number(entry?.order_count ?? 0),
-          }))
+          .map((entry: any) => ({ product_id:String(entry?.product_id??""), units:Number(entry?.units??0), order_count:Number(entry?.order_count??0) }))
           .filter((entry: PublicPopularity) => entry.product_id && entry.units > 0 && entry.order_count > 0)
       : [],
   };
@@ -124,22 +124,44 @@ export type PublicOptionGroup = {
   configuration:Record<string,unknown>; items:PublicOptionItem[];
 };
 export type PublicVariant = { id:string; name:string; price:number; is_default:boolean; package_quantity:number|null; package_unit:string|null };
+export type PublicRecommendation = { product: PublicProductCard; together_orders: number };
 export type PublicProductDetail = {
   product: Omit<PublicProductCard,"has_options"|"is_featured"|"from_price"> & { image_url:string|null; pricing_rules:Record<string,unknown> };
-  variants:PublicVariant[]; option_groups:PublicOptionGroup[];
+  variants:PublicVariant[]; option_groups:PublicOptionGroup[]; recommendations:PublicRecommendation[];
 };
 
 export async function loadPublicProduct(rawSlug:string,productId:string):Promise<PublicProductDetail>{
   const slug=slugSchema.parse(rawSlug); const id=z.string().uuid().parse(productId); const db=await admin();
-  const {data,error}=await db.rpc("storefront_product",{_slug:slug,_product_id:id});
+  const [productResponse, recommendationResponse, catalogResponse] = await Promise.all([
+    db.rpc("storefront_product",{_slug:slug,_product_id:id}),
+    (db.rpc as any)("storefront_product_recommendations",{_slug:slug,_product_id:id,_days:90,_limit:4}),
+    db.rpc("storefront_catalog",{_slug:slug}),
+  ]);
+  const {data,error}=productResponse;
   if(error){console.error("[storefront] product rpc failed",error.message);throw new StorefrontError("unavailable");} if(!data)throw new StorefrontError("not_found");
-  const payload=data as Record<string,any>; const product=payload.product as Record<string,any>; const signed=await signMany("store-catalog",[product.image_path]);
+  const payload=data as Record<string,any>; const product=payload.product as Record<string,any>;
+
+  const rawRecommendations = recommendationResponse?.error ? [] : (recommendationResponse?.data ?? []);
+  if (recommendationResponse?.error) console.warn("[storefront] recommendations unavailable; continuing without them", recommendationResponse.error.message);
+  const recommendationStats = Array.isArray(rawRecommendations) ? rawRecommendations as Record<string,any>[] : [];
+  const recommendedIds = new Set(recommendationStats.map((entry) => String(entry.product_id)));
+  const catalogPayload = catalogResponse.data as Record<string,any> | null;
+  const catalogProducts = ((catalogPayload?.products ?? []) as Record<string,any>[]).filter((entry) => recommendedIds.has(String(entry.id)));
+  const signed=await signMany("store-catalog",[product.image_path,...catalogProducts.map((entry)=>entry.image_path)]);
+  const cardById = new Map(catalogProducts.map((entry) => [String(entry.id), mapProductCard(entry,signed)]));
+  const recommendations:PublicRecommendation[] = recommendationStats
+    .map((entry) => {
+      const card = cardById.get(String(entry.product_id));
+      return card ? { product:card, together_orders:Number(entry.together_orders??0) } : null;
+    })
+    .filter((entry): entry is PublicRecommendation => Boolean(entry));
+
   return {product:{
     id:product.id,category_id:product.category_id,name:product.name,description:product.description??null,base_price:Number(product.base_price??0),sale_mode:product.sale_mode,measurement_unit:product.measurement_unit,pricing_unit:product.pricing_unit,unit_label:product.unit_label??null,has_variants:Boolean(product.has_variants),
     product_type:String(product.product_type??"simple"),capabilities:(product.capabilities??{}) as Record<string,unknown>,engine_version:Number(product.engine_version??1),pricing_rules:(product.pricing_rules??{}) as Record<string,unknown>,stock_quantity:product.stock_quantity==null?null:Number(product.stock_quantity),
     is_sold_out:Boolean(product.is_sold_out),minimum_quantity:Number(product.minimum_quantity??1),quantity_step:Number(product.quantity_step??1),max_quantity:product.max_quantity==null?null:Number(product.max_quantity),allows_notes:Boolean(product.allows_notes),image_url:product.image_path?(signed.get(product.image_path)??null):null,
   },variants:((payload.variants??[]) as Record<string,any>[]).map((v)=>({id:v.id,name:v.name,price:Number(v.price??0),is_default:Boolean(v.is_default),package_quantity:v.package_quantity==null?null:Number(v.package_quantity),package_unit:v.package_unit??null})),
-  option_groups:((payload.option_groups??[]) as Record<string,any>[]).map((g)=>({id:g.id,name:g.name,description:g.description??null,role:String(g.role??"generic"),selection_type:g.selection_type,is_required:Boolean(g.is_required),min_selections:Number(g.min_selections??0),max_selections:Number(g.max_selections??1),included_selections:Number(g.included_selections??0),allow_quantity:Boolean(g.allow_quantity),pricing_strategy:g.pricing_strategy,price_effect:g.price_effect,portion_count:g.portion_count==null?null:Number(g.portion_count),configuration:(g.configuration??{}) as Record<string,unknown>,items:((g.items??[]) as Record<string,any>[]).map((i)=>({id:i.id,name:i.name,description:i.description??null,additional_price:Number(i.additional_price??0),max_quantity:Number(i.max_quantity??1),linked_product_id:i.linked_product_id??null,linked_variant_id:i.linked_variant_id??null,metadata:(i.metadata??{}) as Record<string,unknown>}))}))};
+  option_groups:((payload.option_groups??[]) as Record<string,any>[]).map((g)=>({id:g.id,name:g.name,description:g.description??null,role:String(g.role??"generic"),selection_type:g.selection_type,is_required:Boolean(g.is_required),min_selections:Number(g.min_selections??0),max_selections:Number(g.max_selections??1),included_selections:Number(g.included_selections??0),allow_quantity:Boolean(g.allow_quantity),pricing_strategy:g.pricing_strategy,price_effect:g.price_effect,portion_count:g.portion_count==null?null:Number(g.portion_count),configuration:(g.configuration??{}) as Record<string,unknown>,items:((g.items??[]) as Record<string,any>[]).map((i)=>({id:i.id,name:i.name,description:i.description??null,additional_price:Number(i.additional_price??0),max_quantity:Number(i.max_quantity??1),linked_product_id:i.linked_product_id??null,linked_variant_id:i.linked_variant_id??null,metadata:(i.metadata??{}) as Record<string,unknown>}))})),recommendations};
 }
 
 export type PublicPriceResult={ok:boolean;error?:string;total?:number;unit_price?:number;base_total?:number;options_total?:number;validation_errors?:string[]};
