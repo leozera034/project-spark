@@ -39,13 +39,14 @@ export function ProductInventoryCard({ productId, canUpdate }: { productId: stri
   const parsedThreshold = Math.max(0, Number(threshold) || 0);
 
   async function save() {
-    if (!storeId) return;
+    if (!storeId || !query.data?.updated_at) return;
     const result = await run(() => updateProductInventory({
       storeId,
       productId,
       managed,
       quantity: managed ? parsedQuantity : null,
       lowStockThreshold: parsedThreshold,
+      expectedUpdatedAt: query.data.updated_at,
     }), "Estoque atualizado.");
     if (result) void query.refetch();
   }
@@ -84,7 +85,7 @@ export function ProductInventoryCard({ productId, canUpdate }: { productId: stri
         ) : null}
 
         <div className="flex justify-end">
-          <Button disabled={!canUpdate || isBusy} onClick={() => void save()}>Salvar estoque</Button>
+          <Button disabled={!canUpdate || isBusy || !query.data?.updated_at} onClick={() => void save()}>Salvar estoque</Button>
         </div>
       </CardContent>
     </Card>
