@@ -58,6 +58,7 @@ export interface ProductVariant {
   sort_order: number;
   package_quantity: number | null;
   package_unit: MeasurementUnit | null;
+  max_flavors: number | null;
   updated_at: string;
 }
 
@@ -229,6 +230,7 @@ export const CONFIGURATION_MESSAGES: Record<string, string> = {
   VARIANT_OPTION_PRICES_INCOMPLETE: "Faltam preços por variação em um grupo que substitui o preço do produto.",
   VARIANT_INVALID: "A variação escolhida não está disponível.",
   VARIANT_REQUIRED: "Escolha uma variação.",
+  VARIANT_FLAVOR_LIMIT_EXCEEDED: "Este tamanho permite menos sabores do que você selecionou.",
   PACKAGE_REQUIRED: "Escolha uma embalagem.",
   QUANTITY_INVALID: "Quantidade inválida.",
   QUANTITY_BELOW_MINIMUM: "Quantidade abaixo do mínimo do produto.",
