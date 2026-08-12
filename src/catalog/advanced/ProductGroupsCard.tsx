@@ -23,6 +23,7 @@ import {
   type OptionGroup,
 } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
+import { InlineGroupEditor } from "./InlineGroupEditor";
 
 export function ProductGroupsCard({
   builder,
@@ -51,7 +52,7 @@ export function ProductGroupsCard({
     [next[index], next[target]] = [next[target], next[index]];
     const done = await run(
       () => reorderProductOptionGroups(storeId, product.id, next.map((g) => g.link_id)),
-      "Ordem dos grupos atualizada.",
+      "Ordem das escolhas atualizada.",
     );
     if (done) onSaved();
   }
@@ -61,7 +62,7 @@ export function ProductGroupsCard({
       <CardHeader>
         <CardTitle className="text-base">Escolhas e montagem</CardTitle>
         <CardDescription>
-          Configure só o que o cliente precisa escolher. Os grupos podem ser reaproveitados em outros produtos.
+          Monte aqui mesmo o que o cliente poderá escolher. A biblioteca fica apenas para grupos que você queira reaproveitar em vários produtos.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -70,9 +71,9 @@ export function ProductGroupsCard({
             <div className="flex items-start gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/12 text-violet-300"><Sparkles className="size-4" /></span>
               <div>
-                <p className="text-sm font-bold">O Shark preparou {sharkDrafts.length} {sharkDrafts.length === 1 ? "rascunho" : "rascunhos"} para este produto</p>
+                <p className="text-sm font-bold">O Shark já preparou {sharkDrafts.length} {sharkDrafts.length === 1 ? "etapa" : "etapas"} para você</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Eles ainda não aparecem para o cliente. Adicione as opções, confira as regras e ative somente quando estiver tudo pronto.
+                  Abra cada etapa, adicione as opções e publique quando estiver pronta. Nada aparece para o cliente antes disso.
                 </p>
               </div>
             </div>
@@ -84,28 +85,29 @@ export function ProductGroupsCard({
             Nenhuma escolha configurada. O cliente comprará apenas o produto e a variação.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <div className="space-y-3">
             {linked.map((group, index) => {
               const isSharkDraft = Boolean(group.configuration?.shark_draft);
               const activeItems = group.items.filter((i) => i.is_active && !i.is_archived).length;
+
+              if (isSharkDraft) {
+                return <InlineGroupEditor key={group.link_id} group={group} onSaved={onSaved} />;
+              }
+
               return (
-                <li
-                  key={group.link_id}
-                  className={`flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center ${isSharkDraft ? "border-violet-400/20 bg-violet-500/[.035]" : "border-border"}`}
-                >
+                <div key={group.link_id} className="flex flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-foreground">{group.name}</span>
-                      {isSharkDraft ? <Badge className="gap-1 bg-violet-500/12 text-violet-200 hover:bg-violet-500/12"><Sparkles className="size-3" />Sugestão Shark</Badge> : null}
                       {group.is_required ? <Badge>Obrigatório</Badge> : null}
-                      {group.is_active ? null : <Badge variant="secondary">Rascunho</Badge>}
+                      {group.is_active ? null : <Badge variant="secondary">Inativo</Badge>}
                       {group.portion_count ? <Badge variant="outline">{group.portion_count} porções</Badge> : null}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {SELECTION_TYPE_LABELS[group.selection_type]} · mín {group.min_selections} · máx {group.max_selections} · {PRICING_STRATEGY_LABELS[group.pricing_strategy]} · {PRICE_EFFECT_LABELS[group.price_effect]}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {activeItems > 0 ? `${activeItems} opção${activeItems === 1 ? "" : "ões"} pronta${activeItems === 1 ? "" : "s"}` : "Ainda sem opções — complete antes de ativar"}
+                      {activeItems} opção{activeItems === 1 ? "" : "ões"} ativa{activeItems === 1 ? "" : "s"}
                     </p>
                   </div>
 
@@ -129,26 +131,22 @@ export function ProductGroupsCard({
                       ) : null}
                     </div>
                   ) : null}
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
-
-        <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
-          Para editar nomes, opções, preços e ativação, use a{" "}
-          <Link to="/app/loja/cardapio/opcoes" className="font-semibold text-foreground underline underline-offset-2">
-            biblioteca de escolhas
-          </Link>.
-        </div>
 
         {canUpdate ? (
           <div className="space-y-1.5 border-t border-border pt-4">
-            <Label htmlFor="attach-group">Adicionar um grupo já existente</Label>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <Label htmlFor="attach-group">Reaproveitar uma escolha existente</Label>
+            <p className="text-xs text-muted-foreground">
+              Use isto somente se você já criou um grupo em outro produto e quer reutilizá-lo. Para produtos novos, edite as sugestões acima diretamente.
+            </p>
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row">
               <Select value={toAttach} onValueChange={setToAttach}>
                 <SelectTrigger id="attach-group" className="sm:max-w-sm">
-                  <SelectValue placeholder="Escolha um grupo" />
+                  <SelectValue placeholder="Escolha um grupo existente" />
                 </SelectTrigger>
                 <SelectContent>
                   {available.length === 0 ? (
@@ -159,12 +157,16 @@ export function ProductGroupsCard({
                 </SelectContent>
               </Select>
               <Button
+                variant="outline"
                 disabled={isBusy || toAttach === "" || toAttach === "__none"}
                 onClick={() => void run(() => attachOptionGroup(storeId!, product.id, toAttach), "Grupo vinculado ao produto.").then(() => { setToAttach(""); onSaved(); })}
               >
-                Adicionar
+                Reaproveitar
               </Button>
             </div>
+            <p className="pt-1 text-[11px] text-muted-foreground">
+              Gerencie grupos compartilhados na <Link to="/app/loja/cardapio/opcoes" className="font-semibold text-foreground underline underline-offset-2">biblioteca avançada</Link>.
+            </p>
           </div>
         ) : null}
       </CardContent>
