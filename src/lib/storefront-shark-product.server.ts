@@ -12,10 +12,17 @@ export type SharkVariantGroupRule = {
   included_selections: number | null;
 };
 
+export type SharkVariantOptionPrice = {
+  product_variant_id: string;
+  option_item_id: string;
+  price: number;
+};
+
 export type SharkPublicProductDetail = Omit<PublicProductDetail, "variants"> & {
   variants: SharkPublicVariant[];
   combo_available_choice_ids: string[];
   variant_group_rules: SharkVariantGroupRule[];
+  variant_option_prices: SharkVariantOptionPrice[];
 };
 
 export async function augmentProductWithSharkFlavorStructure(
@@ -24,7 +31,7 @@ export async function augmentProductWithSharkFlavorStructure(
   detail: PublicProductDetail,
 ): Promise<SharkPublicProductDetail> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const [flavorResponse, comboResponse, groupRulesResponse] = await Promise.all([
+  const [flavorResponse, comboResponse, groupRulesResponse, optionPricesResponse] = await Promise.all([
     (supabaseAdmin.rpc as any)("storefront_variant_flavor_structure", {
       _slug: slug,
       _product_id: productId,
@@ -34,6 +41,10 @@ export async function augmentProductWithSharkFlavorStructure(
       _product_id: productId,
     }),
     (supabaseAdmin.rpc as any)("storefront_variant_group_rules", {
+      _slug: slug,
+      _product_id: productId,
+    }),
+    (supabaseAdmin.rpc as any)("storefront_variant_option_prices", {
       _slug: slug,
       _product_id: productId,
     }),
@@ -47,6 +58,9 @@ export async function augmentProductWithSharkFlavorStructure(
   }
   if (groupRulesResponse?.error) {
     console.warn("[storefront] shark variant group rules unavailable; continuing with group defaults", groupRulesResponse.error.message);
+  }
+  if (optionPricesResponse?.error) {
+    console.warn("[storefront] shark variant option prices unavailable; hiding variant-specific labels", optionPricesResponse.error.message);
   }
 
   const rows = Array.isArray(flavorResponse?.data) ? flavorResponse.data as Array<Record<string, unknown>> : [];
@@ -67,6 +81,16 @@ export async function augmentProductWithSharkFlavorStructure(
       }))
     : [];
 
+  const variantOptionPrices: SharkVariantOptionPrice[] = Array.isArray(optionPricesResponse?.data)
+    ? (optionPricesResponse.data as Array<Record<string, unknown>>)
+        .map((row) => ({
+          product_variant_id: String(row.product_variant_id),
+          option_item_id: String(row.option_item_id),
+          price: Number(row.price ?? 0),
+        }))
+        .filter((row) => row.product_variant_id && row.option_item_id && Number.isFinite(row.price) && row.price >= 0)
+    : [];
+
   return {
     ...detail,
     variants: detail.variants.map((variant) => {
@@ -81,5 +105,6 @@ export async function augmentProductWithSharkFlavorStructure(
     }),
     combo_available_choice_ids: comboAvailable,
     variant_group_rules: variantGroupRules,
+    variant_option_prices: variantOptionPrices,
   };
 }
