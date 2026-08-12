@@ -62,6 +62,7 @@ Não aplicar a cadeia parcialmente em produção. Antes de qualquer DDL, executa
 52. `20260811045100_shark_final_rpc_lockdown.sql`
 53. `20260811045200_shark_variant_option_price_projection.sql`
 54. `20260811045300_shark_variant_option_price_rpc.sql`
+55. `20260811045400_shark_variant_option_price_integrity.sql`
 
 ## Pós-aplicação obrigatório
 
@@ -74,11 +75,11 @@ Não liberar storefront se qualquer contrato levantar exception.
 
 ## Smoke test funcional
 
-Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; adicional com override de preço por P/M/G sem mostrar preço incorreto antes da escolha; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho.
+Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; adicional com override de preço por P/M/G sem mostrar preço incorreto antes da escolha; rejeição de preço específico cuja variação ou opção pertença a outro produto; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho.
 
 ## Stop conditions
 
-Interromper se houver: objeto ausente no preflight; dados órfãos; mais de uma variação default ativa; produto marcado com variantes sem variante disponível; preço negativo legado; falha de FK; conflito `burger_experience + meal_experience`; `max_flavors > flavor_parts`; ciclo de combo; regra por variação cujo limite efetivo seja impossível; grant de RPC server-only para `anon` ou `authenticated`.
+Interromper se houver: objeto ausente no preflight; dados órfãos; mais de uma variação default ativa; produto marcado com variantes sem variante disponível; preço negativo legado; falha de FK; conflito `burger_experience + meal_experience`; `max_flavors > flavor_parts`; ciclo de combo; preço por variação apontando para variação/opção de outro produto; regra por variação cujo limite efetivo seja impossível; grant de RPC server-only para `anon` ou `authenticated`.
 
 ## Rollback
 
@@ -86,4 +87,4 @@ As migrations criam tabelas, colunas, funções, triggers, constraints e backfil
 
 ## Estado de liberação
 
-Este runbook controla a camada de banco. A aplicação só deve ser promovida após o contrato frontend/server também estar fechado. O backend já evita anunciar override da variação default como preço universal e expõe a matriz mínima server-only para a UI reagir ao tamanho. O resíduo visual conhecido é a remoção física do fallback legado `protein + side -> meal` do `ProductConfigurator`, que deve ser feita com build disponível ou edição integral segura do componente.
+A camada de banco está preparada para aplicação controlada após snapshot e os dois preflights. A aplicação completa ainda não deve ser promovida ao usuário final enquanto o contrato frontend/server não estiver fechado. O backend já evita anunciar override da variação default como preço universal, expõe a matriz mínima server-only para a UI reagir ao tamanho e valida coerência produto-variação-opção. O resíduo visual conhecido é a remoção física do fallback legado `protein + side -> meal` do `ProductConfigurator`, além do consumo da matriz de preços pela UI para mostrar o acréscimo instantâneo correto por tamanho.
