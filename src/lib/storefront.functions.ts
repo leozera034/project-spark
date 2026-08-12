@@ -8,17 +8,19 @@ import {
   priceInputSchema,
   slugSchema,
 } from "@/lib/storefront.server";
+import { loadPublicExperienceProfile } from "@/lib/storefront-experience.server";
 import { productParamsSchema, storefrontRequestSchema } from "@/lib/storefront-contracts";
 
-/** Loja pública + catálogo, em uma única ida ao servidor (conexão fraca). */
+/** Loja pública + catálogo + perfil adaptativo, em uma única ida ao servidor. */
 export const fetchStorefront = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => storefrontRequestSchema.parse(data))
   .handler(async ({ data }) => {
-    const [store, catalog] = await Promise.all([
+    const [store, catalog, experienceProfile] = await Promise.all([
       loadPublicStore(data.slug),
       loadPublicCatalog(data.slug),
+      loadPublicExperienceProfile(data.slug),
     ]);
-    return { store, catalog };
+    return { store, catalog, experienceProfile };
   });
 
 /** Detalhe do produto para a tela de montagem. */

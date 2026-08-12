@@ -1,0 +1,85 @@
+/* Storefront Experience V6 — capability-driven adaptive layout */
+
+main[data-storefront-mode] .storefront-adaptive-intro {
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+/* Guided: buildable products, sabores, combos, complementos. */
+main[data-storefront-mode="guided"] {
+  background:
+    radial-gradient(70% 36% at 100% 0%, rgba(217,70,239,.16), transparent 72%),
+    radial-gradient(55% 32% at 0% 26%, rgba(109,40,217,.10), transparent 74%),
+    #07040c !important;
+}
+main[data-storefront-mode="guided"] .storefront-adaptive-intro > div {
+  min-height: 9.5rem;
+  display: flex;
+  align-items: center;
+}
+main[data-storefront-mode="guided"] section[data-category-id] button.panel {
+  border-color: rgba(192,132,252,.13) !important;
+}
+main[data-storefront-mode="guided"] section[data-category-id] button.panel:hover {
+  border-color: rgba(192,132,252,.30) !important;
+}
+
+/* Catalog: mercado/conveniência/estoque/peso/variações — velocidade primeiro. */
+main[data-storefront-mode="catalog"] > header {
+  min-height: 14rem !important;
+}
+main[data-storefront-mode="catalog"] > header > img:first-child {
+  height: 10rem !important;
+}
+main[data-storefront-mode="catalog"][data-search-first="true"] div[class*="sticky"][class*="glass-bar"] input {
+  min-height: 3.8rem !important;
+  font-size: 1.04rem !important;
+  border-color: rgba(192,132,252,.20) !important;
+  box-shadow: 0 14px 42px -28px rgba(168,85,247,.6) !important;
+}
+main[data-storefront-mode="catalog"] .storefront-adaptive-intro > div {
+  padding-block: 1rem !important;
+}
+main[data-storefront-mode="catalog"] section[data-category-id] {
+  padding-block: 1.15rem !important;
+}
+main[data-storefront-mode="catalog"] section[data-category-id] ul {
+  gap: .65rem !important;
+}
+main[data-storefront-mode="catalog"] section[data-category-id] button.panel {
+  min-height: 6.8rem !important;
+  border-radius: 1.25rem !important;
+  padding: .8rem !important;
+}
+main[data-storefront-mode="catalog"] section[data-category-id] button.panel img {
+  width: 5.2rem !important;
+  height: 5.2rem !important;
+  border-radius: 1rem !important;
+}
+
+/* Menu: equilíbrio entre descoberta e velocidade. */
+main[data-storefront-mode="menu"] .storefront-adaptive-intro > div {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(139,92,246,.12), transparent 44%),
+    linear-gradient(145deg, rgba(23,14,34,.90), rgba(10,7,16,.98)) !important;
+}
+
+/* Cards adaptativos continuam mobile-first. */
+@media (min-width: 760px) {
+  main[data-storefront-mode="catalog"] section[data-category-id] ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  main[data-storefront-mode="catalog"] section[data-category-id] ul > li {
+    margin-top: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main[data-storefront-mode="guided"] .storefront-adaptive-intro > div {
+    animation: shark-guided-glow 5s ease-in-out infinite alternate;
+  }
+  @keyframes shark-guided-glow {
+    from { box-shadow: 0 24px 70px -55px rgba(139,92,246,.55); }
+    to { box-shadow: 0 28px 78px -48px rgba(217,70,239,.72); }
+  }
+}

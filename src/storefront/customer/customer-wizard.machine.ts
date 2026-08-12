@@ -9,6 +9,11 @@ import type {
   PublicFulfillmentConfiguration,
 } from "./customer-wizard.types";
 
+/**
+ * Estados conhecidos de endereço. Mantemos os estados opcionais antigos para
+ * compatibilidade com sessões já persistidas, mas novos endereços percorrem um
+ * caminho mais curto: região → rua → número → identificação → confirmação.
+ */
 export const ADDRESS_STEPS: CustomerWizardStep[] = [
   "address_neighborhood",
   "address_street",
@@ -19,11 +24,21 @@ export const ADDRESS_STEPS: CustomerWizardStep[] = [
   "confirm_address",
 ];
 
+const NEW_ADDRESS_FLOW: CustomerWizardStep[] = [
+  "address_neighborhood",
+  "address_street",
+  "address_number",
+  "address_label",
+  "confirm_address",
+];
+
 export function isAddressStep(step: CustomerWizardStep): boolean {
   return ADDRESS_STEPS.includes(step);
 }
 
 export function addressStepIndex(step: CustomerWizardStep): number {
+  const compactIndex = NEW_ADDRESS_FLOW.indexOf(step);
+  if (compactIndex >= 0) return compactIndex + 1;
   return ADDRESS_STEPS.indexOf(step) + 1;
 }
 
@@ -50,16 +65,50 @@ export function stepAfterFulfillment(
   return profile.savedAddresses.length > 0 ? "choose_saved_address" : "address_neighborhood";
 }
 
+/**
+ * Fluxo novo reduzido. Complemento e referência continuam suportados no modelo
+ * e em sessões legadas, porém não bloqueiam uma compra nova.
+ */
 export function nextAddressStep(step: CustomerWizardStep): CustomerWizardStep {
-  const index = ADDRESS_STEPS.indexOf(step);
-  if (index < 0 || index === ADDRESS_STEPS.length - 1) return "confirm_address";
-  return ADDRESS_STEPS[index + 1];
+  switch (step) {
+    case "address_neighborhood":
+      return "address_street";
+    case "address_street":
+      return "address_number";
+    case "address_number":
+      return "address_label";
+    case "address_complement":
+      return "address_reference";
+    case "address_reference":
+      return "address_label";
+    case "address_label":
+    case "confirm_address":
+      return "confirm_address";
+    default:
+      return "confirm_address";
+  }
 }
 
 export function previousAddressStep(step: CustomerWizardStep): CustomerWizardStep {
-  const index = ADDRESS_STEPS.indexOf(step);
-  if (index <= 0) return "choose_fulfillment";
-  return ADDRESS_STEPS[index - 1];
+  switch (step) {
+    case "address_neighborhood":
+      return "choose_fulfillment";
+    case "address_street":
+      return "address_neighborhood";
+    case "address_number":
+      return "address_street";
+    case "address_label":
+      return "address_number";
+    case "confirm_address":
+      return "address_label";
+    // Compatibilidade para sessões que ficaram nos estados opcionais antigos.
+    case "address_complement":
+      return "address_number";
+    case "address_reference":
+      return "address_complement";
+    default:
+      return "choose_fulfillment";
+  }
 }
 
 /** Voltar sempre desce uma etapa; nunca reinicia o formulário. */
@@ -85,20 +134,34 @@ export function stepBack(
   }
 }
 
-/** Progresso honesto: caminhos diferentes têm tamanhos diferentes. */
+/**
+ * Progresso orientado à pessoa, não à implementação.
+ * O fluxo novo de endereço tem três blocos mentais: região, endereço e confirmação.
+ */
 export function progressLabel(step: CustomerWizardStep): string | null {
   if (isAddressStep(step)) {
-    return `Endereço — etapa ${addressStepIndex(step)} de ${ADDRESS_STEPS.length}`;
+    if (step === "address_neighborhood") return "Entrega · 1 de 3 · Região";
+    if (
+      step === "address_street" ||
+      step === "address_number" ||
+      step === "address_complement" ||
+      step === "address_reference"
+    ) {
+      return "Entrega · 2 de 3 · Endereço";
+    }
+    return "Entrega · 3 de 3 · Confirmar";
   }
+
   switch (step) {
     case "identify_customer":
     case "confirm_saved_name":
-      return "Etapa 1 de 3";
+      return "Seu pedido · 1 de 3 · Você";
     case "choose_fulfillment":
-      return "Etapa 2 de 3";
+      return "Seu pedido · 2 de 3 · Recebimento";
     case "choose_saved_address":
+      return "Seu pedido · 3 de 3 · Endereço";
     case "confirm_pickup":
-      return "Etapa 3 de 3";
+      return "Seu pedido · 3 de 3 · Confirmar";
     default:
       return null;
   }

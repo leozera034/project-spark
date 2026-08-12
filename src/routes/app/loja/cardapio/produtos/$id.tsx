@@ -3,205 +3,125 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query";
 import { ImagePlus, Loader2 } from "lucide-react";
 
-import {
-  getProduct,
-  removeCatalogImage,
-  setProductImage,
-  updateProduct,
-  uploadCatalogImage,
-} from "@/catalog/api";
+import { getProduct, removeCatalogImage, setProductImage, updateProduct, uploadCatalogImage } from "@/catalog/api";
 import { CatalogImage } from "@/catalog/CatalogImage";
 import { useCatalog } from "@/catalog/CatalogProvider";
-import {
-  ProductForm,
-  initialProductValues,
-  type ProductFormValues,
-} from "@/catalog/ProductForm";
+import { ProductForm, initialProductValues, type ProductFormValues } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
+import { ProductInventoryCard } from "@/catalog/ProductInventoryCard";
+import {
+  ProductIntelligenceSetup,
+  type ProductIntelligenceValues,
+} from "@/catalog/ProductIntelligenceSetup";
+import {
+  getProductEngineProfile,
+  getStoreCategoryProfile,
+  updateProductEngineProfile,
+} from "@/catalog/shark-engine.api";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/catalog/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const Route = createFileRoute("/app/loja/cardapio/produtos/$id")({
-  component: EditarProduto,
-});
+export const Route = createFileRoute("/app/loja/cardapio/produtos/$id")({ component: EditarProduto });
 
 function EditarProduto() {
   const { id } = useParams({ from: "/app/loja/cardapio/produtos/$id" });
   const navigate = useNavigate();
   const { storeId, categories, overview, run, isBusy, refresh } = useCatalog();
   const [values, setValues] = useState<ProductFormValues | null>(null);
+  const [intelligence, setIntelligence] = useState<ProductIntelligenceValues | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement | null>(null);
 
   const productQuery = useQuery({
     queryKey: ["catalog", "product", storeId, id],
-    queryFn: () => getProduct(storeId!, id),
-    enabled: Boolean(storeId),
-    retry: false,
+    queryFn: () => getProduct(storeId!, id), enabled: Boolean(storeId), retry: false,
+  });
+  const engineQuery = useQuery({
+    queryKey: ["catalog", "product-engine", storeId, id],
+    queryFn: () => getProductEngineProfile(storeId!, id), enabled: Boolean(storeId), retry: false,
+  });
+  const categoryProfileQuery = useQuery({
+    queryKey: ["catalog", "category-profile", storeId],
+    queryFn: () => getStoreCategoryProfile(storeId!), enabled: Boolean(storeId), retry: false,
   });
 
   const product = productQuery.data ?? null;
 
+  useEffect(() => { if (product) setValues(initialProductValues(product)); }, [product]);
   useEffect(() => {
-    if (product) setValues(initialProductValues(product));
-  }, [product]);
+    if (!engineQuery.data) return;
+    setIntelligence({
+      productType: engineQuery.data.product_type,
+      capabilities: engineQuery.data.capabilities,
+      pricingRules: engineQuery.data.pricing_rules,
+    });
+  }, [engineQuery.data]);
 
-  if (productQuery.isLoading || !values) {
-    return <Skeleton className="h-64 w-full" />;
-  }
-
-  if (productQuery.error || !product) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Produto indisponível</AlertTitle>
-        <AlertDescription>
-          Este produto não existe mais ou não pertence à loja selecionada.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  if (productQuery.isLoading || !values) return <Skeleton className="h-64 w-full" />;
+  if (productQuery.error || !product) return <Alert variant="destructive"><AlertTitle>Produto indisponível</AlertTitle><AlertDescription>Este produto não existe mais ou não pertence à loja selecionada.</AlertDescription></Alert>;
 
   const canUpdate = Boolean(overview?.can.update) && !product.is_archived;
 
   async function submit() {
     if (!storeId || !values || !product) return;
-    const price = parsePriceInput(values.price);
-    if (price === null) return;
-    const updated = await run(
-      () =>
-        updateProduct({
-          storeId,
-          id: product.id,
-          categoryId: values.categoryId,
-          name: values.name.trim(),
-          description: values.description.trim(),
-          basePrice: price,
-          allowsNotes: values.allowsNotes,
-          expectedUpdatedAt: product.updated_at,
-        }),
-      "Produto atualizado.",
-    );
+    const price = parsePriceInput(values.price); if (price === null) return;
+    const updated = await run(() => updateProduct({
+      storeId,id:product.id,categoryId:values.categoryId,name:values.name.trim(),description:values.description.trim(),basePrice:price,
+      allowsNotes:values.allowsNotes,expectedUpdatedAt:product.updated_at,
+    }), "Produto atualizado.");
     if (updated) void productQuery.refetch();
+  }
+
+  async function saveIntelligence() {
+    if (!storeId || !intelligence) return;
+    const saved = await run(() => updateProductEngineProfile({
+      storeId,productId:product.id,productType:intelligence.productType,capabilities:intelligence.capabilities,pricingRules:intelligence.pricingRules,
+    }), "Regras do produto atualizadas.");
+    if (saved) void engineQuery.refetch();
   }
 
   async function handleFile(file: File | undefined) {
     if (!file || !storeId || !product) return;
-    setUploading(true);
-    const previous = product.image_path;
-    await run(async () => {
-      const path = await uploadCatalogImage({
-        storeId,
-        scope: "products",
-        entityId: product.id,
-        file,
-      });
-      const updated = await setProductImage(storeId, product.id, path);
-      await removeCatalogImage(previous);
-      return updated;
-    }, "Imagem atualizada.");
-    setUploading(false);
-    void productQuery.refetch();
+    setUploading(true); const previous=product.image_path;
+    await run(async()=>{const path=await uploadCatalogImage({storeId,scope:"products",entityId:product.id,file});const updated=await setProductImage(storeId,product.id,path);await removeCatalogImage(previous);return updated;},"Imagem atualizada.");
+    setUploading(false); void productQuery.refetch();
   }
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title={product.name}
-        description="Edite os dados do produto e a configuração avançada de venda."
-      />
-      {product.is_archived ? (
-        <Alert>
-          <AlertTitle>Produto arquivado</AlertTitle>
-          <AlertDescription>
-            Restaure o produto na lista para voltar a editá-lo.
-          </AlertDescription>
-        </Alert>
-      ) : null}
+      <PageHeader title={product.name} description="Dados do produto e motor inteligente de montagem." />
+      {product.is_archived ? <Alert><AlertTitle>Produto arquivado</AlertTitle><AlertDescription>Restaure o produto na lista para voltar a editá-lo.</AlertDescription></Alert> : null}
 
       <Tabs defaultValue="dados">
-        <TabsList>
-          <TabsTrigger value="dados">Dados e imagem</TabsTrigger>
-          <TabsTrigger value="avancado">Configuração avançada</TabsTrigger>
-        </TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="dados">Dados e imagem</TabsTrigger><TabsTrigger value="motor">Motor do produto</TabsTrigger><TabsTrigger value="avancado">Variações e grupos</TabsTrigger></TabsList>
 
         <TabsContent value="dados" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Imagem</CardTitle>
-              <CardDescription>Foto exibida ao lado do produto no cardápio.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-24" />
-              {canUpdate ? (
-                <div className="space-y-2">
-                  <input
-                    ref={fileInput}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="hidden"
-                    onChange={(event) => {
-                      void handleFile(event.target.files?.[0]);
-                      event.target.value = "";
-                    }}
-                  />
-                  <Button
-                    variant="outline"
-                    disabled={uploading}
-                    onClick={() => fileInput.current?.click()}
-                  >
-                    {uploading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <ImagePlus className="mr-2 h-4 w-4" />
-                    )}
-                    Enviar imagem
-                  </Button>
-                  <p className="text-xs text-muted-foreground">PNG, JPG ou WebP de até 5 MB.</p>
-                  {product.image_path ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isBusy}
-                      onClick={() =>
-                        void run(async () => {
-                          const previous = product.image_path;
-                          const updated = await setProductImage(storeId!, product.id, null);
-                          await removeCatalogImage(previous);
-                          refresh();
-                          void productQuery.refetch();
-                          return updated;
-                        }, "Imagem removida.")
-                      }
-                    >
-                      Remover imagem
-                    </Button>
-                  ) : null}
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <ProductForm
-            categories={categories.filter((c) => !c.is_archived)}
-            values={values}
-            onChange={setValues}
-            onSubmit={() => void submit()}
-            onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
-            submitting={isBusy || !canUpdate}
-            showStatusFields={false}
-            submitLabel="Salvar alterações"
-          />
+          <Card><CardHeader><CardTitle className="text-base">Imagem</CardTitle><CardDescription>Foto exibida ao lado do produto no cardápio.</CardDescription></CardHeader><CardContent className="flex items-center gap-4">
+            <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-24" />
+            {canUpdate ? <div className="space-y-2">
+              <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event)=>{void handleFile(event.target.files?.[0]);event.target.value="";}} />
+              <Button variant="outline" disabled={uploading} onClick={()=>fileInput.current?.click()}>{uploading?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<ImagePlus className="mr-2 h-4 w-4"/>}Enviar imagem</Button>
+              <p className="text-xs text-muted-foreground">PNG, JPG ou WebP de até 5 MB.</p>
+              {product.image_path?<Button variant="ghost" size="sm" disabled={isBusy} onClick={()=>void run(async()=>{const previous=product.image_path;const updated=await setProductImage(storeId!,product.id,null);await removeCatalogImage(previous);refresh();void productQuery.refetch();return updated;},"Imagem removida.")}>Remover imagem</Button>:null}
+            </div>:null}
+          </CardContent></Card>
+          <ProductForm categories={categories.filter((c)=>!c.is_archived)} values={values} onChange={setValues} onSubmit={()=>void submit()} onCancel={()=>void navigate({to:"/app/loja/cardapio/produtos"})} submitting={isBusy||!canUpdate} showStatusFields={false} submitLabel="Salvar alterações" />
         </TabsContent>
 
-        <TabsContent value="avancado" className="mt-4">
-          <ProductBuilder productId={product.id} />
+        <TabsContent value="motor" className="mt-4 space-y-4">
+          {engineQuery.isLoading || !intelligence ? <Skeleton className="h-56 w-full" /> : <>
+            <ProductIntelligenceSetup profile={categoryProfileQuery.data ?? null} value={intelligence} onChange={setIntelligence} />
+            <ProductInventoryCard productId={product.id} canUpdate={canUpdate} />
+            <div className="flex justify-end"><Button disabled={!canUpdate || isBusy} onClick={()=>void saveIntelligence()}>Salvar regras do produto</Button></div>
+          </>}
         </TabsContent>
+
+        <TabsContent value="avancado" className="mt-4"><ProductBuilder productId={product.id} /></TabsContent>
       </Tabs>
     </div>
   );

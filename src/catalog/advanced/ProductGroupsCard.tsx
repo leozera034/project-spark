@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   type OptionGroup,
 } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
+import { InlineGroupEditor } from "./InlineGroupEditor";
 
 export function ProductGroupsCard({
   builder,
@@ -41,6 +42,7 @@ export function ProductGroupsCard({
   const linked = builder.groups;
   const linkedIds = new Set(linked.map((g) => g.id));
   const available = library.filter((g) => !g.is_archived && !linkedIds.has(g.id));
+  const sharkDrafts = linked.filter((group) => Boolean(group.configuration?.shark_draft));
 
   async function move(index: number, delta: number) {
     if (!storeId) return;
@@ -50,7 +52,7 @@ export function ProductGroupsCard({
     [next[index], next[target]] = [next[target], next[index]];
     const done = await run(
       () => reorderProductOptionGroups(storeId, product.id, next.map((g) => g.link_id)),
-      "Ordem dos grupos atualizada.",
+      "Ordem das escolhas atualizada.",
     );
     if (done) onSaved();
   }
@@ -58,125 +60,113 @@ export function ProductGroupsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Grupos de opções deste produto</CardTitle>
+        <CardTitle className="text-base">Escolhas e montagem</CardTitle>
         <CardDescription>
-          Os grupos são reaproveitáveis entre produtos. Edite nome, itens e regras na{" "}
-          <Link to="/app/loja/cardapio/opcoes" className="underline underline-offset-2">
-            biblioteca de opções
-          </Link>
-          .
+          Monte aqui mesmo o que o cliente poderá escolher. A biblioteca fica apenas para grupos que você queira reaproveitar em vários produtos.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {sharkDrafts.length > 0 ? (
+          <div className="rounded-2xl border border-violet-400/20 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,.12),transparent_45%),rgba(139,92,246,.045)] p-4">
+            <div className="flex items-start gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/12 text-violet-300"><Sparkles className="size-4" /></span>
+              <div>
+                <p className="text-sm font-bold">O Shark já preparou {sharkDrafts.length} {sharkDrafts.length === 1 ? "etapa" : "etapas"} para você</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Abra cada etapa, adicione as opções e publique quando estiver pronta. Nada aparece para o cliente antes disso.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {linked.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhum grupo vinculado. O cliente comprará apenas o produto e a variação.
+            Nenhuma escolha configurada. O cliente comprará apenas o produto e a variação.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {linked.map((group, index) => (
-              <li
-                key={group.link_id}
-                className="flex flex-col gap-2 rounded-lg border border-border p-3 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-foreground">{group.name}</span>
-                    {group.is_required ? <Badge>Obrigatório</Badge> : null}
-                    {group.is_active ? null : <Badge variant="secondary">Inativo</Badge>}
-                    {group.portion_count ? (
-                      <Badge variant="outline">{group.portion_count} porções</Badge>
-                    ) : null}
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {SELECTION_TYPE_LABELS[group.selection_type]} · mín {group.min_selections} · máx{" "}
-                    {group.max_selections} · {PRICING_STRATEGY_LABELS[group.pricing_strategy]} ·{" "}
-                    {PRICE_EFFECT_LABELS[group.price_effect]}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {group.items.filter((i) => i.is_active && !i.is_archived).length} item(ns) ativo(s)
-                  </p>
-                </div>
+          <div className="space-y-3">
+            {linked.map((group, index) => {
+              const isSharkDraft = Boolean(group.configuration?.shark_draft);
+              const activeItems = group.items.filter((i) => i.is_active && !i.is_archived).length;
 
-                {canUpdate ? (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Mover grupo para cima"
-                      disabled={isBusy || index === 0}
-                      onClick={() => void move(index, -1)}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Mover grupo para baixo"
-                      disabled={isBusy || index === linked.length - 1}
-                      onClick={() => void move(index, 1)}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                    {builder.can.archive ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={isBusy}
-                        onClick={() =>
-                          void run(
-                            () => detachOptionGroup(storeId!, product.id, group.id),
-                            "Grupo removido do produto.",
-                          ).then(onSaved)
-                        }
-                      >
-                        Remover
-                      </Button>
-                    ) : null}
+              if (isSharkDraft) {
+                return <InlineGroupEditor key={group.link_id} group={group} onSaved={onSaved} />;
+              }
+
+              return (
+                <div key={group.link_id} className="flex flex-col gap-2 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-foreground">{group.name}</span>
+                      {group.is_required ? <Badge>Obrigatório</Badge> : null}
+                      {group.is_active ? null : <Badge variant="secondary">Inativo</Badge>}
+                      {group.portion_count ? <Badge variant="outline">{group.portion_count} porções</Badge> : null}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {SELECTION_TYPE_LABELS[group.selection_type]} · mín {group.min_selections} · máx {group.max_selections} · {PRICING_STRATEGY_LABELS[group.pricing_strategy]} · {PRICE_EFFECT_LABELS[group.price_effect]}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {activeItems} opção{activeItems === 1 ? "" : "ões"} ativa{activeItems === 1 ? "" : "s"}
+                    </p>
                   </div>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+
+                  {canUpdate ? (
+                    <div className="flex items-center gap-1">
+                      <Button size="icon" variant="ghost" aria-label="Mover grupo para cima" disabled={isBusy || index === 0} onClick={() => void move(index, -1)}>
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" aria-label="Mover grupo para baixo" disabled={isBusy || index === linked.length - 1} onClick={() => void move(index, 1)}>
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      {builder.can.archive ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isBusy}
+                          onClick={() => void run(() => detachOptionGroup(storeId!, product.id, group.id), "Grupo removido do produto.").then(onSaved)}
+                        >
+                          Remover
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {canUpdate ? (
           <div className="space-y-1.5 border-t border-border pt-4">
-            <Label htmlFor="attach-group">Vincular um grupo existente</Label>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <Label htmlFor="attach-group">Reaproveitar uma escolha existente</Label>
+            <p className="text-xs text-muted-foreground">
+              Use isto somente se você já criou um grupo em outro produto e quer reutilizá-lo. Para produtos novos, edite as sugestões acima diretamente.
+            </p>
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row">
               <Select value={toAttach} onValueChange={setToAttach}>
                 <SelectTrigger id="attach-group" className="sm:max-w-sm">
-                  <SelectValue placeholder="Escolha um grupo" />
+                  <SelectValue placeholder="Escolha um grupo existente" />
                 </SelectTrigger>
                 <SelectContent>
                   {available.length === 0 ? (
-                    <SelectItem value="__none" disabled>
-                      Nenhum grupo disponível
-                    </SelectItem>
+                    <SelectItem value="__none" disabled>Nenhum grupo disponível</SelectItem>
                   ) : (
-                    available.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        {g.name}
-                      </SelectItem>
-                    ))
+                    available.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)
                   )}
                 </SelectContent>
               </Select>
               <Button
+                variant="outline"
                 disabled={isBusy || toAttach === "" || toAttach === "__none"}
-                onClick={() =>
-                  void run(
-                    () => attachOptionGroup(storeId!, product.id, toAttach),
-                    "Grupo vinculado ao produto.",
-                  ).then(() => {
-                    setToAttach("");
-                    onSaved();
-                  })
-                }
+                onClick={() => void run(() => attachOptionGroup(storeId!, product.id, toAttach), "Grupo vinculado ao produto.").then(() => { setToAttach(""); onSaved(); })}
               >
-                Vincular
+                Reaproveitar
               </Button>
             </div>
+            <p className="pt-1 text-[11px] text-muted-foreground">
+              Gerencie grupos compartilhados na <Link to="/app/loja/cardapio/opcoes" className="font-semibold text-foreground underline underline-offset-2">biblioteca avançada</Link>.
+            </p>
           </div>
         ) : null}
       </CardContent>

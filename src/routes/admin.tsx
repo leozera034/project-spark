@@ -5,6 +5,7 @@ import {
   Building2,
   LogOut,
   Menu,
+  Shapes,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -33,10 +34,11 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV = [
-  { href: "#visao-geral", label: "Visão geral", icon: BarChart3 },
-  { href: "#operacao", label: "Operação", icon: Activity },
-  { href: "#lojas", label: "Lojas", icon: Building2 },
-  { href: "#observabilidade", label: "Observabilidade", icon: ShieldCheck },
+  { href: "/admin/#visao-geral", label: "Visão geral", icon: BarChart3 },
+  { href: "/admin/#operacao", label: "Operação", icon: Activity },
+  { href: "/admin/#lojas", label: "Lojas", icon: Building2 },
+  { href: "/admin/categorias", label: "Categorias e cardápios", icon: Shapes },
+  { href: "/admin/#observabilidade", label: "Observabilidade", icon: ShieldCheck },
 ] as const;
 
 function AdminLayout() {
