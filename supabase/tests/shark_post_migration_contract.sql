@@ -21,6 +21,7 @@ BEGIN
   -- Canonical functions.
   IF to_regprocedure('public.storefront_popular_products(text,integer,integer)') IS NULL THEN raise exception 'SHARK_POST_POPULARITY_RPC_MISSING'; END IF;
   IF to_regprocedure('public.storefront_product_recommendations(text,uuid,integer,integer)') IS NULL THEN raise exception 'SHARK_POST_RECOMMENDATIONS_RPC_MISSING'; END IF;
+  IF to_regprocedure('public.storefront_variant_option_prices(text,uuid)') IS NULL THEN raise exception 'SHARK_POST_VARIANT_OPTION_PRICE_RPC_MISSING'; END IF;
   IF to_regprocedure('public.update_product_inventory_v2(uuid,uuid,boolean,numeric,numeric,timestamp with time zone)') IS NULL THEN raise exception 'SHARK_POST_INVENTORY_V2_MISSING'; END IF;
   IF to_regprocedure('private.calculate_configured_product_price(uuid,uuid,uuid,numeric,jsonb)') IS NULL THEN raise exception 'SHARK_POST_CANONICAL_PRICING_MISSING'; END IF;
   IF to_regprocedure('private.assert_shark_capabilities(jsonb)') IS NULL THEN raise exception 'SHARK_POST_CAPABILITY_ASSERT_MISSING'; END IF;
@@ -34,6 +35,9 @@ BEGIN
   IF has_function_privilege('authenticated','public.storefront_popular_products(text,integer,integer)','EXECUTE') THEN raise exception 'SHARK_POST_AUTH_POPULARITY_EXPOSED'; END IF;
   IF has_function_privilege('anon','public.storefront_product_recommendations(text,uuid,integer,integer)','EXECUTE') THEN raise exception 'SHARK_POST_ANON_RECOMMENDATIONS_EXPOSED'; END IF;
   IF has_function_privilege('authenticated','public.storefront_product_recommendations(text,uuid,integer,integer)','EXECUTE') THEN raise exception 'SHARK_POST_AUTH_RECOMMENDATIONS_EXPOSED'; END IF;
+  IF has_function_privilege('anon','public.storefront_variant_option_prices(text,uuid)','EXECUTE') THEN raise exception 'SHARK_POST_ANON_VARIANT_OPTION_PRICES_EXPOSED'; END IF;
+  IF has_function_privilege('authenticated','public.storefront_variant_option_prices(text,uuid)','EXECUTE') THEN raise exception 'SHARK_POST_AUTH_VARIANT_OPTION_PRICES_EXPOSED'; END IF;
+  IF NOT has_function_privilege('service_role','public.storefront_variant_option_prices(text,uuid)','EXECUTE') THEN raise exception 'SHARK_POST_SERVICE_VARIANT_OPTION_PRICES_MISSING'; END IF;
   IF has_function_privilege('authenticated','public.update_product_inventory(uuid,uuid,boolean,numeric,numeric)','EXECUTE') THEN raise exception 'SHARK_POST_LEGACY_INVENTORY_WRITE_STILL_EXPOSED'; END IF;
   IF NOT has_function_privilege('authenticated','public.update_product_inventory_v2(uuid,uuid,boolean,numeric,numeric,timestamp with time zone)','EXECUTE') THEN raise exception 'SHARK_POST_INVENTORY_V2_NOT_AVAILABLE'; END IF;
   IF has_function_privilege('anon','private.validate_shark_combo_item_integrity()','EXECUTE') OR has_function_privilege('authenticated','private.validate_shark_combo_item_integrity()','EXECUTE') THEN raise exception 'SHARK_POST_PRIVATE_COMBO_GUARD_EXPOSED'; END IF;
