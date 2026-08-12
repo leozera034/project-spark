@@ -60,6 +60,8 @@ Não aplicar a cadeia parcialmente em produção. Antes de qualquer DDL, executa
 50. `20260811044900_shark_combo_graph_integrity.sql`
 51. `20260811045000_shark_multiflavor_invariants.sql`
 52. `20260811045100_shark_final_rpc_lockdown.sql`
+53. `20260811045200_shark_variant_option_price_projection.sql`
+54. `20260811045300_shark_variant_option_price_rpc.sql`
 
 ## Pós-aplicação obrigatório
 
@@ -72,7 +74,7 @@ Não liberar storefront se qualquer contrato levantar exception.
 
 ## Smoke test funcional
 
-Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho.
+Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; adicional com override de preço por P/M/G sem mostrar preço incorreto antes da escolha; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho.
 
 ## Stop conditions
 
@@ -84,4 +86,4 @@ As migrations criam tabelas, colunas, funções, triggers, constraints e backfil
 
 ## Estado de liberação
 
-Este runbook controla a camada de banco. A aplicação só deve ser promovida após o contrato frontend/server também estar fechado, incluindo a exibição correta de preços de option items por variação e a remoção do fallback visual legado `protein + side -> meal` do configurador.
+Este runbook controla a camada de banco. A aplicação só deve ser promovida após o contrato frontend/server também estar fechado. O backend já evita anunciar override da variação default como preço universal e expõe a matriz mínima server-only para a UI reagir ao tamanho. O resíduo visual conhecido é a remoção física do fallback legado `protein + side -> meal` do `ProductConfigurator`, que deve ser feita com build disponível ou edição integral segura do componente.
