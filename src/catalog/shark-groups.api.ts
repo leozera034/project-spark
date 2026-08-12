@@ -68,6 +68,16 @@ export async function applySharkBuildableExperienceDrafts(
   }));
 }
 
+export async function ensureRemainingExperienceDrafts(
+  storeId: string,
+  productId: string,
+): Promise<{ created: StarterDraft[]; created_count: number }> {
+  return unwrap(await rpc("ensure_remaining_experience_drafts", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
 export async function publishSharkOptionGroup(storeId: string, groupId: string): Promise<OptionGroup> {
   return unwrap<OptionGroup>(await rpc("publish_shark_option_group", {
     _store_id: storeId,
@@ -180,5 +190,7 @@ export const GROUP_ROLE_LABELS: Record<string, string> = {
   sauce: "Molho",
   beverage: "Bebida",
   container: "Copo / casquinha",
+  portion: "Número de bolas / porções",
+  ice: "Gelo",
   combo_step: "Etapa de combo",
 };
