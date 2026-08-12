@@ -64,6 +64,11 @@ Não aplicar a cadeia parcialmente em produção. Antes de qualquer DDL, executa
 54. `20260811045300_shark_variant_option_price_rpc.sql`
 55. `20260811045400_shark_variant_option_price_integrity.sql`
 56. `20260811045500_shark_effective_variant_option_prices.sql`
+57. `20260811045600_shark_legacy_inventory_public_revoke.sql`
+58. `20260811045700_shark_effective_required_group_validation.sql`
+59. `20260811045800_shark_validation_error_array_append_fix.sql`
+
+As migrations `45600–45800` são hardening corretivo descoberto pelos próprios contratos pós-migração: removem o grant legado herdado de `PUBLIC`, restauram a obrigatoriedade efetiva de grupos quando o override do vínculo é `NULL` e tornam a acumulação de códigos de validação `text[]` type-safe.
 
 ## Pós-aplicação obrigatório
 
@@ -90,4 +95,4 @@ As migrations criam tabelas, colunas, funções, triggers, constraints e backfil
 
 A camada de banco e o contrato principal frontend/server estão preparados para aplicação controlada após snapshot e os dois preflights. O configurador usa apenas `burger_experience`/`meal_experience` explícitos para escolher a experiência semântica e consome a matriz server-only de preços efetivos por variação para atualizar os rótulos de acréscimo quando o cliente troca de tamanho. O preço final continua sendo recalculado e validado pelo motor canônico no servidor.
 
-A promoção ao usuário final ainda depende da aplicação completa `40000–45500`, execução dos contratos pós-migração e smoke test funcional no Supabase interno do Lovable.
+A promoção ao usuário final depende da aplicação completa `40000–45800`, execução dos contratos pós-migração e smoke test funcional no Supabase interno do Lovable.
