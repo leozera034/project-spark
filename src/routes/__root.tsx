@@ -24,6 +24,7 @@ import {
 } from "@/components/feedback/AppErrorScreen";
 import { NotFoundPage } from "@/components/feedback/NotFoundPage";
 import { RouteProgress } from "@/components/feedback/RouteProgress";
+import { DemoAccountSwitcher } from "@/components/qa/DemoAccountSwitcher";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeInitScript, useTheme } from "@/lib/theme";
 
@@ -136,6 +137,7 @@ function RootComponent() {
           <div id="conteudo">
             <Outlet />
           </div>
+          <DemoAccountSwitcher />
           <ThemedToaster />
         </AuthProvider>
       </ThemeProvider>
