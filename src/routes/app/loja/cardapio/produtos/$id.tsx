@@ -8,6 +8,7 @@ import { CatalogImage } from "@/catalog/CatalogImage";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import { ProductForm, initialProductValues, type ProductFormValues } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
+import { ProductInventoryCard } from "@/catalog/ProductInventoryCard";
 import {
   ProductIntelligenceSetup,
   type ProductIntelligenceValues,
@@ -115,6 +116,7 @@ function EditarProduto() {
         <TabsContent value="motor" className="mt-4 space-y-4">
           {engineQuery.isLoading || !intelligence ? <Skeleton className="h-56 w-full" /> : <>
             <ProductIntelligenceSetup profile={categoryProfileQuery.data ?? null} value={intelligence} onChange={setIntelligence} />
+            <ProductInventoryCard productId={product.id} canUpdate={canUpdate} />
             <div className="flex justify-end"><Button disabled={!canUpdate || isBusy} onClick={()=>void saveIntelligence()}>Salvar regras do produto</Button></div>
           </>}
         </TabsContent>
