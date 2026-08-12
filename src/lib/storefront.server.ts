@@ -123,7 +123,7 @@ export type PublicOptionGroup = {
   min_selections:number; max_selections:number; included_selections:number; allow_quantity:boolean; pricing_strategy:string; price_effect:string; portion_count:number|null;
   configuration:Record<string,unknown>; items:PublicOptionItem[];
 };
-export type PublicVariant = { id:string; name:string; price:number; is_default:boolean; package_quantity:number|null; package_unit:string|null };
+export type PublicVariant = { id:string; name:string; price:number; is_default:boolean; package_quantity:number|null; package_unit:string|null; max_flavors:number|null };
 export type PublicRecommendation = { product: PublicProductCard; together_orders: number };
 export type PublicProductDetail = {
   product: Omit<PublicProductCard,"has_options"|"is_featured"|"from_price"> & { image_url:string|null; pricing_rules:Record<string,unknown> };
@@ -160,7 +160,7 @@ export async function loadPublicProduct(rawSlug:string,productId:string):Promise
     id:product.id,category_id:product.category_id,name:product.name,description:product.description??null,base_price:Number(product.base_price??0),sale_mode:product.sale_mode,measurement_unit:product.measurement_unit,pricing_unit:product.pricing_unit,unit_label:product.unit_label??null,has_variants:Boolean(product.has_variants),
     product_type:String(product.product_type??"simple"),capabilities:(product.capabilities??{}) as Record<string,unknown>,engine_version:Number(product.engine_version??1),pricing_rules:(product.pricing_rules??{}) as Record<string,unknown>,stock_quantity:product.stock_quantity==null?null:Number(product.stock_quantity),
     is_sold_out:Boolean(product.is_sold_out),minimum_quantity:Number(product.minimum_quantity??1),quantity_step:Number(product.quantity_step??1),max_quantity:product.max_quantity==null?null:Number(product.max_quantity),allows_notes:Boolean(product.allows_notes),image_url:product.image_path?(signed.get(product.image_path)??null):null,
-  },variants:((payload.variants??[]) as Record<string,any>[]).map((v)=>({id:v.id,name:v.name,price:Number(v.price??0),is_default:Boolean(v.is_default),package_quantity:v.package_quantity==null?null:Number(v.package_quantity),package_unit:v.package_unit??null})),
+  },variants:((payload.variants??[]) as Record<string,any>[]).map((v)=>({id:v.id,name:v.name,price:Number(v.price??0),is_default:Boolean(v.is_default),package_quantity:v.package_quantity==null?null:Number(v.package_quantity),package_unit:v.package_unit??null,max_flavors:v.max_flavors==null?null:Number(v.max_flavors)})),
   option_groups:((payload.option_groups??[]) as Record<string,any>[]).map((g)=>({id:g.id,name:g.name,description:g.description??null,role:String(g.role??"generic"),selection_type:g.selection_type,is_required:Boolean(g.is_required),min_selections:Number(g.min_selections??0),max_selections:Number(g.max_selections??1),included_selections:Number(g.included_selections??0),allow_quantity:Boolean(g.allow_quantity),pricing_strategy:g.pricing_strategy,price_effect:g.price_effect,portion_count:g.portion_count==null?null:Number(g.portion_count),configuration:(g.configuration??{}) as Record<string,unknown>,items:((g.items??[]) as Record<string,any>[]).map((i)=>({id:i.id,name:i.name,description:i.description??null,additional_price:Number(i.additional_price??0),max_quantity:Number(i.max_quantity??1),linked_product_id:i.linked_product_id??null,linked_variant_id:i.linked_variant_id??null,metadata:(i.metadata??{}) as Record<string,unknown>}))})),recommendations};
 }
 
