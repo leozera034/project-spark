@@ -1988,6 +1988,53 @@ export type Database = {
           },
         ]
       }
+      store_automation_rules: {
+        Row: {
+          action_code: string
+          config: Json
+          created_at: string
+          created_by: string | null
+          event_code: string
+          id: string
+          is_enabled: boolean
+          name: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_code?: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          event_code: string
+          id?: string
+          is_enabled?: boolean
+          name: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_code?: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          event_code?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_automation_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_hours: {
         Row: {
           closes_at: string
@@ -2022,6 +2069,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "store_hours_store_fk"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_marketing_campaigns: {
+        Row: {
+          audience: string
+          channel: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          name: string
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          name: string
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          name?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_marketing_campaigns_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -2801,9 +2895,19 @@ export type Database = {
         Args: { _order_id: string; _store_id: string }
         Returns: Json
       }
+      get_store_growth_summary: { Args: { _store_id: string }; Returns: Json }
       get_store_operational_preview: {
         Args: { _store_id?: string }
         Returns: Json
+      }
+      get_store_revenue_series: {
+        Args: { _days?: number; _store_id: string }
+        Returns: {
+          avg_ticket: number
+          day: string
+          orders: number
+          revenue: number
+        }[]
       }
       heartbeat_my_courier_presence: { Args: never; Returns: Json }
       list_eligible_couriers_for_delivery: {
@@ -2875,9 +2979,45 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      list_store_automation_rules: {
+        Args: { _store_id: string }
+        Returns: {
+          action_code: string
+          config: Json
+          created_at: string
+          event_code: string
+          id: string
+          is_enabled: boolean
+          name: string
+          updated_at: string
+        }[]
+      }
+      list_store_customer_insights: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _segment?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       list_store_delivery_occurrences: {
         Args: { _order_id: string; _store_id: string }
         Returns: Json
+      }
+      list_store_marketing_campaigns: {
+        Args: { _store_id: string }
+        Returns: {
+          audience: string
+          channel: string
+          created_at: string
+          id: string
+          message: string
+          name: string
+          status: string
+          updated_at: string
+        }[]
       }
       mark_store_order_ready: {
         Args: {
@@ -3013,6 +3153,28 @@ export type Database = {
           _store_id: string
         }
         Returns: Json
+      }
+      save_store_automation_rule: {
+        Args: {
+          _config?: Json
+          _enabled: boolean
+          _event_code: string
+          _id: string
+          _name: string
+          _store_id: string
+        }
+        Returns: string
+      }
+      save_store_marketing_campaign: {
+        Args: {
+          _audience: string
+          _id: string
+          _message: string
+          _name: string
+          _status?: string
+          _store_id: string
+        }
+        Returns: string
       }
       set_catalog_category_active: {
         Args: {
