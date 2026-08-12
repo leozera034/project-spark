@@ -47,17 +47,17 @@ async function fetchPrice(slug: string, body: unknown) {
   }>;
 }
 
-function groupInstruction(group: PublicOptionGroup, chosen: number) {
+function groupInstruction(group: PublicOptionGroup, chosen: number, maxSelections = group.max_selections) {
   const min = group.is_required ? Math.max(1, group.min_selections) : group.min_selections;
   const missing = Math.max(0, min - chosen);
-  const remaining = Math.max(0, group.max_selections - chosen);
+  const remaining = Math.max(0, maxSelections - chosen);
   const parts = [group.is_required ? "Obrigatório" : "Opcional"];
 
-  if (group.max_selections === 1) parts.push("escolha 1");
-  else if (group.max_selections > 1) parts.push(`até ${group.max_selections}`);
-  if (min > 0 && group.max_selections !== 1) parts.push(`mínimo ${min}`);
+  if (maxSelections === 1) parts.push("escolha 1");
+  else if (maxSelections > 1) parts.push(`até ${maxSelections}`);
+  if (min > 0 && maxSelections !== 1) parts.push(`mínimo ${min}`);
   if (missing > 0) parts.push(`faltam ${missing}`);
-  else if (remaining > 0 && chosen > 0 && group.max_selections > 1) parts.push(`${remaining} restante${remaining > 1 ? "s" : ""}`);
+  else if (remaining > 0 && chosen > 0 && maxSelections > 1) parts.push(`${remaining} restante${remaining > 1 ? "s" : ""}`);
 
   return parts.join(" · ");
 }
@@ -114,6 +114,12 @@ export function ProductConfigurator({
   }, [data, editLineId]);
 
   const groups = data?.option_groups ?? [];
+  const selectedVariant = data?.variants.find((variant) => variant.id === variantId) ?? null;
+  const effectiveGroupMax = (group: PublicOptionGroup) =>
+    group.role === "flavor" && selectedVariant?.max_flavors
+      ? Math.min(group.max_selections, selectedVariant.max_flavors)
+      : group.max_selections;
+
   const countIn = (groupId: string) => selections
     .filter((s) => s.option_group_id === groupId)
     .reduce((total, s) => total + s.quantity, 0);
@@ -121,8 +127,10 @@ export function ProductConfigurator({
   const pendingGroups = useMemo(() => groups.filter((group) => {
     const chosen = countIn(group.id);
     const minimum = group.is_required ? Math.max(1, group.min_selections) : group.min_selections;
-    return chosen < minimum;
-  }), [groups, selections]);
+    return chosen < minimum || chosen > effectiveGroupMax(group);
+    // effectiveGroupMax depends on selected variant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [groups, selections, variantId]);
 
   const isComplete = pendingGroups.length === 0;
 
@@ -137,6 +145,22 @@ export function ProductConfigurator({
       selections,
     }),
   });
+
+  const changeVariant = (nextId: string) => {
+    const next = data?.variants.find((variant) => variant.id === nextId) ?? null;
+    setVariantId(nextId);
+    setSelections((previous) => {
+      if (!next?.max_flavors) return previous;
+      const flavorIds = new Set(groups.filter((group) => group.role === "flavor").map((group) => group.id));
+      let used = 0;
+      return previous.filter((selection) => {
+        if (!flavorIds.has(selection.option_group_id)) return true;
+        if (used + selection.quantity > next.max_flavors!) return false;
+        used += selection.quantity;
+        return true;
+      });
+    });
+  };
 
   const toggleSingle = (groupId: string, itemId: string) => setSelections((prev) => [
     ...prev.filter((s) => s.option_group_id !== groupId),
@@ -260,12 +284,12 @@ export function ProductConfigurator({
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-violet-500/15 text-xs font-black text-violet-200">1</span>
               <div><h3 className="text-sm font-semibold">Escolha uma opção</h3><p className="text-xs text-muted-foreground">Obrigatório · escolha 1</p></div>
             </header>
-            <RadioGroup value={variantId ?? ""} onValueChange={setVariantId} className="space-y-2">
+            <RadioGroup value={variantId ?? ""} onValueChange={changeVariant} className="space-y-2">
               {data.variants.map((variant) => (
                 <label key={variant.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
                   <span className="flex items-center gap-3">
                     <RadioGroupItem value={variant.id} id={variant.id} />
-                    <span className="text-sm">{variant.name}{variant.package_quantity ? <span className="block text-xs text-muted-foreground">{variant.package_quantity}{UNIT_LABELS[variant.package_unit ?? ""] ?? ""}</span> : null}</span>
+                    <span className="text-sm">{variant.name}{variant.package_quantity ? <span className="block text-xs text-muted-foreground">{variant.package_quantity}{UNIT_LABELS[variant.package_unit ?? ""] ?? ""}</span> : null}{variant.max_flavors ? <span className="block text-xs font-medium text-violet-300">até {variant.max_flavors} sabor{variant.max_flavors > 1 ? "es" : ""}</span> : null}</span>
                   </span>
                   <span className="text-sm font-medium">{brl(variant.price)}</span>
                 </label>
@@ -276,8 +300,9 @@ export function ProductConfigurator({
 
         {groups.map((group, groupIndex) => {
           const chosen = countIn(group.id);
+          const maxSelections = effectiveGroupMax(group);
           const incomplete = pendingGroups.some((g) => g.id === group.id);
-          const atLimit = group.max_selections > 0 && chosen >= group.max_selections;
+          const atLimit = maxSelections > 0 && chosen >= maxSelections;
           const decisionNumber = firstDecisionNumber + groupIndex + 1;
           return (
             <section key={group.id} className="space-y-3 rounded-2xl border border-border/70 p-4">
@@ -289,13 +314,14 @@ export function ProductConfigurator({
                       <h3 className="text-sm font-semibold">{group.name}</h3>
                       {group.role === "combo_step" ? <Badge variant="outline">Etapa do combo</Badge> : null}
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{groupInstruction(group, chosen)}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{groupInstruction(group, chosen, maxSelections)}</p>
+                    {group.role === "flavor" && selectedVariant?.max_flavors ? <p className="mt-1 text-xs font-medium text-violet-300">O tamanho {selectedVariant.name} permite até {selectedVariant.max_flavors} sabor{selectedVariant.max_flavors > 1 ? "es" : ""}.</p> : null}
                     {group.included_selections > 0 ? (
                       <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">Até {group.included_selections} escolha{group.included_selections > 1 ? "s" : ""} incluída{group.included_selections > 1 ? "s" : ""} no preço. Excedentes são cobrados individualmente.</p>
                     ) : null}
                   </div>
                 </div>
-                {incomplete ? <Badge variant="destructive" className="shrink-0">Falta escolher</Badge> : chosen > 0 ? <Badge variant="secondary" className="shrink-0"><CheckCircle2 className="mr-1 size-3.5" />{chosen}/{group.max_selections}</Badge> : null}
+                {incomplete ? <Badge variant="destructive" className="shrink-0">Falta escolher</Badge> : chosen > 0 ? <Badge variant="secondary" className="shrink-0"><CheckCircle2 className="mr-1 size-3.5" />{chosen}/{maxSelections}</Badge> : null}
               </header>
 
               <div className="space-y-2">
@@ -308,9 +334,9 @@ export function ProductConfigurator({
                       <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                         <div className="min-w-0"><p className="truncate text-sm">{item.name}</p>{priceLabel ? <p className="text-xs text-muted-foreground">{priceLabel}</p> : <p className="text-xs text-muted-foreground">Sem acréscimo</p>}</div>
                         <div className="flex shrink-0 items-center gap-2">
-                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Remover ${item.name}`} disabled={!selected} onClick={() => bumpQuantity(group.id, item.id, -1, item.max_quantity, group.max_selections)}><Minus className="size-4" /></Button>
+                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Remover ${item.name}`} disabled={!selected} onClick={() => bumpQuantity(group.id, item.id, -1, item.max_quantity, maxSelections)}><Minus className="size-4" /></Button>
                           <span className="w-5 text-center text-sm tabular-nums">{selected?.quantity ?? 0}</span>
-                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Adicionar ${item.name}`} disabled={atLimit || (selected?.quantity ?? 0) >= item.max_quantity} onClick={() => bumpQuantity(group.id, item.id, 1, item.max_quantity, group.max_selections)}><Plus className="size-4" /></Button>
+                          <Button type="button" size="icon" variant="outline" className="size-8" aria-label={`Adicionar ${item.name}`} disabled={atLimit || (selected?.quantity ?? 0) >= item.max_quantity} onClick={() => bumpQuantity(group.id, item.id, 1, item.max_quantity, maxSelections)}><Plus className="size-4" /></Button>
                         </div>
                       </div>
                     );
@@ -327,7 +353,7 @@ export function ProductConfigurator({
 
                   return (
                     <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
-                      <span className="flex items-center gap-3"><Checkbox checked={Boolean(selected)} onCheckedChange={() => toggleMulti(group.id, item.id, group.max_selections)} /><span className="text-sm">{item.name}</span></span>
+                      <span className="flex items-center gap-3"><Checkbox checked={Boolean(selected)} onCheckedChange={() => toggleMulti(group.id, item.id, maxSelections)} /><span className="text-sm">{item.name}</span></span>
                       {priceLabel ? <span className="text-sm">{priceLabel}</span> : <span className="text-xs text-muted-foreground">Sem acréscimo</span>}
                     </label>
                   );
@@ -370,7 +396,7 @@ export function ProductConfigurator({
       </div>
 
       <div className="sticky bottom-0 space-y-2 border-t bg-background px-1 pb-2 pt-3">
-        {!isComplete ? <p className="text-center text-xs text-muted-foreground">Falta escolher: {pendingGroups.map((g) => g.name).join(", ")}</p> : null}
+        {!isComplete ? <p className="text-center text-xs text-muted-foreground">Falta ajustar: {pendingGroups.map((g) => g.name).join(", ")}</p> : null}
         {cartError ? <p className="text-center text-xs text-destructive">{cartError}</p> : null}
         <Button className="h-12 w-full text-base" onClick={submit} disabled={!isComplete || !storeOpen || product.is_sold_out || !price?.ok} loading={pricing} loadingLabel="Calculando preço">
           {pricing ? "Calculando preço…" : product.is_sold_out ? "Item esgotado" : !storeOpen ? "Loja fechada" : isComplete && price?.ok ? <>{editLineId ? "Salvar alterações" : "Adicionar"} · <span className="tabular-nums">{brl(price.total ?? 0)}</span></> : "Complete as escolhas"}
