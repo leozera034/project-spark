@@ -4,7 +4,8 @@ import type { ProductVariant } from "./advanced-types";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = supabase.rpc.bind(supabase) as any;
 
-export type SharkFlavorVariant = ProductVariant & { flavor_parts?: number | null };
+/** @deprecated Use ProductVariant; kept as a source-compatible alias for older callers. */
+export type SharkFlavorVariant = ProductVariant;
 
 export async function updateVariantFlavorStructure(params: {
   storeId: string;
@@ -12,7 +13,7 @@ export async function updateVariantFlavorStructure(params: {
   maxFlavors: number | null;
   flavorParts: number | null;
   expectedUpdatedAt: string;
-}): Promise<SharkFlavorVariant> {
+}): Promise<ProductVariant> {
   const result = await rpc("update_variant_flavor_structure", {
     _store_id: params.storeId,
     _id: params.id,
@@ -21,7 +22,7 @@ export async function updateVariantFlavorStructure(params: {
     _expected_updated_at: params.expectedUpdatedAt,
   });
   if (result.error) throw new Error(result.error.message);
-  return result.data as SharkFlavorVariant;
+  return result.data as ProductVariant;
 }
 
 /** Compatibilidade com telas/chamadores antigos. */
