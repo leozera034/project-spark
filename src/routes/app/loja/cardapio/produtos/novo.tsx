@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, CheckCircle2, PackagePlus, Sparkles } from "lucide-react";
 
 import { createProduct } from "@/catalog/api";
 import { useCatalog } from "@/catalog/CatalogProvider";
@@ -12,13 +13,19 @@ import {
 import {
   getStoreCategoryProfile,
   updateProductEngineProfile,
+  PRODUCT_TYPE_LABELS,
   type CategoryProfile,
 } from "@/catalog/shark-engine.api";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/catalog/PageHeader";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/novo")({ component: NovoProduto });
+
+type WizardStep = "structure" | "details";
 
 function NovoProduto() {
   const navigate = useNavigate();
@@ -27,6 +34,7 @@ function NovoProduto() {
   const [profile, setProfile] = useState<CategoryProfile | null>(null);
   const [intelligence, setIntelligence] = useState<ProductIntelligenceValues>(initialIntelligenceValues(null));
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [step, setStep] = useState<WizardStep>("structure");
 
   useEffect(() => {
     if (!storeId) return;
@@ -42,6 +50,12 @@ function NovoProduto() {
     return () => { active = false; };
   }, [storeId]);
 
+  useEffect(() => {
+    if (activeCategories.length === 1 && !values.categoryId) {
+      setValues((current) => ({ ...current, categoryId: activeCategories[0].id }));
+    }
+  }, [activeCategories, values.categoryId]);
+
   if (!overview?.can.create) {
     return <Alert><AlertTitle>Sem permissão</AlertTitle><AlertDescription>Seu perfil não pode cadastrar produtos nesta loja.</AlertDescription></Alert>;
   }
@@ -56,8 +70,6 @@ function NovoProduto() {
     if (price === null) return;
 
     const created = await run(async () => {
-      // A criação legado continua sendo a primeira etapa. Se a configuração inteligente
-      // falhar por qualquer motivo, o item permanece como produto simples e nunca fica corrompido.
       const product = await createProduct({
         storeId,
         categoryId: values.categoryId,
@@ -86,27 +98,70 @@ function NovoProduto() {
     if (created) void navigate({ to: "/app/loja/cardapio/produtos/$id", params: { id: created.id } });
   }
 
+  const selectedType = PRODUCT_TYPE_LABELS.find((item) => item.type === intelligence.productType);
+  const enabledCapabilities = Object.entries(intelligence.capabilities).filter(([, enabled]) => enabled === true).length;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 pb-6">
       <PageHeader
         title="Novo produto"
-        description="Comece simples. O motor mostra apenas os recursos que fizerem sentido para este produto."
+        description={step === "structure" ? "Primeiro diga ao Shark como esse item funciona." : "Agora preencha só os dados básicos. Depois você configura as escolhas específicas."}
       />
 
-      {profileLoaded ? (
-        <ProductIntelligenceSetup profile={profile} value={intelligence} onChange={setIntelligence} />
-      ) : null}
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" onClick={() => setStep("structure")} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${step === "structure" ? "border-violet-400/35 bg-violet-500/10" : "border-border bg-card/40"}`}>
+          <span className={`grid size-9 place-items-center rounded-xl ${step === "details" ? "bg-emerald-500/12 text-emerald-300" : "bg-violet-500/12 text-violet-300"}`}>{step === "details" ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />}</span>
+          <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Passo 1</p><p className="text-sm font-bold">Como funciona</p></div>
+        </button>
+        <button type="button" onClick={() => step === "details" && setStep("details")} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${step === "details" ? "border-violet-400/35 bg-violet-500/10" : "border-border bg-card/25 opacity-70"}`}>
+          <span className="grid size-9 place-items-center rounded-xl bg-muted text-muted-foreground"><PackagePlus className="size-4" /></span>
+          <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Passo 2</p><p className="text-sm font-bold">Dados do produto</p></div>
+        </button>
+      </div>
 
-      <ProductForm
-        categories={activeCategories}
-        values={values}
-        onChange={setValues}
-        onSubmit={() => void submit()}
-        onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
-        submitting={isBusy}
-        showStatusFields
-        submitLabel="Criar produto"
-      />
+      {step === "structure" ? (
+        <>
+          {profileLoaded ? <ProductIntelligenceSetup profile={profile} value={intelligence} onChange={setIntelligence} /> : null}
+          <div className="flex justify-end">
+            <Button size="lg" className="min-w-40" onClick={() => setStep("details")}>
+              Continuar <ArrowRight className="ml-2 size-4" />
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <Card className="border-violet-400/15 bg-violet-500/[.035]">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-2xl bg-violet-500/12 text-violet-300"><Sparkles className="size-4" /></span>
+                <div>
+                  <p className="text-sm font-bold">{selectedType?.label ?? "Produto personalizado"}</p>
+                  <p className="text-xs text-muted-foreground">{enabledCapabilities > 0 ? `${enabledCapabilities} recursos preparados automaticamente` : "Sem configurações extras"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {profile ? <Badge variant="outline">{profile.name}</Badge> : null}
+                <Button type="button" size="sm" variant="ghost" onClick={() => setStep("structure")}>Alterar estrutura</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <ProductForm
+            categories={activeCategories}
+            values={values}
+            onChange={setValues}
+            onSubmit={() => void submit()}
+            onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
+            submitting={isBusy}
+            showStatusFields
+            submitLabel="Criar produto e configurar"
+          />
+
+          <div className="hidden justify-start lg:flex">
+            <Button variant="ghost" onClick={() => setStep("structure")}><ArrowLeft className="mr-2 size-4" />Voltar para estrutura</Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
