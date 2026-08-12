@@ -15,6 +15,7 @@ import { ComboBuilderCard } from "./ComboBuilderCard";
 import { ConfiguredPreviewCard } from "./ConfiguredPreviewCard";
 import { ProductGroupsCard } from "./ProductGroupsCard";
 import { SaleModeCard } from "./SaleModeCard";
+import { SizeVariantsCard } from "./SizeVariantsCard";
 import { SmartGroupRulesCard } from "./SmartGroupRulesCard";
 import { ValidationSummary } from "./ValidationSummary";
 import { VariantPricesCard } from "./VariantPricesCard";
@@ -48,6 +49,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
 
   const needsSaleMode = type === "measured" || type === "kit" || enabled(caps, "measured", "stock", "packages", "volume", "kits");
   const needsVariants = type === "variant" || type === "sized" || type === "multi_flavor" || enabled(caps, "sizes", "variants", "packages", "volume");
+  const usesSimpleSizes = needsVariants && (type === "sized" || type === "multi_flavor" || enabled(caps, "sizes")) && !enabled(caps, "packages");
   const needsCombo = type === "combo" || enabled(caps, "combo_steps", "combos");
   const needsGroups = type === "buildable" || type === "flavors" || type === "multi_flavor" || type === "combo" || enabled(
     caps,
@@ -60,7 +62,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
 
   const roadmap = [
     { label: "Base", active: true, done: true },
-    { label: "Tamanhos / variações", active: needsVariants, done: !needsVariants || builder.variants.length > 0 },
+    { label: usesSimpleSizes ? "Tamanhos" : "Variações", active: needsVariants, done: !needsVariants || builder.variants.length > 0 },
     { label: "Escolhas", active: needsGroups, done: !needsGroups || builder.groups.length > 0 },
     { label: "Combo", active: needsCombo, done: !needsCombo || builder.groups.some((group) => group.role === "combo_step") },
   ].filter((step) => step.active);
@@ -92,7 +94,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
       <ValidationSummary report={builder.validation} />
 
       {needsSaleMode ? <SaleModeCard builder={builder} onSaved={refetch} /> : null}
-      {needsVariants ? <VariantsCard builder={builder} onSaved={refetch} /> : null}
+      {needsVariants ? (usesSimpleSizes ? <SizeVariantsCard builder={builder} onSaved={refetch} /> : <VariantsCard builder={builder} onSaved={refetch} />) : null}
       {needsCombo ? <ComboBuilderCard builder={builder} onSaved={refetch} /> : null}
       {needsGroups ? <SmartGroupRulesCard builder={builder} onSaved={refetch} /> : null}
       {needsGroups ? <ProductGroupsCard builder={builder} library={libraryQuery.data ?? []} onSaved={refetch} /> : null}
