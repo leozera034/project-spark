@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { Clock, Flame, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
+import { Clock, Flame, MapPin, Search, ShoppingBag, Sparkles, Store, X } from "lucide-react";
 
 import { CartBar } from "@/components/storefront/CartBar";
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
@@ -16,6 +16,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicCatalog, PublicProductCard, PublicStorePayload } from "@/lib/storefront.server";
+import type { PublicExperienceProfile } from "@/lib/storefront-experience.server";
+import { deriveStorefrontExperience } from "@/storefront/experience/storefront-experience";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const parentRoute = getRouteApi("/loja/$slug");
@@ -25,9 +27,10 @@ export const Route = createFileRoute("/loja/$slug/")({
 });
 
 function StorefrontPage() {
-  const { store: storePayload, catalog } = parentRoute.useLoaderData() as {
+  const { store: storePayload, catalog, experienceProfile } = parentRoute.useLoaderData() as {
     store: PublicStorePayload;
     catalog: PublicCatalog;
+    experienceProfile: PublicExperienceProfile;
   };
 
   const { slug } = parentRoute.useParams();
@@ -37,6 +40,11 @@ function StorefrontPage() {
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { store, settings, hours, is_open: isOpen } = storePayload;
+
+  const experience = useMemo(
+    () => deriveStorefrontExperience(experienceProfile, catalog),
+    [experienceProfile, catalog],
+  );
 
   const grouped = useMemo(() => {
     const needle = foldText(term);
@@ -107,6 +115,8 @@ function StorefrontPage() {
   return (
     <main
       className="min-h-svh bg-background pb-28"
+      data-storefront-mode={experience.mode}
+      data-search-first={experience.searchFirst ? "true" : "false"}
       style={
         {
           "--brand": settings.brand_primary,
@@ -176,7 +186,7 @@ function StorefrontPage() {
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
-              placeholder="Buscar no cardápio"
+              placeholder={experience.searchPlaceholder}
               aria-label="Buscar no cardápio"
               className="h-12 rounded-full bg-card pl-10 shadow-e1"
             />
@@ -205,7 +215,56 @@ function StorefrontPage() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        {!term && catalog.categories.length > 1 ? (
+        {!term ? (
+          <Reveal as="section" className="storefront-adaptive-intro pt-6">
+            <div className="relative overflow-hidden rounded-[1.7rem] border border-violet-300/10 bg-[radial-gradient(circle_at_90%_0%,rgba(217,70,239,.16),transparent_40%),linear-gradient(145deg,rgba(28,15,42,.92),rgba(9,6,14,.98))] p-5 shadow-[0_30px_80px_-58px_rgba(168,85,247,.8)]">
+              <div className="max-w-xl">
+                <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.13em] text-violet-300/85"><Sparkles className="size-3.5" />{experience.eyebrow}</p>
+                <h2 className="mt-2 text-[1.35rem] font-extrabold leading-tight tracking-[-.04em] sm:text-2xl">{experience.prompt}</h2>
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/55">{experience.description}</p>
+              </div>
+            </div>
+          </Reveal>
+        ) : null}
+
+        {!term && experience.mode === "guided" && experience.guidedProducts.length > 0 ? (
+          <Reveal as="section" className="pt-7">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.12em] text-violet-300/80">Personalize</p>
+                <h2 className="mt-1 text-xl font-bold tracking-tight">Monte do seu jeito</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Itens com escolhas guiadas de tamanho, sabores, complementos ou etapas.</p>
+              </div>
+            </div>
+            <div className="rail -mx-4 mt-4 gap-3 px-4 pb-2 sm:-mx-6 sm:px-6">
+              {experience.guidedProducts.map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => openProduct(product.id)}
+                  disabled={product.is_sold_out}
+                  className="group relative w-[64vw] max-w-[14.5rem] shrink-0 overflow-hidden rounded-[1.55rem] border border-violet-300/12 bg-[#120b1b] text-left disabled:opacity-50"
+                >
+                  <div className="relative aspect-[1.35/1] overflow-hidden bg-white/[.025]">
+                    {product.image_url ? (
+                      <img src={product.image_url} alt="" loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="size-full bg-[radial-gradient(circle_at_75%_15%,rgba(168,85,247,.28),transparent_44%),linear-gradient(145deg,#251238,#0b0710)]" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#120b1b] via-transparent to-transparent" />
+                    <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.1em] text-violet-100 backdrop-blur">Personalizável</span>
+                  </div>
+                  <div className="p-3.5">
+                    <p className="truncate font-bold tracking-tight">{product.name}</p>
+                    <p className="mt-2 text-sm font-extrabold text-violet-200">{product.has_variants && product.from_price !== null ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </Reveal>
+        ) : null}
+
+        {!term && experience.emphasizeCategories && catalog.categories.length > 1 ? (
           <Reveal as="section" className="pt-6">
             <div className="flex items-end justify-between gap-4">
               <div>
