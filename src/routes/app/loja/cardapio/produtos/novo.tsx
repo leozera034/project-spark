@@ -21,6 +21,7 @@ import {
   applySharkBuildableExperienceDrafts,
   createProductStarterGroupDrafts,
   ensureBuildableBeverageDraft,
+  ensureRemainingExperienceDrafts,
 } from "@/catalog/shark-groups.api";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -114,6 +115,13 @@ function NovoProduto() {
           }
           if (intelligence.capabilities.burger_experience === true) {
             await applySharkBuildableExperienceDrafts(storeId, product.id);
+          }
+          if (
+            intelligence.capabilities.icecream_experience === true
+            || intelligence.capabilities.pastry_experience === true
+            || intelligence.capabilities.beverage_experience === true
+          ) {
+            await ensureRemainingExperienceDrafts(storeId, product.id);
           }
         } catch (error) {
           console.warn("[shark] starter drafts unavailable; product remains valid", error);
