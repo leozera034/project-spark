@@ -18,6 +18,7 @@ import { SaleModeCard } from "./SaleModeCard";
 import { SizeVariantsCard } from "./SizeVariantsCard";
 import { SmartGroupRulesCard } from "./SmartGroupRulesCard";
 import { ValidationSummary } from "./ValidationSummary";
+import { VariantGroupRulesCard } from "./VariantGroupRulesCard";
 import { VariantPricesCard } from "./VariantPricesCard";
 import { VariantsCard } from "./VariantsCard";
 
@@ -58,6 +59,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
     "containers", "portions", "combo_steps",
   );
   const needsVariantPrices = needsVariants && needsGroups;
+  const needsVariantGroupRules = needsVariants && needsGroups && (type === "buildable" || enabled(caps, "included_choices", "creams", "fruits", "toppings", "sides", "proteins"));
   const typeLabel = PRODUCT_TYPE_LABELS.find((item) => item.type === type)?.label ?? type;
 
   const roadmap = [
@@ -95,6 +97,7 @@ export function ProductBuilder({ productId }: { productId: string }) {
 
       {needsSaleMode ? <SaleModeCard builder={builder} onSaved={refetch} /> : null}
       {needsVariants ? (usesSimpleSizes ? <SizeVariantsCard builder={builder} onSaved={refetch} /> : <VariantsCard builder={builder} onSaved={refetch} />) : null}
+      {needsVariantGroupRules ? <VariantGroupRulesCard builder={builder} onSaved={refetch} /> : null}
       {needsCombo ? <ComboBuilderCard builder={builder} onSaved={refetch} /> : null}
       {needsGroups ? <SmartGroupRulesCard builder={builder} onSaved={refetch} /> : null}
       {needsGroups ? <ProductGroupsCard builder={builder} library={libraryQuery.data ?? []} onSaved={refetch} /> : null}
