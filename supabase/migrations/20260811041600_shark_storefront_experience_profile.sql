@@ -15,7 +15,7 @@ DECLARE
 BEGIN
   IF v_slug IS NULL THEN RETURN NULL; END IF;
 
-  SELECT st.id, cp.*
+  SELECT st.id, cp
     INTO v_store, v_profile
     FROM public.stores st
     LEFT JOIN public.category_profiles cp
