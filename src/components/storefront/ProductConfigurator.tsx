@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Minus, Plus } from "lucide-react";
+import { CheckCircle2, Minus, Plus, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ export function ProductConfigurator({
   onClose,
 }: Props) {
   const cart = useCart();
+  const navigate = useNavigate();
   const [cartError, setCartError] = useState<string | null>(null);
   const { data, isPending, isError } = useQuery({
     queryKey: ["storefront-product", slug, productId],
@@ -107,11 +109,11 @@ export function ProductConfigurator({
     setSelections([]);
     setQuantity(Math.max(data.product.minimum_quantity, data.product.quantity_step));
     setNotes("");
+    setCartError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, editLineId]);
 
   const groups = data?.option_groups ?? [];
-
   const countIn = (groupId: string) => selections
     .filter((s) => s.option_group_id === groupId)
     .reduce((total, s) => total + s.quantity, 0);
@@ -207,6 +209,10 @@ export function ProductConfigurator({
     onClose();
   };
 
+  const openRecommendation = (id: string) => {
+    void navigate({ to: "/loja/$slug", params: { slug }, search: { produto: id }, replace: true });
+  };
+
   if (isPending) return (
     <div className="space-y-4 p-1">
       <Skeleton className="h-40 w-full rounded-xl" />
@@ -229,6 +235,7 @@ export function ProductConfigurator({
   const unit = UNIT_LABELS[product.measurement_unit] ?? product.unit_label ?? "un";
   const step = product.quantity_step || 1;
   const minQty = product.minimum_quantity || step;
+  const firstDecisionNumber = data.variants.length > 0 ? 1 : 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -248,8 +255,11 @@ export function ProductConfigurator({
         </div>
 
         {data.variants.length > 0 ? (
-          <section className="space-y-3">
-            <header><h3 className="text-sm font-semibold">Escolha uma opção</h3><p className="text-xs text-muted-foreground">Obrigatório · escolha 1</p></header>
+          <section className="space-y-3 rounded-2xl border border-border/70 p-4">
+            <header className="flex items-start gap-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-violet-500/15 text-xs font-black text-violet-200">1</span>
+              <div><h3 className="text-sm font-semibold">Escolha uma opção</h3><p className="text-xs text-muted-foreground">Obrigatório · escolha 1</p></div>
+            </header>
             <RadioGroup value={variantId ?? ""} onValueChange={setVariantId} className="space-y-2">
               {data.variants.map((variant) => (
                 <label key={variant.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3">
@@ -264,30 +274,28 @@ export function ProductConfigurator({
           </section>
         ) : null}
 
-        {groups.map((group) => {
+        {groups.map((group, groupIndex) => {
           const chosen = countIn(group.id);
           const incomplete = pendingGroups.some((g) => g.id === group.id);
           const atLimit = group.max_selections > 0 && chosen >= group.max_selections;
+          const decisionNumber = firstDecisionNumber + groupIndex + 1;
           return (
             <section key={group.id} className="space-y-3 rounded-2xl border border-border/70 p-4">
               <header className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold">{group.name}</h3>
-                    {group.role === "combo_step" ? <Badge variant="outline">Etapa do combo</Badge> : null}
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-black ${incomplete ? "bg-fuchsia-500/15 text-fuchsia-200" : chosen > 0 ? "bg-emerald-500/15 text-emerald-200" : "bg-violet-500/15 text-violet-200"}`}>{decisionNumber}</span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-semibold">{group.name}</h3>
+                      {group.role === "combo_step" ? <Badge variant="outline">Etapa do combo</Badge> : null}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{groupInstruction(group, chosen)}</p>
+                    {group.included_selections > 0 ? (
+                      <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">Até {group.included_selections} escolha{group.included_selections > 1 ? "s" : ""} incluída{group.included_selections > 1 ? "s" : ""} no preço. Excedentes são cobrados individualmente.</p>
+                    ) : null}
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">{groupInstruction(group, chosen)}</p>
-                  {group.included_selections > 0 ? (
-                    <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                      Até {group.included_selections} escolha{group.included_selections > 1 ? "s" : ""} incluída{group.included_selections > 1 ? "s" : ""} no preço. Excedentes são cobrados individualmente.
-                    </p>
-                  ) : null}
                 </div>
-                {incomplete ? (
-                  <Badge variant="destructive" className="shrink-0">Falta escolher</Badge>
-                ) : chosen > 0 ? (
-                  <Badge variant="secondary" className="shrink-0"><CheckCircle2 className="mr-1 size-3.5" />{chosen}/{group.max_selections}</Badge>
-                ) : null}
+                {incomplete ? <Badge variant="destructive" className="shrink-0">Falta escolher</Badge> : chosen > 0 ? <Badge variant="secondary" className="shrink-0"><CheckCircle2 className="mr-1 size-3.5" />{chosen}/{group.max_selections}</Badge> : null}
               </header>
 
               <div className="space-y-2">
@@ -341,6 +349,23 @@ export function ProductConfigurator({
 
         {product.allows_notes ? (
           <section className="space-y-2"><Label htmlFor="observacao" className="text-sm font-semibold">Observação</Label><Textarea id="observacao" value={notes} maxLength={280} onChange={(event) => setNotes(event.target.value)} placeholder="Ex.: sem cebola" /></section>
+        ) : null}
+
+        {data.recommendations?.length > 0 && !editLineId ? (
+          <section className="space-y-3 rounded-2xl border border-violet-300/10 bg-violet-500/[.035] p-4">
+            <header>
+              <p className="flex items-center gap-2 text-sm font-bold"><Sparkles className="size-4 text-fuchsia-300" />Combina com este item</p>
+              <p className="mt-1 text-xs text-muted-foreground">Sugestões baseadas no que costuma ser pedido junto nesta loja.</p>
+            </header>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {data.recommendations.map(({ product: suggested }) => (
+                <button key={suggested.id} type="button" onClick={() => openRecommendation(suggested.id)} className="w-32 shrink-0 overflow-hidden rounded-xl border border-violet-300/10 bg-black/15 text-left">
+                  {suggested.image_url ? <img src={suggested.image_url} alt="" className="aspect-square w-full object-cover" loading="lazy" /> : <div className="aspect-square w-full bg-gradient-to-br from-violet-950 to-fuchsia-950" />}
+                  <div className="p-2.5"><p className="line-clamp-2 text-xs font-bold leading-tight">{suggested.name}</p><p className="mt-1 text-xs font-semibold text-violet-200">{suggested.has_variants && suggested.from_price !== null ? `a partir de ${brl(suggested.from_price)}` : brl(suggested.base_price)}</p></div>
+                </button>
+              ))}
+            </div>
+          </section>
         ) : null}
       </div>
 
