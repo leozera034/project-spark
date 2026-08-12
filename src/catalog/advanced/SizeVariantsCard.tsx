@@ -14,16 +14,20 @@ import {
 } from "../advanced-api";
 import type { AdvancedBuilder, ProductVariant } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
-import { updateVariantFlavorLimit } from "../shark-variants.api";
+import { updateVariantFlavorStructure, type SharkFlavorVariant } from "../shark-variants.api";
 import { formatPriceBRL, parsePriceInput } from "../types";
 
-type Draft = { name: string; price: string; maxFlavors: string };
-const EMPTY: Draft = { name: "", price: "", maxFlavors: "" };
+type Draft = { name: string; price: string; maxFlavors: string; flavorParts: string };
+const EMPTY: Draft = { name: "", price: "", maxFlavors: "", flavorParts: "" };
 
-function parseMaxFlavors(value: string) {
+function parsePositive(value: string) {
   if (!value.trim()) return null;
   const parsed = Number.parseInt(value, 10);
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 20 ? parsed : undefined;
+}
+
+function variantParts(variant: ProductVariant) {
+  return (variant as SharkFlavorVariant).flavor_parts ?? variant.max_flavors ?? null;
 }
 
 export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilder; onSaved: () => void }) {
@@ -36,11 +40,21 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
   const multiFlavor = Boolean(product.capabilities?.multi_flavor);
   const visible = builder.variants.filter((variant) => !variant.is_archived);
 
+  function flavorRules(d: Draft) {
+    const maxFlavors = parsePositive(d.maxFlavors);
+    const flavorParts = parsePositive(d.flavorParts);
+    const valid = !multiFlavor || (
+      maxFlavors !== undefined && flavorParts !== undefined &&
+      maxFlavors !== null && flavorParts !== null && maxFlavors <= flavorParts
+    );
+    return { maxFlavors, flavorParts, valid };
+  }
+
   async function addSize() {
     if (!storeId || !draft.name.trim()) return;
     const price = parsePriceInput(draft.price);
-    const maxFlavors = parseMaxFlavors(draft.maxFlavors);
-    if (price === null || maxFlavors === undefined) return;
+    const rules = flavorRules(draft);
+    if (price === null || !rules.valid) return;
 
     const created = await run(async () => {
       const variant = await createVariant({
@@ -52,8 +66,14 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
         packageUnit: null,
         isDefault: visible.length === 0,
       });
-      if (multiFlavor && maxFlavors !== null) {
-        return updateVariantFlavorLimit({ storeId, id: variant.id, maxFlavors, expectedUpdatedAt: variant.updated_at });
+      if (multiFlavor) {
+        return updateVariantFlavorStructure({
+          storeId,
+          id: variant.id,
+          maxFlavors: rules.maxFlavors ?? null,
+          flavorParts: rules.flavorParts ?? null,
+          expectedUpdatedAt: variant.updated_at,
+        });
       }
       return variant;
     }, "Tamanho adicionado.");
@@ -67,8 +87,8 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
   async function saveSize(variant: ProductVariant) {
     if (!storeId || !edit.name.trim()) return;
     const price = parsePriceInput(edit.price);
-    const maxFlavors = parseMaxFlavors(edit.maxFlavors);
-    if (price === null || maxFlavors === undefined) return;
+    const rules = flavorRules(edit);
+    if (price === null || !rules.valid) return;
 
     const saved = await run(async () => {
       const base = await updateVariant({
@@ -81,7 +101,13 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
         expectedUpdatedAt: variant.updated_at,
       });
       if (multiFlavor) {
-        return updateVariantFlavorLimit({ storeId, id: variant.id, maxFlavors, expectedUpdatedAt: base.updated_at });
+        return updateVariantFlavorStructure({
+          storeId,
+          id: variant.id,
+          maxFlavors: rules.maxFlavors ?? null,
+          flavorParts: rules.flavorParts ?? null,
+          expectedUpdatedAt: base.updated_at,
+        });
       }
       return base;
     }, "Tamanho atualizado.");
@@ -98,7 +124,26 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
       name: variant.name,
       price: String(variant.price).replace(".", ","),
       maxFlavors: variant.max_flavors ? String(variant.max_flavors) : "",
+      flavorParts: variantParts(variant) ? String(variantParts(variant)) : "",
     });
+  }
+
+  function flavorFields(value: Draft, setValue: (next: Draft) => void) {
+    if (!multiFlavor) return null;
+    const rules = flavorRules(value);
+    return (
+      <>
+        <div className="space-y-1.5">
+          <Label>Até quantos sabores</Label>
+          <Input type="number" min={1} max={20} value={value.maxFlavors} onChange={(event) => setValue({ ...value, maxFlavors: event.target.value })} placeholder="2" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Dividir em partes</Label>
+          <Input type="number" min={1} max={20} value={value.flavorParts} onChange={(event) => setValue({ ...value, flavorParts: event.target.value })} placeholder="2" />
+          {!rules.valid && value.maxFlavors && value.flavorParts ? <p className="text-[11px] text-destructive">O número de sabores não pode ser maior que o de partes.</p> : null}
+        </div>
+      </>
+    );
   }
 
   return (
@@ -107,7 +152,7 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
         <CardTitle className="text-base">Tamanhos e preços</CardTitle>
         <CardDescription>
           Cadastre do jeito que você fala no balcão. O Shark cuida da variação técnica por trás.
-          {multiFlavor ? " Você também pode limitar quantos sabores cabem em cada tamanho." : ""}
+          {multiFlavor ? " Em produtos multi-sabor, defina quantos sabores diferentes cabem e em quantas partes o tamanho pode ser dividido." : ""}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -120,11 +165,11 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
             {visible.map((variant) => (
               <div key={variant.id} className="rounded-2xl border border-border bg-background/25 p-3">
                 {editingId === variant.id ? (
-                  <div className="grid gap-3 sm:grid-cols-[1fr_160px_150px_auto] sm:items-end">
+                  <div className={`grid gap-3 ${multiFlavor ? "sm:grid-cols-2 lg:grid-cols-[1fr_150px_150px_150px_auto]" : "sm:grid-cols-[1fr_160px_auto]"} sm:items-end`}>
                     <div className="space-y-1.5"><Label>Nome</Label><Input value={edit.name} onChange={(event) => setEdit({ ...edit, name: event.target.value })} /></div>
                     <div className="space-y-1.5"><Label>Preço</Label><Input inputMode="decimal" value={edit.price} onChange={(event) => setEdit({ ...edit, price: event.target.value })} /></div>
-                    {multiFlavor ? <div className="space-y-1.5"><Label>Até sabores</Label><Input type="number" min={1} max={20} value={edit.maxFlavors} onChange={(event) => setEdit({ ...edit, maxFlavors: event.target.value })} placeholder="2" /></div> : <div />}
-                    <div className="flex gap-2"><Button size="sm" disabled={isBusy} onClick={() => void saveSize(variant)}>Salvar</Button><Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancelar</Button></div>
+                    {flavorFields(edit, setEdit)}
+                    <div className="flex gap-2"><Button size="sm" disabled={isBusy || !flavorRules(edit).valid} onClick={() => void saveSize(variant)}>Salvar</Button><Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancelar</Button></div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -135,7 +180,8 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
                       </div>
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                         <span>{formatPriceBRL(variant.price)}</span>
-                        {multiFlavor ? <span>{variant.max_flavors ? `até ${variant.max_flavors} sabor${variant.max_flavors > 1 ? "es" : ""}` : "sem limite específico de sabores"}</span> : null}
+                        {multiFlavor ? <span>{variant.max_flavors ? `até ${variant.max_flavors} sabor${variant.max_flavors > 1 ? "es" : ""}` : "sabores sem limite específico"}</span> : null}
+                        {multiFlavor && variantParts(variant) ? <span>{variantParts(variant)} parte{variantParts(variant)! > 1 ? "s" : ""}</span> : null}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -152,11 +198,11 @@ export function SizeVariantsCard({ builder, onSaved }: { builder: AdvancedBuilde
 
         <div className="border-t border-border pt-4">
           <p className="mb-3 text-sm font-semibold">Adicionar tamanho</p>
-          <div className="grid gap-3 sm:grid-cols-[1fr_160px_150px_auto] sm:items-end">
+          <div className={`grid gap-3 ${multiFlavor ? "sm:grid-cols-2 lg:grid-cols-[1fr_150px_150px_150px_auto]" : "sm:grid-cols-[1fr_160px_auto]"} sm:items-end`}>
             <div className="space-y-1.5"><Label>Nome</Label><Input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="Ex.: Grande" /></div>
             <div className="space-y-1.5"><Label>Preço</Label><Input inputMode="decimal" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} placeholder="49,90" /></div>
-            {multiFlavor ? <div className="space-y-1.5"><Label>Até sabores</Label><Input type="number" min={1} max={20} value={draft.maxFlavors} onChange={(event) => setDraft({ ...draft, maxFlavors: event.target.value })} placeholder="2" /></div> : <div />}
-            <Button disabled={isBusy || !draft.name.trim() || parsePriceInput(draft.price) === null || parseMaxFlavors(draft.maxFlavors) === undefined} onClick={() => void addSize()}><Plus className="mr-1.5 size-4" />Adicionar</Button>
+            {flavorFields(draft, setDraft)}
+            <Button disabled={isBusy || !draft.name.trim() || parsePriceInput(draft.price) === null || !flavorRules(draft).valid} onClick={() => void addSize()}><Plus className="mr-1.5 size-4" />Adicionar</Button>
           </div>
         </div>
       </CardContent>
