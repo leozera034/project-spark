@@ -85,20 +85,35 @@ export function stepBack(
   }
 }
 
-/** Progresso honesto: caminhos diferentes têm tamanhos diferentes. */
+/**
+ * Progresso orientado à pessoa, não à implementação.
+ * Mantemos sete estados internos para validação robusta, mas mostramos apenas
+ * três blocos mentais: região, endereço e confirmação.
+ */
 export function progressLabel(step: CustomerWizardStep): string | null {
   if (isAddressStep(step)) {
-    return `Endereço — etapa ${addressStepIndex(step)} de ${ADDRESS_STEPS.length}`;
+    if (step === "address_neighborhood") return "Entrega · 1 de 3 · Região";
+    if (
+      step === "address_street" ||
+      step === "address_number" ||
+      step === "address_complement" ||
+      step === "address_reference"
+    ) {
+      return "Entrega · 2 de 3 · Endereço";
+    }
+    return "Entrega · 3 de 3 · Confirmar";
   }
+
   switch (step) {
     case "identify_customer":
     case "confirm_saved_name":
-      return "Etapa 1 de 3";
+      return "Seu pedido · 1 de 3 · Você";
     case "choose_fulfillment":
-      return "Etapa 2 de 3";
+      return "Seu pedido · 2 de 3 · Recebimento";
     case "choose_saved_address":
+      return "Seu pedido · 3 de 3 · Endereço";
     case "confirm_pickup":
-      return "Etapa 3 de 3";
+      return "Seu pedido · 3 de 3 · Confirmar";
     default:
       return null;
   }
