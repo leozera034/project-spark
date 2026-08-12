@@ -27,6 +27,14 @@ export type ProductEngineProfile = {
   category_profile: CategoryProfile | null;
 };
 
+export type ProductInventory = {
+  managed: boolean;
+  quantity: number | null;
+  low_stock_threshold: number;
+  is_low: boolean;
+  is_empty: boolean;
+};
+
 function unwrap<T>(result: { data: unknown; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
   return result.data as T;
@@ -57,6 +65,29 @@ export async function updateProductEngineProfile(params: {
     _product_type: params.productType,
     _capabilities: params.capabilities,
     _pricing_rules: params.pricingRules ?? {},
+  }));
+}
+
+export async function getProductInventory(storeId: string, productId: string): Promise<ProductInventory> {
+  return unwrap<ProductInventory>(await rpc("get_product_inventory", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
+export async function updateProductInventory(params: {
+  storeId: string;
+  productId: string;
+  managed: boolean;
+  quantity: number | null;
+  lowStockThreshold: number;
+}): Promise<ProductInventory> {
+  return unwrap<ProductInventory>(await rpc("update_product_inventory", {
+    _store_id: params.storeId,
+    _product_id: params.productId,
+    _managed: params.managed,
+    _quantity: params.quantity,
+    _low_stock_threshold: params.lowStockThreshold,
   }));
 }
 
