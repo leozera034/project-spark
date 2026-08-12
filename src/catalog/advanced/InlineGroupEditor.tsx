@@ -9,12 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import {
   archiveOptionItem,
   createOptionItem,
-  setOptionGroupActive,
   updateOptionGroup,
 } from "../advanced-api";
 import type { LinkedOptionGroup } from "../advanced-types";
 import { useCatalog } from "../CatalogProvider";
-import { updateOptionGroupEngine } from "../shark-groups.api";
+import { publishSharkOptionGroup, updateOptionGroupEngine } from "../shark-groups.api";
 
 function moneyInputToNumber(value: string) {
   const normalized = value.trim().replace(/\./g, "").replace(",", ".");
@@ -47,39 +46,41 @@ export function InlineGroupEditor({
   const parsedMin = Math.max(0, Number.parseInt(min || "0", 10) || 0);
   const parsedMax = Math.max(1, Number.parseInt(max || "1", 10) || 1);
   const parsedIncluded = Math.max(0, Number.parseInt(included || "0", 10) || 0);
-  const limitsValid = parsedMin <= parsedMax && parsedIncluded <= parsedMax;
-  const canPublish = limitsValid && activeItems.length >= parsedMin && activeItems.length > 0;
+  const effectiveMin = required ? Math.max(1, parsedMin) : parsedMin;
+  const limitsValid = effectiveMin <= parsedMax && parsedIncluded <= parsedMax;
+  const canPublish = limitsValid && activeItems.length >= effectiveMin && activeItems.length > 0;
+
+  async function persistRules() {
+    if (!storeId || !limitsValid || !name.trim()) return null;
+    const base = await updateOptionGroup(
+      storeId,
+      group.id,
+      {
+        name: name.trim(),
+        description: group.description ?? "",
+        selectionType: group.selection_type,
+        isRequired: required,
+        minSelections: effectiveMin,
+        maxSelections: parsedMax,
+        pricingStrategy: group.pricing_strategy,
+        priceEffect: group.price_effect,
+        portionCount: group.portion_count,
+      },
+      group.updated_at,
+    );
+    await updateOptionGroupEngine({
+      storeId,
+      id: group.id,
+      role: group.role,
+      includedSelections: parsedIncluded,
+      configuration: group.configuration ?? {},
+    });
+    return base;
+  }
 
   async function saveRules() {
-    if (!storeId || !limitsValid || !name.trim()) return false;
-    const result = await run(async () => {
-      const base = await updateOptionGroup(
-        storeId,
-        group.id,
-        {
-          name: name.trim(),
-          description: group.description ?? "",
-          selectionType: group.selection_type,
-          isRequired: required,
-          minSelections: required ? Math.max(1, parsedMin) : parsedMin,
-          maxSelections: parsedMax,
-          pricingStrategy: group.pricing_strategy,
-          priceEffect: group.price_effect,
-          portionCount: group.portion_count,
-        },
-        group.updated_at,
-      );
-      await updateOptionGroupEngine({
-        storeId,
-        id: group.id,
-        role: group.role,
-        includedSelections: parsedIncluded,
-        configuration: group.configuration ?? {},
-      });
-      return base;
-    }, "Regras salvas.");
+    const result = await run(() => persistRules(), "Regras salvas.");
     if (result) onSaved();
-    return Boolean(result);
   }
 
   async function addItem() {
@@ -116,30 +117,8 @@ export function InlineGroupEditor({
   async function publish() {
     if (!storeId || !canPublish) return;
     const done = await run(async () => {
-      const base = await updateOptionGroup(
-        storeId,
-        group.id,
-        {
-          name: name.trim(),
-          description: group.description ?? "",
-          selectionType: group.selection_type,
-          isRequired: required,
-          minSelections: required ? Math.max(1, parsedMin) : parsedMin,
-          maxSelections: parsedMax,
-          pricingStrategy: group.pricing_strategy,
-          priceEffect: group.price_effect,
-          portionCount: group.portion_count,
-        },
-        group.updated_at,
-      );
-      const engine = await updateOptionGroupEngine({
-        storeId,
-        id: group.id,
-        role: group.role,
-        includedSelections: parsedIncluded,
-        configuration: { ...(group.configuration ?? {}), shark_draft: false },
-      });
-      return setOptionGroupActive(storeId, group.id, true, engine.updated_at ?? base.updated_at);
+      await persistRules();
+      return publishSharkOptionGroup(storeId, group.id);
     }, "Grupo publicado no produto.");
     if (done) {
       setOpen(false);
