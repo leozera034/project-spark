@@ -1,0 +1,11 @@
+/* SHARK Storefront Experience — consolidated entrypoint.
+ *
+ * Keep the historical visual layers isolated while exposing a single import to
+ * the application root. Order is intentional: newer layers refine older ones.
+ * This file is the stable integration surface for future consolidation.
+ */
+@import "./storefront-experience-v2.css";
+@import "./storefront-experience-v3.css";
+@import "./storefront-experience-v4.css";
+@import "./storefront-experience-v5.css";
+@import "./storefront-experience-v6.css";
