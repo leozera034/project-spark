@@ -58,6 +58,16 @@ export async function applyMealGroupDefaults(
   }));
 }
 
+export async function applySharkBuildableExperienceDrafts(
+  storeId: string,
+  productId: string,
+): Promise<{ updated_count: number }> {
+  return unwrap(await rpc("apply_shark_buildable_experience_drafts", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
 export async function publishSharkOptionGroup(storeId: string, groupId: string): Promise<OptionGroup> {
   return unwrap<OptionGroup>(await rpc("publish_shark_option_group", {
     _store_id: storeId,
