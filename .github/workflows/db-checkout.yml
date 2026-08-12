@@ -1,0 +1,81 @@
+name: Checkout DB tests
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-checkout.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-checkout.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checkout-db-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checkout-database:
+    name: Checkout migrations and pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.101.0
+          github-token: ${{ github.token }}
+
+      - name: Build isolated checkout Supabase workdir
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ci/checkout-db
+          mkdir -p .ci/checkout-db/supabase/migrations
+          mkdir -p .ci/checkout-db/supabase/tests/database
+
+          cp supabase/config.toml .ci/checkout-db/supabase/config.toml
+
+          # The checkout implementation and its effective schema live in the July
+          # migration chain. Later August phases introduce unrelated QA/billing
+          # history that is tracked separately in Issue #4 and must not make this
+          # focused P0 proof depend on a competing financial model.
+          find supabase/migrations -maxdepth 1 -type f -name '20260731*.sql' -print0 \
+            | sort -z \
+            | xargs -0 -I{} cp "{}" .ci/checkout-db/supabase/migrations/
+
+          cp \
+            supabase/migrations/20260808022000_fix_checkout_atomicity.sql \
+            .ci/checkout-db/supabase/migrations/
+          cp \
+            supabase/tests/database/checkout_atomicity.test.sql \
+            .ci/checkout-db/supabase/tests/database/
+
+          test -f .ci/checkout-db/supabase/migrations/20260731054209_8d2c17c7-7320-4be4-a6f8-8fec15a821d2.sql
+          test -f .ci/checkout-db/supabase/migrations/20260731055929_f288c236-b17e-4d73-930f-973e350d79da.sql
+          test -f .ci/checkout-db/supabase/migrations/20260808022000_fix_checkout_atomicity.sql
+
+          echo "Checkout migration count: $(find .ci/checkout-db/supabase/migrations -type f -name '*.sql' | wc -l)"
+
+      - name: Start isolated checkout database
+        run: |
+          supabase --workdir .ci/checkout-db start \
+            -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Run checkout pgTAP suite
+        run: |
+          supabase --workdir .ci/checkout-db test db \
+            supabase/tests/database/checkout_atomicity.test.sql
+
+      - name: Stop isolated Supabase database
+        if: ${{ always() }}
+        run: supabase --workdir .ci/checkout-db stop --no-backup

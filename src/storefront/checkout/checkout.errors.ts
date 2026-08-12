@@ -18,6 +18,8 @@ export const CHECKOUT_MESSAGES = {
   lineUnavailable: "Um item mudou de disponibilidade. Volte ao carrinho e revise.",
   conflict: "Este envio já foi feito com dados diferentes. Recarregue o carrinho e tente de novo.",
   addressInvalid: "Confirme o endereço de entrega antes de enviar.",
+  incompleteRetry:
+    "Detectamos uma tentativa anterior que não foi concluída. Tente enviar novamente.",
 } as const;
 
 export function messageForCheckoutError(code: string): string {
@@ -50,6 +52,8 @@ export function messageForCheckoutError(code: string): string {
       return CHECKOUT_MESSAGES.conflict;
     case "address_invalid":
       return CHECKOUT_MESSAGES.addressInvalid;
+    case "idempotency_incomplete_order":
+      return CHECKOUT_MESSAGES.incompleteRetry;
     default:
       return CHECKOUT_MESSAGES.failed;
   }
