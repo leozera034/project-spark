@@ -38,6 +38,13 @@ export async function createProductStarterGroupDrafts(
   }));
 }
 
+export async function publishSharkOptionGroup(storeId: string, groupId: string): Promise<OptionGroup> {
+  return unwrap<OptionGroup>(await rpc("publish_shark_option_group", {
+    _store_id: storeId,
+    _group_id: groupId,
+  }));
+}
+
 export async function updateOptionGroupEngine(params: {
   storeId: string;
   id: string;
