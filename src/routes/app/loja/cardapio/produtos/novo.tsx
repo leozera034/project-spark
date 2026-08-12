@@ -16,6 +16,7 @@ import {
   PRODUCT_TYPE_LABELS,
   type CategoryProfile,
 } from "@/catalog/shark-engine.api";
+import { createProductStarterGroupDrafts } from "@/catalog/shark-groups.api";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,8 @@ function NovoProduto() {
         isFeatured: values.isFeatured,
         isSoldOut: values.isSoldOut,
       });
+
+      let engineConfigured = false;
       try {
         await updateProductEngineProfile({
           storeId,
@@ -90,11 +93,21 @@ function NovoProduto() {
           capabilities: intelligence.capabilities,
           pricingRules: intelligence.pricingRules,
         });
+        engineConfigured = true;
       } catch (error) {
         console.error("[shark] product engine profile fallback to simple", error);
       }
+
+      if (engineConfigured) {
+        try {
+          await createProductStarterGroupDrafts(storeId, product.id);
+        } catch (error) {
+          console.warn("[shark] starter drafts unavailable; product remains valid", error);
+        }
+      }
+
       return product;
-    }, "Produto criado.");
+    }, "Produto criado. O Shark preparou a estrutura inicial para você.");
 
     if (created) void navigate({ to: "/app/loja/cardapio/produtos/$id", params: { id: created.id } });
   }
