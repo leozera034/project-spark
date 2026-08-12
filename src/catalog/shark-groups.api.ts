@@ -38,6 +38,16 @@ export async function createProductStarterGroupDrafts(
   }));
 }
 
+export async function ensureBuildableBeverageDraft(
+  storeId: string,
+  productId: string,
+): Promise<{ created: boolean; group_id?: string; link_id?: string }> {
+  return unwrap(await rpc("ensure_buildable_beverage_draft", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
 export async function publishSharkOptionGroup(storeId: string, groupId: string): Promise<OptionGroup> {
   return unwrap<OptionGroup>(await rpc("publish_shark_option_group", {
     _store_id: storeId,
