@@ -63,6 +63,7 @@ Não aplicar a cadeia parcialmente em produção. Antes de qualquer DDL, executa
 53. `20260811045200_shark_variant_option_price_projection.sql`
 54. `20260811045300_shark_variant_option_price_rpc.sql`
 55. `20260811045400_shark_variant_option_price_integrity.sql`
+56. `20260811045500_shark_effective_variant_option_prices.sql`
 
 ## Pós-aplicação obrigatório
 
@@ -75,7 +76,7 @@ Não liberar storefront se qualquer contrato levantar exception.
 
 ## Smoke test funcional
 
-Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; adicional com override de preço por P/M/G sem mostrar preço incorreto antes da escolha; rejeição de preço específico cuja variação ou opção pertença a outro produto; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho.
+Validar pelo menos: produto simples; produto com variação; adicional com preço recalculado no servidor; adicional com override de preço por P/M/G mostrando o valor efetivo da variação selecionada; rejeição de preço específico cuja variação ou opção pertença a outro produto; pizza multi-sabor com regra `highest`; partes de sabor por tamanho; açaí com escolhas incluídas; combo com produto vinculado; rejeição de auto-referência/ciclo de combo; estoque concorrente; cancelamento/recusa liberando reserva; alteração manual de estoque com `expected_updated_at`; publicação de grupo sem permitir rascunho vazio; regras de min/max/incluídos por tamanho; `burger_experience` e `meal_experience` controlando a linguagem da UI sem heurística por combinação de grupos.
 
 ## Stop conditions
 
@@ -87,4 +88,6 @@ As migrations criam tabelas, colunas, funções, triggers, constraints e backfil
 
 ## Estado de liberação
 
-A camada de banco está preparada para aplicação controlada após snapshot e os dois preflights. A aplicação completa ainda não deve ser promovida ao usuário final enquanto o contrato frontend/server não estiver fechado. O backend já evita anunciar override da variação default como preço universal, expõe a matriz mínima server-only para a UI reagir ao tamanho e valida coerência produto-variação-opção. O resíduo visual conhecido é a remoção física do fallback legado `protein + side -> meal` do `ProductConfigurator`, além do consumo da matriz de preços pela UI para mostrar o acréscimo instantâneo correto por tamanho.
+A camada de banco e o contrato principal frontend/server estão preparados para aplicação controlada após snapshot e os dois preflights. O configurador usa apenas `burger_experience`/`meal_experience` explícitos para escolher a experiência semântica e consome a matriz server-only de preços efetivos por variação para atualizar os rótulos de acréscimo quando o cliente troca de tamanho. O preço final continua sendo recalculado e validado pelo motor canônico no servidor.
+
+A promoção ao usuário final ainda depende da aplicação completa `40000–45500`, execução dos contratos pós-migração e smoke test funcional no Supabase interno do Lovable.
