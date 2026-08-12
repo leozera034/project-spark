@@ -27,6 +27,7 @@ BEGIN
   IF to_regprocedure('private.assert_shark_capabilities(jsonb)') IS NULL THEN raise exception 'SHARK_POST_CAPABILITY_ASSERT_MISSING'; END IF;
   IF to_regprocedure('private.validate_shark_combo_item_integrity()') IS NULL THEN raise exception 'SHARK_POST_COMBO_GUARD_MISSING'; END IF;
   IF to_regprocedure('private.sync_shark_variant_flavor_capacity()') IS NULL THEN raise exception 'SHARK_POST_MULTIFLAVOR_SYNC_MISSING'; END IF;
+  IF to_regprocedure('private.validate_shark_variant_option_price()') IS NULL THEN raise exception 'SHARK_POST_VARIANT_OPTION_PRICE_GUARD_MISSING'; END IF;
 
   -- Public/browser attack surface.
   IF has_function_privilege('anon','public.storefront_product(text,uuid)','EXECUTE') THEN raise exception 'SHARK_POST_ANON_STOREFRONT_PRODUCT_RPC_EXPOSED'; END IF;
@@ -42,6 +43,7 @@ BEGIN
   IF NOT has_function_privilege('authenticated','public.update_product_inventory_v2(uuid,uuid,boolean,numeric,numeric,timestamp with time zone)','EXECUTE') THEN raise exception 'SHARK_POST_INVENTORY_V2_NOT_AVAILABLE'; END IF;
   IF has_function_privilege('anon','private.validate_shark_combo_item_integrity()','EXECUTE') OR has_function_privilege('authenticated','private.validate_shark_combo_item_integrity()','EXECUTE') THEN raise exception 'SHARK_POST_PRIVATE_COMBO_GUARD_EXPOSED'; END IF;
   IF has_function_privilege('anon','private.sync_shark_variant_flavor_capacity()','EXECUTE') OR has_function_privilege('authenticated','private.sync_shark_variant_flavor_capacity()','EXECUTE') THEN raise exception 'SHARK_POST_PRIVATE_MULTIFLAVOR_SYNC_EXPOSED'; END IF;
+  IF has_function_privilege('anon','private.validate_shark_variant_option_price()','EXECUTE') OR has_function_privilege('authenticated','private.validate_shark_variant_option_price()','EXECUTE') THEN raise exception 'SHARK_POST_PRIVATE_VARIANT_OPTION_PRICE_GUARD_EXPOSED'; END IF;
 
   -- Required integrity triggers.
   IF NOT EXISTS (select 1 from pg_trigger where tgrelid='public.order_items'::regclass and tgname='trg_shark_reserve_product_inventory' and not tgisinternal) THEN raise exception 'SHARK_POST_PRODUCT_RESERVATION_TRIGGER_MISSING'; END IF;
@@ -50,6 +52,7 @@ BEGIN
   IF NOT EXISTS (select 1 from pg_trigger where tgrelid='public.product_variant_option_group_rules'::regclass and tgname='trg_shark_validate_variant_group_rule' and not tgisinternal) THEN raise exception 'SHARK_POST_VARIANT_GROUP_RULE_TRIGGER_MISSING'; END IF;
   IF NOT EXISTS (select 1 from pg_trigger where tgrelid='public.option_items'::regclass and tgname='trg_shark_combo_item_integrity' and not tgisinternal) THEN raise exception 'SHARK_POST_COMBO_INTEGRITY_TRIGGER_MISSING'; END IF;
   IF NOT EXISTS (select 1 from pg_trigger where tgrelid='public.product_variants'::regclass and tgname='trg_shark_variant_flavor_capacity' and not tgisinternal) THEN raise exception 'SHARK_POST_MULTIFLAVOR_SYNC_TRIGGER_MISSING'; END IF;
+  IF NOT EXISTS (select 1 from pg_trigger where tgrelid='public.product_variant_option_item_prices'::regclass and tgname='trg_shark_variant_option_price_integrity' and not tgisinternal) THEN raise exception 'SHARK_POST_VARIANT_OPTION_PRICE_TRIGGER_MISSING'; END IF;
 
   -- Final data invariants.
   select count(*) into _issues
@@ -102,6 +105,21 @@ BEGIN
   where i.linked_variant_id is not null
     and i.linked_product_id is distinct from v.product_id;
   IF _issues>0 THEN raise exception 'SHARK_POST_COMBO_VARIANT_PRODUCT_MISMATCH:%',_issues; END IF;
+
+  -- Variant option price rows must point to the same product and a group linked to it.
+  select count(*) into _issues
+  from public.product_variant_option_item_prices vp
+  join public.product_variants v on v.id=vp.product_variant_id and v.store_id=vp.store_id
+  join public.option_items i on i.id=vp.option_item_id and i.store_id=vp.store_id
+  where v.product_id<>vp.product_id
+     or not exists(
+       select 1 from public.product_option_groups pog
+       where pog.store_id=vp.store_id
+         and pog.product_id=vp.product_id
+         and pog.option_group_id=i.option_group_id
+         and not pog.is_archived
+     );
+  IF _issues>0 THEN raise exception 'SHARK_POST_VARIANT_OPTION_PRICE_MISMATCH:%',_issues; END IF;
 
   -- Detect any pre-existing indirect combo cycle. UNION (not UNION ALL) guarantees termination.
   with recursive edges as (
