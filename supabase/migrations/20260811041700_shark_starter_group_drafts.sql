@@ -1,6 +1,7 @@
 -- SHARK — grupos iniciais automáticos como rascunhos seguros.
 -- A geração depende das capabilities do produto, nunca do nome da categoria.
--- Rascunhos começam inativos para não invalidar/publicar configuração incompleta.
+-- Os grupos começam inativos para não invalidar/publicar configuração incompleta.
+-- O vínculo com o produto permanece ativo para o rascunho aparecer no editor.
 
 create or replace function public.create_product_starter_group_drafts(
   _store_id uuid,
@@ -34,8 +35,6 @@ begin
   for update;
   if not found then raise exception 'PRODUCT_NOT_FOUND'; end if;
 
-  -- Cada spec é uma primitiva reutilizável. Novas categorias só precisam habilitar
-  -- capabilities no template do produto; não é necessário novo frontend.
   for _spec in
     select value from jsonb_array_elements(jsonb_build_array(
       case when coalesce((_p.capabilities->>'sizes')::boolean,false) then
@@ -83,7 +82,6 @@ begin
   loop
     _key:=_spec->>'key';
 
-    -- Idempotência: o mesmo rascunho nunca é criado duas vezes para o produto.
     if exists (
       select 1
       from public.product_option_groups pog
@@ -115,7 +113,7 @@ begin
 
     insert into public.product_option_groups(store_id,product_id,option_group_id,is_active,sort_order)
     values(
-      _sid,_product_id,_gid,false,
+      _sid,_product_id,_gid,true,
       coalesce((select max(sort_order)+1 from public.product_option_groups where store_id=_sid and product_id=_product_id),0)
     ) returning id into _link;
 
@@ -135,4 +133,4 @@ grant execute on function public.create_product_starter_group_drafts(uuid,uuid) 
 revoke all on function public.create_product_starter_group_drafts(uuid,uuid) from anon;
 
 comment on function public.create_product_starter_group_drafts(uuid,uuid) is
-  'Cria grupos iniciais inativos e idempotentes a partir das capabilities do produto. Não publica configuração incompleta.';
+  'Cria grupos iniciais inativos e idempotentes a partir das capabilities do produto. O vínculo permanece ativo para edição; storefront ignora o grupo até ativação.';
