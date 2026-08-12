@@ -48,6 +48,16 @@ export async function ensureBuildableBeverageDraft(
   }));
 }
 
+export async function applyMealGroupDefaults(
+  storeId: string,
+  productId: string,
+): Promise<{ applied: boolean; changed: number }> {
+  return unwrap(await rpc("apply_meal_group_defaults", {
+    _store_id: storeId,
+    _product_id: productId,
+  }));
+}
+
 export async function publishSharkOptionGroup(storeId: string, groupId: string): Promise<OptionGroup> {
   return unwrap<OptionGroup>(await rpc("publish_shark_option_group", {
     _store_id: storeId,
