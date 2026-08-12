@@ -55,7 +55,7 @@ Não aplicar a cadeia parcialmente em produção. Antes de qualquer DDL, executa
 45. `20260811044400_shark_inventory_optimistic_concurrency.sql`
 46. `20260811044500_shark_inventory_write_contract.sql`
 47. `20260811044600_shark_ranking_evidence_threshold.sql`
-48. `20260811044700_shark_variant_size_source_of_truth.sql`
+48. `20260811044700_shark_size_variant_single_source.sql`
 49. `20260811044800_shark_variant_group_rule_integrity.sql`
 50. `20260811044900_shark_combo_graph_integrity.sql`
 51. `20260811045000_shark_multiflavor_invariants.sql`
