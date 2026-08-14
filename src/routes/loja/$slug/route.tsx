@@ -14,7 +14,6 @@ import { CartProvider } from "@/storefront/cart/cart.context";
 import { fetchStorefront } from "@/lib/storefront.functions";
 import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
 
-
 const searchSchema = z.object({
   /** Produto aberto na folha de montagem. */
   produto: z.string().uuid().optional(),
@@ -38,36 +37,45 @@ export const Route = createFileRoute("/loja/$slug")({
     }
   },
   head: ({ loaderData, params }) => {
-    const name = loaderData?.store.store.name ?? "Cardápio digital";
-    const city = loaderData?.store.store.city;
+    const storeData = loaderData?.store.store;
+    const settings = loaderData?.store.settings;
+    const name = storeData?.name ?? "Cardápio digital";
+    const city = storeData?.city;
+    const state = storeData?.state;
+    const segment = storeData?.segment;
     const description =
-      loaderData?.store.settings.description ??
-      `Peça online no ${name}${city ? ` em ${city}` : ""}. Cardápio atualizado, entrega e retirada.`;
-    const title = `${name} · Cardápio online`;
+      settings?.description ??
+      `Peça online no ${name}${city ? ` em ${city}` : ""}. Veja o cardápio atualizado, escolha entrega ou retirada e faça seu pedido pelo celular.`;
+    const title = `${name} · Cardápio online${city ? ` em ${city}` : ""}`;
     const origin = loaderData?.origin ?? "";
     const url = absoluteUrl(origin, `/loja/${params.slug}`);
-    const ogImage = absoluteUrl(origin, OG_IMAGE_PATH);
+    const imageSource = settings?.cover_url || settings?.logo_url || OG_IMAGE_PATH;
+    const ogImage = absoluteUrl(origin, imageSource);
+    const logo = settings?.logo_url ? absoluteUrl(origin, settings.logo_url) : undefined;
+    const siteHome = absoluteUrl(origin, "/");
+    const imageAlt = `${name} — cardápio online${city ? ` em ${city}` : ""}`;
+
     return {
       meta: [
         { title },
         { name: "description", content: description },
+        { property: "og:site_name", content: "Pediu Aqui" },
+        { property: "og:locale", content: "pt_BR" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: url },
         { property: "og:image", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: `${name} — cardápio online` },
+        { property: "og:image:secure_url", content: ogImage },
+        { property: "og:image:alt", content: imageAlt },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: ogImage },
-        { name: "twitter:image:alt", content: `${name} — cardápio online` },
-        { name: "robots", content: "index,follow" },
+        { name: "twitter:image:alt", content: imageAlt },
+        { name: "robots", content: "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" },
       ],
       links: [{ rel: "canonical", href: url }],
-
       scripts: [
         {
           type: "application/ld+json",
@@ -76,16 +84,33 @@ export const Route = createFileRoute("/loja/$slug")({
             "@graph": [
               {
                 "@type": "LocalBusiness",
+                "@id": `${url}#business`,
                 name,
                 description,
                 url,
-                ...(city ? { address: { "@type": "PostalAddress", addressLocality: city } } : {}),
+                image: ogImage,
+                ...(logo ? { logo } : {}),
+                ...(segment ? { category: segment } : {}),
+                ...(city || state
+                  ? {
+                      address: {
+                        "@type": "PostalAddress",
+                        ...(city ? { addressLocality: city } : {}),
+                        ...(state ? { addressRegion: state } : {}),
+                        addressCountry: "BR",
+                      },
+                    }
+                  : {}),
                 hasMenu: url,
+                potentialAction: {
+                  "@type": "OrderAction",
+                  target: url,
+                },
               },
               {
                 "@type": "BreadcrumbList",
                 itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+                  { "@type": "ListItem", position: 1, name: "Pediu Aqui", item: siteHome },
                   { "@type": "ListItem", position: 2, name, item: url },
                 ],
               },
