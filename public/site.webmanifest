@@ -1,15 +1,19 @@
 {
-  "name": "Pediu Aqui",
+  "id": "/",
+  "name": "Pediu Aqui — Cardápio Digital e Gestão de Pedidos",
   "short_name": "Pediu Aqui",
-  "description": "Cardapio digital e gestao de pedidos para o comercio local.",
+  "description": "Cardápio digital, pedidos, cozinha, entregas e gestão para restaurantes, lanchonetes, pizzarias e comércio local.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#0B171C",
-  "theme_color": "#0B171C",
+  "background_color": "#06030D",
+  "theme_color": "#06030D",
+  "categories": ["business", "food", "shopping", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/brand/pwa-icon-192x192.png",
@@ -28,6 +32,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Criar minha loja",
+      "short_name": "Criar loja",
+      "description": "Começar uma nova loja no Pediu Aqui.",
+      "url": "/criar-loja"
+    },
+    {
+      "name": "Entrar na loja",
+      "short_name": "Entrar",
+      "description": "Acessar o painel da loja.",
+      "url": "/entrar/loja"
     }
   ]
 }
