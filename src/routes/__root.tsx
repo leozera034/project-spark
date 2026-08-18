@@ -9,11 +9,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import purpleCss from "../purple-overrides.css?url";
-import globalPolishCss from "../app-global-polish.css?url";
-import storefrontPolishCss from "../storefront-global.css?url";
-import referenceUiCss from "../reference-ui.css?url";
-import internalOpsCss from "../internal-ops-polish.css?url";
 import comandivaCss from "../comandiva-theme.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
@@ -110,11 +105,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       links: [
         { rel: "canonical", href: canonicalUrl },
         { rel: "stylesheet", href: appCss },
-        { rel: "stylesheet", href: purpleCss },
-        { rel: "stylesheet", href: globalPolishCss },
-        { rel: "stylesheet", href: storefrontPolishCss },
-        { rel: "stylesheet", href: referenceUiCss },
-        { rel: "stylesheet", href: internalOpsCss },
         { rel: "stylesheet", href: comandivaCss },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
