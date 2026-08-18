@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.pediu-public-support]
 verify_jwt = false
+
+[functions.spark-storage-migrate-once]
+verify_jwt = true
