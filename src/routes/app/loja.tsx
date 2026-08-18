@@ -79,7 +79,7 @@ function StoreAppLayout() {
     void signOut("local").then(() => navigate({ to: AUTH_ROUTES.storeSignIn as never }));
 
   return (
-    <div className="min-h-dvh bg-background lg:flex">
+    <div className="app-premium-shell min-h-dvh bg-background lg:flex">
       <aside
         className={cn(
           "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
@@ -141,13 +141,16 @@ function StoreAppLayout() {
           <button
             type="button"
             aria-label="Fechar menu"
-            className="absolute inset-0 bg-[#321447]/55 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/55 backdrop-blur-sm"
             onClick={() => setMobileNavOpen(false)}
           />
           <nav
             aria-label="Navegação da loja"
             className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-sidebar text-sidebar-foreground shadow-e2"
-            style={{ paddingTop: "env(safe-area-inset-top)" }}
+            style={{
+              paddingTop: "env(safe-area-inset-top)",
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }}
           >
             <div className="flex h-[76px] items-center justify-between border-b border-sidebar-border px-4">
               <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
@@ -189,31 +192,28 @@ function StoreAppLayout() {
       ) : null}
 
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <header
-          className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-[#FFF9F6]/92 px-3 shadow-[0_8px_30px_rgba(75,29,109,.04)] backdrop-blur-xl sm:px-6 lg:px-8"
-          style={{ paddingTop: "env(safe-area-inset-top)" }}
-        >
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}>
+        <header className="app-premium-topbar sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b px-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2">
+            <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}>
               <Menu className="size-5" />
             </Button>
-            <BrandLogo lockup="horizontal" className="h-8 w-auto lg:hidden" />
+            <BrandLogo lockup="horizontal" className="h-8 max-w-[9.5rem] lg:hidden" />
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <span className="hidden text-sm font-medium text-muted-foreground sm:inline">{authContext?.full_name ?? "Equipe"}</span>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <span className="hidden max-w-40 truncate text-sm font-medium text-muted-foreground sm:inline">{authContext?.full_name ?? "Equipe"}</span>
+            <Button variant="outline" size="sm" onClick={handleSignOut} aria-label="Sair">
               <LogOut className="size-4 sm:hidden" />
               <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 pb-20 lg:pb-0"><Outlet /></main>
+        <main className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0"><Outlet /></main>
 
         <nav
           aria-label="Navegação principal"
-          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-white/95 shadow-[0_-12px_34px_rgba(75,29,109,.07)] backdrop-blur-xl lg:hidden"
+          className="app-premium-bottom-nav fixed inset-x-0 bottom-0 z-30 flex border-t backdrop-blur-xl lg:hidden"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           {MOBILE_NAV_ITEMS.map((item) => {
@@ -225,12 +225,12 @@ function StoreAppLayout() {
                 to={item.to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-[58px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold",
+                  "flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-[10px] font-semibold leading-tight sm:text-[11px]",
                   active ? "text-brand" : "text-muted-foreground",
                 )}
               >
-                <Icon className="size-5" aria-hidden="true" />
-                {item.label}
+                <Icon className="size-5 shrink-0" aria-hidden="true" />
+                <span className="max-w-full truncate">{item.label}</span>
               </Link>
             );
           })}
