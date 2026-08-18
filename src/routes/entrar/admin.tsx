@@ -16,13 +16,13 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/entrar/admin")({
   head: () => ({
     meta: [
-      { title: "Entrar na administração | Pediu Aqui" },
+      { title: "Entrar na administração | Comandiva" },
       {
         name: "description",
-        content: "Acesso restrito da administração da plataforma Pediu Aqui.",
+        content: "Acesso restrito da administração da plataforma Comandiva.",
       },
-      { property: "og:title", content: "Entrar na administração | Pediu Aqui" },
-      { property: "og:description", content: "Acesso restrito da administração do Pediu Aqui." },
+      { property: "og:title", content: "Entrar na administração | Comandiva" },
+      { property: "og:description", content: "Acesso restrito da administração da Comandiva." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -65,7 +65,7 @@ function AdminSignInPage() {
     <AuthShell
       badge="Administração da plataforma"
       title="Administração da plataforma"
-      description="Área restrita da equipe Pediu Aqui."
+      description="Área restrita da equipe Comandiva."
       footer={
         <div className="space-y-4">
           <Link to={AUTH_ROUTES.recovery} className="inline-flex min-h-11 items-center underline underline-offset-4">
