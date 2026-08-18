@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/loja/plano")({
 type StageCopy = {
   label: string;
   description: string;
-  variant: "success" | "warning" | "danger" | "neutral" | "brand";
+  variant: "success" | "warning" | "danger" | "outline" | "brand";
 };
 
 const STAGE_COPY: Record<StoreBillingStage, StageCopy> = {
@@ -42,7 +42,7 @@ const STAGE_COPY: Record<StoreBillingStage, StageCopy> = {
   free: {
     label: "Plano gratuito",
     description: "A loja está operando no plano gratuito, sem cobrança recorrente.",
-    variant: "neutral",
+    variant: "outline",
   },
   trial: {
     label: "Período de teste",
@@ -77,7 +77,7 @@ const STAGE_COPY: Record<StoreBillingStage, StageCopy> = {
   trial_expired: {
     label: "Teste encerrado",
     description: "O período de teste terminou e a conta está seguindo a política de fallback configurada.",
-    variant: "neutral",
+    variant: "outline",
   },
 };
 
