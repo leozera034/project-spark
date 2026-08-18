@@ -33,12 +33,13 @@ export function BrandLogo({
       alt={BRAND_NAME}
       data-no-dim
       className={cn(
-        "block object-contain",
-        lockup === "horizontal" ? "h-8 w-auto" : "h-24 w-auto",
+        "block shrink-0 object-contain",
+        lockup === "horizontal" ? "h-10 w-auto" : "h-28 w-auto",
         monochrome && "brightness-0 invert",
         className,
       )}
       draggable={false}
+      decoding="async"
     />
   );
 }
@@ -58,8 +59,9 @@ export function BrandSymbol({
       src={SYMBOL}
       alt="Símbolo Comandiva"
       data-no-dim
-      className={cn("size-10 object-contain", monochrome && "brightness-0 invert", className)}
+      className={cn("size-11 shrink-0 object-contain", monochrome && "brightness-0 invert", className)}
       draggable={false}
+      decoding="async"
     />
   );
 }
@@ -71,8 +73,9 @@ export function BrandWordmark({ className }: { className?: string }) {
       src={WORDMARK}
       alt={BRAND_NAME}
       data-no-dim
-      className={cn("h-7 w-auto object-contain", className)}
+      className={cn("h-8 w-auto shrink-0 object-contain", className)}
       draggable={false}
+      decoding="async"
     />
   );
 }
