@@ -73,6 +73,8 @@ export const createStoreAccount = createServerFn({ method: "POST" })
             throw new Error("Já existe uma conta com esse e-mail. Entre com ela ou use outro e-mail.");
           case "invalid_input":
             throw new Error("Revise os dados informados e tente novamente.");
+          case "rate_limited":
+            throw new Error("Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.");
           case "account_creation_failed":
             throw new Error("Não foi possível criar o acesso do proprietário.");
           default:
