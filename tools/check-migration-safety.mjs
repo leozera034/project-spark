@@ -25,6 +25,7 @@ const checks = [
     name: "EXECUTE privilegiado para anon",
     pattern: /GRANT\s+EXECUTE\s+ON\s+(?:FUNCTION|PROCEDURE)[\s\S]{0,320}?\bTO\s+(?:ROLE\s+)?anon\b/gi,
     advice: "RPCs anônimas exigem revisão explícita. Prefira função pública mínima e allowlist deliberada.",
+    allow: /^GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.check_public_store_slug\s*\(\s*text\s*\)\s+TO\s+anon\s*,/i,
   },
   {
     name: "service role/secret literal",
@@ -41,6 +42,9 @@ for (const name of entries) {
     check.pattern.lastIndex = 0;
     const matches = [...sql.matchAll(check.pattern)];
     for (const match of matches) {
+      const matchedText = match[0];
+      if (check.allow?.test(matchedText)) continue;
+
       const before = sql.slice(0, match.index ?? 0);
       const line = before.split("\n").length;
       findings.push({ file: name, line, check: check.name, advice: check.advice });
