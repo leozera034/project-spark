@@ -292,6 +292,9 @@ Deno.serve(async (req: Request) => {
   if (claim === "duplicate") {
     return response(200, { ok: true, duplicate: true });
   }
+  if (claim === "busy") {
+    return response(503, { ok: false, error: "event_in_progress" });
+  }
   if (claim !== "process") {
     return response(500, { ok: false, error: "event_claim_failed" });
   }
