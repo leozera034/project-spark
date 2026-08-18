@@ -1,8 +1,8 @@
 const baseUrl = process.env.SMOKE_BASE_URL?.replace(/\/$/, "");
 
 if (!baseUrl) {
-  console.log("SMOKE_BASE_URL not configured; remote smoke skipped.");
-  process.exit(0);
+  console.error("SMOKE_BASE_URL is required; remote smoke cannot run without a production target.");
+  process.exit(1);
 }
 
 const routes = ["/", "/entrar/loja", "/entrar/entregador", "/entrar/admin", "/criar-loja"];
