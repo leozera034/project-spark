@@ -100,92 +100,6 @@ function mercadoPagoPublicKey(): string | null {
   return key || null;
 }
 
-async function publicConfig(req: Request): Promise<Response> {
-  if (!(await rateLimit("billing:mercadopago:public-config:minute", 120, 60))) {
-    return json(req, { ok: false, error: "rate_limited" }, 429);
-  }
-
-  const publicKey = mercadoPagoPublicKey();
-  if (!publicKey) {
-    return json(
-      req,
-      {
-        ok: false,
-        environment: "test",
-        provider: "mercado_pago",
-        configured: false,
-        error: "public_key_not_configured",
-      },
-      503,
-    );
-  }
-
-  return json(req, {
-    ok: true,
-    environment: "test",
-    provider: "mercado_pago",
-    configured: true,
-    publicKey,
-    amount: TEST_AMOUNT_BRL,
-    currency: "BRL",
-  });
-}
-
-async function providerHealth(req: Request): Promise<Response> {
-  if (!(await rateLimit("billing:mercadopago:health:minute", 10, 60))) {
-    return json(req, { ok: false, error: "rate_limited" }, 429);
-  }
-
-  const token = mercadoPagoToken();
-  if (!token) {
-    return json(
-      req,
-      { ok: false, provider: "mercado_pago", environment: "test", configured: false },
-      503,
-    );
-  }
-
-  try {
-    const upstream = await fetch(`${MP_API}/preapproval_plan/search?limit=1&offset=0`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    return json(
-      req,
-      {
-        ok: upstream.ok,
-        provider: "mercado_pago",
-        environment: "test",
-        configured: true,
-        connected: upstream.ok,
-        upstreamStatus: upstream.status,
-      },
-      upstream.ok ? 200 : 502,
-    );
-  } catch (error) {
-    console.error(
-      "[comandiva-billing] provider health failed",
-      error instanceof Error ? error.message : "unknown",
-    );
-    return json(
-      req,
-      {
-        ok: false,
-        provider: "mercado_pago",
-        environment: "test",
-        configured: true,
-        connected: false,
-        error: "provider_unreachable",
-      },
-      502,
-    );
-  }
-}
-
 function providerCauses(payload: unknown): Array<{ code?: string | number; description?: string }> {
   if (!payload || typeof payload !== "object" || !("cause" in payload)) return [];
   const cause = (payload as { cause?: unknown }).cause;
@@ -193,16 +107,123 @@ function providerCauses(payload: unknown): Array<{ code?: string | number; descr
   return cause.slice(0, 5).flatMap((entry) => {
     if (!entry || typeof entry !== "object") return [];
     const value = entry as { code?: unknown; description?: unknown };
-    return [
-      {
-        code:
-          typeof value.code === "string" || typeof value.code === "number"
-            ? value.code
-            : undefined,
-        description: typeof value.description === "string" ? value.description.slice(0, 300) : undefined,
-      },
-    ];
+    return [{
+      code: typeof value.code === "string" || typeof value.code === "number" ? value.code : undefined,
+      description: typeof value.description === "string" ? value.description.slice(0, 300) : undefined,
+    }];
   });
+}
+
+async function publicConfig(req: Request): Promise<Response> {
+  if (!(await rateLimit("billing:mercadopago:public-config:minute", 120, 60))) {
+    return json(req, { ok: false, error: "rate_limited" }, 429);
+  }
+  const publicKey = mercadoPagoPublicKey();
+  if (!publicKey) {
+    return json(req, { ok: false, environment: "test", provider: "mercado_pago", configured: false, error: "public_key_not_configured" }, 503);
+  }
+  return json(req, { ok: true, environment: "test", provider: "mercado_pago", configured: true, publicKey, amount: TEST_AMOUNT_BRL, currency: "BRL" });
+}
+
+async function providerHealth(req: Request): Promise<Response> {
+  if (!(await rateLimit("billing:mercadopago:health:minute", 10, 60))) {
+    return json(req, { ok: false, error: "rate_limited" }, 429);
+  }
+  const token = mercadoPagoToken();
+  if (!token) return json(req, { ok: false, provider: "mercado_pago", environment: "test", configured: false }, 503);
+  try {
+    const upstream = await fetch(`${MP_API}/preapproval_plan/search?limit=1&offset=0`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+    return json(req, { ok: upstream.ok, provider: "mercado_pago", environment: "test", configured: true, connected: upstream.ok, upstreamStatus: upstream.status }, upstream.ok ? 200 : 502);
+  } catch (error) {
+    console.error("[comandiva-billing] provider health failed", error instanceof Error ? error.message : "unknown");
+    return json(req, { ok: false, provider: "mercado_pago", environment: "test", configured: true, connected: false, error: "provider_unreachable" }, 502);
+  }
+}
+
+async function createPendingTestSubscription(req: Request): Promise<Response> {
+  const token = mercadoPagoToken();
+  if (!token) return json(req, { ok: false, error: "provider_not_configured" }, 503);
+
+  if (!(await rateLimit("billing:mercadopago:pending-test:global:minute", 20, 60))) {
+    return json(req, { ok: false, error: "rate_limited" }, 429);
+  }
+  const ip = clientAddress(req);
+  if (ip) {
+    const ipKey = await shortHash(ip);
+    if (!(await rateLimit(`billing:mercadopago:pending-test:ip:${ipKey}:hour`, 10, 3600))) {
+      return json(req, { ok: false, error: "rate_limited" }, 429);
+    }
+  }
+
+  let body: unknown = {};
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
+  }
+  const rawEmail = body && typeof body === "object" && "payerEmail" in body
+    ? (body as { payerEmail?: unknown }).payerEmail
+    : undefined;
+  const requestedEmail = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+  const payerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail) && requestedEmail.length <= 254
+    ? requestedEmail
+    : `comandiva.sandbox.${crypto.randomUUID().slice(0, 8)}@example.com`;
+
+  const externalReference = `comandiva-pending-${crypto.randomUUID()}`;
+  const requestBody = {
+    reason: "Comandiva Sandbox Subscription",
+    external_reference: externalReference,
+    payer_email: payerEmail,
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: "months",
+      transaction_amount: TEST_AMOUNT_BRL,
+      currency_id: "BRL",
+    },
+    back_url: `${APP_ORIGIN}/integracao/mercado-pago?retorno=1`,
+    status: "pending",
+  };
+
+  try {
+    const upstream = await fetch(`${MP_API}/preapproval`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+    const payload = (await upstream.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!upstream.ok) {
+      console.warn("[comandiva-billing] pending test subscription rejected", {
+        status: upstream.status,
+        message: typeof payload.message === "string" ? payload.message : "provider_rejected",
+      });
+      return json(req, {
+        ok: false,
+        error: "provider_rejected",
+        upstreamStatus: upstream.status,
+        providerMessage: typeof payload.message === "string" ? payload.message.slice(0, 300) : null,
+        providerCauses: providerCauses(payload),
+      }, 422);
+    }
+
+    const initPoint = typeof payload.init_point === "string" ? payload.init_point : "";
+    if (!initPoint.startsWith("https://")) {
+      return json(req, { ok: false, error: "provider_missing_checkout_url" }, 502);
+    }
+
+    return json(req, {
+      ok: true,
+      environment: "test",
+      subscriptionId: typeof payload.id === "string" ? payload.id : null,
+      status: typeof payload.status === "string" ? payload.status : null,
+      initPoint,
+    });
+  } catch (error) {
+    console.error("[comandiva-billing] pending test subscription request failed", error instanceof Error ? error.message : "unknown");
+    return json(req, { ok: false, error: "provider_unreachable" }, 502);
+  }
 }
 
 async function createTestSubscription(req: Request): Promise<Response> {
@@ -210,44 +231,15 @@ async function createTestSubscription(req: Request): Promise<Response> {
   if (!token) return json(req, { ok: false, error: "provider_not_configured" }, 503);
 
   let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return json(req, { ok: false, error: "invalid_json" }, 400);
-  }
-
-  if (!body || typeof body !== "object") {
-    return json(req, { ok: false, error: "invalid_body" }, 400);
-  }
+  try { body = await req.json(); } catch { return json(req, { ok: false, error: "invalid_json" }, 400); }
+  if (!body || typeof body !== "object") return json(req, { ok: false, error: "invalid_body" }, 400);
 
   const input = body as { cardTokenId?: unknown; payerEmail?: unknown };
   const cardTokenId = typeof input.cardTokenId === "string" ? input.cardTokenId.trim() : "";
-  const payerEmail =
-    typeof input.payerEmail === "string" ? input.payerEmail.trim().toLowerCase() : "";
-
-  if (cardTokenId.length < 10 || cardTokenId.length > 500) {
-    return json(req, { ok: false, error: "invalid_card_token" }, 400);
-  }
-  if (!/^[^\s@]+@testuser\.com$/i.test(payerEmail) || payerEmail.length > 254) {
-    return json(req, { ok: false, error: "test_email_required" }, 400);
-  }
-
-  if (!(await rateLimit("billing:mercadopago:test-subscription:global:minute", 20, 60))) {
-    return json(req, { ok: false, error: "rate_limited" }, 429);
-  }
-
-  const emailKey = await shortHash(payerEmail);
-  if (!(await rateLimit(`billing:mercadopago:test-subscription:email:${emailKey}:hour`, 5, 3600))) {
-    return json(req, { ok: false, error: "rate_limited" }, 429);
-  }
-
-  const ip = clientAddress(req);
-  if (ip) {
-    const ipKey = await shortHash(ip);
-    if (!(await rateLimit(`billing:mercadopago:test-subscription:ip:${ipKey}:hour`, 10, 3600))) {
-      return json(req, { ok: false, error: "rate_limited" }, 429);
-    }
-  }
+  const payerEmail = typeof input.payerEmail === "string" ? input.payerEmail.trim().toLowerCase() : "";
+  if (cardTokenId.length < 10 || cardTokenId.length > 500) return json(req, { ok: false, error: "invalid_card_token" }, 400);
+  if (!/^[^\s@]+@testuser\.com$/i.test(payerEmail) || payerEmail.length > 254) return json(req, { ok: false, error: "test_email_required" }, 400);
+  if (!(await rateLimit("billing:mercadopago:test-subscription:global:minute", 20, 60))) return json(req, { ok: false, error: "rate_limited" }, 429);
 
   const externalReference = `comandiva-integration-${crypto.randomUUID()}`;
   const requestBody = {
@@ -256,12 +248,7 @@ async function createTestSubscription(req: Request): Promise<Response> {
     external_reference: externalReference,
     payer_email: payerEmail,
     card_token_id: cardTokenId,
-    auto_recurring: {
-      frequency: 1,
-      frequency_type: "months",
-      transaction_amount: TEST_AMOUNT_BRL,
-      currency_id: "BRL",
-    },
+    auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: TEST_AMOUNT_BRL, currency_id: "BRL" },
     back_url: `${APP_ORIGIN}/integracao/mercado-pago`,
     status: "authorized",
   };
@@ -269,65 +256,40 @@ async function createTestSubscription(req: Request): Promise<Response> {
   try {
     const upstream = await fetch(`${MP_API}/preapproval`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
-
     const payload = (await upstream.json().catch(() => ({}))) as Record<string, unknown>;
     if (!upstream.ok) {
-      console.warn("[comandiva-billing] test subscription rejected", {
-        status: upstream.status,
-        message: typeof payload.message === "string" ? payload.message : "provider_rejected",
-      });
-      return json(
-        req,
-        {
-          ok: false,
-          error: "provider_rejected",
-          upstreamStatus: upstream.status,
-          providerMessage:
-            typeof payload.message === "string" ? payload.message.slice(0, 300) : null,
-          providerCauses: providerCauses(payload),
-        },
-        422,
-      );
+      return json(req, {
+        ok: false,
+        error: "provider_rejected",
+        upstreamStatus: upstream.status,
+        providerMessage: typeof payload.message === "string" ? payload.message.slice(0, 300) : null,
+        providerCauses: providerCauses(payload),
+      }, 422);
     }
-
     return json(req, {
       ok: true,
       environment: "test",
       subscriptionId: typeof payload.id === "string" ? payload.id : null,
       status: typeof payload.status === "string" ? payload.status : null,
-      nextPaymentDate:
-        typeof payload.next_payment_date === "string" ? payload.next_payment_date : null,
+      nextPaymentDate: typeof payload.next_payment_date === "string" ? payload.next_payment_date : null,
     });
   } catch (error) {
-    console.error(
-      "[comandiva-billing] test subscription request failed",
-      error instanceof Error ? error.message : "unknown",
-    );
+    console.error("[comandiva-billing] test subscription request failed", error instanceof Error ? error.message : "unknown");
     return json(req, { ok: false, error: "provider_unreachable" }, 502);
   }
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return json(req, { ok: true });
-
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
-  if (req.method === "GET" && action === "public_config") {
-    return publicConfig(req);
-  }
-  if (req.method === "GET" && action === "provider_health") {
-    return providerHealth(req);
-  }
-  if (req.method === "POST" && action === "create_test_subscription") {
-    return createTestSubscription(req);
-  }
-
+  if (req.method === "GET" && action === "public_config") return publicConfig(req);
+  if (req.method === "GET" && action === "provider_health") return providerHealth(req);
+  if (req.method === "POST" && action === "create_pending_test_subscription") return createPendingTestSubscription(req);
+  if (req.method === "POST" && action === "create_test_subscription") return createTestSubscription(req);
   return json(req, { ok: false, error: "action_not_allowed" }, 403);
 });
