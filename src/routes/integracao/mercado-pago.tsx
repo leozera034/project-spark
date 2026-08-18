@@ -147,10 +147,15 @@ async function resolvePublicKey(): Promise<string> {
 }
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-[#E8DDD4] bg-[#FFFCF8] px-3.5 text-[15px] text-[#2A1634] outline-none transition focus:border-[#7C4A95] focus:ring-4 focus:ring-[#7C4A95]/10";
+  "!h-14 !w-full !appearance-none !rounded-2xl !border !border-[#E8DDD4] !bg-white !px-4 !text-[16px] !font-normal !text-[#2A1634] !shadow-none !outline-none transition focus:!border-[#7C4A95] focus:!ring-4 focus:!ring-[#7C4A95]/10";
 
 function FieldShell({ id }: { id: string }) {
-  return <div id={id} className={`${inputClass} py-3`} />;
+  return (
+    <div
+      id={id}
+      className="mp-secure-field h-14 w-full overflow-hidden rounded-2xl border border-[#E8DDD4] bg-white shadow-none transition focus-within:border-[#7C4A95] focus-within:ring-4 focus-within:ring-[#7C4A95]/10"
+    />
+  );
 }
 
 function Step({ children }: { children: ReactNode }) {
@@ -207,14 +212,8 @@ function MercadoPagoIntegrationTestPage() {
             cardholderName: { id: "form-checkout__cardholderName", placeholder: "Nome no cartão" },
             issuer: { id: "form-checkout__issuer", placeholder: "Banco emissor" },
             installments: { id: "form-checkout__installments", placeholder: "Parcelas" },
-            identificationType: {
-              id: "form-checkout__identificationType",
-              placeholder: "Documento",
-            },
-            identificationNumber: {
-              id: "form-checkout__identificationNumber",
-              placeholder: "CPF",
-            },
+            identificationType: { id: "form-checkout__identificationType", placeholder: "Documento" },
+            identificationNumber: { id: "form-checkout__identificationNumber", placeholder: "CPF" },
             cardholderEmail: {
               id: "form-checkout__cardholderEmail",
               placeholder: "E-mail do comprador de teste",
@@ -259,6 +258,12 @@ function MercadoPagoIntegrationTestPage() {
                 });
                 const payload = (await response.json()) as SubscriptionResult;
                 setResult(payload);
+                window.setTimeout(() => {
+                  document.getElementById("billing-test-result")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
+                }, 80);
               } catch {
                 setResult({ ok: false, error: "Não foi possível falar com o backend de cobrança." });
               } finally {
@@ -274,8 +279,6 @@ function MercadoPagoIntegrationTestPage() {
         });
 
         cardFormRef.current = cardForm;
-        // Safari/iOS can delay onFormMounted while document/issuer metadata is fetched.
-        // The CardForm instance already owns the DOM at this point, so interaction can be released.
         setFormInitialized(true);
       })
       .catch((error: unknown) => {
@@ -303,25 +306,44 @@ function MercadoPagoIntegrationTestPage() {
   const interactive = formInitialized && !setupError;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#FBF7F2] text-[#2A1634]">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#FBF7F2] pb-52 text-[#2A1634] sm:pb-10">
+      <style>{`
+        .mp-secure-field > iframe {
+          display: block !important;
+          width: 100% !important;
+          height: 56px !important;
+          min-height: 56px !important;
+          border: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        #form-checkout input,
+        #form-checkout select {
+          background: #ffffff !important;
+          color: #2A1634 !important;
+          border-color: #E8DDD4 !important;
+          -webkit-text-fill-color: #2A1634 !important;
+        }
+      `}</style>
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-32 -top-40 h-[420px] w-[420px] rounded-full bg-[#E9DDED]/70 blur-3xl" />
         <div className="absolute -right-24 top-32 h-[360px] w-[360px] rounded-full bg-[#FFE0D7]/80 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-6xl px-5 py-6 sm:px-8 sm:py-8 lg:py-12">
-        <header className="mb-8 flex items-center justify-between gap-4 sm:mb-12">
+      <div className="relative mx-auto w-full max-w-6xl px-4 py-5 sm:px-8 sm:py-8 lg:py-12">
+        <header className="mb-7 flex items-center justify-between gap-4 sm:mb-12">
           <img
             src="/brand/comandiva-logo-horizontal.png"
             alt="Comandiva"
             className="h-9 w-auto object-contain sm:h-11"
           />
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#DDD0E2] bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#4B1D6D] shadow-sm backdrop-blur">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#DDD0E2] bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#4B1D6D] shadow-sm backdrop-blur">
             <span className="h-2 w-2 rounded-full bg-[#FF6A4D]" /> Sandbox
           </span>
         </header>
 
-        <div className="grid items-start gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-12">
+        <div className="grid items-start gap-7 lg:grid-cols-[0.88fr_1.12fr] lg:gap-12">
           <section className="pt-1 lg:sticky lg:top-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#F0E7F4] px-3 py-1.5 text-sm font-semibold text-[#4B1D6D]">
               <Sparkles className="h-4 w-4" /> Homologação de billing
@@ -334,7 +356,7 @@ function MercadoPagoIntegrationTestPage() {
               Este ambiente prova tokenização, criação da assinatura e notificações sem usar dinheiro real.
             </p>
 
-            <div className="mt-8 rounded-3xl border border-[#E7DDD6] bg-white/80 p-5 shadow-[0_22px_60px_rgba(55,31,67,0.08)] backdrop-blur sm:p-6">
+            <div className="mt-7 rounded-3xl border border-[#E7DDD6] bg-white/85 p-5 shadow-[0_22px_60px_rgba(55,31,67,0.08)] backdrop-blur sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B7D8F]">
@@ -365,7 +387,7 @@ function MercadoPagoIntegrationTestPage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-[30px] border border-[#E8DED7] bg-white shadow-[0_28px_80px_rgba(55,31,67,0.13)]">
+          <section className="overflow-hidden rounded-[28px] border border-[#E8DED7] bg-white shadow-[0_28px_80px_rgba(55,31,67,0.13)]">
             <div className="border-b border-[#EEE5DE] px-5 py-5 sm:px-7 sm:py-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -405,11 +427,7 @@ function MercadoPagoIntegrationTestPage() {
               ) : null}
 
               <div className="relative">
-                <form
-                  id="form-checkout"
-                  aria-busy={!interactive}
-                  className={`space-y-5 transition ${!interactive ? "opacity-45" : "opacity-100"}`}
-                >
+                <form id="form-checkout" aria-busy={!interactive} className="space-y-5 pb-4 sm:pb-0">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#403544]">Número do cartão</label>
                     <FieldShell id="form-checkout__cardNumber" />
@@ -470,34 +488,36 @@ function MercadoPagoIntegrationTestPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-[#F7F2F8] px-4 py-3.5 text-sm text-[#665A69]">
+                  <div className="rounded-2xl bg-[#F7F2F8] px-4 py-3.5 text-sm leading-6 text-[#665A69]">
                     <strong className="font-semibold text-[#4B1D6D]">Cenário aprovado:</strong> cartão oficial de teste, titular <strong>APRO</strong> e CPF <strong>12345678909</strong>.
                   </div>
 
                   <progress className="hidden" value="0" />
 
-                  <button
-                    id="form-checkout__submit"
-                    type="submit"
-                    disabled={!formInitialized || isSubmitting}
-                    className="relative z-20 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-4 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-                  >
-                    {isSubmitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…</>
-                    ) : !formInitialized ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Preparando pagamento…</>
-                    ) : (
-                      <><CreditCard className="h-4 w-4" /> Criar assinatura de teste</>
-                    )}
-                  </button>
+                  <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+7.5rem)] z-[90] rounded-[24px] border border-[#E9DDD6] bg-white/96 p-2 shadow-[0_18px_55px_rgba(42,22,52,0.22)] backdrop-blur-xl sm:static sm:mt-2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0">
+                    <button
+                      id="form-checkout__submit"
+                      type="submit"
+                      disabled={!formInitialized || isSubmitting}
+                      className="flex min-h-14 w-full touch-manipulation select-none items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-4 text-base font-semibold text-white shadow-[0_12px_28px_rgba(255,106,77,0.30)] transition active:scale-[0.985] active:bg-[#E9553A] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      {isSubmitting ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…</>
+                      ) : !formInitialized ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Preparando pagamento…</>
+                      ) : (
+                        <><CreditCard className="h-4 w-4" /> Criar assinatura de teste</>
+                      )}
+                    </button>
+                  </div>
                 </form>
 
                 {!formInitialized && !setupError ? (
-                  <div className="pointer-events-none absolute inset-0 z-10 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD]/88 px-6 text-center backdrop-blur-[2px]">
+                  <div className="pointer-events-none absolute inset-0 z-10 flex min-h-64 flex-col items-center justify-start rounded-2xl bg-white/78 px-6 pt-24 text-center backdrop-blur-[1px]">
                     <Loader2 className="h-7 w-7 animate-spin text-[#4B1D6D]" />
                     <p className="mt-3 font-semibold">Preparando pagamento seguro…</p>
                     <p className="mt-1 max-w-xs text-sm leading-6 text-[#837687]">
-                      Conectando os campos protegidos do Mercado Pago. Isso deve levar poucos segundos.
+                      Conectando os campos protegidos do Mercado Pago.
                     </p>
                   </div>
                 ) : null}
@@ -505,43 +525,52 @@ function MercadoPagoIntegrationTestPage() {
 
               {!sdkReady && formInitialized && !setupError ? (
                 <div className="mt-4 rounded-xl bg-[#F8F2FA] px-4 py-3 text-xs leading-5 text-[#6C5975]">
-                  Os campos seguros já estão disponíveis. O Mercado Pago ainda está concluindo a sincronização de emissor e documento em segundo plano.
+                  Os campos seguros já estão disponíveis. O Mercado Pago ainda está concluindo dados auxiliares em segundo plano.
                 </div>
               ) : null}
 
-              {result ? (
-                result.ok ? (
-                  <div className="mt-5 rounded-2xl border border-[#BFE0CA] bg-[#F1FBF4] p-5 text-[#265D39]">
-                    <div className="flex gap-3">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Assinatura criada com sucesso</p>
-                        <p className="mt-1 text-sm leading-6">Status: {result.status ?? "recebido"}. ID técnico: {result.subscriptionId ?? "—"}.</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-5 rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5 text-[#803421]">
-                    <div className="flex gap-3">
-                      <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="font-semibold">Mercado Pago recusou a criação</p>
-                        <p className="mt-1 break-words text-sm leading-6">{result.providerMessage ?? result.error ?? "Falha desconhecida."}</p>
-                        {result.providerCauses?.map((cause, index) => (
-                          <p key={`${cause.code ?? "cause"}-${index}`} className="mt-1 text-sm">
-                            {cause.code ? `${cause.code}: ` : ""}{cause.description ?? "Erro retornado pelo provedor."}
+              <div id="billing-test-result">
+                {result ? (
+                  result.ok ? (
+                    <div className="mt-5 rounded-2xl border border-[#BFE0CA] bg-[#F1FBF4] p-5 text-[#265D39]">
+                      <div className="flex gap-3">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                        <div>
+                          <p className="font-semibold">Assinatura criada com sucesso</p>
+                          <p className="mt-1 text-sm leading-6">
+                            Status: {result.status ?? "recebido"}. ID técnico: {result.subscriptionId ?? "—"}.
                           </p>
-                        ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              ) : null}
+                  ) : (
+                    <div className="mt-5 rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5 text-[#803421]">
+                      <div className="flex gap-3">
+                        <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-semibold">Mercado Pago recusou a criação</p>
+                          <p className="mt-1 break-words text-sm leading-6">
+                            {result.providerMessage ?? result.error ?? "Falha desconhecida."}
+                          </p>
+                          {result.providerCauses?.map((cause, index) => (
+                            <p key={`${cause.code ?? "cause"}-${index}`} className="mt-1 text-sm">
+                              {cause.code ? `${cause.code}: ` : ""}
+                              {cause.description ?? "Erro retornado pelo provedor."}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ) : null}
+              </div>
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t border-[#EEE5DE] bg-[#FFFCF8] px-5 py-4 text-xs text-[#8B7F8F] sm:px-7">
               <span>Comandiva · homologação</span>
-              <span className="inline-flex items-center gap-1.5"><LockKeyhole className="h-3.5 w-3.5" /> Mercado Pago Sandbox</span>
+              <span className="inline-flex items-center gap-1.5">
+                <LockKeyhole className="h-3.5 w-3.5" /> Mercado Pago Sandbox
+              </span>
             </div>
           </section>
         </div>
