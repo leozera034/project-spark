@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Check,
   CheckCircle2,
@@ -17,6 +17,7 @@ const MP_SCRIPT_SRC = "https://sdk.mercadopago.com/js/v2";
 const BILLING_BASE = "https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/comandiva-billing";
 const BILLING_ENDPOINT = `${BILLING_BASE}?action=create_test_subscription`;
 const PUBLIC_CONFIG_ENDPOINT = `${BILLING_BASE}?action=public_config`;
+const BOOTSTRAP_TIMEOUT_MS = 12_000;
 
 interface CardFormData {
   token?: string;
@@ -45,7 +46,6 @@ declare global {
 
 interface PublicConfigResult {
   ok: boolean;
-  configured?: boolean;
   publicKey?: string;
   error?: string;
 }
@@ -74,15 +74,45 @@ export const Route = createFileRoute("/integracao/mercado-pago")({
   component: MercadoPagoIntegrationTestPage,
 });
 
+function withTimeout<T>(promise: Promise<T>, ms: number, code: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(code)), ms);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 function loadMercadoPagoSdk(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   if (window.MercadoPago) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      window.clearInterval(poll);
+      error ? reject(error) : resolve();
+    };
+
+    const poll = window.setInterval(() => {
+      if (window.MercadoPago) finish();
+    }, 50);
+
     const existing = document.getElementById(MP_SCRIPT_ID) as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("sdk_load_failed")), {
+      existing.addEventListener("load", () => {
+        if (window.MercadoPago) finish();
+      }, { once: true });
+      existing.addEventListener("error", () => finish(new Error("sdk_load_failed")), {
         once: true,
       });
       return;
@@ -92,8 +122,10 @@ function loadMercadoPagoSdk(): Promise<void> {
     script.id = MP_SCRIPT_ID;
     script.src = MP_SCRIPT_SRC;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("sdk_load_failed"));
+    script.onload = () => {
+      if (window.MercadoPago) finish();
+    };
+    script.onerror = () => finish(new Error("sdk_load_failed"));
     document.head.appendChild(script);
   });
 }
@@ -123,7 +155,7 @@ function FieldShell({ id }: { id: string }) {
   return <div id={id} className={`${inputClass} py-3`} />;
 }
 
-function Step({ children }: { children: React.ReactNode }) {
+function Step({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-center gap-3 text-sm text-[#5F5364]">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F0E7F4] text-[#4B1D6D]">
@@ -140,21 +172,26 @@ function MercadoPagoIntegrationTestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SubscriptionResult | null>(null);
   const [retryKey, setRetryKey] = useState(0);
-  const initializedRef = useRef(false);
   const submittingRef = useRef(false);
   const cardFormRef = useRef<MercadoPagoCardForm | null>(null);
 
   useEffect(() => {
-    initializedRef.current = false;
     setSdkReady(false);
     setSetupError(null);
     setResult(null);
-
-    if (initializedRef.current) return;
-    initializedRef.current = true;
     let cancelled = false;
+    let mounted = false;
 
-    void Promise.all([resolvePublicKey(), loadMercadoPagoSdk()])
+    const mountTimeout = window.setTimeout(() => {
+      if (!cancelled && !mounted) {
+        setSetupError("O formulário seguro demorou mais que o esperado para iniciar. Tente novamente.");
+      }
+    }, BOOTSTRAP_TIMEOUT_MS + 2_000);
+
+    void Promise.all([
+      withTimeout(resolvePublicKey(), BOOTSTRAP_TIMEOUT_MS, "config_timeout"),
+      withTimeout(loadMercadoPagoSdk(), BOOTSTRAP_TIMEOUT_MS, "sdk_timeout"),
+    ])
       .then(([publicKey]) => {
         if (cancelled || !window.MercadoPago) return;
 
@@ -186,8 +223,10 @@ function MercadoPagoIntegrationTestPage() {
           callbacks: {
             onFormMounted: (error: unknown) => {
               if (cancelled) return;
+              mounted = true;
+              window.clearTimeout(mountTimeout);
               if (error) {
-                setSetupError("O formulário seguro do Mercado Pago não conseguiu iniciar.");
+                setSetupError("O Mercado Pago encontrou um erro ao montar os campos seguros.");
                 return;
               }
               setSdkReady(true);
@@ -203,7 +242,7 @@ function MercadoPagoIntegrationTestPage() {
               if (!cardTokenId || !payerEmail) {
                 setResult({
                   ok: false,
-                  error: "Revise os campos do cartão. O Mercado Pago não gerou o token seguro.",
+                  error: "Revise os campos. O Mercado Pago não conseguiu gerar o token do cartão.",
                 });
                 return;
               }
@@ -236,16 +275,21 @@ function MercadoPagoIntegrationTestPage() {
       })
       .catch((error: unknown) => {
         if (cancelled) return;
-        const message = error instanceof Error ? error.message : "configuration_failed";
-        setSetupError(
-          message === "public_key_not_configured"
-            ? "A Public Key de teste ainda não está disponível para o runtime."
-            : "Não foi possível carregar a configuração segura do Mercado Pago.",
-        );
+        const code = error instanceof Error ? error.message : "configuration_failed";
+        if (code === "public_key_not_configured") {
+          setSetupError("A Public Key de teste não está disponível no backend da homologação.");
+        } else if (code === "sdk_timeout" || code === "sdk_load_failed") {
+          setSetupError("O MercadoPago.js não carregou. Verifique a conexão e tente novamente.");
+        } else if (code === "config_timeout") {
+          setSetupError("A configuração do ambiente demorou demais para responder. Tente novamente.");
+        } else {
+          setSetupError("Não foi possível inicializar a integração segura do Mercado Pago.");
+        }
       });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(mountTimeout);
       cardFormRef.current?.unmount?.();
       cardFormRef.current = null;
     };
@@ -277,18 +321,17 @@ function MercadoPagoIntegrationTestPage() {
             </div>
 
             <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.035em] sm:text-5xl">
-              Validar cobrança recorrente sem tocar em dinheiro real.
+              Cobrança recorrente, validada ponta a ponta.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-[#6E626F] sm:text-lg">
-              Este fluxo testa a tokenização do cartão, a criação da assinatura e os webhooks da
-              Comandiva em um ambiente totalmente isolado.
+              Este ambiente prova tokenização, criação da assinatura e notificações sem usar dinheiro real.
             </p>
 
-            <div className="mt-8 rounded-3xl border border-[#E7DDD6] bg-white/75 p-5 shadow-[0_22px_60px_rgba(55,31,67,0.08)] backdrop-blur sm:p-6">
+            <div className="mt-8 rounded-3xl border border-[#E7DDD6] bg-white/80 p-5 shadow-[0_22px_60px_rgba(55,31,67,0.08)] backdrop-blur sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B7D8F]">
-                    Assinatura de teste
+                    Assinatura de homologação
                   </p>
                   <div className="mt-2 flex items-baseline gap-1.5">
                     <span className="text-4xl font-semibold tracking-tight">R$ 1,00</span>
@@ -302,16 +345,15 @@ function MercadoPagoIntegrationTestPage() {
 
               <ul className="mt-6 space-y-3.5">
                 <Step>Cartão tokenizado diretamente pelo Mercado Pago</Step>
-                <Step>Assinatura criada via API de recorrência</Step>
-                <Step>Evento validado e persistido pelo webhook</Step>
+                <Step>Assinatura criada pela API de recorrência</Step>
+                <Step>Webhook validado e persistido com idempotência</Step>
               </ul>
             </div>
 
             <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#E7DDD6] bg-[#FFFDF9] px-4 py-3.5 text-sm text-[#665A69]">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#4B1D6D]" />
               <p>
-                Os dados brutos do cartão não passam pelo backend da Comandiva. O navegador recebe
-                apenas um token descartável do Mercado Pago.
+                Número, validade e CVV ficam nos campos seguros do Mercado Pago. A Comandiva recebe somente o CardToken descartável.
               </p>
             </div>
           </section>
@@ -335,13 +377,13 @@ function MercadoPagoIntegrationTestPage() {
 
             <div className="p-5 sm:p-7">
               {setupError ? (
-                <div className="rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5">
+                <div className="mb-5 rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5">
                   <div className="flex gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFE0D7] text-[#C94F37]">
                       <TriangleAlert className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-[#803421]">Integração não inicializada</h3>
+                      <h3 className="font-semibold text-[#803421]">Não foi possível preparar o pagamento</h3>
                       <p className="mt-1 text-sm leading-6 text-[#8A5D53]">{setupError}</p>
                     </div>
                   </div>
@@ -353,14 +395,14 @@ function MercadoPagoIntegrationTestPage() {
                     <RefreshCw className="h-4 w-4" /> Tentar novamente
                   </button>
                 </div>
-              ) : !sdkReady ? (
-                <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD] px-6 text-center">
-                  <Loader2 className="h-7 w-7 animate-spin text-[#4B1D6D]" />
-                  <p className="mt-3 font-medium">Preparando o formulário seguro…</p>
-                  <p className="mt-1 text-sm text-[#837687]">Carregando configuração e MercadoPago.js.</p>
-                </div>
-              ) : (
-                <form id="form-checkout" className="space-y-5">
+              ) : null}
+
+              <div className="relative">
+                <form
+                  id="form-checkout"
+                  aria-busy={!sdkReady}
+                  className={`space-y-5 transition ${!sdkReady ? "pointer-events-none opacity-30" : "opacity-100"}`}
+                >
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#403544]">Número do cartão</label>
                     <FieldShell id="form-checkout__cardNumber" />
@@ -381,12 +423,7 @@ function MercadoPagoIntegrationTestPage() {
                     <label htmlFor="form-checkout__cardholderName" className="text-sm font-semibold text-[#403544]">
                       Nome do titular
                     </label>
-                    <input
-                      id="form-checkout__cardholderName"
-                      className={inputClass}
-                      defaultValue="APRO"
-                      autoComplete="cc-name"
-                    />
+                    <input id="form-checkout__cardholderName" className={inputClass} defaultValue="APRO" autoComplete="cc-name" />
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -400,12 +437,7 @@ function MercadoPagoIntegrationTestPage() {
                       <label htmlFor="form-checkout__identificationNumber" className="text-sm font-semibold text-[#403544]">
                         CPF de teste
                       </label>
-                      <input
-                        id="form-checkout__identificationNumber"
-                        className={inputClass}
-                        defaultValue="12345678909"
-                        inputMode="numeric"
-                      />
+                      <input id="form-checkout__identificationNumber" className={inputClass} defaultValue="12345678909" inputMode="numeric" />
                     </div>
                   </div>
 
@@ -413,13 +445,7 @@ function MercadoPagoIntegrationTestPage() {
                     <label htmlFor="form-checkout__cardholderEmail" className="text-sm font-semibold text-[#403544]">
                       E-mail do comprador de teste
                     </label>
-                    <input
-                      id="form-checkout__cardholderEmail"
-                      type="email"
-                      className={inputClass}
-                      defaultValue="test@testuser.com"
-                      autoComplete="email"
-                    />
+                    <input id="form-checkout__cardholderEmail" type="email" className={inputClass} defaultValue="test@testuser.com" autoComplete="email" />
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -438,8 +464,7 @@ function MercadoPagoIntegrationTestPage() {
                   </div>
 
                   <div className="rounded-2xl bg-[#F7F2F8] px-4 py-3.5 text-sm text-[#665A69]">
-                    <strong className="font-semibold text-[#4B1D6D]">Dados esperados:</strong> cartão de teste,
-                    titular <strong>APRO</strong> e CPF <strong>12345678909</strong>.
+                    <strong className="font-semibold text-[#4B1D6D]">Cenário aprovado:</strong> cartão oficial de teste, titular <strong>APRO</strong> e CPF <strong>12345678909</strong>.
                   </div>
 
                   <progress className="hidden" value="0" />
@@ -447,21 +472,27 @@ function MercadoPagoIntegrationTestPage() {
                   <button
                     id="form-checkout__submit"
                     type="submit"
-                    disabled={isSubmitting}
-                    className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-3.5 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                    disabled={!sdkReady || isSubmitting}
+                    className="flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-3.5 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                   >
                     {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…
-                      </>
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…</>
                     ) : (
-                      <>
-                        <CreditCard className="h-4 w-4" /> Criar assinatura de teste
-                      </>
+                      <><CreditCard className="h-4 w-4" /> Criar assinatura de teste</>
                     )}
                   </button>
                 </form>
-              )}
+
+                {!sdkReady && !setupError ? (
+                  <div className="absolute inset-0 z-10 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD]/95 px-6 text-center backdrop-blur-[2px]">
+                    <Loader2 className="h-7 w-7 animate-spin text-[#4B1D6D]" />
+                    <p className="mt-3 font-semibold">Preparando pagamento seguro…</p>
+                    <p className="mt-1 max-w-xs text-sm leading-6 text-[#837687]">
+                      Conectando os campos protegidos do Mercado Pago. Isso deve levar poucos segundos.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
 
               {result ? (
                 result.ok ? (
@@ -470,9 +501,7 @@ function MercadoPagoIntegrationTestPage() {
                       <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
                       <div>
                         <p className="font-semibold">Assinatura criada com sucesso</p>
-                        <p className="mt-1 text-sm leading-6">
-                          Status: {result.status ?? "recebido"}. ID técnico: {result.subscriptionId ?? "—"}.
-                        </p>
+                        <p className="mt-1 text-sm leading-6">Status: {result.status ?? "recebido"}. ID técnico: {result.subscriptionId ?? "—"}.</p>
                       </div>
                     </div>
                   </div>
@@ -482,13 +511,10 @@ function MercadoPagoIntegrationTestPage() {
                       <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
                       <div className="min-w-0">
                         <p className="font-semibold">Mercado Pago recusou a criação</p>
-                        <p className="mt-1 break-words text-sm leading-6">
-                          {result.providerMessage ?? result.error ?? "Falha desconhecida."}
-                        </p>
+                        <p className="mt-1 break-words text-sm leading-6">{result.providerMessage ?? result.error ?? "Falha desconhecida."}</p>
                         {result.providerCauses?.map((cause, index) => (
                           <p key={`${cause.code ?? "cause"}-${index}`} className="mt-1 text-sm">
-                            {cause.code ? `${cause.code}: ` : ""}
-                            {cause.description ?? "Erro retornado pelo provedor."}
+                            {cause.code ? `${cause.code}: ` : ""}{cause.description ?? "Erro retornado pelo provedor."}
                           </p>
                         ))}
                       </div>
@@ -499,10 +525,8 @@ function MercadoPagoIntegrationTestPage() {
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t border-[#EEE5DE] bg-[#FFFCF8] px-5 py-4 text-xs text-[#8B7F8F] sm:px-7">
-              <span>Comandiva · ambiente de homologação</span>
-              <span className="inline-flex items-center gap-1.5">
-                <LockKeyhole className="h-3.5 w-3.5" /> Mercado Pago Sandbox
-              </span>
+              <span>Comandiva · homologação</span>
+              <span className="inline-flex items-center gap-1.5"><LockKeyhole className="h-3.5 w-3.5" /> Mercado Pago Sandbox</span>
             </div>
           </section>
         </div>
