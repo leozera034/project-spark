@@ -23,6 +23,12 @@ const PASSWORD_ALPHABET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ2345
 const COURIER_EMAIL_DOMAIN = "courier.pediuaqui.internal";
 
 const slugSchema = z.string().trim().min(3).max(60).regex(/^[a-z0-9-]+$/);
+const ownerPasswordSchema = z
+  .string()
+  .min(8)
+  .max(72)
+  .regex(/[A-Za-z]/)
+  .regex(/[0-9]/);
 const createStoreSchema = z.object({
   storeName: z.string().trim().min(3).max(80),
   slug: slugSchema,
@@ -32,7 +38,7 @@ const createStoreSchema = z.object({
   phone: z.string().trim().min(8).max(20),
   ownerName: z.string().trim().min(3).max(100),
   email: z.string().trim().email().max(160).transform((value) => value.toLowerCase()),
-  password: z.string().min(8).max(72),
+  password: ownerPasswordSchema,
   planCode: z.enum(["essencial", "profissional", "avancado"]).default("essencial"),
 });
 const createCourierSchema = z.object({
@@ -50,6 +56,12 @@ function allowedOrigin(req: Request): string {
   if (origin === "https://shark-cardapio.lovable.app") return origin;
   if (/^https:\/\/[a-z0-9-]+\.lovable\.app$/i.test(origin)) return origin;
   return "https://shark-cardapio.lovable.app";
+}
+
+function clientAddress(req: Request): string | null {
+  const value = (req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip") ?? "").trim();
+  if (!value || value.length > 64 || !/^[0-9a-fA-F:.]+$/.test(value)) return null;
+  return value;
 }
 
 function response(req: Request, body: unknown, status = 200): Response {
@@ -256,12 +268,21 @@ async function createStoreAccount(req: Request, payload: Record<string, unknown>
   const admin = adminClient();
   const emailKey = (await sha256(input.email)).slice(0, 24);
   const slugKey = (await sha256(input.slug)).slice(0, 24);
-  const limits = await Promise.all([
+  const ip = clientAddress(req);
+  const ipKey = ip ? (await sha256(ip)).slice(0, 24) : null;
+  const checks = [
     consumeRateLimit(admin, "signup:global:minute", 10, 60),
     consumeRateLimit(admin, "signup:global:day", 250, 86400),
     consumeRateLimit(admin, `signup:email:${emailKey}:day`, 3, 86400),
     consumeRateLimit(admin, `signup:slug:${slugKey}:hour`, 5, 3600),
-  ]);
+  ];
+  if (ipKey) {
+    checks.push(
+      consumeRateLimit(admin, `signup:ip:${ipKey}:minute`, 5, 60),
+      consumeRateLimit(admin, `signup:ip:${ipKey}:day`, 30, 86400),
+    );
+  }
+  const limits = await Promise.all(checks);
   if (limits.some((allowed) => !allowed)) return response(req, { ok: false, error: "rate_limited" }, 429);
 
   const { data: availability, error: availabilityError } = await admin.rpc("check_public_store_slug", { _slug: input.slug } as never);
