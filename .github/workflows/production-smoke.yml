@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      SMOKE_BASE_URL: ${{ secrets.SMOKE_BASE_URL }}
+      SMOKE_BASE_URL: https://shark-cardapio.lovable.app
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
