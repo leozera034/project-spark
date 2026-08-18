@@ -87,6 +87,13 @@ for (const [source, target] of Object.entries(copies)) {
   fs.writeFileSync(path.join(brandDir, target), data);
 }
 
+// Compatibility bridge: existing landing CSS still requests hero-operations.svg.
+// Keep that URL stable while rendering the new Comandiva WebP artwork.
+fs.writeFileSync(
+  path.join(brandDir, "hero-operations.svg"),
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" preserveAspectRatio="xMidYMid meet"><image href="comandiva-hero-operations.webp" x="0" y="0" width="1600" height="980" preserveAspectRatio="xMidYMid meet"/></svg>\n`,
+);
+
 const plum = "#4B1D6D";
 const appPath = path.join(brandDir, "comandiva-app-icon.png");
 const symbolPath = path.join(brandDir, "comandiva-symbol.png");
