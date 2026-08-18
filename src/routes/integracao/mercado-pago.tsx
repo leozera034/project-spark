@@ -46,6 +46,7 @@ declare global {
 
 interface PublicConfigResult {
   ok: boolean;
+  configured?: boolean;
   publicKey?: string;
   error?: string;
 }
@@ -74,9 +75,9 @@ export const Route = createFileRoute("/integracao/mercado-pago")({
   component: MercadoPagoIntegrationTestPage,
 });
 
-function withTimeout<T>(promise: Promise<T>, ms: number, code: string): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, code: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error(code)), ms);
+    const timer = window.setTimeout(() => reject(new Error(code)), timeoutMs);
     promise.then(
       (value) => {
         window.clearTimeout(timer);
@@ -95,26 +96,22 @@ function loadMercadoPagoSdk(): Promise<void> {
   if (window.MercadoPago) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
-    let settled = false;
+    let finished = false;
     const finish = (error?: Error) => {
-      if (settled) return;
-      settled = true;
-      window.clearInterval(poll);
+      if (finished) return;
+      finished = true;
       error ? reject(error) : resolve();
     };
 
-    const poll = window.setInterval(() => {
-      if (window.MercadoPago) finish();
-    }, 50);
-
     const existing = document.getElementById(MP_SCRIPT_ID) as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener("load", () => {
-        if (window.MercadoPago) finish();
-      }, { once: true });
-      existing.addEventListener("error", () => finish(new Error("sdk_load_failed")), {
-        once: true,
-      });
+      if (window.MercadoPago) return finish();
+      existing.addEventListener(
+        "load",
+        () => (window.MercadoPago ? finish() : finish(new Error("sdk_load_failed"))),
+        { once: true },
+      );
+      existing.addEventListener("error", () => finish(new Error("sdk_load_failed")), { once: true });
       return;
     }
 
@@ -124,6 +121,7 @@ function loadMercadoPagoSdk(): Promise<void> {
     script.async = true;
     script.onload = () => {
       if (window.MercadoPago) finish();
+      else finish(new Error("sdk_load_failed"));
     };
     script.onerror = () => finish(new Error("sdk_load_failed"));
     document.head.appendChild(script);
@@ -168,6 +166,7 @@ function Step({ children }: { children: ReactNode }) {
 
 function MercadoPagoIntegrationTestPage() {
   const [sdkReady, setSdkReady] = useState(false);
+  const [formInitialized, setFormInitialized] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SubscriptionResult | null>(null);
@@ -177,13 +176,14 @@ function MercadoPagoIntegrationTestPage() {
 
   useEffect(() => {
     setSdkReady(false);
+    setFormInitialized(false);
     setSetupError(null);
     setResult(null);
     let cancelled = false;
     let mounted = false;
 
     const mountTimeout = window.setTimeout(() => {
-      if (!cancelled && !mounted) {
+      if (!cancelled && !mounted && !cardFormRef.current) {
         setSetupError("O formulário seguro demorou mais que o esperado para iniciar. Tente novamente.");
       }
     }, BOOTSTRAP_TIMEOUT_MS + 2_000);
@@ -196,7 +196,7 @@ function MercadoPagoIntegrationTestPage() {
         if (cancelled || !window.MercadoPago) return;
 
         const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
-        cardFormRef.current = mp.cardForm({
+        const cardForm = mp.cardForm({
           amount: "1.00",
           iframe: true,
           form: {
@@ -272,6 +272,11 @@ function MercadoPagoIntegrationTestPage() {
             },
           },
         });
+
+        cardFormRef.current = cardForm;
+        // Safari/iOS can delay onFormMounted while document/issuer metadata is fetched.
+        // The CardForm instance already owns the DOM at this point, so interaction can be released.
+        setFormInitialized(true);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -294,6 +299,8 @@ function MercadoPagoIntegrationTestPage() {
       cardFormRef.current = null;
     };
   }, [retryKey]);
+
+  const interactive = formInitialized && !setupError;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#FBF7F2] text-[#2A1634]">
@@ -400,8 +407,8 @@ function MercadoPagoIntegrationTestPage() {
               <div className="relative">
                 <form
                   id="form-checkout"
-                  aria-busy={!sdkReady}
-                  className={`space-y-5 transition ${!sdkReady ? "pointer-events-none opacity-30" : "opacity-100"}`}
+                  aria-busy={!interactive}
+                  className={`space-y-5 transition ${!interactive ? "opacity-45" : "opacity-100"}`}
                 >
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#403544]">Número do cartão</label>
@@ -472,19 +479,21 @@ function MercadoPagoIntegrationTestPage() {
                   <button
                     id="form-checkout__submit"
                     type="submit"
-                    disabled={!sdkReady || isSubmitting}
-                    className="flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-3.5 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                    disabled={!formInitialized || isSubmitting}
+                    className="relative z-20 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-4 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                   >
                     {isSubmitting ? (
                       <><Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…</>
+                    ) : !formInitialized ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Preparando pagamento…</>
                     ) : (
                       <><CreditCard className="h-4 w-4" /> Criar assinatura de teste</>
                     )}
                   </button>
                 </form>
 
-                {!sdkReady && !setupError ? (
-                  <div className="absolute inset-0 z-10 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD]/95 px-6 text-center backdrop-blur-[2px]">
+                {!formInitialized && !setupError ? (
+                  <div className="pointer-events-none absolute inset-0 z-10 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD]/88 px-6 text-center backdrop-blur-[2px]">
                     <Loader2 className="h-7 w-7 animate-spin text-[#4B1D6D]" />
                     <p className="mt-3 font-semibold">Preparando pagamento seguro…</p>
                     <p className="mt-1 max-w-xs text-sm leading-6 text-[#837687]">
@@ -493,6 +502,12 @@ function MercadoPagoIntegrationTestPage() {
                   </div>
                 ) : null}
               </div>
+
+              {!sdkReady && formInitialized && !setupError ? (
+                <div className="mt-4 rounded-xl bg-[#F8F2FA] px-4 py-3 text-xs leading-5 text-[#6C5975]">
+                  Os campos seguros já estão disponíveis. O Mercado Pago ainda está concluindo a sincronização de emissor e documento em segundo plano.
+                </div>
+              ) : null}
 
               {result ? (
                 result.ok ? (
