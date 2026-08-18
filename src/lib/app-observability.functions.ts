@@ -25,39 +25,31 @@ function allowEvent(bucket: string) {
   return current.count <= MAX_EVENTS;
 }
 
-function sanitize(value: string | undefined) {
-  if (!value) return undefined;
-  return value
-    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
-    .replace(/sb_(?:secret|publishable)_[A-Za-z0-9_-]+/gi, "sb_[redacted]")
-    .replace(/[A-Fa-f0-9]{32,}/g, "[redacted]");
-}
-
 export const recordClientError = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => payloadSchema.parse(data))
   .handler(async ({ data }) => {
     const bucket = `${data.source ?? "client"}:${data.route ?? "unknown"}`;
     if (!allowEvent(bucket)) return { accepted: false as const, reason: "rate_limited" as const };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("audit_logs").insert({
-      actor_kind: "sistema",
-      action: "app.error",
-      entity: "application",
-      context: {
-        message: sanitize(data.message),
-        stack: sanitize(data.stack),
-        route: data.route,
-        source: data.source,
-        boundary: data.boundary,
-        userAgent: data.userAgent,
-      },
-    });
-
-    if (error) {
-      console.error("[observability] failed to persist client error", error);
+    try {
+      const { invokePediuPublicSupport, PediuPublicSupportError } = await import(
+        "@/integrations/supabase/public-support.server"
+      );
+      const result = await invokePediuPublicSupport<{ accepted: boolean }>({
+        action: "record_client_error",
+        input: data,
+      });
+      return result.accepted
+        ? { accepted: true as const }
+        : { accepted: false as const, reason: "storage_failed" as const };
+    } catch (error) {
+      const { PediuPublicSupportError } = await import(
+        "@/integrations/supabase/public-support.server"
+      );
+      if (error instanceof PediuPublicSupportError && error.code === "rate_limited") {
+        return { accepted: false as const, reason: "rate_limited" as const };
+      }
+      console.error("[observability] external support persistence failed");
       return { accepted: false as const, reason: "storage_failed" as const };
     }
-
-    return { accepted: true as const };
   });
