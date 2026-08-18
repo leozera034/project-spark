@@ -1,17 +1,12 @@
-// Server-side Supabase access for Project Spark / Pediu Aqui.
+// Restricted server-side Supabase facade for Project Spark / Pediu Aqui.
 //
-// Preferred mode: when the deployment has an external-project admin key,
-// create a normal privileged Supabase client.
-//
-// Safe fallback: public storefront RPCs and private asset signing are routed
-// through the allowlisted `pediu-backend-api` Edge Function that runs inside
-// the external Supabase project. The fallback NEVER exposes generic table,
-// Auth admin, or arbitrary RPC access.
-import { createClient } from '@supabase/supabase-js';
+// IMPORTANT: the Lovable runtime never receives or consumes a Supabase
+// service-role/secret key. All privilege elevation happens inside narrowly
+// scoped Edge Functions running in the external Supabase project.
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
-const EXTERNAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
+const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
 const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 const BACKEND_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-backend-api`;
 
@@ -27,38 +22,6 @@ const EDGE_RPC_ALLOWLIST = new Set([
   'storefront_submit_order',
   'storefront_order_tracking',
 ]);
-
-function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
-}
-
-function isExpectedSupabaseUrl(value: string | undefined): value is string {
-  if (!value) return false;
-  try {
-    return new URL(value).hostname === `${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
-  } catch {
-    return false;
-  }
-}
-
-function createSupabaseFetch(supabaseKey: string): typeof fetch {
-  return (input, init) => {
-    const headers = new Headers(
-      typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
-    );
-
-    if (init?.headers) {
-      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    }
-
-    if (isNewSupabaseApiKey(supabaseKey) && headers.get('Authorization') === `Bearer ${supabaseKey}`) {
-      headers.delete('Authorization');
-    }
-
-    headers.set('apikey', supabaseKey);
-    return fetch(input, { ...init, headers });
-  };
-}
 
 export class PediuBackendApiError extends Error {
   constructor(
@@ -81,9 +44,8 @@ type BackendActionOptions = {
  * publishable key. Privilege elevation happens inside Supabase, where secret
  * keys are injected by the platform and never enter Lovable or GitHub.
  *
- * Authenticated privileged actions must also forward the already-validated
- * external Supabase access token. The Edge Function validates it again before
- * executing tenant-scoped admin work.
+ * Authenticated privileged actions also forward the user's external Supabase
+ * access token. The Edge Function validates it again before tenant-scoped work.
  */
 export async function invokePediuBackendAction<T>(
   payload: Record<string, unknown>,
@@ -117,14 +79,14 @@ export async function invokePediuBackendAction<T>(
 }
 
 type SupabaseLikeError = { message: string };
-
 type SignedEntry = { path: string; signedUrl: string | null };
+type RestrictedServerClient = SupabaseClient<Database>;
 
 async function edgeRpc(rpc: string, args?: Record<string, unknown>) {
   if (!EDGE_RPC_ALLOWLIST.has(rpc)) {
     return {
       data: null,
-      error: { message: `RPC ${rpc} is not available through the public Edge fallback.` } satisfies SupabaseLikeError,
+      error: { message: `RPC ${rpc} is not available through the restricted Edge facade.` } satisfies SupabaseLikeError,
     };
   }
 
@@ -156,7 +118,7 @@ async function edgeSignPaths(bucket: string, paths: string[], ttlSeconds: number
   }
 }
 
-function createEdgeFallbackClient() {
+function createRestrictedServerClient(): RestrictedServerClient {
   const storage = {
     from(bucket: string) {
       return {
@@ -183,51 +145,23 @@ function createEdgeFallbackClient() {
       get(target, prop, receiver) {
         if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
         throw new Error(
-          `Privileged Supabase operation "${String(prop)}" is unavailable without an external server secret.`,
+          `Privileged Supabase operation "${String(prop)}" is not exposed by the restricted server facade.`,
         );
       },
     },
-  );
+  ) as unknown as RestrictedServerClient;
 }
 
-function createSupabaseAdminClient() {
-  const runtimeUrl = process.env.SUPABASE_URL;
-  const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (isExpectedSupabaseUrl(runtimeUrl) && runtimeServiceKey) {
-    return createClient<Database>(runtimeUrl, runtimeServiceKey, {
-      global: {
-        fetch: createSupabaseFetch(runtimeServiceKey),
-      },
-      auth: {
-        storage: undefined,
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
-  }
-
-  if (runtimeUrl && !isExpectedSupabaseUrl(runtimeUrl)) {
-    console.error(
-      `[Supabase] Deployment still exposes an unexpected server project URL; using restricted external Edge fallback instead. Expected ${EXPECTED_SUPABASE_PROJECT_REF}.`,
-    );
-  } else if (!runtimeServiceKey) {
-    console.warn('[Supabase] External server secret is not configured; using restricted Edge fallback.');
-  }
-
-  return createEdgeFallbackClient() as unknown as ReturnType<typeof createClient<Database>>;
-}
-
-let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+let _supabaseAdmin: RestrictedServerClient | undefined;
 
 /**
- * Server-only facade. It is a real admin client only when a valid external
- * project URL + server key are present. Otherwise it can execute only the
- * explicitly allowlisted public Edge operations above.
+ * Backwards-compatible name for existing storefront modules. This is NOT a
+ * service-role client. It only exposes the Edge-backed RPC allowlist and
+ * restricted public-asset signing defined above.
  */
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
+export const supabaseAdmin = new Proxy({} as RestrictedServerClient, {
   get(_, prop, receiver) {
-    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+    if (!_supabaseAdmin) _supabaseAdmin = createRestrictedServerClient();
     return Reflect.get(_supabaseAdmin, prop, receiver);
   },
 });
