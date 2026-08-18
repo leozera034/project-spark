@@ -93,6 +93,44 @@ function mercadoPagoToken(): string | null {
   return token || null;
 }
 
+function mercadoPagoPublicKey(): string | null {
+  const key =
+    Deno.env.get("MERCADO_PAGO_PUBLIC_KEY_TEST")?.trim() ??
+    Deno.env.get("VITE_MERCADO_PAGO_PUBLIC_KEY_TEST")?.trim();
+  return key || null;
+}
+
+async function publicConfig(req: Request): Promise<Response> {
+  if (!(await rateLimit("billing:mercadopago:public-config:minute", 120, 60))) {
+    return json(req, { ok: false, error: "rate_limited" }, 429);
+  }
+
+  const publicKey = mercadoPagoPublicKey();
+  if (!publicKey) {
+    return json(
+      req,
+      {
+        ok: false,
+        environment: "test",
+        provider: "mercado_pago",
+        configured: false,
+        error: "public_key_not_configured",
+      },
+      503,
+    );
+  }
+
+  return json(req, {
+    ok: true,
+    environment: "test",
+    provider: "mercado_pago",
+    configured: true,
+    publicKey,
+    amount: TEST_AMOUNT_BRL,
+    currency: "BRL",
+  });
+}
+
 async function providerHealth(req: Request): Promise<Response> {
   if (!(await rateLimit("billing:mercadopago:health:minute", 10, 60))) {
     return json(req, { ok: false, error: "rate_limited" }, 429);
@@ -281,6 +319,9 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
+  if (req.method === "GET" && action === "public_config") {
+    return publicConfig(req);
+  }
   if (req.method === "GET" && action === "provider_health") {
     return providerHealth(req);
   }
