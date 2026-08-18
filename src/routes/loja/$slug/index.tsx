@@ -38,7 +38,6 @@ function StorefrontPage() {
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-
   const { store, settings, hours, is_open: isOpen } = storePayload;
 
   const grouped = useMemo(() => {
@@ -76,7 +75,7 @@ function StorefrontPage() {
           if (id) setActiveCategory(id);
         }
       },
-      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
+      { rootMargin: "-180px 0px -70% 0px", threshold: 0 },
     );
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -91,7 +90,7 @@ function StorefrontPage() {
 
   return (
     <main
-      className="min-h-svh bg-background pb-28"
+      className="storefront-global min-h-svh bg-background pb-[calc(7rem+env(safe-area-inset-bottom))]"
       style={
         {
           "--brand": settings.brand_primary,
@@ -101,7 +100,7 @@ function StorefrontPage() {
     >
       <OrderingContextBar />
 
-      <header className="relative">
+      <header className="storefront-hero relative">
         {settings.cover_url ? (
           <img
             src={settings.cover_url}
@@ -119,24 +118,29 @@ function StorefrontPage() {
         )}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
 
-        <ThemeToggle className="absolute right-4 top-4 z-10 border-transparent bg-background/70 backdrop-blur sm:right-6" />
+        <ThemeToggle
+          className="absolute right-4 top-4 z-10 border-transparent bg-background/80 backdrop-blur sm:right-6"
+          style={{ top: "max(1rem, env(safe-area-inset-top))" }}
+        />
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="-mt-12 flex min-w-0 items-end gap-4 rise-in">
+          <div className="-mt-12 flex min-w-0 items-end gap-3 sm:gap-4 rise-in">
             {settings.logo_url ? (
               <img
                 src={settings.logo_url}
                 alt={store.name}
-                className="size-18 shrink-0 rounded-2xl border-4 sm:size-22 sm:rounded-3xl border-background object-cover shadow-e2"
+                className="size-18 shrink-0 rounded-2xl border-4 border-background object-cover shadow-e2 sm:size-22 sm:rounded-3xl"
               />
             ) : (
-              <div className="grid size-18 shrink-0 place-items-center rounded-2xl border-4 sm:size-22 sm:rounded-3xl border-background bg-surface-muted shadow-e2">
+              <div className="grid size-18 shrink-0 place-items-center rounded-2xl border-4 border-background bg-surface-muted shadow-e2 sm:size-22 sm:rounded-3xl">
                 <Store className="size-8 text-muted-foreground" />
               </div>
             )}
             <div className="min-w-0 pb-1.5">
-              <h1 className="text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">{store.name}</h1>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <h1 className="line-clamp-2 text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">
+                {store.name}
+              </h1>
+              <p className="mt-0.5 truncate text-sm text-muted-foreground">
                 {store.segment ? `${store.segment} · ` : ""}
                 {store.city}/{store.state}
               </p>
@@ -180,8 +184,8 @@ function StorefrontPage() {
         </div>
       </header>
 
-      <div className="sticky top-0 z-20 mt-6 border-b border-border/70 glass-bar">
-        <div className="mx-auto max-w-3xl space-y-3 px-4 py-3">
+      <div className="sticky top-[60px] z-20 mt-6 border-b border-border/70 glass-bar">
+        <div className="mx-auto max-w-3xl space-y-3 px-4 py-3 sm:px-6">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -189,14 +193,14 @@ function StorefrontPage() {
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Buscar no cardápio"
               aria-label="Buscar no cardápio"
-              className="h-12 rounded-full bg-card pl-10 shadow-e1"
+              className="storefront-search h-12 rounded-full pl-10 pr-10"
             />
             {term ? (
               <button
                 type="button"
                 aria-label="Limpar busca"
                 onClick={() => setTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -204,32 +208,31 @@ function StorefrontPage() {
           </div>
 
           {grouped.length > 1 ? (
-            <nav className="rail -mx-4 gap-2 px-4 pb-1 sm:-mx-6 sm:px-6">
-              {grouped.map(({ category }) => (
-                <a
-                  key={category.id}
-                  href={`#categoria-${category.id}`}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setActiveCategory(category.id);
-                    document
-                      .getElementById(`categoria-${category.id}`)
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className={`press shrink-0 rounded-full border px-3.5 py-1.5 text-sm ${
-                    activeCategory === category.id
-                      ? "border-transparent bg-primary font-semibold text-primary-foreground"
-                      : "bg-card text-muted-foreground hover:border-border-strong hover:text-foreground"
-                  }`}
-                >
-                  {category.name}
-                </a>
-              ))}
+            <nav className="rail -mx-4 gap-2 px-4 pb-1 sm:-mx-6 sm:px-6" aria-label="Categorias">
+              {grouped.map(({ category }) => {
+                const active = activeCategory === category.id;
+                return (
+                  <a
+                    key={category.id}
+                    href={`#categoria-${category.id}`}
+                    data-active={active ? "true" : "false"}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setActiveCategory(category.id);
+                      document
+                        .getElementById(`categoria-${category.id}`)
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="storefront-category-chip press px-3.5 py-1.5 text-sm font-medium transition-colors"
+                  >
+                    {category.name}
+                  </a>
+                );
+              })}
             </nav>
           ) : null}
         </div>
       </div>
-
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
@@ -257,12 +260,12 @@ function StorefrontPage() {
               key={category.id}
               id={`categoria-${category.id}`}
               data-category-id={category.id}
-              className="scroll-mt-32 py-7"
+              className="scroll-mt-44 py-7"
             >
               <div className="flex items-baseline gap-3">
-                <h2 className="text-lg font-semibold tracking-tight">{category.name}</h2>
-                <span className="h-px flex-1 bg-border" aria-hidden="true" />
-                <span className="text-xs font-medium text-muted-foreground tabular-nums">
+                <h2 className="min-w-0 text-lg font-semibold tracking-tight">{category.name}</h2>
+                <span className="h-px min-w-4 flex-1 bg-border" aria-hidden="true" />
+                <span className="shrink-0 text-xs font-medium text-muted-foreground tabular-nums">
                   {items.length} {items.length === 1 ? "item" : "itens"}
                 </span>
               </div>
@@ -276,18 +279,20 @@ function StorefrontPage() {
                     <button
                       type="button"
                       onClick={() => openProduct(product.id)}
-                      className="group hover-lift panel flex w-full items-center gap-4 p-3.5 text-left disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:shadow-e1"
+                      className="storefront-product-card group hover-lift panel flex w-full items-center gap-3 p-3 text-left sm:gap-4 sm:p-3.5 disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:shadow-e1"
                       disabled={product.is_sold_out}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 truncate font-semibold">
-                          {product.name}
+                        <div className="flex min-w-0 items-start gap-2">
+                          <p className="line-clamp-2 min-w-0 flex-1 font-semibold leading-snug">
+                            {product.name}
+                          </p>
                           {product.is_featured ? (
-                            <span className="shrink-0 rounded-full bg-highlight-soft px-2 py-0.5 text-[11px] font-semibold text-highlight-soft-foreground">
+                            <span className="shrink-0 rounded-full bg-highlight-soft px-2 py-0.5 text-[10px] font-semibold text-highlight-soft-foreground sm:text-[11px]">
                               Destaque
                             </span>
                           ) : null}
-                        </p>
+                        </div>
                         {product.description ? (
                           <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                             {product.description}
@@ -295,7 +300,7 @@ function StorefrontPage() {
                         ) : null}
                         <p
                           className={`mt-2 text-sm font-semibold tabular-nums ${
-                            product.is_sold_out ? "text-muted-foreground" : "text-brand-soft-foreground"
+                            product.is_sold_out ? "text-muted-foreground" : "text-brand"
                           }`}
                         >
                           {product.is_sold_out
@@ -311,7 +316,7 @@ function StorefrontPage() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="size-18 shrink-0 rounded-xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04] sm:size-22"
+                          className="shrink-0 object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                         />
                       ) : null}
                     </button>
@@ -324,24 +329,25 @@ function StorefrontPage() {
 
         <Separator className="my-6" />
 
-
         <footer className="space-y-4 pb-10 text-sm text-muted-foreground">
           {store.address_line ? (
             <p className="flex items-start gap-2">
               <MapPin className="mt-0.5 size-4 shrink-0" />
-              {store.address_line} — {store.city}/{store.state}
+              <span className="min-w-0">{store.address_line} — {store.city}/{store.state}</span>
             </p>
           ) : null}
           {todayHours.length > 0 ? (
             <p className="flex items-start gap-2">
               <Clock className="mt-0.5 size-4 shrink-0" />
-              {WEEKDAY_LABELS[new Date().getDay()]}:{" "}
-              {todayHours
-                .map((h) => `${shortTime(h.opens_at)} às ${shortTime(h.closes_at)}`)
-                .join(", ")}
+              <span>
+                {WEEKDAY_LABELS[new Date().getDay()]}:{" "}
+                {todayHours
+                  .map((h) => `${shortTime(h.opens_at)} às ${shortTime(h.closes_at)}`)
+                  .join(", ")}
+              </span>
             </p>
           ) : null}
-          <p className="text-xs">Cardápio digital Pediu Aqui.</p>
+          <p className="text-xs">Cardápio digital com Comandiva.</p>
         </footer>
       </div>
 
@@ -351,7 +357,7 @@ function StorefrontPage() {
         <Sheet open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
           <SheetContent
             side="bottom"
-            className="flex h-[92svh] flex-col gap-0 rounded-t-2xl px-4 pb-3"
+            className="flex h-[min(92dvh,52rem)] max-h-[calc(100dvh-env(safe-area-inset-top))] flex-col gap-0 rounded-t-2xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
           >
             <SheetHeader className="px-0">
               <SheetTitle className="sr-only">Detalhes do item</SheetTitle>
@@ -369,7 +375,7 @@ function StorefrontPage() {
         </Sheet>
       ) : (
         <Dialog open={Boolean(produto)} onOpenChange={(open) => !open && closeProduct()}>
-          <DialogContent className="flex h-[85svh] max-w-xl flex-col gap-0 overflow-hidden rounded-2xl p-4">
+          <DialogContent className="flex h-[min(85dvh,52rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-2xl p-4">
             <DialogHeader className="p-0">
               <DialogTitle className="sr-only">Detalhes do item</DialogTitle>
             </DialogHeader>
