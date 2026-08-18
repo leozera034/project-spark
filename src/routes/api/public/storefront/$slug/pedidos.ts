@@ -77,6 +77,9 @@ export const Route = createFileRoute("/api/public/storefront/$slug/pedidos")({
           const result = await mod.submitPublicOrder(parsed);
 
           if (!result.ok) {
+            if (result.error === "rate_limited") {
+              return json(result, 429, { "Retry-After": "60" });
+            }
             const status =
               result.error === "idempotency_conflict"
                 ? 409
