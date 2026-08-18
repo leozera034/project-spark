@@ -16,6 +16,13 @@ const slugSchema = z
   .max(60)
   .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e hífen");
 
+const passwordSchema = z
+  .string()
+  .min(8)
+  .max(72)
+  .regex(/[A-Za-z]/, "A senha precisa conter ao menos uma letra")
+  .regex(/[0-9]/, "A senha precisa conter ao menos um número");
+
 const createSchema = z.object({
   storeName: z.string().trim().min(3).max(80),
   slug: slugSchema,
@@ -25,7 +32,7 @@ const createSchema = z.object({
   phone: z.string().trim().min(8).max(20),
   ownerName: z.string().trim().min(3).max(100),
   email: z.string().trim().email().max(160),
-  password: z.string().min(8).max(72),
+  password: passwordSchema,
   planCode: z.enum(["essencial", "profissional", "avancado"]).default("essencial"),
 });
 
