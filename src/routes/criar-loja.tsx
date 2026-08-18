@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/auth/useAuth";
+import { validatePassword } from "@/auth/passwordPolicy";
 import { checkStoreSlug, createStoreAccount } from "@/lib/store-onboarding.functions";
 
 export const Route = createFileRoute("/criar-loja")({
@@ -129,7 +130,8 @@ function CreateStorePage() {
     if (target === 2) {
       if (ownerName.trim().length < 3) errors.ownerName = "Informe o seu nome.";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Informe um e-mail válido.";
-      if (password.length < 8) errors.password = "A senha precisa ter ao menos 8 caracteres.";
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) errors.password = passwordValidation.message;
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -203,7 +205,7 @@ function CreateStorePage() {
           </p>
           <ul className="space-y-3 text-sm text-muted-foreground">
             {[
-              "Link exclusivo: pediuaqui.app/loja/sua-loja",
+              "Link exclusivo da sua loja para compartilhar com clientes",
               "Pedidos de entrega e retirada com recálculo seguro no servidor",
               "Modo cozinha e fila de preparo em tempo real",
               "Entregadores próprios com atribuição e histórico de entregas",
