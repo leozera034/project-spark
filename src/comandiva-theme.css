@@ -1,15 +1,14 @@
 /*
- * Comandiva — visual system rollout
- * Reference palette:
- * Plum #4B1D6D · Coral #FF6A4D · Cream #FFF6F1 · Charcoal #1C1C1E · Lavender #8A7CA8
- * Loaded LAST on purpose to replace legacy Pediu Aqui / purple override presentation.
+ * Comandiva — camada visual oficial.
+ * Esta é a única camada de acabamento carregada depois do design system base.
+ * Paleta: Plum #4B1D6D · Coral #FF6A4D · Cream #FFF6F1 · Charcoal #1C1C1E · Lavender #8A7CA8
  */
 
 :root {
   color-scheme: light;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --radius: 1.25rem;
+  --radius: 1.125rem;
 
   --background: #fff6f1;
   --foreground: #1c1c1e;
@@ -37,7 +36,7 @@
   --muted-foreground: #6f6376;
   --accent: #efe7f2;
   --accent-foreground: #4b1d6d;
-  --destructive: #dc4b45;
+  --destructive: #c9433e;
   --destructive-foreground: #ffffff;
 
   --border: #e7dad6;
@@ -47,17 +46,30 @@
 
   --sidebar: #4b1d6d;
   --sidebar-foreground: #fff6f1;
-  --sidebar-primary: #ff6a4d;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary: #ffb4a2;
+  --sidebar-primary-foreground: #35114f;
   --sidebar-accent: #61307e;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255,246,241,.14);
-  --sidebar-ring: #ff6a4d;
+  --sidebar-border: rgba(255, 246, 241, 0.14);
+  --sidebar-ring: #ff8068;
 
   --highlight: #ff6a4d;
   --highlight-foreground: #ffffff;
   --highlight-soft: #ffe6df;
-  --highlight-soft-foreground: #9a3325;
+  --highlight-soft-foreground: #8d3023;
+
+  --success: #218a63;
+  --success-foreground: #ffffff;
+  --success-soft: #e4f5ed;
+  --warning: #b66b12;
+  --warning-foreground: #ffffff;
+  --warning-soft: #fff1d9;
+  --danger: #c9433e;
+  --danger-foreground: #ffffff;
+  --danger-soft: #fde7e5;
+  --info: #3567a9;
+  --info-foreground: #ffffff;
+  --info-soft: #e7effb;
 
   --chart-1: #4b1d6d;
   --chart-2: #ff6a4d;
@@ -65,510 +77,541 @@
   --chart-4: #6f4d84;
   --chart-5: #f3a08d;
 
-  --elevation-1: 0 4px 18px rgba(75,29,109,.07);
-  --elevation-2: 0 14px 42px rgba(75,29,109,.11);
-  --elevation-3: 0 26px 72px rgba(75,29,109,.16);
-  --elevation-focus: 0 0 0 4px rgba(255,106,77,.18);
+  --elevation-1: 0 4px 18px rgba(75, 29, 109, 0.07);
+  --elevation-2: 0 14px 42px rgba(75, 29, 109, 0.11);
+  --elevation-3: 0 26px 72px rgba(75, 29, 109, 0.16);
+  --elevation-focus: 0 0 0 4px rgba(255, 106, 77, 0.18);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #25102f;
-  --foreground: #fff6f1;
-  --surface: #321447;
-  --surface-muted: #3c1952;
-  --surface-raised: #47205e;
-  --card: #321447;
-  --card-foreground: #fff6f1;
-  --popover: #3a184f;
-  --popover-foreground: #fff6f1;
-  --brand: #ff8068;
-  --brand-foreground: #24102f;
-  --brand-strong: #ff6a4d;
-  --brand-soft: #52266b;
-  --brand-soft-foreground: #f7e9ff;
-  --carbon: #1f0c2a;
-  --carbon-foreground: #fff6f1;
-  --primary: #ff6a4d;
-  --primary-foreground: #ffffff;
-  --secondary: #47205e;
-  --secondary-foreground: #fff6f1;
-  --muted: #47205e;
-  --muted-foreground: #d9cbdc;
-  --accent: #572971;
-  --accent-foreground: #fff6f1;
-  --border: rgba(255,246,241,.14);
-  --border-strong: rgba(255,246,241,.24);
-  --input: rgba(255,246,241,.20);
-  --ring: #ff8068;
-  --sidebar: #321447;
-  --sidebar-foreground: #fff6f1;
-  --sidebar-primary: #ff6a4d;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #55256f;
+  --background: #21102b;
+  --foreground: #fff8f5;
+  --surface: #2e163b;
+  --surface-muted: #381b48;
+  --surface-raised: #422153;
+  --card: #2e163b;
+  --card-foreground: #fff8f5;
+  --popover: #361a45;
+  --popover-foreground: #fff8f5;
+
+  --brand: #ff927c;
+  --brand-foreground: #2a1037;
+  --brand-strong: #ff8068;
+  --brand-soft: #4c285d;
+  --brand-soft-foreground: #f8e9ff;
+  --carbon: #17091f;
+  --carbon-foreground: #fff8f5;
+
+  --primary: #ff8068;
+  --primary-foreground: #2a1037;
+  --secondary: #432153;
+  --secondary-foreground: #fff8f5;
+  --muted: #432153;
+  --muted-foreground: #d7c8db;
+  --accent: #522765;
+  --accent-foreground: #fff8f5;
+  --destructive: #ef706b;
+  --destructive-foreground: #241029;
+
+  --border: rgba(255, 246, 241, 0.14);
+  --border-strong: rgba(255, 246, 241, 0.24);
+  --input: rgba(255, 246, 241, 0.22);
+  --ring: #ff927c;
+
+  --sidebar: #2d123d;
+  --sidebar-foreground: #fff8f5;
+  --sidebar-primary: #ff927c;
+  --sidebar-primary-foreground: #24102f;
+  --sidebar-accent: #502363;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255,246,241,.13);
-  --sidebar-ring: #ff8068;
+  --sidebar-border: rgba(255, 246, 241, 0.13);
+  --sidebar-ring: #ff927c;
+
+  --highlight: #ff927c;
+  --highlight-foreground: #24102f;
+  --highlight-soft: #592b39;
+  --highlight-soft-foreground: #ffd8cf;
+
+  --success: #69c79d;
+  --success-foreground: #132a20;
+  --success-soft: #244b3c;
+  --warning: #efb35f;
+  --warning-foreground: #35220d;
+  --warning-soft: #533b1f;
+  --danger: #ef7d77;
+  --danger-foreground: #321313;
+  --danger-soft: #54272a;
+  --info: #82afe8;
+  --info-foreground: #12233b;
+  --info-soft: #263d5b;
+
+  --elevation-1: 0 6px 22px rgba(0, 0, 0, 0.22);
+  --elevation-2: 0 18px 46px rgba(0, 0, 0, 0.30);
+  --elevation-3: 0 30px 78px rgba(0, 0, 0, 0.38);
+  --elevation-focus: 0 0 0 4px rgba(255, 146, 124, 0.22);
 }
 
-html,
-body {
-  background: #fff6f1 !important;
+html {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  background: var(--background);
 }
 
 body {
+  min-width: 0;
+  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
   color: var(--foreground);
-  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color: var(--background);
   background-image:
-    radial-gradient(circle at 92% 4%, rgba(138,124,168,.12), transparent 26rem),
-    radial-gradient(circle at 5% 38%, rgba(255,106,77,.07), transparent 22rem) !important;
-  background-attachment: fixed;
+    radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 26rem),
+    radial-gradient(circle at 5% 38%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 22rem);
+  font-family: var(--font-sans);
 }
 
-h1, h2, h3, h4, h5, h6,
+#conteudo,
+#conteudo > *,
+main,
+section,
+article,
+header,
+footer,
+nav {
+  min-width: 0;
+}
+
+#conteudo {
+  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .font-display {
-  font-family: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-family: var(--font-display) !important;
 }
 
 ::selection {
-  background: rgba(255,106,77,.28);
-  color: #321447;
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
+  color: var(--foreground);
 }
 
-/* Shared surfaces */
+/* Conteúdo responsivo: filhos de grids/flex nunca podem forçar overflow. */
+[class*="grid"] > *,
+[class*="flex"] > * {
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+/* Superfícies compartilhadas */
 .panel,
 [data-slot="card"] {
-  border-color: rgba(75,29,109,.10) !important;
-  background: rgba(255,255,255,.97) !important;
-  box-shadow: 0 14px 42px rgba(75,29,109,.08) !important;
+  border-color: color-mix(in srgb, var(--brand) 10%, var(--border));
+  background: color-mix(in srgb, var(--card) 97%, transparent);
+  color: var(--card-foreground);
+  box-shadow: var(--elevation-1);
 }
 
 .glass-bar {
-  border-color: rgba(75,29,109,.10) !important;
-  background: rgba(255,246,241,.88) !important;
-  box-shadow: 0 8px 28px rgba(75,29,109,.06);
-  backdrop-filter: blur(22px) saturate(130%);
-  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border-color: color-mix(in srgb, var(--brand) 10%, var(--border));
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--brand) 6%, transparent);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
 }
 
 input,
 textarea,
 select,
 [data-slot="input"] {
-  border-color: #dfd0cc !important;
-  background: #ffffff !important;
-  color: #1c1c1e !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+  min-width: 0;
+  max-width: 100%;
+  border-color: var(--input);
+  background: var(--surface);
+  color: var(--foreground);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #9b8f9e !important;
+  color: var(--muted-foreground);
+  opacity: 0.72;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #ff6a4d !important;
-  box-shadow: 0 0 0 4px rgba(255,106,77,.13) !important;
+  border-color: var(--ring);
 }
 
-button[class*="bg-primary"],
-a[class*="bg-primary"] {
-  background: #ff6a4d !important;
-  color: #fff !important;
-  box-shadow: 0 12px 28px rgba(255,106,77,.20) !important;
+/* Menus, popovers e dialogs precisam ficar dentro da viewport. */
+[data-radix-popper-content-wrapper] {
+  max-width: calc(100vw - 1rem);
+  z-index: 70 !important;
 }
 
-button[class*="bg-brand"],
-a[class*="bg-brand"] {
-  background: #4b1d6d !important;
-  color: #fff !important;
-  box-shadow: 0 12px 28px rgba(75,29,109,.17) !important;
+[data-radix-popper-content-wrapper] > * {
+  max-width: calc(100vw - 1rem);
+  border-color: var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--elevation-2);
 }
 
-button[class*="bg-primary"]:hover,
-a[class*="bg-primary"]:hover {
-  background: #f15c40 !important;
+[role="dialog"],
+[data-radix-dialog-content] {
+  max-width: min(calc(100vw - 2rem), 42rem);
+  max-height: min(88dvh, 56rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-color: var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--elevation-3);
 }
 
-button[class*="bg-brand"]:hover,
-a[class*="bg-brand"]:hover {
-  background: #35114f !important;
-}
-
-[class*="from-violet-"][class*="to-fuchsia-"],
-[class*="from-violet-"][class*="to-purple-"] {
-  background-image: linear-gradient(105deg, #ff6a4d 0%, #ff765d 100%) !important;
-}
-
-[class*="text-violet-600"],
-[class*="text-violet-700"],
-[class*="text-purple-600"],
-[class*="text-purple-700"] {
-  color: #4b1d6d !important;
-}
-
-[class*="text-fuchsia-"] {
-  color: #ff6a4d !important;
-}
-
-[class*="bg-violet-600"],
-[class*="bg-violet-700"],
-[class*="bg-purple-600"],
-[class*="bg-purple-700"] {
-  background-color: #4b1d6d !important;
-}
-
-[class*="bg-fuchsia-"] {
-  background-color: #ff6a4d !important;
-}
-
-[data-radix-popper-content-wrapper] > *,
-[role="dialog"] {
-  border-color: rgba(75,29,109,.12) !important;
-  box-shadow: 0 26px 70px rgba(75,29,109,.14) !important;
-}
-
+/* Tabelas: a tabela não estoura a página; wrappers continuam podendo rolar. */
 table {
+  width: 100%;
+  max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
 thead {
-  color: #776c7b;
+  color: var(--muted-foreground);
 }
 
 tbody tr {
-  transition: background-color .18s ease, transform .18s ease;
+  transition: background-color 0.16s ease;
 }
 
 tbody tr:hover {
-  background: rgba(75,29,109,.035);
+  background: color-mix(in srgb, var(--brand) 4%, transparent);
 }
 
-/* Partner / admin application shell */
+/* Shell da loja / administração */
 .app-premium-shell {
+  min-width: 0;
   background:
-    radial-gradient(circle at 96% 0%, rgba(138,124,168,.13), transparent 24rem),
-    #fff6f1 !important;
-  color: #1c1c1e !important;
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 24rem),
+    var(--background);
+  color: var(--foreground);
 }
 
 .app-premium-topbar {
-  border-color: rgba(75,29,109,.10) !important;
-  background: rgba(255,251,248,.92) !important;
-  color: #1c1c1e !important;
-  box-shadow: 0 8px 30px rgba(75,29,109,.05);
-  backdrop-filter: blur(22px) saturate(135%);
-  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  color: var(--foreground);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--brand) 5%, transparent);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
 }
 
-.app-premium-topbar [class*="text-white"] {
-  color: #1c1c1e !important;
-}
-
-.app-premium-topbar [class*="text-violet-"] {
-  color: #4b1d6d !important;
-}
-
-.app-premium-sidebar {
+.app-premium-sidebar,
+.bg-sidebar {
   background:
-    radial-gradient(circle at 12% 5%, rgba(255,106,77,.16), transparent 13rem),
-    linear-gradient(180deg, #4b1d6d 0%, #35114f 100%) !important;
-  border-color: rgba(255,246,241,.12) !important;
-  color: #fff6f1 !important;
+    radial-gradient(circle at 12% 5%, rgba(255, 106, 77, 0.15), transparent 13rem),
+    linear-gradient(180deg, var(--sidebar) 0%, #35114f 100%);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-foreground);
 }
 
-.app-premium-sidebar img[alt="Comandiva"] {
-  filter: brightness(0) invert(1) !important;
+.dark .app-premium-sidebar,
+.dark .bg-sidebar {
+  background:
+    radial-gradient(circle at 12% 5%, rgba(255, 146, 124, 0.12), transparent 13rem),
+    linear-gradient(180deg, var(--sidebar) 0%, #21102b 100%);
+}
+
+.app-premium-sidebar img[alt="Comandiva"],
+.bg-sidebar img[alt="Comandiva"] {
+  filter: brightness(0) invert(1);
 }
 
 .app-premium-sidebar a[aria-current="page"] {
-  background: rgba(255,255,255,.14) !important;
-  color: #ffffff !important;
-  box-shadow: inset 3px 0 #ff6a4d !important;
+  background: color-mix(in srgb, white 14%, transparent);
+  color: #ffffff;
+  box-shadow: inset 3px 0 var(--primary);
 }
 
 .app-premium-sidebar a:hover {
-  background: rgba(255,255,255,.09) !important;
-}
-
-.app-premium-sidebar [class*="text-violet-"] {
-  color: #ffd0c6 !important;
-}
-
-.app-premium-bottom-nav {
-  border-color: rgba(75,29,109,.10) !important;
-  background: rgba(255,255,255,.96) !important;
-  color: #4b1d6d !important;
-  box-shadow: 0 -14px 38px rgba(75,29,109,.08) !important;
-}
-
-/* Store app using semantic sidebar tokens */
-.bg-sidebar {
-  background: linear-gradient(180deg, #4b1d6d 0%, #35114f 100%) !important;
-}
-
-.bg-sidebar img[alt="Comandiva"] {
-  filter: brightness(0) invert(1) !important;
+  background: color-mix(in srgb, white 9%, transparent);
 }
 
 .text-sidebar-foreground {
-  color: #fff6f1 !important;
+  color: var(--sidebar-foreground);
 }
 
 .bg-sidebar-accent {
-  background: rgba(255,255,255,.14) !important;
+  background: var(--sidebar-accent);
 }
 
 .text-sidebar-primary {
-  color: #ffb4a2 !important;
+  color: var(--sidebar-primary);
 }
 
-/* Public storefront */
+.app-premium-bottom-nav {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--brand);
+  box-shadow: 0 -12px 34px color-mix(in srgb, var(--brand) 8%, transparent);
+}
+
+/* Navegações internas segmentadas */
+main nav[aria-label="Seções do cardápio"] ul,
+main nav[aria-label="Seções de configuração"] ul {
+  max-width: 100%;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.35rem;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+main nav[aria-label="Seções do cardápio"] ul::-webkit-scrollbar,
+main nav[aria-label="Seções de configuração"] ul::-webkit-scrollbar {
+  display: none;
+}
+
+main nav[aria-label="Seções do cardápio"] a,
+main nav[aria-label="Seções de configuração"] a {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  border-radius: 0.75rem;
+  padding-inline: 0.9rem;
+}
+
+/* Cozinha / KDS */
+main:has([role="tablist"][aria-label="Filas da cozinha"]) [role="tablist"] {
+  position: sticky;
+  top: calc(4rem + env(safe-area-inset-top));
+  z-index: 20;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+  box-shadow: var(--elevation-1);
+  backdrop-filter: blur(16px);
+}
+
+main:has([role="tablist"][aria-label="Filas da cozinha"]) article,
+main:has([role="tablist"][aria-label="Filas da cozinha"]) section > div[class*="border"] {
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  border-radius: 1.25rem;
+  box-shadow: var(--elevation-1);
+}
+
+/* Relatórios */
+.store-report-global {
+  position: relative;
+  width: 100%;
+  max-width: 1200px !important;
+  min-width: 0;
+}
+
+.store-report-global > div:first-child {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.store-report-global [data-slot="card"] {
+  border-radius: 1.25rem;
+}
+
+/* Cardápio público */
 .storefront-global {
-  color: #1c1c1e !important;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  color: var(--foreground);
   background:
     radial-gradient(circle at 84% 0%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 22rem),
-    #fff6f1 !important;
+    var(--background);
 }
 
 .storefront-global .storefront-hero {
-  border-bottom: 1px solid rgba(75,29,109,.08) !important;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 9%, var(--border));
 }
 
 .storefront-global .storefront-store-card,
 .storefront-global .storefront-product-card {
-  border: 1px solid rgba(75,29,109,.09) !important;
-  background: #ffffff !important;
-  color: #1c1c1e !important;
-  box-shadow: 0 12px 34px rgba(75,29,109,.07) !important;
+  border: 1px solid color-mix(in srgb, var(--brand) 9%, var(--border));
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--elevation-1);
+}
+
+.storefront-global .storefront-store-card {
+  border-radius: 1.5rem;
+}
+
+.storefront-global .storefront-product-card {
+  min-height: 108px;
+  border-radius: 1.125rem;
+}
+
+.storefront-global .storefront-product-card img {
+  flex: 0 0 auto;
+  width: 84px;
+  height: 84px;
+  max-width: 34vw;
+  object-fit: cover;
+  border-radius: 0.9rem;
 }
 
 .storefront-global .storefront-search {
-  border-color: rgba(75,29,109,.12) !important;
-  background: rgba(255,255,255,.97) !important;
-  color: #1c1c1e !important;
-  box-shadow: 0 10px 28px rgba(75,29,109,.06) !important;
+  min-height: 48px;
+  max-width: 100%;
+  border-color: color-mix(in srgb, var(--brand) 12%, var(--border));
+  border-radius: 0.875rem;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 6%, transparent);
 }
 
 .storefront-global .storefront-category-chip {
-  border: 1px solid rgba(75,29,109,.10) !important;
-  background: #ffffff !important;
-  color: #4b1d6d !important;
+  min-height: 36px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, var(--border));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--brand);
 }
 
 .storefront-global .storefront-category-chip[data-active="true"] {
-  border-color: transparent !important;
-  color: #ffffff !important;
-  background: #4b1d6d !important;
-  box-shadow: 0 9px 24px rgba(75,29,109,.16) !important;
+  border-color: transparent;
+  color: var(--brand-foreground);
+  background: var(--brand);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--brand) 18%, transparent);
 }
 
 .storefront-global [role="dialog"],
 .storefront-global [data-radix-dialog-content] {
-  background: #fffaf7 !important;
-  color: #1c1c1e !important;
+  background: var(--popover);
+  color: var(--popover-foreground);
 }
 
 .storefront-global [role="dialog"] label,
 .storefront-global [data-radix-dialog-content] label {
-  border-color: rgba(75,29,109,.11) !important;
-  background: #ffffff !important;
+  border-color: var(--border);
+  background: var(--surface);
 }
 
-/* Create-store onboarding */
+/* Onboarding */
 body:has(#storeName) main {
   background:
-    radial-gradient(circle at 14% 0%, rgba(138,124,168,.16), transparent 28rem),
-    radial-gradient(circle at 92% 9%, rgba(255,106,77,.08), transparent 24rem),
-    #fff6f1 !important;
-  color: #1c1c1e !important;
+    radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 28rem),
+    radial-gradient(circle at 92% 9%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 24rem),
+    var(--background);
+  color: var(--foreground);
+}
+
+body:has(#storeName) main > div {
+  width: min(100%, 1180px);
 }
 
 body:has(#storeName) section.panel {
-  border: 1px solid rgba(75,29,109,.09) !important;
-  background: #ffffff !important;
-  box-shadow: 0 28px 70px -34px rgba(75,29,109,.18) !important;
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--elevation-2);
 }
 
-/* Marketing landing — transforms the previous dark-purple concept into the approved cream/plum/coral system. */
-body:has(a[href="#recursos"]) #conteudo > div {
-  background: #fff6f1 !important;
-  color: #1c1c1e !important;
+body:has(#storeName) section.panel input,
+body:has(#storeName) section.panel select,
+body:has(main a[href="/"]) main form input {
+  min-height: 50px;
 }
 
-body:has(a[href="#recursos"]) header {
-  border-color: rgba(75,29,109,.10) !important;
-  background: rgba(255,246,241,.92) !important;
-  box-shadow: 0 8px 30px rgba(75,29,109,.05);
-}
-
-body:has(a[href="#recursos"]) header img[alt="Comandiva"] {
-  height: 2.45rem !important;
-  width: auto !important;
-  filter: none !important;
-}
-
-body:has(a[href="#recursos"]) header nav,
-body:has(a[href="#recursos"]) header nav a,
-body:has(a[href="#recursos"]) header a[href="/entrar/loja"] {
-  color: #4b1d6d !important;
-}
-
-body:has(a[href="#recursos"]) header a[href="/criar-loja"] {
-  background: #ff6a4d !important;
-  color: #ffffff !important;
-  box-shadow: 0 11px 30px rgba(255,106,77,.20) !important;
-}
-
-body:has(a[href="#recursos"]) header button[aria-label="Menu"] {
-  border-color: rgba(75,29,109,.14) !important;
-  color: #4b1d6d !important;
-  background: rgba(255,255,255,.72) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child {
-  color: #1c1c1e !important;
-  background: #fff6f1 !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child > div.absolute.inset-0:nth-child(1) {
-  background:
-    radial-gradient(circle at 80% 24%, rgba(138,124,168,.16), transparent 28%),
-    radial-gradient(circle at 12% 16%, rgba(255,106,77,.08), transparent 25%),
-    linear-gradient(180deg, #fff9f6 0%, #fff6f1 100%) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child > div.absolute.inset-0:nth-child(2) {
-  opacity: .32 !important;
-  background-image:
-    linear-gradient(rgba(75,29,109,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(75,29,109,.035) 1px, transparent 1px) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="text-white/"] {
-  color: rgba(28,28,30,.62) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="border-white"] {
-  border-color: rgba(75,29,109,.11) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child h1 {
-  color: #4b1d6d !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child h1 span {
-  background-image: linear-gradient(90deg, #4b1d6d 0%, #ff6a4d 100%) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child a[href="#como-funciona"] {
-  border-color: rgba(75,29,109,.16) !important;
-  background: rgba(255,255,255,.82) !important;
-  color: #4b1d6d !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="max-w-[380px]"] {
-  border-color: rgba(75,29,109,.18) !important;
-  background: #ffffff !important;
-  box-shadow: 0 34px 80px rgba(75,29,109,.15) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#0a0611]"] {
-  background: #fffaf7 !important;
-  color: #1c1c1e !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#10091a]"] {
-  background: rgba(255,255,255,.96) !important;
-  color: #1c1c1e !important;
-  border-color: rgba(75,29,109,.10) !important;
-  box-shadow: 0 14px 36px rgba(75,29,109,.09) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#10091a]"] [class*="text-white/"] {
-  color: #4b1d6d !important;
-}
-
-body:has(a[href="#recursos"]) #recursos,
-body:has(a[href="#recursos"]) #negocios {
-  background: #fff6f1 !important;
-  color: #1c1c1e !important;
-}
-
-body:has(a[href="#recursos"]) #como-funciona,
-body:has(a[href="#recursos"]) #saas,
-body:has(a[href="#recursos"]) footer {
-  background: linear-gradient(135deg, #4b1d6d 0%, #35114f 100%) !important;
-  color: #fff6f1 !important;
-}
-
-body:has(a[href="#recursos"]) #como-funciona [class*="text-violet-"],
-body:has(a[href="#recursos"]) #saas [class*="text-violet-"] {
-  color: #ffb4a2 !important;
-}
-
-body:has(a[href="#recursos"]) #como-funciona [class*="border-violet-"],
-body:has(a[href="#recursos"]) #saas [class*="border-violet-"] {
-  border-color: rgba(255,246,241,.14) !important;
-}
-
-body:has(a[href="#recursos"]) #como-funciona [class*="bg-white/"],
-body:has(a[href="#recursos"]) #saas [class*="bg-white/"] {
-  background: rgba(255,255,255,.07) !important;
-}
-
-body:has(a[href="#recursos"]) footer img[alt="Comandiva"] {
-  height: 2.2rem !important;
-  width: auto !important;
-  filter: brightness(0) invert(1) !important;
-}
-
-body:has(a[href="#recursos"]) main > section:first-child::after {
-  background: url('/brand/comandiva-hero-operations.webp') center/contain no-repeat !important;
-  opacity: .30 !important;
-  filter: drop-shadow(0 28px 60px rgba(75,29,109,.18)) !important;
-}
-
-/* Auth and operational forms use cream/white instead of near-black surfaces. */
-body:has(main a[href="/"]) input,
-body:has(main a[href="/"]) textarea,
-body:has(main a[href="/"]) select {
-  background: #ffffff !important;
-  color: #1c1c1e !important;
-}
-
-/* Responsive refinements */
-@media (max-width: 1023px) {
-  body:has(a[href="#recursos"]) header img[alt="Comandiva"] {
-    height: 2.15rem !important;
-  }
-
-  body:has(a[href="#recursos"]) main > section:first-child::after {
-    width: 86vw !important;
-    right: -34vw !important;
-    opacity: .12 !important;
-  }
-}
-
+/* Mobile e safe-area */
 @media (max-width: 767px) {
-  :root { --radius: 1.05rem; }
+  :root {
+    --radius: 1rem;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 90% 2%, color-mix(in srgb, var(--brand) 7%, transparent), transparent 18rem),
+      radial-gradient(circle at 8% 34%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 16rem);
+  }
+
+  [role="dialog"],
+  [data-radix-dialog-content] {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
 
   .app-premium-topbar {
-    min-height: 60px;
+    min-height: calc(60px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .app-premium-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .app-premium-bottom-nav a {
-    min-height: 64px;
+    min-height: 58px;
   }
 
   .storefront-global .storefront-product-card {
-    border-radius: 18px !important;
+    min-height: 100px;
+    border-radius: 1rem;
   }
 
-  body:has(a[href="#recursos"]) main > section:first-child h1 {
-    letter-spacing: -.045em !important;
+  .storefront-global .storefront-product-card img {
+    width: 76px;
+    height: 76px;
+  }
+
+  body:has(#storeName) main > div {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  body:has(#storeName) section.panel {
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .storefront-global .storefront-product-card img {
+    width: 68px;
+    height: 68px;
+  }
+
+  .storefront-global .storefront-product-card {
+    padding: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  tbody tr,
+  .storefront-global .storefront-product-card {
+    transition: none !important;
   }
 }
