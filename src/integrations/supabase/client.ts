@@ -2,13 +2,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Browser-safe project configuration. These values are intentionally public:
-// Supabase publishable keys are designed to ship to browsers and remain
-// protected by RLS. Runtime/build-time environment variables still take
-// precedence whenever they are available.
-const FALLBACK_SUPABASE_URL = 'https://ifbjwguffmuwxsxzotmr.supabase.co';
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rByvIio2ip8uHb6-9sH6tw_kXRXM5JW';
-
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
@@ -35,11 +28,21 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 function createSupabaseClient() {
   const supabaseUrl =
-    import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+    import.meta.env.VITE_SUPABASE_URL ||
+    (typeof process !== 'undefined' ? process.env.SUPABASE_URL : undefined);
   const supabasePublishableKey =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.SUPABASE_PUBLISHABLE_KEY ||
-    FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+    (typeof process !== 'undefined' ? process.env.SUPABASE_PUBLISHABLE_KEY : undefined);
+
+  if (!supabaseUrl || !supabasePublishableKey) {
+    const missing = [
+      ...(!supabaseUrl ? ['VITE_SUPABASE_URL/SUPABASE_URL'] : []),
+      ...(!supabasePublishableKey
+        ? ['VITE_SUPABASE_PUBLISHABLE_KEY/SUPABASE_PUBLISHABLE_KEY']
+        : []),
+    ];
+    throw new Error(`Missing external Supabase environment variable(s): ${missing.join(', ')}`);
+  }
 
   return createClient<Database>(supabaseUrl, supabasePublishableKey, {
     global: {
