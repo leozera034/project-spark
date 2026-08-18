@@ -14,6 +14,7 @@ import globalPolishCss from "../app-global-polish.css?url";
 import storefrontPolishCss from "../storefront-global.css?url";
 import referenceUiCss from "../reference-ui.css?url";
 import internalOpsCss from "../internal-ops-polish.css?url";
+import comandivaCss from "../comandiva-theme.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
@@ -71,7 +72,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     try {
       siteOrigin = new URL(canonicalUrl).origin;
     } catch {
-      // Mantém o fallback oficial do Lovable.
+      // Mantém o fallback oficial da publicação atual.
     }
     const ogImage = absoluteUrl(siteOrigin, OG_IMAGE_PATH);
     const twitterImage = absoluteUrl(siteOrigin, TWITTER_IMAGE_PATH);
@@ -84,14 +85,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
         { name: "author", content: "Comandiva" },
         { name: "application-name", content: "Comandiva" },
-        { name: "theme-color", content: "#06030D" },
-        { name: "color-scheme", content: "dark light" },
+        { name: "theme-color", content: "#FFF6F1" },
+        { name: "color-scheme", content: "light dark" },
         { name: "format-detection", content: "telephone=no" },
         { name: "mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-capable", content: "yes" },
-        { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "default" },
         { name: "apple-mobile-web-app-title", content: "Comandiva" },
-        { name: "msapplication-TileColor", content: "#06030D" },
+        { name: "msapplication-TileColor", content: "#4B1D6D" },
         { property: "og:site_name", content: "Comandiva" },
         { property: "og:locale", content: "pt_BR" },
         { property: "og:type", content: "website" },
@@ -114,6 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "stylesheet", href: storefrontPolishCss },
         { rel: "stylesheet", href: referenceUiCss },
         { rel: "stylesheet", href: internalOpsCss },
+        { rel: "stylesheet", href: comandivaCss },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
@@ -122,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
         {
           rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap",
         },
         { rel: "icon", href: "/favicon.ico", sizes: "any" },
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
