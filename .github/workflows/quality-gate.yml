@@ -136,3 +136,16 @@ jobs:
       - name: Explain skipped database contracts
         if: env.DATABASE_URL == ''
         run: echo "SPARK_DATABASE_URL is not configured; database contracts skipped."
+
+  foundation-e2e:
+    if: github.event_name == 'pull_request' && github.head_ref == 'e2e/foundation-20260818'
+    needs: app
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run disposable external foundation E2E
+        run: node tools/foundation-e2e.mjs
