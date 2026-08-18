@@ -15,14 +15,10 @@ const NAV = [
   { href: "#duvidas", label: "Dúvidas" },
 ];
 
-/**
- * Cabeçalho do site público. Sticky com blur leve, navegação por âncora
- * (a landing é uma página longa) e menu mobile em painel deslizante.
- */
+/** Cabeçalho institucional da Comandiva. */
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
-  // Bloqueia o scroll do corpo enquanto o menu mobile está aberto.
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -33,18 +29,18 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/65">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
-        <Link to="/" aria-label="Pediu Aqui — início" className="shrink-0">
-          <BrandLogo lockup="horizontal" className="h-7 w-auto sm:h-8" />
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/78">
+      <div className="mx-auto flex h-[72px] max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <Link to="/" aria-label="Comandiva — início" className="shrink-0">
+          <BrandLogo lockup="horizontal" className="h-10 w-auto sm:h-11" />
         </Link>
 
-        <nav aria-label="Navegação principal" className="ml-6 hidden flex-1 items-center gap-1 lg:flex">
+        <nav aria-label="Navegação principal" className="ml-7 hidden flex-1 items-center gap-1 lg:flex">
           {NAV.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-brand-soft hover:text-brand"
             >
               {item.label}
             </a>
@@ -56,7 +52,7 @@ export function SiteHeader() {
           <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
             <Link to="/entrar/loja">Entrar</Link>
           </Button>
-          <Button asChild variant="brand" size="sm" className="hidden sm:inline-flex">
+          <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link to="/criar-loja">Começar agora</Link>
           </Button>
           <Button
@@ -74,12 +70,11 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Painel mobile: ocupa a altura restante, com safe-area do iOS */}
       <div
         id="menu-mobile"
         hidden={!open}
         className={cn(
-          "fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto border-t border-border bg-background/98 backdrop-blur-xl lg:hidden",
+          "fixed inset-x-0 bottom-0 top-[72px] z-50 overflow-y-auto border-t border-border bg-background/98 backdrop-blur-xl lg:hidden",
         )}
       >
         <nav
@@ -91,13 +86,13 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold text-foreground transition-colors hover:bg-surface-muted"
+              className="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold text-foreground transition-colors hover:bg-brand-soft hover:text-brand"
             >
               {item.label}
             </a>
           ))}
           <div className="mt-4 grid gap-2">
-            <Button asChild variant="brand" size="touch" onClick={() => setOpen(false)}>
+            <Button asChild size="touch" onClick={() => setOpen(false)}>
               <Link to="/criar-loja">Criar minha loja</Link>
             </Button>
             <Button asChild variant="outline" size="touch" onClick={() => setOpen(false)}>
