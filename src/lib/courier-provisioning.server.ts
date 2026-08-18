@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { courierIdentifierToSyntheticEmail } from "@/auth/courierIdentifier";
 import type { CourierCreationResult } from "@/store/couriers/courier.types";
 
 export const courierCreationSchema = z.object({
@@ -14,88 +13,46 @@ export const courierCreationSchema = z.object({
 
 export type CourierCreationInput = z.infer<typeof courierCreationSchema>;
 
-const PASSWORD_ALPHABET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-function generateTemporaryPassword(length = 14): string {
-  const bytes = new Uint32Array(length);
-  globalThis.crypto.getRandomValues(bytes);
-  let value = "";
-  for (const byte of bytes) value += PASSWORD_ALPHABET[byte % PASSWORD_ALPHABET.length];
-  return `${value}7a`;
-}
-
-async function hashRequest(value: string): Promise<string> {
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
+/**
+ * Privileged courier creation now runs inside the external Supabase Edge
+ * gateway. The Lovable server forwards only the validated user's access token;
+ * Auth admin credentials never leave Supabase.
+ */
 export async function provisionCourierForStore(
   data: CourierCreationInput,
-  actorUserId: string,
+  accessToken: string,
 ): Promise<CourierCreationResult> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: storeId, error: resolveError } = await supabaseAdmin.rpc(
-    "resolve_courier_create_store_admin",
-    { _actor_user_id: actorUserId, _store_id: null } as never,
+  const { invokePediuBackendAction, PediuBackendApiError } = await import(
+    "@/integrations/supabase/client.server"
   );
 
-  if (resolveError || typeof storeId !== "string") {
-    console.error("[courier-provisioning] store resolution failed", resolveError?.code);
-    throw new Error("NAO_AUTORIZADO");
+  try {
+    return await invokePediuBackendAction<CourierCreationResult>(
+      {
+        action: "create_courier",
+        input: data,
+      },
+      { accessToken },
+    );
+  } catch (error) {
+    if (error instanceof PediuBackendApiError) {
+      switch (error.code) {
+        case "unauthorized":
+          throw new Error("NAO_AUTORIZADO");
+        case "invalid_input":
+          throw new Error("DADOS_INVALIDOS");
+        case "courier_identifier_in_use":
+          throw new Error("USUARIO_EXISTENTE");
+        case "courier_auth_failed":
+          throw new Error("FALHA_AUTH");
+        case "courier_provision_failed":
+          throw new Error("FALHA_PROVISIONAMENTO");
+        default:
+          break;
+      }
+    }
+
+    console.error("[courier-provisioning] external Edge provisioning failed");
+    throw new Error("FALHA_PROVISIONAMENTO");
   }
-
-  const syntheticEmail = await courierIdentifierToSyntheticEmail(data.loginIdentifier);
-  const temporaryPassword = generateTemporaryPassword();
-  const requestHash = await hashRequest(
-    [data.fullName, data.phone, data.loginIdentifier, data.canAcceptDeliveries, data.isActive].join("|"),
-  );
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: syntheticEmail,
-    password: temporaryPassword,
-    email_confirm: true,
-    user_metadata: { role: "entregador", full_name: data.fullName },
-  });
-
-  if (authError || !authData.user) {
-    if (authError?.message.includes("already registered")) throw new Error("USUARIO_EXISTENTE");
-    throw new Error("FALHA_AUTH");
-  }
-
-  const authUserId = authData.user.id;
-  const { data: provisioned, error: provisionError } = await supabaseAdmin.rpc(
-    "provision_store_courier_admin",
-    {
-      _actor_user_id: actorUserId,
-      _store_id: storeId,
-      _auth_user_id: authUserId,
-      _full_name: data.fullName,
-      _phone: data.phone,
-      _login_identifier: data.loginIdentifier,
-      _synthetic_email: syntheticEmail,
-      _can_accept_deliveries: data.canAcceptDeliveries,
-      _is_active: data.isActive,
-      _idempotency_key: data.idempotencyKey,
-      _request_hash: requestHash,
-    },
-  );
-
-  if (provisionError || !provisioned) {
-    await supabaseAdmin.auth.admin.deleteUser(authUserId);
-    await supabaseAdmin.rpc("fail_courier_provisioning_admin", {
-      _store_id: storeId,
-      _idempotency_key: data.idempotencyKey,
-    });
-    throw new Error(provisionError?.message ?? "FALHA_PROVISIONAMENTO");
-  }
-
-  const result = provisioned as { courierId?: string; courier_id?: string };
-  const courierId = result.courierId ?? result.courier_id;
-  if (!courierId) throw new Error("FALHA_PROVISIONAMENTO");
-
-  return {
-    courierId,
-    created: true,
-    loginIdentifier: data.loginIdentifier,
-    temporaryPassword,
-  };
 }
