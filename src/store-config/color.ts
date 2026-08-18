@@ -6,8 +6,8 @@
  */
 
 export const STORE_THEME_FALLBACK = {
-  primary: "#0f1114",
-  accent: "#14b8a6",
+  primary: "#4b1d6d",
+  accent: "#ff6a4d",
 } as const;
 
 /** Normaliza para `#rrggbb` minúsculo. Retorna `null` quando o valor não é uma cor válida. */
@@ -124,7 +124,7 @@ export interface StoreThemeTokens {
 
 /**
  * Gera apenas variáveis CSS conhecidas. Nunca gera regra CSS, seletor ou script.
- * Um tema inválido cai para o fallback acessível do Pediu Aqui.
+ * Um tema inválido cai para o fallback acessível da Comandiva.
  */
 export function buildStoreThemeTokens(primary: string, accent: string): StoreThemeTokens {
   const result = validateStoreTheme(primary, accent);
