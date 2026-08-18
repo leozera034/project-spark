@@ -43,6 +43,16 @@ export default tseslint.config(
     },
   },
   {
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: {
+      globals: globals.deno,
+    },
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
     files: ["**/*.server.ts"],
     rules: {
       // TanStack server helpers such as useSession are not React hooks despite
