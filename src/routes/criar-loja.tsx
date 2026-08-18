@@ -17,13 +17,13 @@ import { checkStoreSlug, createStoreAccount } from "@/lib/store-onboarding.funct
 export const Route = createFileRoute("/criar-loja")({
   head: () => ({
     meta: [
-      { title: "Criar minha loja no Pediu Aqui | Cardápio digital com entrega" },
+      { title: "Criar minha loja na Comandiva | Cardápio digital com entrega" },
       {
         name: "description",
         content:
-          "Crie sua loja no Pediu Aqui em minutos: cardápio digital, pedidos, cozinha, entregadores e acompanhamento em tempo real. 14 dias para testar.",
+          "Crie sua loja na Comandiva em minutos: cardápio digital, pedidos, cozinha, entregadores e acompanhamento em tempo real.",
       },
-      { property: "og:title", content: "Criar minha loja no Pediu Aqui" },
+      { property: "og:title", content: "Criar minha loja na Comandiva" },
       {
         property: "og:description",
         content: "Cardápio digital, pedidos, cozinha e entregas em uma única plataforma.",
@@ -45,12 +45,6 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "")
     .slice(0, 60);
 }
-
-const PLANS = [
-  { code: "essencial", label: "Essencial", price: "R$ 99/mês" },
-  { code: "profissional", label: "Profissional", price: "R$ 189/mês" },
-  { code: "avancado", label: "Avançado", price: "R$ 299/mês" },
-] as const;
 
 const STEPS = [
   { title: "Identidade da loja", description: "Nome, endereço do cardápio e segmento" },
@@ -94,7 +88,6 @@ function CreateStorePage() {
   const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [planCode, setPlanCode] = useState<(typeof PLANS)[number]["code"]>("essencial");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -170,7 +163,6 @@ function CreateStorePage() {
           ownerName,
           email,
           password,
-          planCode,
         },
       });
 
@@ -193,7 +185,7 @@ function CreateStorePage() {
     <main className="min-h-dvh bg-background">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:py-16">
         <section className="hidden space-y-6 lg:block">
-          <Link to="/" className="inline-flex" aria-label="Pediu Aqui, ir para o início">
+          <Link to="/" className="inline-flex" aria-label="Comandiva, ir para o início">
             <BrandLogo lockup="horizontal" className="h-8 w-auto" />
           </Link>
           <h1 className="text-balance font-display text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -201,7 +193,7 @@ function CreateStorePage() {
           </h1>
           <p className="text-lg text-muted-foreground">
             Cardápio digital com o seu link, painel de pedidos, modo cozinha, entregadores e
-            acompanhamento em tempo real para o cliente. Você tem 14 dias de cortesia.
+            acompanhamento em tempo real para o cliente. Configure sua operação em poucos minutos.
           </p>
           <ul className="space-y-3 text-sm text-muted-foreground">
             {[
@@ -221,12 +213,11 @@ function CreateStorePage() {
 
         <section className="panel space-y-6 p-5 sm:p-8">
           <div className="flex items-center justify-between lg:hidden">
-            <Link to="/" aria-label="Pediu Aqui, ir para o início">
+            <Link to="/" aria-label="Comandiva, ir para o início">
               <BrandLogo lockup="horizontal" className="h-7 w-auto" />
             </Link>
           </div>
 
-          {/* Indicador de progresso */}
           <div>
             <ol className="flex items-center gap-1.5" aria-label="Etapas do cadastro">
               {STEPS.map((s, index) => (
@@ -439,35 +430,6 @@ function CreateStorePage() {
                   enterKeyHint="done"
                   error={fieldErrors.password}
                 />
-
-                <fieldset className="space-y-3">
-                  <legend className="text-sm font-medium">Plano após o período de cortesia</legend>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {PLANS.map((plan) => (
-                      <label
-                        key={plan.code}
-                        className={cn(
-                          "min-h-11 cursor-pointer rounded-xl border p-3 text-sm transition",
-                          planCode === plan.code
-                            ? "border-brand bg-brand-soft"
-                            : "border-border hover:border-brand/50",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name="plan"
-                          className="sr-only"
-                          value={plan.code}
-                          checked={planCode === plan.code}
-                          onChange={() => setPlanCode(plan.code)}
-                          disabled={busy}
-                        />
-                        <span className="block font-medium">{plan.label}</span>
-                        <span className="block text-xs text-muted-foreground">{plan.price}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
               </div>
             ) : null}
 
@@ -493,14 +455,10 @@ function CreateStorePage() {
                     <dd className="text-foreground">{ownerName || "—"}</dd>
                     <dt>E-mail</dt>
                     <dd className="text-foreground">{email || "—"}</dd>
-                    <dt>Plano</dt>
-                    <dd className="text-foreground">
-                      {PLANS.find((plan) => plan.code === planCode)?.label}
-                    </dd>
                   </dl>
                 </div>
                 <ul className="space-y-2 text-xs text-muted-foreground">
-                  {["Dados conferidos", "Endereço do cardápio disponível", "14 dias de cortesia inclusos"].map(
+                  {["Dados conferidos", "Endereço do cardápio disponível", "Configuração pronta para começar"].map(
                     (item) => (
                       <li key={item} className="flex items-center gap-2">
                         <Check className="size-3.5 text-brand" aria-hidden />
