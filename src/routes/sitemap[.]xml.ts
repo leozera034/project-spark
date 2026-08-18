@@ -12,16 +12,13 @@ interface SitemapEntry {
 /** Lojas ativas são páginas públicas indexáveis; as demais ficam fora do sitemap. */
 async function activeStorePaths(): Promise<SitemapEntry[]> {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("stores")
-      .select("slug")
-      .eq("status", "ativa")
-      .limit(5000);
-    if (error || !data) return [];
-    return data
-      .filter((row): row is { slug: string } => typeof row.slug === "string" && row.slug.length > 0)
-      .map((row) => ({ path: `/loja/${row.slug}`, changefreq: "daily" as const, priority: "0.8" }));
+    const { invokePediuPublicSupport } = await import(
+      "@/integrations/supabase/public-support.server"
+    );
+    const slugs = await invokePediuPublicSupport<string[]>({ action: "store_slugs" });
+    return slugs
+      .filter((slug) => typeof slug === "string" && slug.length > 0)
+      .map((slug) => ({ path: `/loja/${slug}`, changefreq: "daily" as const, priority: "0.8" }));
   } catch {
     return [];
   }
