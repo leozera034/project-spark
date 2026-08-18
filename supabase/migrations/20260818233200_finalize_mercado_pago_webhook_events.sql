@@ -64,6 +64,10 @@ begin
     return 'missing';
   end if;
 
+  if v_status in ('processed', 'ignored') then
+    return 'duplicate';
+  end if;
+
   if v_status = 'failed'
      or (v_status = 'received' and (v_started_at is null or v_started_at < now() - interval '2 minutes')) then
     update private.billing_webhook_events
@@ -76,7 +80,11 @@ begin
     return 'process';
   end if;
 
-  return 'duplicate';
+  if v_status = 'received' then
+    return 'busy';
+  end if;
+
+  return 'missing';
 end;
 $$;
 
@@ -139,7 +147,7 @@ revoke all on function public.finalize_mercado_pago_webhook_event(text,text,json
 grant execute on function public.finalize_mercado_pago_webhook_event(text,text,jsonb,text) to service_role;
 
 comment on function public.claim_mercado_pago_webhook_event(text,text,text,jsonb)
-is 'Service-role-only idempotent claim for validated Mercado Pago webhooks. Failed/stale claims may be retried.';
+is 'Service-role-only idempotent claim for validated Mercado Pago webhooks. Failed/stale claims may be retried; active claims return busy.';
 
 comment on function public.finalize_mercado_pago_webhook_event(text,text,jsonb,text)
 is 'Service-role-only finalizer for validated Mercado Pago webhook inbox events. Stores only a sanitized provider snapshot.';
