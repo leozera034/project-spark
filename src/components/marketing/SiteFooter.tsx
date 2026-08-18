@@ -2,17 +2,14 @@ import { Link } from "@tanstack/react-router";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
-/**
- * Rodapé institucional. Só âncoras da própria landing e rotas que existem
- * de fato em src/routes — nenhum link morto.
- */
+/** Rodapé institucional da Comandiva. */
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-carbon text-carbon-foreground">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <BrandLogo lockup="horizontal" tone="white" className="h-7 w-auto" />
+            <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-carbon-foreground/70">
               Plataforma de cardápio digital, pedidos, cozinha e entrega própria para o comércio
               local. Mensalidade fixa por loja, sem comissão sobre a sua clientela.
@@ -46,7 +43,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-carbon-foreground/15 pt-6 text-xs text-carbon-foreground/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Pediu Aqui. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} Comandiva. Todos os direitos reservados.</p>
           <p>
             Termos de uso e política de privacidade são apresentados durante a contratação da loja.
           </p>
