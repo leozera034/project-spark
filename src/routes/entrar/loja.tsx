@@ -16,13 +16,13 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/entrar/loja")({
   head: () => ({
     meta: [
-      { title: "Entrar na loja | Pediu Aqui" },
+      { title: "Entrar na loja | Comandiva" },
       {
         name: "description",
-        content: "Acesso da equipe da loja ao painel de pedidos do Pediu Aqui.",
+        content: "Acesso da equipe da loja ao painel de pedidos da Comandiva.",
       },
-      { property: "og:title", content: "Entrar na loja | Pediu Aqui" },
-      { property: "og:description", content: "Acesso da equipe da loja ao painel do Pediu Aqui." },
+      { property: "og:title", content: "Entrar na loja | Comandiva" },
+      { property: "og:description", content: "Acesso da equipe da loja ao painel da Comandiva." },
       { name: "robots", content: "noindex" },
     ],
   }),
