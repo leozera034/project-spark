@@ -14,7 +14,6 @@ const PUBLIC_RPCS = new Set([
   "storefront_submit_order",
   "storefront_order_tracking",
 ]);
-
 const SIGNABLE_BUCKETS = new Set(["store-branding", "store-catalog"]);
 const MAX_BODY_BYTES = 96 * 1024;
 const MAX_SIGN_PATHS = 100;
@@ -95,9 +94,7 @@ function createKeyAwareFetch(apiKey: string): typeof fetch {
     const headers = new Headers(
       typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
     );
-    if (init?.headers) {
-      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    }
+    if (init?.headers) new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     if (apiKey.startsWith("sb_") && headers.get("Authorization") === `Bearer ${apiKey}`) {
       headers.delete("Authorization");
     }
@@ -135,11 +132,8 @@ async function authenticatedUser(req: Request) {
 }
 
 async function sha256(value: string): Promise<string> {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function generateTemporaryPassword(length = 14): string {
@@ -151,15 +145,46 @@ function generateTemporaryPassword(length = 14): string {
 }
 
 async function courierSyntheticEmail(identifier: string): Promise<string> {
-  const digest = await sha256(`pediu-aqui:courier:${identifier}`);
-  return `${digest.slice(0, 32)}@${COURIER_EMAIL_DOMAIN}`;
+  return `${(await sha256(`pediu-aqui:courier:${identifier}`)).slice(0, 32)}@${COURIER_EMAIL_DOMAIN}`;
+}
+
+async function consumeRateLimit(
+  admin: ReturnType<typeof adminClient>,
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<boolean> {
+  const { data, error } = await admin.rpc("consume_edge_rate_limit", {
+    _key: key,
+    _limit: limit,
+    _window_seconds: windowSeconds,
+  } as never);
+  if (error || data !== true) return false;
+  return true;
+}
+
+async function requireStorefrontOrderCapacity(
+  admin: ReturnType<typeof adminClient>,
+  args: Record<string, unknown>,
+): Promise<boolean> {
+  const slug = typeof args._slug === "string" ? args._slug.trim().toLowerCase() : "";
+  if (!slug) return false;
+  const slugKey = (await sha256(slug)).slice(0, 24);
+  const [globalOk, storeOk] = await Promise.all([
+    consumeRateLimit(admin, "orders:global:minute", 300, 60),
+    consumeRateLimit(admin, `orders:store:${slugKey}:minute`, 30, 60),
+  ]);
+  return globalOk && storeOk;
 }
 
 async function runPublicRpc(req: Request, payload: Record<string, unknown>) {
   const rpc = typeof payload.rpc === "string" ? payload.rpc : "";
   if (!PUBLIC_RPCS.has(rpc)) return response(req, { ok: false, error: "rpc_not_allowed" }, 403);
-  const args = payload.args && typeof payload.args === "object" ? payload.args : {};
+  const args = payload.args && typeof payload.args === "object" ? payload.args as Record<string, unknown> : {};
   const admin = adminClient();
+  if (rpc === "storefront_submit_order" && !(await requireStorefrontOrderCapacity(admin, args))) {
+    return response(req, { ok: false, error: "rate_limited" }, 429);
+  }
   const { data, error } = await admin.rpc(rpc, args as never);
   if (error) {
     console.error(`[pediu-backend-api] rpc failed: ${rpc} (${error.code ?? "unknown"})`);
@@ -182,28 +207,20 @@ async function filterPublicAssetPaths(
       admin.from("store_settings").select("store_id,cover_path").in("cover_path", paths),
     ]);
     if (logos.error || covers.error) throw new Error("asset_reference_lookup_failed");
-    for (const row of logos.data ?? []) {
-      if (row.logo_path) candidates.push({ path: row.logo_path, store_id: row.store_id });
-    }
-    for (const row of covers.data ?? []) {
-      if (row.cover_path) candidates.push({ path: row.cover_path, store_id: row.store_id });
-    }
+    for (const row of logos.data ?? []) if (row.logo_path) candidates.push({ path: row.logo_path, store_id: row.store_id });
+    for (const row of covers.data ?? []) if (row.cover_path) candidates.push({ path: row.cover_path, store_id: row.store_id });
   } else if (bucket === "store-catalog") {
     const [categories, products] = await Promise.all([
       admin.from("categories").select("store_id,image_path").in("image_path", paths).eq("is_active", true).eq("is_archived", false),
       admin.from("products").select("store_id,image_path").in("image_path", paths).eq("is_available", true).eq("is_archived", false),
     ]);
     if (categories.error || products.error) throw new Error("asset_reference_lookup_failed");
-    for (const row of categories.data ?? []) {
-      if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
-    }
-    for (const row of products.data ?? []) {
-      if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
-    }
+    for (const row of categories.data ?? []) if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
+    for (const row of products.data ?? []) if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
   }
-  const candidateStoreIds = Array.from(new Set(candidates.map((item) => item.store_id)));
-  if (candidateStoreIds.length === 0) return [];
-  const { data: activeStores, error } = await admin.from("stores").select("id").in("id", candidateStoreIds).eq("status", "ativa");
+  const storeIds = Array.from(new Set(candidates.map((item) => item.store_id)));
+  if (storeIds.length === 0) return [];
+  const { data: activeStores, error } = await admin.from("stores").select("id").in("id", storeIds).eq("status", "ativa");
   if (error) throw new Error("asset_store_lookup_failed");
   const activeIds = new Set((activeStores ?? []).map((row) => row.id));
   const publicPaths = new Set(candidates.filter((item) => activeIds.has(item.store_id)).map((item) => item.path));
@@ -222,17 +239,13 @@ async function signPaths(req: Request, payload: Record<string, unknown>) {
   try {
     publicPaths = await filterPublicAssetPaths(admin, bucket, paths);
   } catch {
-    console.error(`[pediu-backend-api] public asset validation failed: ${bucket}`);
     return response(req, { ok: false, error: "asset_validation_failed" }, 502);
   }
   if (publicPaths.length === 0) return response(req, { ok: true, data: [] });
   const requestedTtl = Number(payload.ttlSeconds ?? DEFAULT_SIGN_TTL);
   const ttl = Number.isFinite(requestedTtl) ? Math.max(60, Math.min(Math.floor(requestedTtl), MAX_SIGN_TTL)) : DEFAULT_SIGN_TTL;
   const { data, error } = await admin.storage.from(bucket).createSignedUrls(publicPaths, ttl);
-  if (error || !data) {
-    console.error(`[pediu-backend-api] storage signing failed: ${bucket}`);
-    return response(req, { ok: false, error: "signing_failed" }, 502);
-  }
+  if (error || !data) return response(req, { ok: false, error: "signing_failed" }, 502);
   return response(req, { ok: true, data: data.map((item) => ({ path: item.path, signedUrl: item.signedUrl ?? null })) });
 }
 
@@ -241,6 +254,16 @@ async function createStoreAccount(req: Request, payload: Record<string, unknown>
   if (!parsed.success) return response(req, { ok: false, error: "invalid_input" }, 400);
   const input = parsed.data;
   const admin = adminClient();
+  const emailKey = (await sha256(input.email)).slice(0, 24);
+  const slugKey = (await sha256(input.slug)).slice(0, 24);
+  const limits = await Promise.all([
+    consumeRateLimit(admin, "signup:global:minute", 10, 60),
+    consumeRateLimit(admin, "signup:global:day", 250, 86400),
+    consumeRateLimit(admin, `signup:email:${emailKey}:day`, 3, 86400),
+    consumeRateLimit(admin, `signup:slug:${slugKey}:hour`, 5, 3600),
+  ]);
+  if (limits.some((allowed) => !allowed)) return response(req, { ok: false, error: "rate_limited" }, 429);
+
   const { data: availability, error: availabilityError } = await admin.rpc("check_public_store_slug", { _slug: input.slug } as never);
   if (availabilityError) return response(req, { ok: false, error: "onboarding_unavailable" }, 503);
   const slugState = availability as { available?: boolean; reason?: string | null } | null;
@@ -282,7 +305,6 @@ async function createStoreAccount(req: Request, payload: Record<string, unknown>
     } catch {
       // best effort
     }
-    console.error(`[pediu-backend-api] store provisioning failed (${provisionError?.code ?? "unknown"})`);
     return response(req, { ok: false, error: "provision_failed" }, 502);
   }
   const result = provisioned as { store_id: string; slug: string };
@@ -297,17 +319,12 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
   if (!parsed.success) return response(req, { ok: false, error: "invalid_input" }, 400);
   const input = parsed.data;
   const admin = adminClient();
-
-  const { data: storeId, error: resolveError } = await admin.rpc("resolve_courier_create_store_admin", {
-    _actor_user_id: user.id,
-    _store_id: null,
-  } as never);
+  const { data: storeId, error: resolveError } = await admin.rpc("resolve_courier_create_store_admin", { _actor_user_id: user.id, _store_id: null } as never);
   if (resolveError || typeof storeId !== "string") return response(req, { ok: false, error: "unauthorized" }, 403);
 
   const syntheticEmail = await courierSyntheticEmail(input.loginIdentifier);
   const temporaryPassword = generateTemporaryPassword();
   const requestHash = await sha256([input.fullName, input.phone, input.loginIdentifier, input.canAcceptDeliveries, input.isActive].join("|"));
-
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email: syntheticEmail,
     password: temporaryPassword,
@@ -333,7 +350,6 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
     _idempotency_key: input.idempotencyKey,
     _request_hash: requestHash,
   } as never);
-
   if (provisionError || !provisioned) {
     await admin.auth.admin.deleteUser(authUserId).catch(() => undefined);
     try {
@@ -341,17 +357,13 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
     } catch {
       // best effort
     }
-    console.error(`[pediu-backend-api] courier provisioning failed (${provisionError?.code ?? "unknown"})`);
     return response(req, { ok: false, error: "courier_provision_failed" }, 502);
   }
 
   const result = provisioned as { courierId?: string; courier_id?: string };
   const courierId = result.courierId ?? result.courier_id;
   if (!courierId) return response(req, { ok: false, error: "courier_provision_failed" }, 502);
-  return response(req, {
-    ok: true,
-    data: { courierId, created: true, loginIdentifier: input.loginIdentifier, temporaryPassword },
-  });
+  return response(req, { ok: true, data: { courierId, created: true, loginIdentifier: input.loginIdentifier, temporaryPassword } });
 }
 
 async function resetCourierAccess(req: Request, payload: Record<string, unknown>) {
@@ -360,25 +372,19 @@ async function resetCourierAccess(req: Request, payload: Record<string, unknown>
   const parsed = resetCourierSchema.safeParse(payload.input);
   if (!parsed.success) return response(req, { ok: false, error: "invalid_input" }, 400);
   const admin = adminClient();
-
-  const { data: rows, error } = await admin.rpc("authorize_courier_reset", {
-    _actor_user_id: user.id,
-    _courier_id: parsed.data.courier_id,
-  } as never);
+  const { data: rows, error } = await admin.rpc("authorize_courier_reset", { _actor_user_id: user.id, _courier_id: parsed.data.courier_id } as never);
   const identity = Array.isArray(rows) ? rows[0] : null;
   if (error || !identity) return response(req, { ok: false, error: "unauthorized" }, 403);
 
   const temporaryPassword = generateTemporaryPassword();
   const { error: updateError } = await admin.auth.admin.updateUserById(identity.auth_user_id, { password: temporaryPassword });
   if (updateError) return response(req, { ok: false, error: "courier_reset_failed" }, 502);
-
   const { error: flagError } = await admin.from("courier_auth_identities").update({
     requires_password_change: true,
     is_login_enabled: true,
     temporary_password_issued_at: new Date().toISOString(),
   }).eq("id", identity.identity_id);
   if (flagError) return response(req, { ok: false, error: "courier_reset_failed" }, 502);
-
   await admin.from("audit_logs").insert({
     store_id: identity.store_id,
     actor_user_id: user.id,
@@ -388,7 +394,6 @@ async function resetCourierAccess(req: Request, payload: Record<string, unknown>
     entity_id: identity.identity_id,
     context: { courier_id: parsed.data.courier_id },
   });
-
   return response(req, { ok: true, data: { temporaryPassword } });
 }
 
