@@ -10,6 +10,7 @@ import {
   BarChart3,
   Bike,
   ChefHat,
+  CreditCard,
   LayoutGrid,
   LogOut,
   Menu,
@@ -60,6 +61,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app/loja/crescimento", label: "Crescimento", icon: TrendingUp },
   { to: "/app/loja/entregadores", label: "Entregadores", icon: Bike },
   { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, mobile: true },
+  { to: "/app/loja/plano", label: "Plano e assinatura", icon: CreditCard },
   { to: "/app/loja/configuracoes", label: "Configurações", icon: Settings },
 ];
 
