@@ -56,10 +56,10 @@ function AdminLayout() {
             key={item.href}
             href={item.href}
             onClick={() => mobile && setMobileOpen(false)}
-            className="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/55 transition hover:bg-violet-500/10 hover:text-white"
+            className="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
           >
-            <span className="grid size-8 place-items-center rounded-lg border border-white/[.06] bg-white/[.035] transition group-hover:border-violet-400/20 group-hover:bg-violet-500/10">
-              <Icon className="size-4 text-violet-300" />
+            <span className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/[.05] transition group-hover:border-[#FF6A4D]/30 group-hover:bg-white/10">
+              <Icon className="size-4 text-[#FFB4A2]" />
             </span>
             {item.label}
           </a>
@@ -71,31 +71,31 @@ function AdminLayout() {
   return (
     <div className="app-premium-shell min-h-dvh text-foreground lg:flex">
       <aside className="app-premium-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r lg:flex">
-        <div className="flex h-20 items-center border-b border-white/[.06] px-5">
-          <BrandLogo className="h-8 w-auto" />
+        <div className="flex h-20 items-center border-b border-white/10 px-5">
+          <BrandLogo tone="white" className="h-10 w-auto" />
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="mb-5 rounded-2xl border border-violet-300/10 bg-violet-500/[.06] p-3">
+          <div className="mb-5 rounded-2xl border border-white/10 bg-white/[.06] p-3">
             <div className="flex items-center gap-2">
               <span className="relative flex size-2.5">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-40" />
                 <span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" />
               </span>
-              <span className="text-xs font-extrabold uppercase tracking-[.14em] text-white/65">SaaS Control</span>
+              <span className="text-xs font-extrabold uppercase tracking-[.14em] text-white/75">SaaS Control</span>
             </div>
-            <p className="mt-2 text-xs leading-5 text-white/38">Operação, receita e saúde da plataforma em uma única visão.</p>
+            <p className="mt-2 text-xs leading-5 text-white/48">Operação, receita e saúde da plataforma em uma única visão.</p>
           </div>
           <Nav />
         </div>
-        <div className="border-t border-white/[.06] p-4">
+        <div className="border-t border-white/10 p-4">
           <div className="mb-3 flex items-center gap-3 rounded-xl px-2 py-2">
-            <BrandSymbol className="size-9" />
+            <BrandSymbol tone="white" className="size-9" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">{authContext?.full_name ?? "Administrador"}</p>
-              <p className="text-[11px] text-white/38">Administração da plataforma</p>
+              <p className="text-[11px] text-white/45">Administração da plataforma</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start" onClick={logout}>
+          <Button variant="outline" className="w-full justify-start border-white/15 bg-white/[.05] text-white hover:bg-white/10 hover:text-white" onClick={logout}>
             <LogOut className="size-4" /> Sair
           </Button>
         </div>
@@ -103,11 +103,11 @@ function AdminLayout() {
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />
+          <button className="absolute inset-0 bg-black/55 backdrop-blur-sm" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />
           <aside className="app-premium-sidebar absolute inset-y-0 left-0 flex w-[82vw] max-w-80 flex-col border-r p-4 pt-[max(1rem,env(safe-area-inset-top))]">
             <div className="mb-5 flex items-center justify-between">
-              <BrandLogo className="h-8 w-auto" />
-              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X className="size-5" /></Button>
+              <BrandLogo tone="white" className="h-10 w-auto" />
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X className="size-5" /></Button>
             </div>
             <Nav mobile />
           </aside>
@@ -120,10 +120,10 @@ function AdminLayout() {
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></Button>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-extrabold text-white">Pediu Aqui</span>
-                <span className="rounded-full border border-violet-400/15 bg-violet-500/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-[.12em] text-violet-200">Admin SaaS</span>
+                <span className="text-sm font-extrabold text-[#4B1D6D]">Comandiva</span>
+                <span className="rounded-full border border-[#4B1D6D]/10 bg-[#4B1D6D]/[.07] px-2 py-0.5 text-[10px] font-black uppercase tracking-[.12em] text-[#4B1D6D]">Admin SaaS</span>
               </div>
-              <p className="hidden text-xs text-white/35 sm:block">Centro de controle da plataforma</p>
+              <p className="hidden text-xs text-[#6F6376] sm:block">Centro de controle da plataforma</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
