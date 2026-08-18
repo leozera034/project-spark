@@ -277,7 +277,7 @@ Deno.serve(async (req: Request) => {
     : `request:${requestId}:${eventType}:${action}:${resourceId}`;
 
   const admin = adminClient();
-  const { data: inserted, error } = await admin.rpc("record_mercado_pago_webhook_event", {
+  const { data: claim, error } = await admin.rpc("claim_mercado_pago_webhook_event", {
     p_provider_event_key: providerEventKey,
     p_event_type: `${eventType}:${action}`.slice(0, 200),
     p_resource_id: resourceId || null,
@@ -285,12 +285,15 @@ Deno.serve(async (req: Request) => {
   });
 
   if (error) {
-    console.error("[comandiva-mercadopago-webhook] record failed", error.code ?? "unknown");
-    return response(500, { ok: false, error: "event_persist_failed" });
+    console.error("[comandiva-mercadopago-webhook] claim failed", error.code ?? "unknown");
+    return response(500, { ok: false, error: "event_claim_failed" });
   }
 
-  if (inserted === false) {
+  if (claim === "duplicate") {
     return response(200, { ok: true, duplicate: true });
+  }
+  if (claim !== "process") {
+    return response(500, { ok: false, error: "event_claim_failed" });
   }
 
   if (IGNORED_EVENT_TYPES.has(eventType) || !PROCESSABLE_EVENT_TYPES.has(eventType)) {
