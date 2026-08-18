@@ -1,17 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, CreditCard, Loader2, ShieldCheck, TriangleAlert } from "lucide-react";
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import {
+  Check,
+  CheckCircle2,
+  CreditCard,
+  Loader2,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 
 const MP_SCRIPT_ID = "mercadopago-sdk-v2";
 const MP_SCRIPT_SRC = "https://sdk.mercadopago.com/js/v2";
-const BILLING_ENDPOINT =
-  "https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/comandiva-billing?action=create_test_subscription";
+const BILLING_BASE = "https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/comandiva-billing";
+const BILLING_ENDPOINT = `${BILLING_BASE}?action=create_test_subscription`;
+const PUBLIC_CONFIG_ENDPOINT = `${BILLING_BASE}?action=public_config`;
 
 interface CardFormData {
   token?: string;
@@ -38,6 +43,13 @@ declare global {
   }
 }
 
+interface PublicConfigResult {
+  ok: boolean;
+  configured?: boolean;
+  publicKey?: string;
+  error?: string;
+}
+
 interface SubscriptionResult {
   ok: boolean;
   subscriptionId?: string;
@@ -51,8 +63,11 @@ interface SubscriptionResult {
 export const Route = createFileRoute("/integracao/mercado-pago")({
   head: () => ({
     meta: [
-      { title: "Teste Mercado Pago | Comandiva" },
-      { name: "description", content: "Harness técnico temporário da integração Mercado Pago." },
+      { title: "Homologação de cobrança | Comandiva" },
+      {
+        name: "description",
+        content: "Ambiente isolado para homologação da integração de assinaturas da Comandiva.",
+      },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -83,12 +98,39 @@ function loadMercadoPagoSdk(): Promise<void> {
   });
 }
 
+async function resolvePublicKey(): Promise<string> {
+  const buildKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY_TEST?.trim();
+  if (buildKey) return buildKey;
+
+  const response = await fetch(PUBLIC_CONFIG_ENDPOINT, {
+    method: "GET",
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  });
+  const payload = (await response.json().catch(() => ({}))) as PublicConfigResult;
+  const runtimeKey = payload.publicKey?.trim();
+
+  if (!response.ok || !payload.ok || !runtimeKey) {
+    throw new Error(payload.error || "public_key_not_configured");
+  }
+  return runtimeKey;
+}
+
+const inputClass =
+  "h-12 w-full rounded-xl border border-[#E8DDD4] bg-[#FFFCF8] px-3.5 text-[15px] text-[#2A1634] outline-none transition focus:border-[#7C4A95] focus:ring-4 focus:ring-[#7C4A95]/10";
+
 function FieldShell({ id }: { id: string }) {
+  return <div id={id} className={`${inputClass} py-3`} />;
+}
+
+function Step({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      id={id}
-      className="h-11 rounded-md border border-input bg-background px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring"
-    />
+    <li className="flex items-center gap-3 text-sm text-[#5F5364]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F0E7F4] text-[#4B1D6D]">
+        <Check className="h-4 w-4" strokeWidth={2.6} />
+      </span>
+      {children}
+    </li>
   );
 }
 
@@ -97,24 +139,23 @@ function MercadoPagoIntegrationTestPage() {
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SubscriptionResult | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const initializedRef = useRef(false);
   const submittingRef = useRef(false);
   const cardFormRef = useRef<MercadoPagoCardForm | null>(null);
 
   useEffect(() => {
+    initializedRef.current = false;
+    setSdkReady(false);
+    setSetupError(null);
+    setResult(null);
+
     if (initializedRef.current) return;
     initializedRef.current = true;
-
-    const publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY_TEST?.trim();
-    if (!publicKey) {
-      setSetupError("Public Key de teste não encontrada no ambiente da aplicação.");
-      return;
-    }
-
     let cancelled = false;
 
-    void loadMercadoPagoSdk()
-      .then(() => {
+    void Promise.all([resolvePublicKey(), loadMercadoPagoSdk()])
+      .then(([publicKey]) => {
         if (cancelled || !window.MercadoPago) return;
 
         const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
@@ -123,33 +164,15 @@ function MercadoPagoIntegrationTestPage() {
           iframe: true,
           form: {
             id: "form-checkout",
-            cardNumber: {
-              id: "form-checkout__cardNumber",
-              placeholder: "Número do cartão",
-            },
-            expirationDate: {
-              id: "form-checkout__expirationDate",
-              placeholder: "MM/AA",
-            },
-            securityCode: {
-              id: "form-checkout__securityCode",
-              placeholder: "CVV",
-            },
-            cardholderName: {
-              id: "form-checkout__cardholderName",
-              placeholder: "Titular do cartão",
-            },
-            issuer: {
-              id: "form-checkout__issuer",
-              placeholder: "Banco emissor",
-            },
-            installments: {
-              id: "form-checkout__installments",
-              placeholder: "Parcelas",
-            },
+            cardNumber: { id: "form-checkout__cardNumber", placeholder: "0000 0000 0000 0000" },
+            expirationDate: { id: "form-checkout__expirationDate", placeholder: "MM/AA" },
+            securityCode: { id: "form-checkout__securityCode", placeholder: "CVV" },
+            cardholderName: { id: "form-checkout__cardholderName", placeholder: "Nome no cartão" },
+            issuer: { id: "form-checkout__issuer", placeholder: "Banco emissor" },
+            installments: { id: "form-checkout__installments", placeholder: "Parcelas" },
             identificationType: {
               id: "form-checkout__identificationType",
-              placeholder: "Tipo de documento",
+              placeholder: "Documento",
             },
             identificationNumber: {
               id: "form-checkout__identificationNumber",
@@ -164,7 +187,7 @@ function MercadoPagoIntegrationTestPage() {
             onFormMounted: (error: unknown) => {
               if (cancelled) return;
               if (error) {
-                setSetupError("O Mercado Pago não conseguiu inicializar o formulário de cartão.");
+                setSetupError("O formulário seguro do Mercado Pago não conseguiu iniciar.");
                 return;
               }
               setSdkReady(true);
@@ -178,7 +201,10 @@ function MercadoPagoIntegrationTestPage() {
               const payerEmail = data?.cardholderEmail?.trim().toLowerCase();
 
               if (!cardTokenId || !payerEmail) {
-                setResult({ ok: false, error: "card_token_missing" });
+                setResult({
+                  ok: false,
+                  error: "Revise os campos do cartão. O Mercado Pago não gerou o token seguro.",
+                });
                 return;
               }
 
@@ -195,7 +221,7 @@ function MercadoPagoIntegrationTestPage() {
                 const payload = (await response.json()) as SubscriptionResult;
                 setResult(payload);
               } catch {
-                setResult({ ok: false, error: "network_error" });
+                setResult({ ok: false, error: "Não foi possível falar com o backend de cobrança." });
               } finally {
                 submittingRef.current = false;
                 setIsSubmitting(false);
@@ -208,8 +234,14 @@ function MercadoPagoIntegrationTestPage() {
           },
         });
       })
-      .catch(() => {
-        if (!cancelled) setSetupError("Não foi possível carregar o SDK oficial do Mercado Pago.");
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : "configuration_failed";
+        setSetupError(
+          message === "public_key_not_configured"
+            ? "A Public Key de teste ainda não está disponível para o runtime."
+            : "Não foi possível carregar a configuração segura do Mercado Pago.",
+        );
       });
 
     return () => {
@@ -217,169 +249,263 @@ function MercadoPagoIntegrationTestPage() {
       cardFormRef.current?.unmount?.();
       cardFormRef.current = null;
     };
-  }, []);
+  }, [retryKey]);
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8 sm:py-12">
-      <div className="mx-auto w-full max-w-2xl space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-primary">Comandiva Billing</p>
-            <h1 className="text-2xl font-semibold tracking-tight">Teste de assinatura Mercado Pago</h1>
-          </div>
-          <Badge variant="secondary">TESTE · R$ 1,00/mês</Badge>
-        </div>
+    <main className="relative min-h-screen overflow-hidden bg-[#FBF7F2] text-[#2A1634]">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-32 -top-40 h-[420px] w-[420px] rounded-full bg-[#E9DDED]/70 blur-3xl" />
+        <div className="absolute -right-24 top-32 h-[360px] w-[360px] rounded-full bg-[#FFE0D7]/80 blur-3xl" />
+      </div>
 
-        <Alert>
-          <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>Ambiente isolado</AlertTitle>
-          <AlertDescription>
-            Use apenas conta, cartão e dados de teste do Mercado Pago. Os dados sensíveis do cartão
-            são tokenizados pelo MercadoPago.js e não são enviados ao backend da Comandiva.
-          </AlertDescription>
-        </Alert>
+      <div className="relative mx-auto w-full max-w-6xl px-5 py-6 sm:px-8 sm:py-8 lg:py-12">
+        <header className="mb-8 flex items-center justify-between gap-4 sm:mb-12">
+          <img
+            src="/brand/comandiva-logo-horizontal.png"
+            alt="Comandiva"
+            className="h-9 w-auto object-contain sm:h-11"
+          />
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#DDD0E2] bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#4B1D6D] shadow-sm backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-[#FF6A4D]" /> Sandbox
+          </span>
+        </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" /> Cartão de teste
-            </CardTitle>
-            <CardDescription>
-              Para cenário aprovado, use os dados oficiais de teste e o titular APRO.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {setupError ? (
-              <Alert variant="destructive">
-                <TriangleAlert className="h-4 w-4" />
-                <AlertTitle>Integração não inicializada</AlertTitle>
-                <AlertDescription>{setupError}</AlertDescription>
-              </Alert>
-            ) : (
-              <form id="form-checkout" className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Número do cartão</Label>
-                  <FieldShell id="form-checkout__cardNumber" />
-                </div>
+        <div className="grid items-start gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-12">
+          <section className="pt-1 lg:sticky lg:top-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#F0E7F4] px-3 py-1.5 text-sm font-semibold text-[#4B1D6D]">
+              <Sparkles className="h-4 w-4" /> Homologação de billing
+            </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Validade</Label>
-                    <FieldShell id="form-checkout__expirationDate" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CVV</Label>
-                    <FieldShell id="form-checkout__securityCode" />
-                  </div>
-                </div>
+            <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.035em] sm:text-5xl">
+              Validar cobrança recorrente sem tocar em dinheiro real.
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-7 text-[#6E626F] sm:text-lg">
+              Este fluxo testa a tokenização do cartão, a criação da assinatura e os webhooks da
+              Comandiva em um ambiente totalmente isolado.
+            </p>
 
-                <div className="space-y-2">
-                  <Label htmlFor="form-checkout__cardholderName">Titular</Label>
-                  <input
-                    id="form-checkout__cardholderName"
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    defaultValue="APRO"
-                    autoComplete="cc-name"
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="form-checkout__identificationType">Documento</Label>
-                    <select
-                      id="form-checkout__identificationType"
-                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="form-checkout__identificationNumber">CPF de teste</Label>
-                    <input
-                      id="form-checkout__identificationNumber"
-                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                      defaultValue="12345678909"
-                      inputMode="numeric"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="form-checkout__cardholderEmail">E-mail do comprador de teste</Label>
-                  <input
-                    id="form-checkout__cardholderEmail"
-                    type="email"
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    defaultValue="test@testuser.com"
-                    autoComplete="email"
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="form-checkout__issuer">Emissor</Label>
-                    <select
-                      id="form-checkout__issuer"
-                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="form-checkout__installments">Parcelas</Label>
-                    <select
-                      id="form-checkout__installments"
-                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                </div>
-
-                <progress className="hidden" value="0" />
-
-                <Button
-                  id="form-checkout__submit"
-                  type="submit"
-                  className="h-12 w-full"
-                  disabled={!sdkReady || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando assinatura…
-                    </>
-                  ) : (
-                    "Criar assinatura de teste"
-                  )}
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-
-        {result ? (
-          result.ok ? (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Assinatura criada</AlertTitle>
-              <AlertDescription>
-                Mercado Pago respondeu com status {result.status ?? "recebido"}. ID técnico: {result.subscriptionId}.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert variant="destructive">
-              <TriangleAlert className="h-4 w-4" />
-              <AlertTitle>Mercado Pago recusou a criação</AlertTitle>
-              <AlertDescription className="space-y-1">
-                <p>{result.providerMessage ?? result.error ?? "Falha desconhecida."}</p>
-                {result.providerCauses?.map((cause, index) => (
-                  <p key={`${cause.code ?? "cause"}-${index}`}>
-                    {cause.code ? `${cause.code}: ` : ""}
-                    {cause.description ?? "Erro retornado pelo provedor."}
+            <div className="mt-8 rounded-3xl border border-[#E7DDD6] bg-white/75 p-5 shadow-[0_22px_60px_rgba(55,31,67,0.08)] backdrop-blur sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B7D8F]">
+                    Assinatura de teste
                   </p>
-                ))}
-              </AlertDescription>
-            </Alert>
-          )
-        ) : null}
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-semibold tracking-tight">R$ 1,00</span>
+                    <span className="text-sm text-[#7A6E7D]">/ mês</span>
+                  </div>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4B1D6D] text-white shadow-lg shadow-[#4B1D6D]/20">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+              </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Harness temporário de integração. Não será exposto na navegação comercial.
-        </p>
+              <ul className="mt-6 space-y-3.5">
+                <Step>Cartão tokenizado diretamente pelo Mercado Pago</Step>
+                <Step>Assinatura criada via API de recorrência</Step>
+                <Step>Evento validado e persistido pelo webhook</Step>
+              </ul>
+            </div>
+
+            <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#E7DDD6] bg-[#FFFDF9] px-4 py-3.5 text-sm text-[#665A69]">
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#4B1D6D]" />
+              <p>
+                Os dados brutos do cartão não passam pelo backend da Comandiva. O navegador recebe
+                apenas um token descartável do Mercado Pago.
+              </p>
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-[30px] border border-[#E8DED7] bg-white shadow-[0_28px_80px_rgba(55,31,67,0.13)]">
+            <div className="border-b border-[#EEE5DE] px-5 py-5 sm:px-7 sm:py-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A8C9E]">
+                    Cartão de teste
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
+                    Dados para homologação
+                  </h2>
+                </div>
+                <div className="hidden items-center gap-2 rounded-xl bg-[#F8F2FA] px-3 py-2 text-xs font-medium text-[#5D376F] sm:flex">
+                  <LockKeyhole className="h-4 w-4" /> Tokenização segura
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-7">
+              {setupError ? (
+                <div className="rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5">
+                  <div className="flex gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFE0D7] text-[#C94F37]">
+                      <TriangleAlert className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-[#803421]">Integração não inicializada</h3>
+                      <p className="mt-1 text-sm leading-6 text-[#8A5D53]">{setupError}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRetryKey((value) => value + 1)}
+                    className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#4B1D6D] px-4 text-sm font-semibold text-white transition hover:bg-[#3D1759]"
+                  >
+                    <RefreshCw className="h-4 w-4" /> Tentar novamente
+                  </button>
+                </div>
+              ) : !sdkReady ? (
+                <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D9E9] bg-[#FCF9FD] px-6 text-center">
+                  <Loader2 className="h-7 w-7 animate-spin text-[#4B1D6D]" />
+                  <p className="mt-3 font-medium">Preparando o formulário seguro…</p>
+                  <p className="mt-1 text-sm text-[#837687]">Carregando configuração e MercadoPago.js.</p>
+                </div>
+              ) : (
+                <form id="form-checkout" className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-[#403544]">Número do cartão</label>
+                    <FieldShell id="form-checkout__cardNumber" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-[#403544]">Validade</label>
+                      <FieldShell id="form-checkout__expirationDate" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-[#403544]">CVV</label>
+                      <FieldShell id="form-checkout__securityCode" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="form-checkout__cardholderName" className="text-sm font-semibold text-[#403544]">
+                      Nome do titular
+                    </label>
+                    <input
+                      id="form-checkout__cardholderName"
+                      className={inputClass}
+                      defaultValue="APRO"
+                      autoComplete="cc-name"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label htmlFor="form-checkout__identificationType" className="text-sm font-semibold text-[#403544]">
+                        Documento
+                      </label>
+                      <select id="form-checkout__identificationType" className={inputClass} />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="form-checkout__identificationNumber" className="text-sm font-semibold text-[#403544]">
+                        CPF de teste
+                      </label>
+                      <input
+                        id="form-checkout__identificationNumber"
+                        className={inputClass}
+                        defaultValue="12345678909"
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="form-checkout__cardholderEmail" className="text-sm font-semibold text-[#403544]">
+                      E-mail do comprador de teste
+                    </label>
+                    <input
+                      id="form-checkout__cardholderEmail"
+                      type="email"
+                      className={inputClass}
+                      defaultValue="test@testuser.com"
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label htmlFor="form-checkout__issuer" className="text-sm font-semibold text-[#403544]">
+                        Emissor
+                      </label>
+                      <select id="form-checkout__issuer" className={inputClass} />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="form-checkout__installments" className="text-sm font-semibold text-[#403544]">
+                        Parcelas
+                      </label>
+                      <select id="form-checkout__installments" className={inputClass} />
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#F7F2F8] px-4 py-3.5 text-sm text-[#665A69]">
+                    <strong className="font-semibold text-[#4B1D6D]">Dados esperados:</strong> cartão de teste,
+                    titular <strong>APRO</strong> e CPF <strong>12345678909</strong>.
+                  </div>
+
+                  <progress className="hidden" value="0" />
+
+                  <button
+                    id="form-checkout__submit"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-5 py-3.5 text-base font-semibold text-white shadow-[0_14px_30px_rgba(255,106,77,0.28)] transition hover:-translate-y-0.5 hover:bg-[#F25C40] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" /> Criando assinatura…
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-4 w-4" /> Criar assinatura de teste
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {result ? (
+                result.ok ? (
+                  <div className="mt-5 rounded-2xl border border-[#BFE0CA] bg-[#F1FBF4] p-5 text-[#265D39]">
+                    <div className="flex gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Assinatura criada com sucesso</p>
+                        <p className="mt-1 text-sm leading-6">
+                          Status: {result.status ?? "recebido"}. ID técnico: {result.subscriptionId ?? "—"}.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-5 rounded-2xl border border-[#F3C7BB] bg-[#FFF4F0] p-5 text-[#803421]">
+                    <div className="flex gap-3">
+                      <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Mercado Pago recusou a criação</p>
+                        <p className="mt-1 break-words text-sm leading-6">
+                          {result.providerMessage ?? result.error ?? "Falha desconhecida."}
+                        </p>
+                        {result.providerCauses?.map((cause, index) => (
+                          <p key={`${cause.code ?? "cause"}-${index}`} className="mt-1 text-sm">
+                            {cause.code ? `${cause.code}: ` : ""}
+                            {cause.description ?? "Erro retornado pelo provedor."}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              ) : null}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-[#EEE5DE] bg-[#FFFCF8] px-5 py-4 text-xs text-[#8B7F8F] sm:px-7">
+              <span>Comandiva · ambiente de homologação</span>
+              <span className="inline-flex items-center gap-1.5">
+                <LockKeyhole className="h-3.5 w-3.5" /> Mercado Pago Sandbox
+              </span>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );
