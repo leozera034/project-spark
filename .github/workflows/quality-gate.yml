@@ -34,6 +34,25 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: External Supabase Edge contract smoke
+        env:
+          EDGE_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/pediu-backend-api
+          EDGE_PUBLISHABLE_KEY: sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG
+        run: |
+          set -euo pipefail
+          response="$(curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors \
+            --request POST "$EDGE_URL" \
+            --header 'content-type: application/json' \
+            --header "apikey: $EDGE_PUBLISHABLE_KEY" \
+            --data '{"action":"rpc","rpc":"check_public_store_slug","args":{"_slug":"ci-edge-foundation-smoke"}}')"
+          EDGE_RESPONSE="$response" node --input-type=module - <<'NODE'
+          const payload = JSON.parse(process.env.EDGE_RESPONSE ?? '{}')
+          if (payload.ok !== true || typeof payload.data?.available !== 'boolean') {
+            console.error('Unexpected Edge gateway response:', payload)
+            process.exit(1)
+          }
+          console.log('External Edge gateway contract passed')
+          NODE
       - name: Critical route smoke test
         run: npm run test:smoke
 
