@@ -32,9 +32,9 @@ export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
     meta: [
-      { title: "Pediu Aqui — operação digital para o comércio local" },
+      { title: "Comandiva — operação digital para o comércio local" },
       { name: "description", content: description },
-      { property: "og:title", content: "Pediu Aqui — operação digital para o comércio local" },
+      { property: "og:title", content: "Comandiva — operação digital para o comércio local" },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/brand/og-image-1200x630.png" },
@@ -92,7 +92,7 @@ function Home() {
     <div className="min-h-dvh bg-[#06030d] text-white selection:bg-violet-500/40">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[.07] bg-[#06030d]/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-5 px-4 sm:px-6 lg:px-8">
-          <Link to="/" aria-label="Pediu Aqui" className="shrink-0">
+          <Link to="/" aria-label="Comandiva" className="shrink-0">
             <BrandLogo lockup="horizontal" className="h-7 w-auto brightness-0 invert" />
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-medium text-white/60 lg:flex">
@@ -211,7 +211,7 @@ function Home() {
           <div><p className="text-xs font-black uppercase tracking-[.15em] text-white/30">Produto</p><div className="mt-4 grid gap-2.5 text-sm text-white/52"><a href="#recursos" className="hover:text-white">Recursos</a><a href="#como-funciona" className="hover:text-white">Como funciona</a><a href="#saas" className="hover:text-white">Plataforma</a></div></div>
           <div><p className="text-xs font-black uppercase tracking-[.15em] text-white/30">Acessos</p><div className="mt-4 grid gap-2.5 text-sm text-white/52"><Link to="/entrar/loja" search={{ retorno: undefined }} className="hover:text-white">Loja</Link><Link to="/entrar/entregador" search={{ retorno: undefined }} className="hover:text-white">Entregador</Link><Link to="/entrar/admin" search={{ retorno: undefined }} className="hover:text-white">Administração</Link></div></div>
         </div>
-        <div className="mx-auto mt-10 max-w-7xl border-t border-white/[.06] px-4 pt-6 text-xs text-white/28 sm:px-6 lg:px-8">© {new Date().getFullYear()} Pediu Aqui. Todos os direitos reservados.</div>
+        <div className="mx-auto mt-10 max-w-7xl border-t border-white/[.06] px-4 pt-6 text-xs text-white/28 sm:px-6 lg:px-8">© {new Date().getFullYear()} Comandiva. Todos os direitos reservados.</div>
       </footer>
     </div>
   );
