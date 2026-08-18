@@ -12,6 +12,7 @@ type BannerCopy = {
   tone: BannerTone;
   icon: typeof ShieldCheck;
   actionLabel?: string;
+  actionTo?: "/app/loja/plano" | "/app/loja/configuracoes";
 };
 
 const toneClass: Record<BannerTone, string> = {
@@ -58,6 +59,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "brand",
         icon: Clock3,
         actionLabel: "Ver planos",
+        actionTo: "/app/loja/plano",
       };
     }
     case "complimentary": {
@@ -79,6 +81,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "warning",
         icon: CreditCard,
         actionLabel: "Regularizar",
+        actionTo: "/app/loja/plano",
       };
     case "restricted_growth":
       return {
@@ -87,6 +90,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "warning",
         icon: AlertTriangle,
         actionLabel: "Regularizar",
+        actionTo: "/app/loja/plano",
       };
     case "restricted_writes":
       return {
@@ -95,6 +99,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "warning",
         icon: AlertTriangle,
         actionLabel: "Regularizar",
+        actionTo: "/app/loja/plano",
       };
     case "suspended_orders":
       return {
@@ -103,6 +108,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "danger",
         icon: AlertTriangle,
         actionLabel: "Regularizar agora",
+        actionTo: "/app/loja/plano",
       };
     case "trial_expired":
       return {
@@ -118,6 +124,7 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         tone: "warning",
         icon: AlertTriangle,
         actionLabel: "Abrir configurações",
+        actionTo: "/app/loja/configuracoes",
       };
     default:
       return null;
@@ -149,9 +156,9 @@ export function BillingStatusBanner({ access }: { access: StoreBillingAccess }) 
           </div>
         </div>
 
-        {copy.actionLabel ? (
+        {copy.actionLabel && copy.actionTo ? (
           <Link
-            to="/app/loja/configuracoes"
+            to={copy.actionTo as never}
             className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-background/80 px-4 text-sm font-semibold shadow-sm transition hover:bg-background"
           >
             {copy.actionLabel}
