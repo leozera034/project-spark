@@ -1,11 +1,12 @@
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type ThemeToggleProps = {
   className?: string;
+  style?: CSSProperties;
   /** "icon" alterna claro/escuro; "segmented" expoe claro, escuro e sistema. */
   variant?: "icon" | "segmented";
 };
@@ -15,7 +16,7 @@ type ThemeToggleProps = {
  * - botao real, focavel por teclado, com aria-label e aria-pressed
  * - estado do sistema disponivel no modo segmentado
  */
-export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
+export function ThemeToggle({ className, style, variant = "icon" }: ThemeToggleProps) {
   const { theme, preference, setPreference, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -33,6 +34,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
       <div
         role="group"
         aria-label="Tema da interface"
+        style={style}
         className={cn(
           "inline-flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1",
           className,
@@ -72,8 +74,9 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
       aria-pressed={isDark}
       aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
       title={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+      style={style}
       className={cn(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "relative inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         className,
       )}
     >
