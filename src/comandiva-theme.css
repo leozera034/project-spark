@@ -1,0 +1,574 @@
+/*
+ * Comandiva — visual system rollout
+ * Reference palette:
+ * Plum #4B1D6D · Coral #FF6A4D · Cream #FFF6F1 · Charcoal #1C1C1E · Lavender #8A7CA8
+ * Loaded LAST on purpose to replace legacy Pediu Aqui / purple override presentation.
+ */
+
+:root {
+  color-scheme: light;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius: 1.25rem;
+
+  --background: #fff6f1;
+  --foreground: #1c1c1e;
+  --surface: #ffffff;
+  --surface-muted: #f8eeea;
+  --surface-raised: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #1c1c1e;
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1e;
+
+  --brand: #4b1d6d;
+  --brand-foreground: #ffffff;
+  --brand-strong: #35114f;
+  --brand-soft: #f0e8f3;
+  --brand-soft-foreground: #4b1d6d;
+  --carbon: #321447;
+  --carbon-foreground: #fff6f1;
+
+  --primary: #ff6a4d;
+  --primary-foreground: #ffffff;
+  --secondary: #f4e9e4;
+  --secondary-foreground: #4b1d6d;
+  --muted: #f4e9e4;
+  --muted-foreground: #6f6376;
+  --accent: #efe7f2;
+  --accent-foreground: #4b1d6d;
+  --destructive: #dc4b45;
+  --destructive-foreground: #ffffff;
+
+  --border: #e7dad6;
+  --border-strong: #d4c1cd;
+  --input: #dfd0cc;
+  --ring: #ff6a4d;
+
+  --sidebar: #4b1d6d;
+  --sidebar-foreground: #fff6f1;
+  --sidebar-primary: #ff6a4d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #61307e;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255,246,241,.14);
+  --sidebar-ring: #ff6a4d;
+
+  --highlight: #ff6a4d;
+  --highlight-foreground: #ffffff;
+  --highlight-soft: #ffe6df;
+  --highlight-soft-foreground: #9a3325;
+
+  --chart-1: #4b1d6d;
+  --chart-2: #ff6a4d;
+  --chart-3: #8a7ca8;
+  --chart-4: #6f4d84;
+  --chart-5: #f3a08d;
+
+  --elevation-1: 0 4px 18px rgba(75,29,109,.07);
+  --elevation-2: 0 14px 42px rgba(75,29,109,.11);
+  --elevation-3: 0 26px 72px rgba(75,29,109,.16);
+  --elevation-focus: 0 0 0 4px rgba(255,106,77,.18);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #25102f;
+  --foreground: #fff6f1;
+  --surface: #321447;
+  --surface-muted: #3c1952;
+  --surface-raised: #47205e;
+  --card: #321447;
+  --card-foreground: #fff6f1;
+  --popover: #3a184f;
+  --popover-foreground: #fff6f1;
+  --brand: #ff8068;
+  --brand-foreground: #24102f;
+  --brand-strong: #ff6a4d;
+  --brand-soft: #52266b;
+  --brand-soft-foreground: #f7e9ff;
+  --carbon: #1f0c2a;
+  --carbon-foreground: #fff6f1;
+  --primary: #ff6a4d;
+  --primary-foreground: #ffffff;
+  --secondary: #47205e;
+  --secondary-foreground: #fff6f1;
+  --muted: #47205e;
+  --muted-foreground: #d9cbdc;
+  --accent: #572971;
+  --accent-foreground: #fff6f1;
+  --border: rgba(255,246,241,.14);
+  --border-strong: rgba(255,246,241,.24);
+  --input: rgba(255,246,241,.20);
+  --ring: #ff8068;
+  --sidebar: #321447;
+  --sidebar-foreground: #fff6f1;
+  --sidebar-primary: #ff6a4d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #55256f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255,246,241,.13);
+  --sidebar-ring: #ff8068;
+}
+
+html,
+body {
+  background: #fff6f1 !important;
+}
+
+body {
+  color: var(--foreground);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-image:
+    radial-gradient(circle at 92% 4%, rgba(138,124,168,.12), transparent 26rem),
+    radial-gradient(circle at 5% 38%, rgba(255,106,77,.07), transparent 22rem) !important;
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-display {
+  font-family: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+::selection {
+  background: rgba(255,106,77,.28);
+  color: #321447;
+}
+
+/* Shared surfaces */
+.panel,
+[data-slot="card"] {
+  border-color: rgba(75,29,109,.10) !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 14px 42px rgba(75,29,109,.08) !important;
+}
+
+.glass-bar {
+  border-color: rgba(75,29,109,.10) !important;
+  background: rgba(255,246,241,.88) !important;
+  box-shadow: 0 8px 28px rgba(75,29,109,.06);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+}
+
+input,
+textarea,
+select,
+[data-slot="input"] {
+  border-color: #dfd0cc !important;
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9b8f9e !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #ff6a4d !important;
+  box-shadow: 0 0 0 4px rgba(255,106,77,.13) !important;
+}
+
+button[class*="bg-primary"],
+a[class*="bg-primary"] {
+  background: #ff6a4d !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgba(255,106,77,.20) !important;
+}
+
+button[class*="bg-brand"],
+a[class*="bg-brand"] {
+  background: #4b1d6d !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgba(75,29,109,.17) !important;
+}
+
+button[class*="bg-primary"]:hover,
+a[class*="bg-primary"]:hover {
+  background: #f15c40 !important;
+}
+
+button[class*="bg-brand"]:hover,
+a[class*="bg-brand"]:hover {
+  background: #35114f !important;
+}
+
+[class*="from-violet-"][class*="to-fuchsia-"],
+[class*="from-violet-"][class*="to-purple-"] {
+  background-image: linear-gradient(105deg, #ff6a4d 0%, #ff765d 100%) !important;
+}
+
+[class*="text-violet-600"],
+[class*="text-violet-700"],
+[class*="text-purple-600"],
+[class*="text-purple-700"] {
+  color: #4b1d6d !important;
+}
+
+[class*="text-fuchsia-"] {
+  color: #ff6a4d !important;
+}
+
+[class*="bg-violet-600"],
+[class*="bg-violet-700"],
+[class*="bg-purple-600"],
+[class*="bg-purple-700"] {
+  background-color: #4b1d6d !important;
+}
+
+[class*="bg-fuchsia-"] {
+  background-color: #ff6a4d !important;
+}
+
+[data-radix-popper-content-wrapper] > *,
+[role="dialog"] {
+  border-color: rgba(75,29,109,.12) !important;
+  box-shadow: 0 26px 70px rgba(75,29,109,.14) !important;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead {
+  color: #776c7b;
+}
+
+tbody tr {
+  transition: background-color .18s ease, transform .18s ease;
+}
+
+tbody tr:hover {
+  background: rgba(75,29,109,.035);
+}
+
+/* Partner / admin application shell */
+.app-premium-shell {
+  background:
+    radial-gradient(circle at 96% 0%, rgba(138,124,168,.13), transparent 24rem),
+    #fff6f1 !important;
+  color: #1c1c1e !important;
+}
+
+.app-premium-topbar {
+  border-color: rgba(75,29,109,.10) !important;
+  background: rgba(255,251,248,.92) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 8px 30px rgba(75,29,109,.05);
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+}
+
+.app-premium-topbar [class*="text-white"] {
+  color: #1c1c1e !important;
+}
+
+.app-premium-topbar [class*="text-violet-"] {
+  color: #4b1d6d !important;
+}
+
+.app-premium-sidebar {
+  background:
+    radial-gradient(circle at 12% 5%, rgba(255,106,77,.16), transparent 13rem),
+    linear-gradient(180deg, #4b1d6d 0%, #35114f 100%) !important;
+  border-color: rgba(255,246,241,.12) !important;
+  color: #fff6f1 !important;
+}
+
+.app-premium-sidebar img[alt="Comandiva"] {
+  filter: brightness(0) invert(1) !important;
+}
+
+.app-premium-sidebar a[aria-current="page"] {
+  background: rgba(255,255,255,.14) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 0 #ff6a4d !important;
+}
+
+.app-premium-sidebar a:hover {
+  background: rgba(255,255,255,.09) !important;
+}
+
+.app-premium-sidebar [class*="text-violet-"] {
+  color: #ffd0c6 !important;
+}
+
+.app-premium-bottom-nav {
+  border-color: rgba(75,29,109,.10) !important;
+  background: rgba(255,255,255,.96) !important;
+  color: #4b1d6d !important;
+  box-shadow: 0 -14px 38px rgba(75,29,109,.08) !important;
+}
+
+/* Store app using semantic sidebar tokens */
+.bg-sidebar {
+  background: linear-gradient(180deg, #4b1d6d 0%, #35114f 100%) !important;
+}
+
+.bg-sidebar img[alt="Comandiva"] {
+  filter: brightness(0) invert(1) !important;
+}
+
+.text-sidebar-foreground {
+  color: #fff6f1 !important;
+}
+
+.bg-sidebar-accent {
+  background: rgba(255,255,255,.14) !important;
+}
+
+.text-sidebar-primary {
+  color: #ffb4a2 !important;
+}
+
+/* Public storefront */
+.storefront-global {
+  color: #1c1c1e !important;
+  background:
+    radial-gradient(circle at 84% 0%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 22rem),
+    #fff6f1 !important;
+}
+
+.storefront-global .storefront-hero {
+  border-bottom: 1px solid rgba(75,29,109,.08) !important;
+}
+
+.storefront-global .storefront-store-card,
+.storefront-global .storefront-product-card {
+  border: 1px solid rgba(75,29,109,.09) !important;
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 12px 34px rgba(75,29,109,.07) !important;
+}
+
+.storefront-global .storefront-search {
+  border-color: rgba(75,29,109,.12) !important;
+  background: rgba(255,255,255,.97) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 10px 28px rgba(75,29,109,.06) !important;
+}
+
+.storefront-global .storefront-category-chip {
+  border: 1px solid rgba(75,29,109,.10) !important;
+  background: #ffffff !important;
+  color: #4b1d6d !important;
+}
+
+.storefront-global .storefront-category-chip[data-active="true"] {
+  border-color: transparent !important;
+  color: #ffffff !important;
+  background: #4b1d6d !important;
+  box-shadow: 0 9px 24px rgba(75,29,109,.16) !important;
+}
+
+.storefront-global [role="dialog"],
+.storefront-global [data-radix-dialog-content] {
+  background: #fffaf7 !important;
+  color: #1c1c1e !important;
+}
+
+.storefront-global [role="dialog"] label,
+.storefront-global [data-radix-dialog-content] label {
+  border-color: rgba(75,29,109,.11) !important;
+  background: #ffffff !important;
+}
+
+/* Create-store onboarding */
+body:has(#storeName) main {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(138,124,168,.16), transparent 28rem),
+    radial-gradient(circle at 92% 9%, rgba(255,106,77,.08), transparent 24rem),
+    #fff6f1 !important;
+  color: #1c1c1e !important;
+}
+
+body:has(#storeName) section.panel {
+  border: 1px solid rgba(75,29,109,.09) !important;
+  background: #ffffff !important;
+  box-shadow: 0 28px 70px -34px rgba(75,29,109,.18) !important;
+}
+
+/* Marketing landing — transforms the previous dark-purple concept into the approved cream/plum/coral system. */
+body:has(a[href="#recursos"]) #conteudo > div {
+  background: #fff6f1 !important;
+  color: #1c1c1e !important;
+}
+
+body:has(a[href="#recursos"]) header {
+  border-color: rgba(75,29,109,.10) !important;
+  background: rgba(255,246,241,.92) !important;
+  box-shadow: 0 8px 30px rgba(75,29,109,.05);
+}
+
+body:has(a[href="#recursos"]) header img[alt="Comandiva"] {
+  height: 2.45rem !important;
+  width: auto !important;
+  filter: none !important;
+}
+
+body:has(a[href="#recursos"]) header nav,
+body:has(a[href="#recursos"]) header nav a,
+body:has(a[href="#recursos"]) header a[href="/entrar/loja"] {
+  color: #4b1d6d !important;
+}
+
+body:has(a[href="#recursos"]) header a[href="/criar-loja"] {
+  background: #ff6a4d !important;
+  color: #ffffff !important;
+  box-shadow: 0 11px 30px rgba(255,106,77,.20) !important;
+}
+
+body:has(a[href="#recursos"]) header button[aria-label="Menu"] {
+  border-color: rgba(75,29,109,.14) !important;
+  color: #4b1d6d !important;
+  background: rgba(255,255,255,.72) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child {
+  color: #1c1c1e !important;
+  background: #fff6f1 !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child > div.absolute.inset-0:nth-child(1) {
+  background:
+    radial-gradient(circle at 80% 24%, rgba(138,124,168,.16), transparent 28%),
+    radial-gradient(circle at 12% 16%, rgba(255,106,77,.08), transparent 25%),
+    linear-gradient(180deg, #fff9f6 0%, #fff6f1 100%) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child > div.absolute.inset-0:nth-child(2) {
+  opacity: .32 !important;
+  background-image:
+    linear-gradient(rgba(75,29,109,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(75,29,109,.035) 1px, transparent 1px) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="text-white/"] {
+  color: rgba(28,28,30,.62) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="border-white"] {
+  border-color: rgba(75,29,109,.11) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child h1 {
+  color: #4b1d6d !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child h1 span {
+  background-image: linear-gradient(90deg, #4b1d6d 0%, #ff6a4d 100%) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child a[href="#como-funciona"] {
+  border-color: rgba(75,29,109,.16) !important;
+  background: rgba(255,255,255,.82) !important;
+  color: #4b1d6d !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="max-w-[380px]"] {
+  border-color: rgba(75,29,109,.18) !important;
+  background: #ffffff !important;
+  box-shadow: 0 34px 80px rgba(75,29,109,.15) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#0a0611]"] {
+  background: #fffaf7 !important;
+  color: #1c1c1e !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#10091a]"] {
+  background: rgba(255,255,255,.96) !important;
+  color: #1c1c1e !important;
+  border-color: rgba(75,29,109,.10) !important;
+  box-shadow: 0 14px 36px rgba(75,29,109,.09) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child [class*="bg-[#10091a]"] [class*="text-white/"] {
+  color: #4b1d6d !important;
+}
+
+body:has(a[href="#recursos"]) #recursos,
+body:has(a[href="#recursos"]) #negocios {
+  background: #fff6f1 !important;
+  color: #1c1c1e !important;
+}
+
+body:has(a[href="#recursos"]) #como-funciona,
+body:has(a[href="#recursos"]) #saas,
+body:has(a[href="#recursos"]) footer {
+  background: linear-gradient(135deg, #4b1d6d 0%, #35114f 100%) !important;
+  color: #fff6f1 !important;
+}
+
+body:has(a[href="#recursos"]) #como-funciona [class*="text-violet-"],
+body:has(a[href="#recursos"]) #saas [class*="text-violet-"] {
+  color: #ffb4a2 !important;
+}
+
+body:has(a[href="#recursos"]) #como-funciona [class*="border-violet-"],
+body:has(a[href="#recursos"]) #saas [class*="border-violet-"] {
+  border-color: rgba(255,246,241,.14) !important;
+}
+
+body:has(a[href="#recursos"]) #como-funciona [class*="bg-white/"],
+body:has(a[href="#recursos"]) #saas [class*="bg-white/"] {
+  background: rgba(255,255,255,.07) !important;
+}
+
+body:has(a[href="#recursos"]) footer img[alt="Comandiva"] {
+  height: 2.2rem !important;
+  width: auto !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+body:has(a[href="#recursos"]) main > section:first-child::after {
+  background: url('/brand/comandiva-hero-operations.webp') center/contain no-repeat !important;
+  opacity: .30 !important;
+  filter: drop-shadow(0 28px 60px rgba(75,29,109,.18)) !important;
+}
+
+/* Auth and operational forms use cream/white instead of near-black surfaces. */
+body:has(main a[href="/"]) input,
+body:has(main a[href="/"]) textarea,
+body:has(main a[href="/"]) select {
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+}
+
+/* Responsive refinements */
+@media (max-width: 1023px) {
+  body:has(a[href="#recursos"]) header img[alt="Comandiva"] {
+    height: 2.15rem !important;
+  }
+
+  body:has(a[href="#recursos"]) main > section:first-child::after {
+    width: 86vw !important;
+    right: -34vw !important;
+    opacity: .12 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  :root { --radius: 1.05rem; }
+
+  .app-premium-topbar {
+    min-height: 60px;
+  }
+
+  .app-premium-bottom-nav a {
+    min-height: 64px;
+  }
+
+  .storefront-global .storefront-product-card {
+    border-radius: 18px !important;
+  }
+
+  body:has(a[href="#recursos"]) main > section:first-child h1 {
+    letter-spacing: -.045em !important;
+  }
+}
