@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
 /**
- * Planos comerciais reais, lidos da tabela pública `plans`.
- * Nenhum valor é inventado na landing: o que aparece na página é
- * exatamente o que está cadastrado como plano ativo.
+ * Planos comerciais reais, lidos exclusivamente da fundação externa.
+ * Nenhum valor é inventado na landing: se não houver plano ativo cadastrado,
+ * a lista fica vazia.
  */
 export type PublicPlan = {
   code: string;
@@ -15,31 +15,24 @@ export type PublicPlan = {
   max_couriers: number | null;
 };
 
-/**
- * A chamada de banco fica isolada numa Server Function. O handler já trata
- * falhas de Supabase, mas a própria ponte Server Function também pode rejeitar
- * durante preview/deploy ou navegação com cache antigo. A landing pública não
- * pode cair inteira só porque a tabela de planos está temporariamente
- * indisponível, então o wrapper público abaixo também trata essa camada.
- */
+type PublicPlanRow = {
+  code: string;
+  name: string;
+  description: string | null;
+  monthly_price: number | string;
+  max_orders_month: number | null;
+  max_team_members: number | null;
+  max_couriers: number | null;
+};
+
 const listPublicPlansServer = createServerFn({ method: "GET" }).handler(
   async (): Promise<PublicPlan[]> => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data, error } = await supabaseAdmin
-        .from("plans")
-        .select(
-          "code, name, description, monthly_price, max_orders_month, max_team_members, max_couriers",
-        )
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
-
-      if (error) {
-        console.error("[marketing] falha ao listar planos", error);
-        return [];
-      }
-
-      return (data ?? []).map((plan) => ({
+      const { invokePediuPublicSupport } = await import(
+        "@/integrations/supabase/public-support.server"
+      );
+      const rows = await invokePediuPublicSupport<PublicPlanRow[]>({ action: "plans" });
+      return rows.map((plan) => ({
         code: plan.code,
         name: plan.name,
         description: plan.description,
