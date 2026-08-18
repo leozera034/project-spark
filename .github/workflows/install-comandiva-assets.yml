@@ -1,0 +1,100 @@
+name: Install Comandiva brand assets
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  install-brand-assets:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate uploaded package
+        run: test -f comandiva-main-ready.zip
+
+      - name: Extract approved Comandiva assets
+        run: |
+          rm -rf .comandiva-assets
+          unzip -o comandiva-main-ready.zip -d .comandiva-assets
+          mkdir -p public/brand
+          cp .comandiva-assets/comandiva_main_ready/01-transparent-logos/comandiva-logo-horizontal.png public/brand/comandiva-logo-horizontal.png
+          cp .comandiva-assets/comandiva_main_ready/01-transparent-logos/comandiva-logo-stacked.png public/brand/comandiva-logo-stacked.png
+          cp .comandiva-assets/comandiva_main_ready/01-transparent-logos/comandiva-logo-stacked-alt.png public/brand/comandiva-logo-stacked-alt.png
+          cp .comandiva-assets/comandiva_main_ready/01-transparent-logos/comandiva-symbol.png public/brand/comandiva-symbol.png
+          cp .comandiva-assets/comandiva_main_ready/01-transparent-logos/comandiva-wordmark.png public/brand/comandiva-wordmark.png
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-app-icon.png public/brand/comandiva-app-icon.png
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-hero-operations.webp public/brand/comandiva-hero-operations.webp
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-dashboard-preview.webp public/brand/comandiva-dashboard-preview.webp
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-mobile-tracking.webp public/brand/comandiva-mobile-tracking.webp
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-og-image-1200x630.png public/brand/og-image-1200x630.png
+          cp .comandiva-assets/comandiva_main_ready/02-site-assets/comandiva-pattern.svg public/brand/comandiva-pattern.svg
+
+      - name: Generate production icon variants
+        run: |
+          python -m pip install --quiet pillow
+          python <<'PY'
+          from PIL import Image, ImageOps
+          from pathlib import Path
+
+          root = Path('public/brand')
+          plum = (75, 29, 109)
+          app = Image.open(root / 'comandiva-app-icon.png').convert('RGBA')
+          app = ImageOps.fit(app, (1024, 1024), method=Image.Resampling.LANCZOS)
+          base = Image.new('RGBA', app.size, plum + (255,))
+          base.alpha_composite(app)
+          master = base.convert('RGB')
+
+          master.save(root / 'ios-app-icon-1024x1024.png', 'PNG')
+          for size, name in [
+              (512, 'android-icon-512x512.png'),
+              (180, 'apple-touch-icon-180x180.png'),
+              (192, 'pwa-icon-192x192.png'),
+              (512, 'pwa-icon-512x512.png'),
+              (64, 'favicon-64x64.png'),
+              (48, 'favicon-48x48.png'),
+              (32, 'favicon-32x32.png'),
+              (16, 'favicon-16x16.png'),
+          ]:
+              master.resize((size, size), Image.Resampling.LANCZOS).save(root / name, 'PNG')
+
+          mask = Image.new('RGB', (512, 512), plum)
+          safe = master.resize((410, 410), Image.Resampling.LANCZOS)
+          mask.paste(safe, ((512 - 410)//2, (512 - 410)//2))
+          mask.save(root / 'pwa-maskable-512x512.png', 'PNG')
+
+          symbol = Image.open(root / 'comandiva-symbol.png').convert('RGBA')
+          symbol.thumbnail((300, 300), Image.Resampling.LANCZOS)
+          fg = Image.new('RGBA', (432, 432), (0, 0, 0, 0))
+          fg.alpha_composite(symbol, ((432-symbol.width)//2, (432-symbol.height)//2))
+          fg.save(root / 'android-adaptive-foreground-432x432.png', 'PNG')
+          Image.new('RGB', (432, 432), plum).save(root / 'android-adaptive-background-432x432.png', 'PNG')
+          mono = Image.new('RGBA', (432, 432), (255, 255, 255, 0))
+          mono.putalpha(fg.getchannel('A'))
+          mono.save(root / 'android-monochrome-432x432.png', 'PNG')
+
+          ImageOps.fit(Image.open(root / 'og-image-1200x630.png').convert('RGB'), (1200, 600), method=Image.Resampling.LANCZOS).save(root / 'twitter-card-1200x600.png', 'PNG')
+          app.save('public/favicon.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64)])
+
+          favicon_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M38 10c-10 0-18 8-18 18 0 13 18 27 18 27s18-14 18-27c0-10-8-18-18-18Z" fill="none" stroke="#4B1D6D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 27c0-4 5-6 8-2 3-4 8-2 8 2 0 5-8 10-8 10s-8-5-8-10Z" fill="#FF6A4D"/><path d="M4 21h17M7 29h12M10 37h14" stroke="#FF6A4D" stroke-width="5" stroke-linecap="round"/></svg>'''
+          Path('public/favicon.svg').write_text(favicon_svg, encoding='utf-8')
+          PY
+
+      - name: Clean temporary files
+        run: |
+          rm -rf .comandiva-assets
+          rm -f comandiva-main-ready.zip
+          rm -f .github/workflows/install-comandiva-assets.yml
+
+      - name: Commit installed brand assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "brand: install Comandiva production assets"
+          git push origin HEAD:main
