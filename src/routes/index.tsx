@@ -19,12 +19,15 @@ import {
 import { useState } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { PricingSection } from "@/components/marketing/PricingSection";
 import { Reveal } from "@/components/motion/Reveal";
+import { listPublicPlans } from "@/lib/marketing.functions";
 
 const description =
   "Cardápio digital, pedidos, cozinha, entregas e gestão em uma plataforma feita para o comércio local.";
 
 export const Route = createFileRoute("/")({
+  loader: () => listPublicPlans(),
   component: Home,
   head: () => ({
     meta: [
@@ -92,6 +95,7 @@ const flow = [
 const segments = ["Restaurantes", "Lanchonetes", "Pizzarias", "Bares", "Mercados", "Conveniências"];
 
 function Home() {
+  const plans = Route.useLoaderData();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -108,6 +112,7 @@ function Home() {
               ["#como-funciona", "Como funciona"],
               ["#negocios", "Para negócios"],
               ["#saas", "Plataforma"],
+              ["#planos", "Planos"],
             ].map(([href, label]) => (
               <a
                 key={href}
@@ -153,6 +158,7 @@ function Home() {
                 ["#como-funciona", "Como funciona"],
                 ["#negocios", "Para negócios"],
                 ["#saas", "Plataforma"],
+                ["#planos", "Planos"],
               ].map(([href, label]) => (
                 <a
                   key={href}
@@ -373,6 +379,8 @@ function Home() {
           </div>
         </section>
 
+        <PricingSection plans={plans} />
+
         <section className="bg-[#FFF6F1] px-4 py-20 sm:px-6 lg:px-8">
           <Reveal className="mx-auto max-w-5xl overflow-hidden rounded-[36px] bg-[#4B1D6D] px-6 py-12 text-center text-white shadow-[0_28px_70px_rgba(75,29,109,.20)] sm:px-10 sm:py-16">
             <p className="text-xs font-black uppercase tracking-[.22em] text-[#FFB09E]">Comandiva</p>
@@ -406,6 +414,7 @@ function Home() {
               <a href="#recursos" className="hover:text-white">Recursos</a>
               <a href="#como-funciona" className="hover:text-white">Como funciona</a>
               <a href="#saas" className="hover:text-white">Plataforma</a>
+              <a href="#planos" className="hover:text-white">Planos</a>
             </div>
           </div>
           <div>
