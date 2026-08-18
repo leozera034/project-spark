@@ -121,6 +121,48 @@ export type Database = {
           },
         ]
       }
+      category_profiles: {
+        Row: {
+          code: string
+          created_at: string
+          default_capabilities: Json
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          product_templates: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_capabilities?: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          product_templates?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_capabilities?: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_templates?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       combo_items: {
         Row: {
           combo_id: string
@@ -880,6 +922,81 @@ export type Database = {
           },
         ]
       }
+      inventory_reservations: {
+        Row: {
+          created_at: string
+          id: string
+          option_item_id: string | null
+          order_id: string
+          order_item_id: string | null
+          product_id: string | null
+          quantity: number
+          released_at: string | null
+          source_kind: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_item_id?: string | null
+          order_id: string
+          order_item_id?: string | null
+          product_id?: string | null
+          quantity: number
+          released_at?: string | null
+          source_kind: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_item_id?: string | null
+          order_id?: string
+          order_item_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          released_at?: string | null
+          source_kind?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_reservations_option_item_id_fkey"
+            columns: ["option_item_id"]
+            isOneToOne: false
+            referencedRelation: "option_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_reservations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_reservations_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_reservations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_reservations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neighborhoods: {
         Row: {
           created_at: string
@@ -937,9 +1054,11 @@ export type Database = {
         Row: {
           allow_quantity: boolean
           archived_at: string | null
+          configuration: Json
           created_at: string
           description: string | null
           id: string
+          included_selections: number
           is_active: boolean
           is_archived: boolean
           is_required: boolean
@@ -949,6 +1068,7 @@ export type Database = {
           portion_count: number | null
           price_effect: Database["public"]["Enums"]["option_group_price_effect"]
           pricing_strategy: Database["public"]["Enums"]["option_group_pricing_strategy"]
+          role: string
           selection_type: Database["public"]["Enums"]["option_selection_type"]
           sort_order: number
           store_id: string
@@ -957,9 +1077,11 @@ export type Database = {
         Insert: {
           allow_quantity?: boolean
           archived_at?: string | null
+          configuration?: Json
           created_at?: string
           description?: string | null
           id?: string
+          included_selections?: number
           is_active?: boolean
           is_archived?: boolean
           is_required?: boolean
@@ -969,6 +1091,7 @@ export type Database = {
           portion_count?: number | null
           price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
           pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
+          role?: string
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
           sort_order?: number
           store_id: string
@@ -977,9 +1100,11 @@ export type Database = {
         Update: {
           allow_quantity?: boolean
           archived_at?: string | null
+          configuration?: Json
           created_at?: string
           description?: string | null
           id?: string
+          included_selections?: number
           is_active?: boolean
           is_archived?: boolean
           is_required?: boolean
@@ -989,6 +1114,7 @@ export type Database = {
           portion_count?: number | null
           price_effect?: Database["public"]["Enums"]["option_group_price_effect"]
           pricing_strategy?: Database["public"]["Enums"]["option_group_pricing_strategy"]
+          role?: string
           selection_type?: Database["public"]["Enums"]["option_selection_type"]
           sort_order?: number
           store_id?: string
@@ -1011,9 +1137,13 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          inventory_quantity: number | null
           is_archived: boolean
           is_available: boolean
+          linked_product_id: string | null
+          linked_variant_id: string | null
           max_quantity: number
+          metadata: Json
           name: string
           option_group_id: string
           sort_order: number
@@ -1026,9 +1156,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inventory_quantity?: number | null
           is_archived?: boolean
           is_available?: boolean
+          linked_product_id?: string | null
+          linked_variant_id?: string | null
           max_quantity?: number
+          metadata?: Json
           name: string
           option_group_id: string
           sort_order?: number
@@ -1041,9 +1175,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inventory_quantity?: number | null
           is_archived?: boolean
           is_available?: boolean
+          linked_product_id?: string | null
+          linked_variant_id?: string | null
           max_quantity?: number
+          metadata?: Json
           name?: string
           option_group_id?: string
           sort_order?: number
@@ -1059,6 +1197,20 @@ export type Database = {
             referencedColumns: ["id", "store_id"]
           },
           {
+            foreignKeyName: "option_items_linked_product_same_store_fk"
+            columns: ["linked_product_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "option_items_linked_variant_product_store_fk"
+            columns: ["linked_variant_id", "linked_product_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id", "product_id", "store_id"]
+          },
+          {
             foreignKeyName: "option_items_store_fk"
             columns: ["store_id"]
             isOneToOne: false
@@ -1071,11 +1223,15 @@ export type Database = {
         Row: {
           additional_price: number
           created_at: string
+          engine_metadata: Json
           group_name: string
           id: string
+          linked_product_id: string | null
+          linked_variant_id: string | null
           option_group_id: string | null
           option_item_id: string | null
           option_name: string
+          option_role: string | null
           order_item_id: string
           quantity: number
           store_id: string
@@ -1084,11 +1240,15 @@ export type Database = {
         Insert: {
           additional_price?: number
           created_at?: string
+          engine_metadata?: Json
           group_name: string
           id?: string
+          linked_product_id?: string | null
+          linked_variant_id?: string | null
           option_group_id?: string | null
           option_item_id?: string | null
           option_name: string
+          option_role?: string | null
           order_item_id: string
           quantity?: number
           store_id: string
@@ -1097,11 +1257,15 @@ export type Database = {
         Update: {
           additional_price?: number
           created_at?: string
+          engine_metadata?: Json
           group_name?: string
           id?: string
+          linked_product_id?: string | null
+          linked_variant_id?: string | null
           option_group_id?: string | null
           option_item_id?: string | null
           option_name?: string
+          option_role?: string | null
           order_item_id?: string
           quantity?: number
           store_id?: string
@@ -1682,6 +1846,64 @@ export type Database = {
           },
         ]
       }
+      product_variant_option_group_rules: {
+        Row: {
+          created_at: string
+          included_selections: number | null
+          max_selections: number | null
+          min_selections: number | null
+          option_group_id: string
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          included_selections?: number | null
+          max_selections?: number | null
+          min_selections?: number | null
+          option_group_id: string
+          product_id: string
+          product_variant_id: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          included_selections?: number | null
+          max_selections?: number | null
+          min_selections?: number | null
+          option_group_id?: string
+          product_id?: string
+          product_variant_id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvogr_group_store_fk"
+            columns: ["option_group_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "option_groups"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvogr_product_store_fk"
+            columns: ["product_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "store_id"]
+          },
+          {
+            foreignKeyName: "pvogr_variant_store_fk"
+            columns: ["product_variant_id", "store_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id", "store_id"]
+          },
+        ]
+      }
       product_variant_option_item_prices: {
         Row: {
           created_at: string
@@ -1748,10 +1970,12 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string
+          flavor_parts: number | null
           id: string
           is_archived: boolean
           is_available: boolean
           is_default: boolean
+          max_flavors: number | null
           name: string
           package_quantity: number | null
           package_unit: Database["public"]["Enums"]["measurement_unit"] | null
@@ -1765,10 +1989,12 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string
+          flavor_parts?: number | null
           id?: string
           is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
+          max_flavors?: number | null
           name: string
           package_quantity?: number | null
           package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
@@ -1782,10 +2008,12 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string
+          flavor_parts?: number | null
           id?: string
           is_archived?: boolean
           is_available?: boolean
           is_default?: boolean
+          max_flavors?: number | null
           name?: string
           package_quantity?: number | null
           package_unit?: Database["public"]["Enums"]["measurement_unit"] | null
@@ -1821,9 +2049,11 @@ export type Database = {
           available_to: string | null
           available_weekdays: number[] | null
           base_price: number
+          capabilities: Json
           category_id: string
           created_at: string
           description: string | null
+          engine_version: number
           has_variants: boolean
           id: string
           image_path: string | null
@@ -1832,14 +2062,18 @@ export type Database = {
           is_available: boolean
           is_featured: boolean
           is_sold_out: boolean
+          low_stock_threshold: number
           max_quantity: number | null
           measurement_unit: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity: number
           name: string
+          pricing_rules: Json
           pricing_unit: Database["public"]["Enums"]["pricing_unit"]
+          product_type: string
           quantity_step: number
           sale_mode: Database["public"]["Enums"]["product_sale_mode"]
           sort_order: number
+          stock_quantity: number | null
           store_id: string
           unit_label: string | null
           updated_at: string
@@ -1851,9 +2085,11 @@ export type Database = {
           available_to?: string | null
           available_weekdays?: number[] | null
           base_price?: number
+          capabilities?: Json
           category_id: string
           created_at?: string
           description?: string | null
+          engine_version?: number
           has_variants?: boolean
           id?: string
           image_path?: string | null
@@ -1862,14 +2098,18 @@ export type Database = {
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
+          low_stock_threshold?: number
           max_quantity?: number | null
           measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name: string
+          pricing_rules?: Json
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          product_type?: string
           quantity_step?: number
           sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
+          stock_quantity?: number | null
           store_id: string
           unit_label?: string | null
           updated_at?: string
@@ -1881,9 +2121,11 @@ export type Database = {
           available_to?: string | null
           available_weekdays?: number[] | null
           base_price?: number
+          capabilities?: Json
           category_id?: string
           created_at?: string
           description?: string | null
+          engine_version?: number
           has_variants?: boolean
           id?: string
           image_path?: string | null
@@ -1892,14 +2134,18 @@ export type Database = {
           is_available?: boolean
           is_featured?: boolean
           is_sold_out?: boolean
+          low_stock_threshold?: number
           max_quantity?: number | null
           measurement_unit?: Database["public"]["Enums"]["measurement_unit"]
           minimum_quantity?: number
           name?: string
+          pricing_rules?: Json
           pricing_unit?: Database["public"]["Enums"]["pricing_unit"]
+          product_type?: string
           quantity_step?: number
           sale_mode?: Database["public"]["Enums"]["product_sale_mode"]
           sort_order?: number
+          stock_quantity?: number | null
           store_id?: string
           unit_label?: string | null
           updated_at?: string
@@ -2362,6 +2608,7 @@ export type Database = {
           accepts_delivery: boolean
           accepts_pickup: boolean
           address_line: string | null
+          category_profile_id: string | null
           city: string
           courier_acceptance_required: boolean
           created_at: string
@@ -2385,6 +2632,7 @@ export type Database = {
           accepts_delivery?: boolean
           accepts_pickup?: boolean
           address_line?: string | null
+          category_profile_id?: string | null
           city?: string
           courier_acceptance_required?: boolean
           created_at?: string
@@ -2408,6 +2656,7 @@ export type Database = {
           accepts_delivery?: boolean
           accepts_pickup?: boolean
           address_line?: string | null
+          category_profile_id?: string | null
           city?: string
           courier_acceptance_required?: boolean
           created_at?: string
@@ -2427,7 +2676,15 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stores_category_profile_id_fkey"
+            columns: ["category_profile_id"]
+            isOneToOne: false
+            referencedRelation: "category_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_payments: {
         Row: {
@@ -2605,13 +2862,57 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_category_profiles: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          default_capabilities: Json
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          product_templates: Json
+          sort_order: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "category_profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_reactivate_store: {
         Args: { _store_id: string }
         Returns: undefined
       }
+      admin_save_category_profile: {
+        Args: {
+          _active: boolean
+          _capabilities: Json
+          _code: string
+          _description: string
+          _icon: string
+          _id: string
+          _name: string
+          _sort_order: number
+          _templates: Json
+        }
+        Returns: string
+      }
       admin_suspend_store: {
         Args: { _reason: string; _store_id: string }
         Returns: undefined
+      }
+      apply_meal_group_defaults: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      apply_shark_buildable_experience_drafts: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
       }
       archive_catalog_category: {
         Args: {
@@ -2765,6 +3066,17 @@ export type Database = {
         }
         Returns: Json
       }
+      create_combo_choice: {
+        Args: {
+          _group_id: string
+          _linked_product_id: string
+          _linked_variant_id?: string
+          _name: string
+          _price_difference?: number
+          _store_id: string
+        }
+        Returns: Json
+      }
       create_option_group: {
         Args: {
           _description?: string
@@ -2789,6 +3101,30 @@ export type Database = {
           _option_group_id: string
           _store_id: string
         }
+        Returns: Json
+      }
+      create_product_option_group_from_template: {
+        Args: {
+          _configuration?: Json
+          _included: number
+          _max: number
+          _min: number
+          _name: string
+          _portion_count?: number
+          _product_id: string
+          _required: boolean
+          _role: string
+          _selection_type?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      create_product_starter_group_drafts: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      create_product_starter_group_drafts_legacy: {
+        Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
       create_product_variant: {
@@ -2842,6 +3178,14 @@ export type Database = {
         }
         Returns: Json
       }
+      ensure_buildable_beverage_draft: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      ensure_remaining_experience_drafts: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
       fail_courier_provisioning_admin: {
         Args: { _idempotency_key: string; _store_id: string }
         Returns: undefined
@@ -2891,6 +3235,15 @@ export type Database = {
         Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
+      get_product_engine_profile: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      get_product_inventory: {
+        Args: { _product_id: string; _store_id: string }
+        Returns: Json
+      }
+      get_store_category_profile: { Args: { _store_id: string }; Returns: Json }
       get_store_delivery_assignment: {
         Args: { _order_id: string; _store_id: string }
         Returns: Json
@@ -2910,6 +3263,11 @@ export type Database = {
         }[]
       }
       heartbeat_my_courier_presence: { Args: never; Returns: Json }
+      list_active_category_profiles: { Args: never; Returns: Json }
+      list_combo_catalog_candidates: {
+        Args: { _exclude_product_id?: string; _store_id: string }
+        Returns: Json
+      }
       list_eligible_couriers_for_delivery: {
         Args: { _order_id: string; _store_id: string }
         Returns: Json
@@ -2973,6 +3331,10 @@ export type Database = {
           _search?: string
           _status?: string
         }
+        Returns: Json
+      }
+      list_product_variant_group_rules: {
+        Args: { _product_id: string; _store_id: string }
         Returns: Json
       }
       list_product_variants: {
@@ -3071,6 +3433,10 @@ export type Database = {
           _state: string
           _store_name: string
         }
+        Returns: Json
+      }
+      publish_shark_option_group: {
+        Args: { _group_id: string; _store_id: string }
         Returns: Json
       }
       reassign_delivery_courier: {
@@ -3253,6 +3619,10 @@ export type Database = {
         }
         Returns: Json
       }
+      set_store_category_profile: {
+        Args: { _profile_id: string; _store_id: string }
+        Returns: Json
+      }
       start_my_delivery: {
         Args: {
           _delivery_id: string
@@ -3271,6 +3641,11 @@ export type Database = {
         Returns: Json
       }
       storefront_catalog: { Args: { _slug: string }; Returns: Json }
+      storefront_combo_available_choices: {
+        Args: { _product_id: string; _slug: string }
+        Returns: Json
+      }
+      storefront_experience_profile: { Args: { _slug: string }; Returns: Json }
       storefront_fulfillment: { Args: { _slug: string }; Returns: Json }
       storefront_normalize_slug: { Args: { _slug: string }; Returns: string }
       storefront_order_tracking: {
@@ -3279,6 +3654,10 @@ export type Database = {
       }
       storefront_payment_methods: {
         Args: { _fulfillment_type?: string; _slug: string }
+        Returns: Json
+      }
+      storefront_popular_products: {
+        Args: { _days?: number; _limit?: number; _slug: string }
         Returns: Json
       }
       storefront_price: {
@@ -3295,6 +3674,15 @@ export type Database = {
         Args: { _product_id: string; _slug: string }
         Returns: Json
       }
+      storefront_product_recommendations: {
+        Args: {
+          _days?: number
+          _limit?: number
+          _product_id: string
+          _slug: string
+        }
+        Returns: Json
+      }
       storefront_store: { Args: { _slug: string }; Returns: Json }
       storefront_submit_order: {
         Args: { _payload: Json; _slug: string }
@@ -3307,6 +3695,18 @@ export type Database = {
           _fulfillment_type: string
           _slug: string
         }
+        Returns: Json
+      }
+      storefront_variant_flavor_structure: {
+        Args: { _product_id: string; _slug: string }
+        Returns: Json
+      }
+      storefront_variant_group_rules: {
+        Args: { _product_id: string; _slug: string }
+        Returns: Json
+      }
+      storefront_variant_option_prices: {
+        Args: { _product_id: string; _slug: string }
         Returns: Json
       }
       update_catalog_category: {
@@ -3337,6 +3737,16 @@ export type Database = {
         }
         Returns: Json
       }
+      update_option_group_engine: {
+        Args: {
+          _configuration?: Json
+          _id: string
+          _included_selections: number
+          _role: string
+          _store_id: string
+        }
+        Returns: Json
+      }
       update_option_item: {
         Args: {
           _additional_price?: number
@@ -3345,6 +3755,48 @@ export type Database = {
           _id: string
           _max_quantity?: number
           _name: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_option_item_engine: {
+        Args: {
+          _id: string
+          _inventory_quantity: number
+          _linked_product_id: string
+          _linked_variant_id: string
+          _metadata?: Json
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_engine_profile: {
+        Args: {
+          _capabilities: Json
+          _pricing_rules?: Json
+          _product_id: string
+          _product_type: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_inventory: {
+        Args: {
+          _low_stock_threshold?: number
+          _managed: boolean
+          _product_id: string
+          _quantity?: number
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_product_inventory_v2: {
+        Args: {
+          _expected_updated_at: string
+          _low_stock_threshold: number
+          _managed: boolean
+          _product_id: string
+          _quantity: number
           _store_id: string
         }
         Returns: Json
@@ -3455,6 +3907,37 @@ export type Database = {
           _cover_path?: string
           _expected_updated_at?: string
           _logo_path?: string
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_variant_flavor_limit: {
+        Args: {
+          _expected_updated_at?: string
+          _id: string
+          _max_flavors: number
+          _store_id: string
+        }
+        Returns: Json
+      }
+      update_variant_flavor_structure: {
+        Args: {
+          _expected_updated_at?: string
+          _flavor_parts: number
+          _id: string
+          _max_flavors: number
+          _store_id: string
+        }
+        Returns: Json
+      }
+      upsert_product_variant_group_rule: {
+        Args: {
+          _included_selections?: number
+          _max_selections?: number
+          _min_selections?: number
+          _option_group_id: string
+          _product_id: string
+          _product_variant_id: string
           _store_id: string
         }
         Returns: Json
