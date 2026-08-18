@@ -9,12 +9,12 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/sem-acesso")({
   head: () => ({
     meta: [
-      { title: "Acesso indisponível | Pediu Aqui" },
+      { title: "Acesso indisponível | Comandiva" },
       {
         name: "description",
-        content: "Sua conta não tem acesso liberado no momento no Pediu Aqui.",
+        content: "Sua conta não tem acesso liberado no momento na Comandiva.",
       },
-      { property: "og:title", content: "Acesso indisponível | Pediu Aqui" },
+      { property: "og:title", content: "Acesso indisponível | Comandiva" },
       { property: "og:description", content: "Sua conta não tem acesso liberado no momento." },
       { name: "robots", content: "noindex" },
     ],
@@ -40,7 +40,7 @@ function NoAccessPage() {
         <div className="flex items-start gap-3 rounded-lg border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
           <LifeBuoy className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden />
           <p>
-            Fale com o responsável pela sua loja ou com o suporte do Pediu Aqui para regularizar o seu
+            Fale com o responsável pela sua loja ou com o suporte da Comandiva para regularizar o seu
             acesso. Assim que liberado, basta entrar novamente.
           </p>
         </div>
