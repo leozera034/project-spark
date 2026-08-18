@@ -93,7 +93,8 @@ async function consumeRateLimit(
     _limit: limit,
     _window_seconds: windowSeconds,
   } as never);
-  return !error && data === true;
+  if (error || data !== true) return false;
+  return true;
 }
 
 function sanitize(value: string | undefined): string | undefined {
@@ -107,14 +108,44 @@ function sanitize(value: string | undefined): string | undefined {
 
 async function listPlans(req: Request) {
   const admin = adminClient();
-  const { data, error } = await admin
+  const { data: plans, error } = await admin
     .from("plans")
-    .select("code,name,description,monthly_price,max_orders_month,max_team_members,max_couriers")
+    .select("id,code,name,description,monthly_price,max_orders_month,max_team_members,max_couriers,features")
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
     .limit(20);
   if (error) return json(req, { ok: false, error: "plans_unavailable" }, 502);
-  return json(req, { ok: true, data: data ?? [] });
+
+  const planIds = (plans ?? []).map((plan) => plan.id);
+  const { data: prices, error: pricesError } = planIds.length
+    ? await admin
+        .from("plan_prices")
+        .select("plan_id,billing_interval,amount_cents,currency,trial_days")
+        .in("plan_id", planIds)
+        .eq("is_active", true)
+        .order("billing_interval", { ascending: true })
+    : { data: [], error: null };
+  if (pricesError) return json(req, { ok: false, error: "plan_prices_unavailable" }, 502);
+
+  const byPlan = new Map<string, Array<Record<string, unknown>>>();
+  for (const price of prices ?? []) {
+    const items = byPlan.get(price.plan_id) ?? [];
+    items.push({
+      billing_interval: price.billing_interval,
+      amount_cents: price.amount_cents,
+      currency: price.currency,
+      trial_days: price.trial_days,
+    });
+    byPlan.set(price.plan_id, items);
+  }
+
+  return json(req, {
+    ok: true,
+    data: (plans ?? []).map(({ id, ...plan }) => ({
+      ...plan,
+      prices: byPlan.get(id) ?? [],
+    })),
+  });
 }
 
 async function listStoreSlugs(req: Request) {
