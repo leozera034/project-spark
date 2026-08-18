@@ -72,20 +72,32 @@ export class PediuBackendApiError extends Error {
 
 type EdgeEnvelope<T> = { ok: true; data: T } | { ok: false; error?: string };
 
+type BackendActionOptions = {
+  accessToken?: string;
+};
+
 /**
  * Calls the external Supabase Edge gateway using only the browser-safe
  * publishable key. Privilege elevation happens inside Supabase, where secret
  * keys are injected by the platform and never enter Lovable or GitHub.
+ *
+ * Authenticated privileged actions must also forward the already-validated
+ * external Supabase access token. The Edge Function validates it again before
+ * executing tenant-scoped admin work.
  */
 export async function invokePediuBackendAction<T>(
   payload: Record<string, unknown>,
+  options: BackendActionOptions = {},
 ): Promise<T> {
+  const headers = new Headers({
+    'content-type': 'application/json',
+    apikey: EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
+  });
+  if (options.accessToken) headers.set('authorization', `Bearer ${options.accessToken}`);
+
   const response = await fetch(BACKEND_EDGE_URL, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      apikey: EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 
