@@ -118,6 +118,21 @@ async function edgeSignPaths(bucket: string, paths: string[], ttlSeconds: number
   }
 }
 
+/**
+ * Promises inspect a returned object's `.then` property during resolution.
+ * A normal SupabaseClient is not thenable, so the restricted proxy must return
+ * `undefined` for `then` instead of treating that introspection as a forbidden
+ * privileged operation. This keeps `await admin()` compatible without
+ * weakening the operation allowlist.
+ */
+function proxyGet(target: Record<string, unknown>, prop: PropertyKey, receiver: unknown) {
+  if (prop === 'then') return undefined;
+  if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
+  throw new Error(
+    `Privileged Supabase operation "${String(prop)}" is not exposed by the restricted server facade.`,
+  );
+}
+
 function createRestrictedServerClient(): RestrictedServerClient {
   const storage = {
     from(bucket: string) {
@@ -143,10 +158,7 @@ function createRestrictedServerClient(): RestrictedServerClient {
     } as Record<string, unknown>,
     {
       get(target, prop, receiver) {
-        if (Reflect.has(target, prop)) return Reflect.get(target, prop, receiver);
-        throw new Error(
-          `Privileged Supabase operation "${String(prop)}" is not exposed by the restricted server facade.`,
-        );
+        return proxyGet(target, prop, receiver);
       },
     },
   ) as unknown as RestrictedServerClient;
@@ -161,6 +173,7 @@ let _supabaseAdmin: RestrictedServerClient | undefined;
  */
 export const supabaseAdmin = new Proxy({} as RestrictedServerClient, {
   get(_, prop, receiver) {
+    if (prop === 'then') return undefined;
     if (!_supabaseAdmin) _supabaseAdmin = createRestrictedServerClient();
     return Reflect.get(_supabaseAdmin, prop, receiver);
   },
