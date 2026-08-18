@@ -12,11 +12,25 @@ BEGIN
     JOIN pg_namespace n ON n.oid = p.pronamespace
    WHERE n.nspname = 'public'
      AND p.prosecdef
-     AND has_function_privilege('anon', p.oid, 'EXECUTE')
-     AND p.proname <> 'check_public_store_slug';
+     AND has_function_privilege('anon', p.oid, 'EXECUTE');
 
   IF exposed IS NOT NULL THEN
     RAISE EXCEPTION 'Unexpected anon SECURITY DEFINER exposure: %', exposed;
+  END IF;
+
+  IF has_function_privilege(
+      'anon',
+      'public.check_public_store_slug(text)'::regprocedure,
+      'EXECUTE')
+     OR has_function_privilege(
+      'authenticated',
+      'public.check_public_store_slug(text)'::regprocedure,
+      'EXECUTE')
+     OR NOT has_function_privilege(
+      'service_role',
+      'public.check_public_store_slug(text)'::regprocedure,
+      'EXECUTE') THEN
+    RAISE EXCEPTION 'check_public_store_slug must remain service-role-only behind the Edge gateway';
   END IF;
 
   IF has_function_privilege(
