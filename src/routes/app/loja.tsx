@@ -22,10 +22,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
+import { BillingStatusBanner } from "@/components/store/BillingStatusBanner";
 import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useStoreBillingAccess } from "@/store/billing/store-billing.queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/loja")({
@@ -74,6 +76,8 @@ function StoreAppLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const storeId = authContext?.store_ids?.[0] ?? null;
+  const billingQuery = useStoreBillingAccess(storeId);
 
   const handleSignOut = () =>
     void signOut("local").then(() => navigate({ to: AUTH_ROUTES.storeSignIn as never }));
@@ -208,6 +212,8 @@ function StoreAppLayout() {
             </Button>
           </div>
         </header>
+
+        {billingQuery.data ? <BillingStatusBanner access={billingQuery.data} /> : null}
 
         <main className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0"><Outlet /></main>
 
