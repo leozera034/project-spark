@@ -29,7 +29,7 @@ const parentRoute = getRouteApi("/loja/$slug");
 export const Route = createFileRoute("/loja/$slug/carrinho")({
   head: () => ({
     meta: [
-      { title: "Seu carrinho · Pediu Aqui" },
+      { title: "Seu carrinho · Comandiva" },
       {
         name: "description",
         content: "Revise os itens, as quantidades e os valores antes de finalizar o pedido.",
@@ -72,11 +72,11 @@ function CartPage() {
     });
 
   return (
-    <main className="min-h-svh bg-background pb-40">
+    <main className="storefront-global min-h-svh bg-background pb-[calc(10rem+env(safe-area-inset-bottom))]">
       <OrderingContextBar />
 
-      <header className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Voltar ao cardápio">
+      <header className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4 sm:px-6">
+        <Button variant="ghost" size="icon" asChild aria-label="Voltar ao cardápio" className="shrink-0">
           <Link to="/loja/$slug" params={{ slug }}>
             <ArrowLeft className="size-5" />
           </Link>
@@ -115,7 +115,7 @@ function CartPage() {
             {offline || cart.quoteState === "error" ? (
               <div className="mb-4 flex items-start gap-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <p>{cart.quoteMessage}</p>
                   <Button
                     variant="link"
@@ -147,16 +147,16 @@ function CartPage() {
                     key={line.lineId}
                     className={`panel p-4 ${issues.length > 0 ? "border-destructive/50" : ""}`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium">{displayName}</p>
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="break-words font-medium">{displayName}</p>
                         {line.variantNameSnapshot ? (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="break-words text-sm text-muted-foreground">
                             {line.variantNameSnapshot}
                           </p>
                         ) : null}
                         {line.selections.length > 0 ? (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="break-words text-sm text-muted-foreground">
                             {line.selections
                               .map((s) =>
                                 s.quantity > 1
@@ -168,7 +168,7 @@ function CartPage() {
                           </p>
                         ) : null}
                         {line.notes ? (
-                          <p className="mt-1 text-sm italic text-muted-foreground">
+                          <p className="mt-1 break-words text-sm italic text-muted-foreground">
                             “{line.notes}”
                           </p>
                         ) : null}
@@ -177,7 +177,7 @@ function CartPage() {
                         {total !== null ? (
                           <p className="font-semibold tabular-nums">{brl(total)}</p>
                         ) : loading ? (
-                          <Loader2 className="size-4 animate-spin" />
+                          <Loader2 className="ml-auto size-4 animate-spin" />
                         ) : (
                           <p className="text-sm text-muted-foreground tabular-nums">
                             {brl(line.lastKnownTotal)}
@@ -194,15 +194,15 @@ function CartPage() {
                     {issues.length > 0 ? (
                       <div className="mt-3 space-y-1">
                         {issues.map((issue) => (
-                          <p key={issue} className="flex items-center gap-2 text-sm text-destructive">
-                            <TriangleAlert className="size-4 shrink-0" />
-                            {messageForLineStatus(issue)}
+                          <p key={issue} className="flex items-start gap-2 text-sm text-destructive">
+                            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+                            <span className="min-w-0">{messageForLineStatus(issue)}</span>
                           </p>
                         ))}
                       </div>
                     ) : null}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <div className="mt-3 grid grid-cols-[auto_auto_auto_1fr] items-center gap-2 sm:flex sm:flex-wrap">
                       <Button
                         variant="outline"
                         size="icon"
@@ -212,7 +212,7 @@ function CartPage() {
                       >
                         <Minus className="size-4" />
                       </Button>
-                      <span className="w-16 text-center text-base tabular-nums">
+                      <span className="w-14 text-center text-sm tabular-nums sm:w-16 sm:text-base">
                         {line.quantity}
                         {measured ? ` ${unit}` : ""}
                       </span>
@@ -224,10 +224,12 @@ function CartPage() {
                       >
                         <Plus className="size-4" />
                       </Button>
+                      <span className="min-w-0" aria-hidden="true" />
 
                       <Button
                         variant="ghost"
-                        className="gap-2"
+                        size="sm"
+                        className="col-span-2 justify-start gap-2 sm:col-auto"
                         onClick={() => editLine(line.lineId, line.productId)}
                       >
                         <Pencil className="size-4" />
@@ -235,7 +237,8 @@ function CartPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        className="ml-auto gap-2 text-destructive"
+                        size="sm"
+                        className="col-span-2 justify-end gap-2 text-destructive sm:col-auto sm:ml-auto"
                         onClick={() => cart.removeLine(line.lineId)}
                       >
                         <Trash2 className="size-4" />
@@ -259,7 +262,7 @@ function CartPage() {
                       ) : (
                         <Button
                           variant="link"
-                          className="h-auto p-0 text-sm"
+                          className="h-auto max-w-full whitespace-normal p-0 text-left text-sm"
                           onClick={() => setEditingNotes(line.lineId)}
                         >
                           {line.notes ? "Editar observação" : "Adicionar observação"}
@@ -271,14 +274,14 @@ function CartPage() {
               })}
             </ul>
 
-            <div className="mt-4 flex items-center justify-between">
-              <Button variant="ghost" className="gap-2" onClick={cart.revalidate}>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <Button variant="ghost" className="justify-start gap-2 sm:justify-center" onClick={cart.revalidate}>
                 <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
                 Atualizar valores
               </Button>
               {confirmEmpty ? (
-                <span className="flex items-center gap-2 text-sm">
-                  Esvaziar tudo?
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span>Esvaziar tudo?</span>
                   <Button
                     size="sm"
                     variant="destructive"
@@ -292,11 +295,11 @@ function CartPage() {
                   <Button size="sm" variant="ghost" onClick={() => setConfirmEmpty(false)}>
                     Não
                   </Button>
-                </span>
+                </div>
               ) : (
                 <Button
                   variant="ghost"
-                  className="text-destructive"
+                  className="justify-start text-destructive sm:justify-center"
                   onClick={() => setConfirmEmpty(true)}
                 >
                   Esvaziar carrinho
@@ -306,22 +309,22 @@ function CartPage() {
 
             <Separator className="my-5" />
 
-            <dl className="space-y-2 panel p-4 text-base">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Subtotal</dt>
-                <dd className="tabular-nums">{brl(cart.subtotal)}</dd>
+            <dl className="panel space-y-2 p-4 text-base">
+              <div className="flex min-w-0 justify-between gap-4">
+                <dt className="min-w-0 text-muted-foreground">Subtotal</dt>
+                <dd className="shrink-0 tabular-nums">{brl(cart.subtotal)}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">
+              <div className="flex min-w-0 justify-between gap-4">
+                <dt className="min-w-0 text-muted-foreground">
                   {cart.deliveryFee === null ? "Retirada na loja" : "Taxa de entrega"}
                 </dt>
-                <dd className="tabular-nums">
+                <dd className="shrink-0 tabular-nums">
                   {cart.deliveryFee === null ? "Sem taxa" : brl(cart.deliveryFee)}
                 </dd>
               </div>
-              <div className="flex justify-between border-t pt-2 text-lg font-semibold">
+              <div className="flex min-w-0 justify-between gap-4 border-t pt-2 text-lg font-semibold">
                 <dt>Total</dt>
-                <dd className="tabular-nums">{brl(cart.total)}</dd>
+                <dd className="shrink-0 tabular-nums">{brl(cart.total)}</dd>
               </div>
               {stale ? (
                 <p className="text-xs text-muted-foreground">
@@ -357,14 +360,14 @@ function CartPage() {
       </div>
 
       {cart.itemCount > 0 ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-4">
           <div className="mx-auto max-w-3xl space-y-2">
             <Button
-              className="h-13 w-full justify-between px-4 text-base"
+              className="min-h-14 w-full gap-3 px-4 text-base"
               disabled={!cart.canCheckout}
               onClick={() => navigate({ to: "/loja/$slug/checkout", params: { slug } })}
             >
-              <span>
+              <span className="min-w-0 flex-1 text-left leading-tight">
                 {loading
                   ? "Recalculando…"
                   : cart.hasBlockingIssues
@@ -373,13 +376,11 @@ function CartPage() {
                       ? CART_MESSAGES.minimumNotMet
                       : "Continuar para o checkout"}
               </span>
-              <span className="tabular-nums">{brl(cart.total)}</span>
+              <span className="shrink-0 tabular-nums">{brl(cart.total)}</span>
             </Button>
-            <p className="text-center text-[11px] text-muted-foreground">
-              Telefone e forma de pagamento são confirmados na próxima tela. Nenhum pedido foi
-              enviado ainda.
+            <p className="px-1 text-center text-[11px] leading-relaxed text-muted-foreground">
+              Telefone e forma de pagamento são confirmados na próxima tela. Nenhum pedido foi enviado ainda.
             </p>
-
           </div>
         </div>
       ) : null}
