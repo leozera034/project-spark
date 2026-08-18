@@ -40,6 +40,7 @@ jobs:
           EDGE_PUBLISHABLE_KEY: sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG
         run: |
           set -euo pipefail
+
           response="$(curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors \
             --request POST "$EDGE_URL" \
             --header 'content-type: application/json' \
@@ -51,7 +52,37 @@ jobs:
             console.error('Unexpected Edge gateway response:', payload)
             process.exit(1)
           }
-          console.log('External Edge gateway contract passed')
+          console.log('External Edge public contract passed')
+          NODE
+
+          unauthorized_status="$(curl --silent --show-error \
+            --output /tmp/edge-unauthorized.json \
+            --write-out '%{http_code}' \
+            --request POST "$EDGE_URL" \
+            --header 'content-type: application/json' \
+            --header "apikey: $EDGE_PUBLISHABLE_KEY" \
+            --data '{"action":"create_courier","input":{"fullName":"CI Smoke","phone":"34999999999","loginIdentifier":"ci.smoke","canAcceptDeliveries":true,"isActive":true,"idempotencyKey":"ci-smoke-no-auth-001"}}')"
+          test "$unauthorized_status" = "401"
+          node --input-type=module - <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const payload = JSON.parse(readFileSync('/tmp/edge-unauthorized.json', 'utf8'))
+          if (payload.ok !== false || payload.error !== 'unauthorized') process.exit(1)
+          console.log('External Edge authenticated action fails closed')
+          NODE
+
+          forbidden_status="$(curl --silent --show-error \
+            --output /tmp/edge-forbidden.json \
+            --write-out '%{http_code}' \
+            --request POST "$EDGE_URL" \
+            --header 'content-type: application/json' \
+            --header "apikey: $EDGE_PUBLISHABLE_KEY" \
+            --data '{"action":"rpc","rpc":"get_platform_health_summary","args":{}}')"
+          test "$forbidden_status" = "403"
+          node --input-type=module - <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const payload = JSON.parse(readFileSync('/tmp/edge-forbidden.json', 'utf8'))
+          if (payload.ok !== false || payload.error !== 'rpc_not_allowed') process.exit(1)
+          console.log('External Edge RPC allowlist fails closed')
           NODE
       - name: Critical route smoke test
         run: npm run test:smoke
