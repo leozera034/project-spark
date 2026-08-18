@@ -26,7 +26,7 @@ export function AuthShell({
       <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] [background-size:52px_52px]" />
 
       <div className="relative hidden overflow-hidden border-r border-white/[.07] px-12 py-12 lg:flex lg:flex-col lg:justify-between">
-        <BrandLogo lockup="horizontal" tone="white" className="h-8 w-auto" />
+        <BrandLogo lockup="horizontal" tone="white" className="h-8 w-auto text-white" />
 
         <div className="grid items-center gap-8 xl:grid-cols-[.95fr_1.05fr]">
           <div>
@@ -45,10 +45,10 @@ export function AuthShell({
               <span className="inline-flex items-center gap-2"><ShieldCheck className="size-4 text-violet-400" /> Segurança aplicada no banco</span>
             </div>
           </div>
-          <img src="/brand/auth-security.svg" alt="Ilustração de segurança e operação do Pediu Aqui" className="mx-auto w-full max-w-sm drop-shadow-[0_28px_70px_rgba(124,58,237,.32)]" />
+          <img src="/brand/auth-security.svg" alt="Ilustração de segurança e operação da Comandiva" className="mx-auto w-full max-w-sm drop-shadow-[0_28px_70px_rgba(124,58,237,.32)]" />
         </div>
 
-        <p className="text-xs text-white/32">© {new Date().getFullYear()} Pediu Aqui</p>
+        <p className="text-xs text-white/32">© {new Date().getFullYear()} Comandiva</p>
       </div>
 
       <div
@@ -61,8 +61,8 @@ export function AuthShell({
         <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-violet-600/20 blur-3xl" />
         <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-4">
           <div className="mb-6 flex items-center justify-between lg:hidden">
-            <Link to="/" className="inline-flex" aria-label="Pediu Aqui, ir para o início">
-              <BrandLogo lockup="horizontal" tone="white" className="h-7 w-auto" />
+            <Link to="/" className="inline-flex" aria-label="Comandiva, ir para o início">
+              <BrandLogo lockup="horizontal" tone="white" className="h-7 w-auto text-white" />
             </Link>
           </div>
 
