@@ -16,12 +16,12 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/entrar/entregador")({
   head: () => ({
     meta: [
-      { title: "Entrar como entregador | Pediu Aqui" },
+      { title: "Entrar como entregador | Comandiva" },
       {
         name: "description",
-        content: "Acesso do entregador ao aplicativo de entregas da sua loja no Pediu Aqui.",
+        content: "Acesso do entregador ao aplicativo de entregas da sua loja na Comandiva.",
       },
-      { property: "og:title", content: "Entrar como entregador | Pediu Aqui" },
+      { property: "og:title", content: "Entrar como entregador | Comandiva" },
       { property: "og:description", content: "Acesso do entregador às entregas da sua loja." },
       { name: "robots", content: "noindex" },
     ],
