@@ -2,3 +2,6 @@ project_id = "ypgteuxzgqmkkkpvibhi"
 
 [functions.pediu-backend-api]
 verify_jwt = false
+
+[functions.pediu-public-support]
+verify_jwt = false
