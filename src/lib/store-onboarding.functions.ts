@@ -33,7 +33,7 @@ const createSchema = z.object({
   ownerName: z.string().trim().min(3).max(100),
   email: z.string().trim().email().max(160),
   password: passwordSchema,
-  planCode: z.enum(["essencial", "profissional", "avancado"]).default("essencial"),
+  planCode: z.enum(["gratis", "essencial", "profissional", "avancado"]).default("profissional"),
 });
 
 export type CreateStoreAccountInput = z.input<typeof createSchema>;
