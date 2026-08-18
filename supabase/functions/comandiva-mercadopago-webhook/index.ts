@@ -76,22 +76,47 @@ function constantTimeHexEquals(a: string, b: string): boolean {
   return diff === 0;
 }
 
-async function validSignature(req: Request, dataId: string, secret: string): Promise<boolean> {
+function normalizeDataId(value: string): string {
+  const trimmed = value.trim();
+  return /^[a-z0-9]+$/i.test(trimmed) ? trimmed.toLowerCase() : trimmed;
+}
+
+async function validSignature(req: Request, dataIdRaw: string, secret: string): Promise<boolean> {
   const xSignature = req.headers.get("x-signature")?.trim() ?? "";
   const xRequestId = req.headers.get("x-request-id")?.trim() ?? "";
-  if (!xSignature || !xRequestId || !dataId) return false;
+  if (!xSignature) return false;
 
   const { ts, v1 } = parseSignature(xSignature);
   if (!ts || !v1 || !/^\d+$/.test(ts)) return false;
-  const drift = Math.abs(Date.now() - Number(ts) * 1000) / 1000;
+
+  const tsNumber = Number(ts);
+  const tsMs = tsNumber > 10_000_000_000 ? tsNumber : tsNumber * 1000;
+  const drift = Math.abs(Date.now() - tsMs) / 1000;
   if (!Number.isFinite(drift) || drift > SIGNATURE_TOLERANCE_SECONDS) return false;
 
-  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+  const parts: string[] = [];
+  const dataId = normalizeDataId(dataIdRaw);
+  if (dataId) parts.push(`id:${dataId}`);
+  if (xRequestId) parts.push(`request-id:${xRequestId}`);
+  parts.push(`ts:${ts}`);
+  const manifest = `${parts.join(";")};`;
+
   const computed = await hmacSha256Hex(secret, manifest);
   return constantTimeHexEquals(computed, v1);
 }
 
 Deno.serve(async (req: Request) => {
+  const secret = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET_TEST");
+
+  if (req.method === "GET") {
+    return response(secret ? 200 : 503, {
+      ok: Boolean(secret),
+      provider: "mercado_pago",
+      environment: "test",
+      configured: Boolean(secret),
+    });
+  }
+
   if (req.method !== "POST") return response(405, { ok: false, error: "method_not_allowed" });
 
   const length = Number(req.headers.get("content-length") ?? 0);
@@ -99,7 +124,6 @@ Deno.serve(async (req: Request) => {
     return response(413, { ok: false, error: "payload_too_large" });
   }
 
-  const secret = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET_TEST");
   if (!secret) return response(503, { ok: false, error: "webhook_not_configured" });
 
   const url = new URL(req.url);
@@ -126,21 +150,17 @@ Deno.serve(async (req: Request) => {
   const providerEventKey = notificationId ? `notification:${notificationId}` : `request:${requestId}:${eventType}:${action}:${dataId}`;
 
   const admin = adminClient();
-  const { error } = await admin.from("billing_webhook_events").insert({
-    provider: "mercado_pago",
-    provider_event_key: providerEventKey,
-    event_type: `${eventType}:${action}`.slice(0, 200),
-    resource_id: dataId || null,
-    signature_valid: true,
-    processing_status: "received",
-    payload,
-  } as never);
+  const { data: inserted, error } = await admin.rpc("record_mercado_pago_webhook_event", {
+    p_provider_event_key: providerEventKey,
+    p_event_type: `${eventType}:${action}`.slice(0, 200),
+    p_resource_id: dataId || null,
+    p_payload: payload,
+  });
 
   if (error) {
-    if (error.code === "23505") return response(200, { ok: true, duplicate: true });
-    console.error("[comandiva-mercadopago-webhook] insert failed", error.code ?? "unknown");
+    console.error("[comandiva-mercadopago-webhook] record failed", error.code ?? "unknown");
     return response(500, { ok: false, error: "event_persist_failed" });
   }
 
-  return response(200, { ok: true });
+  return response(200, { ok: true, duplicate: inserted === false });
 });
