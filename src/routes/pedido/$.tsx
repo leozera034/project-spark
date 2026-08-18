@@ -19,7 +19,7 @@ export const Route = createFileRoute("/pedido/$")({
   }),
   head: () => ({
     meta: [
-      { title: "Acompanhamento · Pediu Aqui" },
+      { title: "Acompanhamento · Comandiva" },
       { name: "description", content: "Use o link seguro recebido ao finalizar o pedido." },
       { name: "robots", content: "noindex, nofollow, noarchive" },
       { name: "referrer", content: "no-referrer" },
