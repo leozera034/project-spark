@@ -91,7 +91,6 @@ export async function loadPublicPaymentMethods(
 export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitOrderResult> {
   const parsed = checkoutRequestSchema.parse(input);
   const db = await admin();
-
   const { slug, ...payload } = parsed;
 
   const { data, error } = await db.rpc("storefront_submit_order", {
@@ -100,6 +99,7 @@ export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitO
   });
 
   if (error) {
+    if (error.message === "rate_limited") return { ok: false, error: "rate_limited" };
     console.error("[storefront] submit order rpc failed", error.message);
     throw new StorefrontError("unavailable");
   }
