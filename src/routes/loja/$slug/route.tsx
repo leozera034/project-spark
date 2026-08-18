@@ -59,7 +59,7 @@ export const Route = createFileRoute("/loja/$slug")({
       meta: [
         { title },
         { name: "description", content: description },
-        { property: "og:site_name", content: "Pediu Aqui" },
+        { property: "og:site_name", content: "Comandiva" },
         { property: "og:locale", content: "pt_BR" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
@@ -110,7 +110,7 @@ export const Route = createFileRoute("/loja/$slug")({
               {
                 "@type": "BreadcrumbList",
                 itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Pediu Aqui", item: siteHome },
+                  { "@type": "ListItem", position: 1, name: "Comandiva", item: siteHome },
                   { "@type": "ListItem", position: 2, name, item: url },
                 ],
               },
@@ -165,7 +165,7 @@ function StorefrontError() {
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-6">
+    <main className="storefront-global mx-auto flex min-h-svh max-w-md flex-col justify-center px-6">
       <ErrorState
         title="Cardápio indisponível"
         description="Não conseguimos carregar esta loja agora. Verifique sua conexão e tente novamente."
@@ -181,7 +181,7 @@ function StorefrontError() {
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
+    <main className="storefront-global mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
       <Store className="size-10 text-muted-foreground" />
       <h1 className="text-xl font-semibold">{title}</h1>
       <p className="text-sm text-muted-foreground">{body}</p>
