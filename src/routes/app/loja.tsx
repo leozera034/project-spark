@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
 import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
@@ -83,14 +83,14 @@ function StoreAppLayout() {
       <aside
         className={cn(
           "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
-          collapsed ? "w-[4.5rem]" : "w-64",
+          collapsed ? "w-[4.75rem]" : "w-64",
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-3">
+        <div className="flex h-[76px] items-center gap-2 border-b border-sidebar-border px-3">
           {collapsed ? (
-            <span className="flex size-9 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-primary font-display text-sm font-bold">PA</span>
+            <BrandSymbol tone="white" className="mx-auto size-11" />
           ) : (
-            <BrandLogo lockup="horizontal" className="h-7 w-auto" />
+            <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
           )}
         </div>
 
@@ -105,7 +105,7 @@ function StoreAppLayout() {
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                   collapsed && "justify-center px-0",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -138,15 +138,28 @@ function StoreAppLayout() {
 
       {mobileNavOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" aria-label="Fechar menu" className="absolute inset-0 bg-carbon/60" onClick={() => setMobileNavOpen(false)} />
+          <button
+            type="button"
+            aria-label="Fechar menu"
+            className="absolute inset-0 bg-[#321447]/55 backdrop-blur-sm"
+            onClick={() => setMobileNavOpen(false)}
+          />
           <nav
             aria-label="Navegação da loja"
             className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-sidebar text-sidebar-foreground shadow-e2"
             style={{ paddingTop: "env(safe-area-inset-top)" }}
           >
-            <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
-              <BrandLogo lockup="horizontal" className="h-7 w-auto" />
-              <Button variant="ghost" size="icon" aria-label="Fechar menu" className="text-sidebar-foreground hover:bg-sidebar-accent/60" onClick={() => setMobileNavOpen(false)}><X className="size-5" /></Button>
+            <div className="flex h-[76px] items-center justify-between border-b border-sidebar-border px-4">
+              <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Fechar menu"
+                className="text-sidebar-foreground hover:bg-sidebar-accent/60"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                <X className="size-5" />
+              </Button>
             </div>
             <div className="flex-1 space-y-1 overflow-y-auto p-3">
               {NAV_ITEMS.map((item) => {
@@ -159,7 +172,7 @@ function StoreAppLayout() {
                     onClick={() => setMobileNavOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-medium",
+                      "flex min-h-12 items-center gap-3 rounded-xl px-3 text-base font-semibold",
                       active
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
@@ -175,19 +188,24 @@ function StoreAppLayout() {
         </div>
       ) : null}
 
-      <div className="flex min-h-dvh flex-1 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <header
-          className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-card/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:h-16 sm:px-6 lg:px-8"
+          className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-[#FFF9F6]/92 px-3 shadow-[0_8px_30px_rgba(75,29,109,.04)] backdrop-blur-xl sm:px-6 lg:px-8"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}><Menu className="size-5" /></Button>
-            <BrandLogo lockup="horizontal" className="h-6 w-auto lg:hidden" />
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}>
+              <Menu className="size-5" />
+            </Button>
+            <BrandLogo lockup="horizontal" className="h-8 w-auto lg:hidden" />
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <span className="hidden text-sm text-muted-foreground sm:inline">{authContext?.full_name ?? "Equipe"}</span>
-            <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="size-4 sm:hidden" /><span className="hidden sm:inline">Sair</span></Button>
+            <span className="hidden text-sm font-medium text-muted-foreground sm:inline">{authContext?.full_name ?? "Equipe"}</span>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="size-4 sm:hidden" />
+              <span className="hidden sm:inline">Sair</span>
+            </Button>
           </div>
         </header>
 
@@ -195,7 +213,7 @@ function StoreAppLayout() {
 
         <nav
           aria-label="Navegação principal"
-          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-white/95 shadow-[0_-12px_34px_rgba(75,29,109,.07)] backdrop-blur-xl lg:hidden"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           {MOBILE_NAV_ITEMS.map((item) => {
@@ -207,7 +225,7 @@ function StoreAppLayout() {
                 to={item.to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                  "flex min-h-[58px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold",
                   active ? "text-brand" : "text-muted-foreground",
                 )}
               >
