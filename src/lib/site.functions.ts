@@ -1,12 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 
-/** Endereço público atual do Pediu Aqui no Lovable. */
+/** Endereço público atual da Comandiva no Lovable, até o domínio próprio ser registrado. */
 export const PUBLIC_SITE_ORIGIN = "https://shark-cardapio.lovable.app";
 
-/** Imagens oficiais de compartilhamento social. */
+/** Imagens de compartilhamento social mantidas temporariamente durante a transição visual. */
 export const OG_IMAGE_PATH = "/brand/og-image-1200x630.png";
 export const TWITTER_IMAGE_PATH = "/brand/twitter-card-1200x600.png";
-export const SOCIAL_IMAGE_ALT = "Pediu Aqui — cardápio digital, pedidos, cozinha e entregas";
+export const SOCIAL_IMAGE_ALT = "Comandiva — cardápio digital, pedidos, cozinha e entregas";
 
 /**
  * Origem pública da requisição atual (ex.: https://meu-dominio.com).
