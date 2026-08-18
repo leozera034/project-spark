@@ -33,6 +33,11 @@ BEGIN
     RAISE EXCEPTION 'check_public_store_slug must remain service-role-only behind the Edge gateway';
   END IF;
 
+  IF (SELECT p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+      WHERE n.nspname='public' AND p.oid='public.list_active_category_profiles()'::regprocedure) THEN
+    RAISE EXCEPTION 'list_active_category_profiles must remain SECURITY INVOKER';
+  END IF;
+
   IF has_function_privilege(
       'authenticated',
       'public.provision_store_with_owner(text,text,uuid,text,text,text,text,text,text,text,text,text,uuid)'::regprocedure,
