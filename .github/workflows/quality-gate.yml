@@ -37,6 +37,7 @@ jobs:
       - name: External Supabase Edge contract smoke
         env:
           EDGE_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/pediu-backend-api
+          SUPPORT_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/pediu-public-support
           EDGE_PUBLISHABLE_KEY: sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG
         run: |
           set -euo pipefail
@@ -83,6 +84,35 @@ jobs:
           const payload = JSON.parse(readFileSync('/tmp/edge-forbidden.json', 'utf8'))
           if (payload.ok !== false || payload.error !== 'rpc_not_allowed') process.exit(1)
           console.log('External Edge RPC allowlist fails closed')
+          NODE
+
+          support_response="$(curl --silent --show-error --fail-with-body --retry 2 --retry-all-errors \
+            --request POST "$SUPPORT_URL" \
+            --header 'content-type: application/json' \
+            --header "apikey: $EDGE_PUBLISHABLE_KEY" \
+            --data '{"action":"plans"}')"
+          SUPPORT_RESPONSE="$support_response" node --input-type=module - <<'NODE'
+          const payload = JSON.parse(process.env.SUPPORT_RESPONSE ?? '{}')
+          if (payload.ok !== true || !Array.isArray(payload.data)) {
+            console.error('Unexpected public support response:', payload)
+            process.exit(1)
+          }
+          console.log('External public support contract passed')
+          NODE
+
+          support_forbidden_status="$(curl --silent --show-error \
+            --output /tmp/support-forbidden.json \
+            --write-out '%{http_code}' \
+            --request POST "$SUPPORT_URL" \
+            --header 'content-type: application/json' \
+            --header "apikey: $EDGE_PUBLISHABLE_KEY" \
+            --data '{"action":"database_dump"}')"
+          test "$support_forbidden_status" = "403"
+          node --input-type=module - <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const payload = JSON.parse(readFileSync('/tmp/support-forbidden.json', 'utf8'))
+          if (payload.ok !== false || payload.error !== 'action_not_allowed') process.exit(1)
+          console.log('External public support allowlist fails closed')
           NODE
       - name: Critical route smoke test
         run: npm run test:smoke
