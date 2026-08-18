@@ -33,6 +33,17 @@ BEGIN
     RAISE EXCEPTION 'authenticated must not execute fail_store_provisioning';
   END IF;
 
+  IF has_function_privilege(
+      'anon',
+      'public.consume_edge_rate_limit(text,integer,integer)'::regprocedure,
+      'EXECUTE')
+     OR has_function_privilege(
+      'authenticated',
+      'public.consume_edge_rate_limit(text,integer,integer)'::regprocedure,
+      'EXECUTE') THEN
+    RAISE EXCEPTION 'consume_edge_rate_limit must remain service-only';
+  END IF;
+
   SELECT array_agg(format('%I.%I', n.nspname, c.relname))
     INTO missing_rls
     FROM pg_class c
