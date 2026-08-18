@@ -6,8 +6,8 @@ import type { Database } from './types';
 // Supabase publishable keys are designed to ship to browsers and remain
 // protected by RLS. Runtime/build-time environment variables still take
 // precedence whenever they are available.
-const FALLBACK_SUPABASE_URL = 'https://ifbjwguffmuwxsxzotmr.supabase.co';
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rByvIio2ip8uHb6-9sH6tw_kXRXM5JW';
+const FALLBACK_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
