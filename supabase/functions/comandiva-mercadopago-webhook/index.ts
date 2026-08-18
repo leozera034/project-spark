@@ -148,6 +148,19 @@ function objectValue(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function sanitizedNotification(payload: Record<string, unknown>) {
+  const data = objectValue(payload.data);
+  return {
+    id: scalar(payload.id),
+    live_mode: scalar(payload.live_mode),
+    type: scalar(payload.type),
+    action: scalar(payload.action),
+    date_created: scalar(payload.date_created),
+    api_version: scalar(payload.api_version),
+    data: { id: scalar(data.id) },
+  };
+}
+
 function sanitizedSnapshot(eventType: string, raw: Record<string, unknown>) {
   if (eventType === "subscription_preapproval") {
     const recurring = objectValue(raw.auto_recurring);
@@ -281,7 +294,7 @@ Deno.serve(async (req: Request) => {
     p_provider_event_key: providerEventKey,
     p_event_type: `${eventType}:${action}`.slice(0, 200),
     p_resource_id: resourceId || null,
-    p_payload: payload,
+    p_payload: sanitizedNotification(payload),
   });
 
   if (error) {
