@@ -5,8 +5,18 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+}
+
+function isExpectedSupabaseUrl(value: string): boolean {
+  try {
+    return new URL(value).hostname === `${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
+  } catch {
+    return false;
+  }
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -38,7 +48,13 @@ function createSupabaseAdminClient() {
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
       ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Configure the external Supabase project in the deployment environment.`;
+    console.error(`[Supabase] ${message}`);
+    throw new Error(message);
+  }
+
+  if (!isExpectedSupabaseUrl(SUPABASE_URL)) {
+    const message = `Refusing to initialize server Supabase client for an unexpected project. Expected ${EXPECTED_SUPABASE_PROJECT_REF}.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
