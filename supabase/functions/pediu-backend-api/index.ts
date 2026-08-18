@@ -105,6 +105,68 @@ async function runPublicRpc(req: Request, payload: Record<string, unknown>) {
   return response(req, { ok: true, data });
 }
 
+type AssetCandidate = { path: string; store_id: string };
+
+async function filterPublicAssetPaths(
+  admin: ReturnType<typeof adminClient>,
+  bucket: string,
+  paths: string[],
+): Promise<string[]> {
+  const candidates: AssetCandidate[] = [];
+
+  if (bucket === "store-branding") {
+    const [logos, covers] = await Promise.all([
+      admin.from("store_settings").select("store_id,logo_path").in("logo_path", paths),
+      admin.from("store_settings").select("store_id,cover_path").in("cover_path", paths),
+    ]);
+    if (logos.error || covers.error) throw new Error("asset_reference_lookup_failed");
+    for (const row of logos.data ?? []) {
+      if (row.logo_path) candidates.push({ path: row.logo_path, store_id: row.store_id });
+    }
+    for (const row of covers.data ?? []) {
+      if (row.cover_path) candidates.push({ path: row.cover_path, store_id: row.store_id });
+    }
+  } else if (bucket === "store-catalog") {
+    const [categories, products] = await Promise.all([
+      admin
+        .from("categories")
+        .select("store_id,image_path")
+        .in("image_path", paths)
+        .eq("is_active", true)
+        .eq("is_archived", false),
+      admin
+        .from("products")
+        .select("store_id,image_path")
+        .in("image_path", paths)
+        .eq("is_available", true)
+        .eq("is_archived", false),
+    ]);
+    if (categories.error || products.error) throw new Error("asset_reference_lookup_failed");
+    for (const row of categories.data ?? []) {
+      if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
+    }
+    for (const row of products.data ?? []) {
+      if (row.image_path) candidates.push({ path: row.image_path, store_id: row.store_id });
+    }
+  }
+
+  const candidateStoreIds = Array.from(new Set(candidates.map((item) => item.store_id)));
+  if (candidateStoreIds.length === 0) return [];
+
+  const { data: activeStores, error } = await admin
+    .from("stores")
+    .select("id")
+    .in("id", candidateStoreIds)
+    .eq("status", "ativa");
+  if (error) throw new Error("asset_store_lookup_failed");
+
+  const activeIds = new Set((activeStores ?? []).map((row) => row.id));
+  const publicPaths = new Set(
+    candidates.filter((item) => activeIds.has(item.store_id)).map((item) => item.path),
+  );
+  return paths.filter((path) => publicPaths.has(path));
+}
+
 async function signPaths(req: Request, payload: Record<string, unknown>) {
   const bucket = typeof payload.bucket === "string" ? payload.bucket : "";
   if (!SIGNABLE_BUCKETS.has(bucket)) {
@@ -123,12 +185,22 @@ async function signPaths(req: Request, payload: Record<string, unknown>) {
     return response(req, { ok: false, error: "too_many_paths" }, 400);
   }
   if (paths.length === 0) return response(req, { ok: true, data: [] });
+
+  const admin = adminClient();
+  let publicPaths: string[];
+  try {
+    publicPaths = await filterPublicAssetPaths(admin, bucket, paths);
+  } catch {
+    console.error(`[pediu-backend-api] public asset validation failed: ${bucket}`);
+    return response(req, { ok: false, error: "asset_validation_failed" }, 502);
+  }
+  if (publicPaths.length === 0) return response(req, { ok: true, data: [] });
+
   const requestedTtl = Number(payload.ttlSeconds ?? DEFAULT_SIGN_TTL);
   const ttl = Number.isFinite(requestedTtl)
     ? Math.max(60, Math.min(Math.floor(requestedTtl), MAX_SIGN_TTL))
     : DEFAULT_SIGN_TTL;
-  const admin = adminClient();
-  const { data, error } = await admin.storage.from(bucket).createSignedUrls(paths, ttl);
+  const { data, error } = await admin.storage.from(bucket).createSignedUrls(publicPaths, ttl);
   if (error || !data) {
     console.error(`[pediu-backend-api] storage signing failed: ${bucket}`);
     return response(req, { ok: false, error: "signing_failed" }, 502);
