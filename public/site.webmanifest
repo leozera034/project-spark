@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Pediu Aqui — Cardápio Digital e Gestão de Pedidos",
-  "short_name": "Pediu Aqui",
+  "name": "Comandiva — Cardápio Digital e Gestão de Pedidos",
+  "short_name": "Comandiva",
   "description": "Cardápio digital, pedidos, cozinha, entregas e gestão para restaurantes, lanchonetes, pizzarias e comércio local.",
   "lang": "pt-BR",
   "dir": "ltr",
@@ -38,7 +38,7 @@
     {
       "name": "Criar minha loja",
       "short_name": "Criar loja",
-      "description": "Começar uma nova loja no Pediu Aqui.",
+      "description": "Começar uma nova loja na Comandiva.",
       "url": "/criar-loja"
     },
     {
