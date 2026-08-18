@@ -4,13 +4,23 @@ import type { Database } from './types';
 
 // Browser-safe project configuration. These values are intentionally public:
 // Supabase publishable keys are designed to ship to browsers and remain
-// protected by RLS. Runtime/build-time environment variables still take
-// precedence whenever they are available.
-const FALLBACK_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
+// protected by RLS.
+const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
+const FALLBACK_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+}
+
+function isExpectedSupabaseUrl(value: string | undefined): value is string {
+  if (!value) return false;
+
+  try {
+    return new URL(value).hostname === `${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
+  } catch {
+    return false;
+  }
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -34,12 +44,22 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseClient() {
-  const supabaseUrl =
-    import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabasePublishableKey =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.SUPABASE_PUBLISHABLE_KEY ||
-    FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+  const runtimeUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const runtimePublishableKey =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  const useRuntimeConfig = isExpectedSupabaseUrl(runtimeUrl) && Boolean(runtimePublishableKey);
+
+  if (runtimeUrl && !isExpectedSupabaseUrl(runtimeUrl)) {
+    console.error(
+      `[Supabase] Ignoring runtime URL for unexpected project. Expected ${EXPECTED_SUPABASE_PROJECT_REF}.`,
+    );
+  }
+
+  const supabaseUrl = useRuntimeConfig ? runtimeUrl : FALLBACK_SUPABASE_URL;
+  const supabasePublishableKey = useRuntimeConfig
+    ? runtimePublishableKey!
+    : FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   return createClient<Database>(supabaseUrl, supabasePublishableKey, {
     global: {
