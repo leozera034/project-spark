@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Boxes, CircleDollarSign, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Boxes, CircleDollarSign, Loader2, RefreshCw, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -37,6 +37,18 @@ const AVAILABILITY: Array<{ value: AddonAvailability; label: string }> = [
   { value: "retired", label: "Retirado" },
 ];
 
+function providerSyncErrorMessage(error: unknown): string {
+  const code = error instanceof Error ? error.message : "";
+  if (code === "FORBIDDEN") return "Somente um administrador da plataforma pode homologar preços no provedor.";
+  if (code === "MERCADO_PAGO_TEST_NOT_CONFIGURED") return "O token TEST do Mercado Pago ainda não está configurado.";
+  if (code === "MERCADO_PAGO_UNREACHABLE") return "O Mercado Pago não respondeu agora. O preço local não foi alterado.";
+  if (code === "MERCADO_PAGO_PLAN_CREATE_FAILED") return "O Mercado Pago recusou a criação do plano de teste.";
+  if (code === "MERCADO_PAGO_PLAN_UPDATE_FAILED") return "Não foi possível atualizar o plano de teste no Mercado Pago.";
+  if (code === "MERCADO_PAGO_PLAN_VALIDATION_FAILED") return "O plano retornado pelo Mercado Pago não bate com o preço canônico do Comandiva.";
+  if (code === "RATE_LIMITED") return "Muitas sincronizações em pouco tempo. Aguarde antes de tentar novamente.";
+  return "Não foi possível homologar este preço no Mercado Pago TEST.";
+}
+
 function PlatformAddonPricingPage() {
   const offers = usePlatformAddonOffers();
   const actions = usePlatformAddonPricingActions();
@@ -61,11 +73,11 @@ function PlatformAddonPricingPage() {
               Módulos e preços
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-              Publique a oferta comercial sem acoplar o Comandiva ao checkout. O módulo só fica comprável quando o preço local e o plano do Mercado Pago estiverem homologados.
+              Publique a oferta comercial e homologue o preço no Mercado Pago TEST. Checkout e entitlement continuam bloqueados até todas as validações do backend passarem.
             </p>
           </div>
           <Badge className="w-fit border-white/15 bg-white/10 text-white hover:bg-white/10">
-            Provider: Mercado Pago
+            Provider: Mercado Pago TEST
           </Badge>
         </div>
       </section>
@@ -78,7 +90,7 @@ function PlatformAddonPricingPage() {
 
       <Card className="border-amber-500/20 bg-amber-500/[.04]">
         <CardContent className="p-4 text-sm leading-6 text-muted-foreground">
-          Publicar preço aqui <strong className="text-foreground">não cria cobrança</strong>. O preflight exige disponibilidade, preço ativo, loja elegível e referência homologada no Mercado Pago. Enquanto faltar qualquer item, o checkout deve permanecer bloqueado.
+          Publicar preço aqui <strong className="text-foreground">não cria cobrança</strong>. “Sincronizar Mercado Pago TEST” cria ou atualiza somente o plano de homologação no ambiente de teste. A loja só recebe checkout quando o preflight validar preço, provider e estado financeiro.
         </CardContent>
       </Card>
 
@@ -191,13 +203,13 @@ function AddonOfferCard({
       </CardHeader>
       <CardContent className="grid gap-4 p-4 xl:grid-cols-2">
         <PriceEditor
-          key={`${offer.id}-monthly-${offer.monthly_price?.id ?? "new"}-${offer.monthly_price?.amount_cents ?? 0}`}
+          key={`${offer.id}-monthly-${offer.monthly_price?.id ?? "new"}-${offer.monthly_price?.amount_cents ?? 0}-${offer.monthly_price?.provider_status ?? "none"}`}
           offer={offer}
           interval="monthly"
           price={offer.monthly_price}
         />
         <PriceEditor
-          key={`${offer.id}-annual-${offer.annual_price?.id ?? "new"}-${offer.annual_price?.amount_cents ?? 0}`}
+          key={`${offer.id}-annual-${offer.annual_price?.id ?? "new"}-${offer.annual_price?.amount_cents ?? 0}-${offer.annual_price?.provider_status ?? "none"}`}
           offer={offer}
           interval="annual"
           price={offer.annual_price}
@@ -252,6 +264,20 @@ function PriceEditor({
     }
   }
 
+  async function syncProvider() {
+    if (!price) return;
+    try {
+      const result = await actions.syncProvider.mutateAsync({ addonPriceId: price.id });
+      toast.success(
+        result.created
+          ? `${offer.name}: plano TEST criado e homologado no Mercado Pago.`
+          : `${offer.name}: preço TEST sincronizado com o Mercado Pago.`,
+      );
+    } catch (error) {
+      toast.error(providerSyncErrorMessage(error));
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-surface-muted/30 p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -262,7 +288,11 @@ function PriceEditor({
           </p>
         </div>
         <Badge variant={price?.provider_ready ? "default" : "outline"}>
-          {price?.provider_ready ? "Mercado Pago pronto" : "Provider pendente"}
+          {price?.provider_ready
+            ? "Mercado Pago TEST pronto"
+            : price?.provider_status === "stale"
+              ? "Provider desatualizado"
+              : "Provider pendente"}
         </Badge>
       </div>
 
@@ -292,14 +322,40 @@ function PriceEditor({
         ) : null}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-          Preço ativo
-        </label>
-        <Button onClick={() => void save()} disabled={actions.upsertPrice.isPending}>
-          {actions.upsertPrice.isPending ? "Salvando…" : "Salvar preço"}
-        </Button>
+      <div className="mt-4 space-y-3 border-t border-border pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+            Preço ativo
+          </label>
+          <Button onClick={() => void save()} disabled={actions.upsertPrice.isPending}>
+            {actions.upsertPrice.isPending ? "Salvando…" : "Salvar preço"}
+          </Button>
+        </div>
+
+        {price ? (
+          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-background/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold text-foreground">Homologação Mercado Pago TEST</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Usa o último preço salvo no Comandiva e valida valor, moeda, intervalo e trial no provider.
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant={price.provider_ready ? "outline" : "default"}
+              disabled={actions.syncProvider.isPending}
+              onClick={() => void syncProvider()}
+            >
+              {actions.syncProvider.isPending ? (
+                <><Loader2 className="size-3.5 animate-spin" /> Sincronizando…</>
+              ) : (
+                <><RefreshCw className="size-3.5" /> {price.provider_ready ? "Ressincronizar TEST" : "Sincronizar TEST"}</>
+              )}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
