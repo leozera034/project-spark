@@ -55,6 +55,9 @@ export type SubmitOrderBody = {
     complement: string | null;
     reference: string | null;
     label: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracyMeters?: number | null;
   } | null;
   payment: { methodId: string; changeFor: number | null };
   notes: string | null;
