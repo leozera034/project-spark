@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import {
   getStoreAutomationBuilderCatalog,
+  getStoreCrmSegmentSummary,
   getStoreGrowthSummary,
   getStoreRevenueSeries,
   listStoreAutomationRules,
@@ -36,6 +37,16 @@ export function useStoreGrowthSummary(storeId: string | null) {
   const fn = useServerFn(getStoreGrowthSummary);
   return useQuery({
     queryKey: ["store-growth", storeId, "summary"],
+    queryFn: () => fn({ data: { storeId: storeId! } }),
+    enabled: Boolean(storeId),
+    refetchInterval: 60000,
+  });
+}
+
+export function useStoreCrmSegmentSummary(storeId: string | null) {
+  const fn = useServerFn(getStoreCrmSegmentSummary);
+  return useQuery({
+    queryKey: ["store-growth", storeId, "crm-segment-summary"],
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
     refetchInterval: 60000,
