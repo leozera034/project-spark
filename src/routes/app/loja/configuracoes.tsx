@@ -9,6 +9,7 @@ import { StoreConfigProvider, useStoreConfig } from "@/store-config/StoreConfigP
 
 const SECTIONS = [
   { to: "/app/loja/configuracoes/dados", label: "Dados da loja" },
+  { to: "/app/loja/configuracoes/endereco", label: "Endereço" },
   { to: "/app/loja/configuracoes/identidade", label: "Identidade" },
   { to: "/app/loja/configuracoes/horarios", label: "Horários" },
   { to: "/app/loja/configuracoes/atendimento", label: "Atendimento" },
@@ -19,16 +20,16 @@ const SECTIONS = [
 export const Route = createFileRoute("/app/loja/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Configurações da loja | Pediu Aqui" },
+      { title: "Configurações da loja | Comandiva" },
       {
         name: "description",
         content:
-          "Configure dados, identidade, horários, atendimento, bairros e formas de pagamento da sua loja.",
+          "Configure dados, endereço, identidade, horários, atendimento, bairros e formas de pagamento da sua loja.",
       },
-      { property: "og:title", content: "Configurações da loja | Pediu Aqui" },
+      { property: "og:title", content: "Configurações da loja | Comandiva" },
       {
         property: "og:description",
-        content: "Área de configuração da loja no Pediu Aqui.",
+        content: "Área de configuração da loja na Comandiva.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
