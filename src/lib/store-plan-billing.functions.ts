@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const storeIdSchema = z.string().uuid();
 const planCodeSchema = z.enum(["gratis", "essencial", "profissional", "avancado"]);
+const paidPlanCodeSchema = planCodeSchema.exclude(["gratis"]);
 const billingIntervalSchema = z.enum(["monthly", "annual"]);
 
 type FunctionError = { context?: Response; message?: string };
@@ -57,6 +58,14 @@ export type StorePlanBillingDetail = {
   }>;
 };
 
+export type PlanLifecycleResult = {
+  ok: true;
+  action: "upgrade" | "downgrade" | "cancel" | "resume";
+  scheduled?: boolean;
+  effectiveAt?: string | null;
+  providerStatus?: string | null;
+};
+
 async function edgeErrorCode(error: unknown) {
   const response = (error as FunctionError | null)?.context;
   if (typeof Response !== "undefined" && response instanceof Response) {
@@ -86,6 +95,21 @@ function checkoutError(code: string) {
   }
 }
 
+function lifecycleError(code: string) {
+  switch (code) {
+    case "forbidden": return new Error("FORBIDDEN");
+    case "plan_change_not_ready": return new Error("PLAN_CHANGE_NOT_READY");
+    case "target_plan_not_found": return new Error("TARGET_PLAN_NOT_FOUND");
+    case "same_plan": return new Error("SAME_PLAN");
+    case "stripe_subscription_update_failed": return new Error("STRIPE_SUBSCRIPTION_UPDATE_FAILED");
+    case "stripe_schedule_create_failed": return new Error("STRIPE_SCHEDULE_CREATE_FAILED");
+    case "stripe_cancel_failed": return new Error("STRIPE_CANCEL_FAILED");
+    case "stripe_resume_failed": return new Error("STRIPE_RESUME_FAILED");
+    case "rate_limited": return new Error("RATE_LIMITED");
+    default: return new Error("PLAN_LIFECYCLE_FAILED");
+  }
+}
+
 export const getMyStorePlanBillingDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
@@ -102,7 +126,7 @@ export const createStorePlanCheckout = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z.object({
       storeId: storeIdSchema,
-      planCode: planCodeSchema.exclude(["gratis"]),
+      planCode: paidPlanCodeSchema,
       billingInterval: billingIntervalSchema,
       idempotencyKey: z.string().trim().min(8).max(160),
     }).parse(data),
@@ -149,4 +173,47 @@ export const createStoreBillingPortal = createServerFn({ method: "POST" })
     const parsed = z.object({ ok: z.literal(true), url: z.string().url().refine((v) => v.startsWith("https://")) }).safeParse(result.data);
     if (!parsed.success) throw new Error("BILLING_PORTAL_FAILED");
     return parsed.data;
+  });
+
+export const changeStorePlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({
+    storeId: storeIdSchema,
+    planCode: paidPlanCodeSchema,
+    billingInterval: billingIntervalSchema,
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.functions.invoke("comandiva-stripe?action=change_plan", { body: data });
+    if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
+    const parsed = z.object({
+      ok: z.literal(true),
+      action: z.enum(["upgrade", "downgrade"]),
+      scheduled: z.boolean().optional(),
+      effectiveAt: z.string().nullable().optional(),
+      providerStatus: z.string().nullable().optional(),
+    }).safeParse(result.data);
+    if (!parsed.success) throw new Error("PLAN_LIFECYCLE_FAILED");
+    return parsed.data as PlanLifecycleResult;
+  });
+
+export const cancelStorePlanAtPeriodEnd = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.functions.invoke("comandiva-stripe?action=cancel_plan", { body: data });
+    if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
+    return z.object({
+      ok: z.literal(true),
+      action: z.literal("cancel"),
+      effectiveAt: z.string().nullable().optional(),
+    }).parse(result.data) as PlanLifecycleResult;
+  });
+
+export const resumeStorePlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.functions.invoke("comandiva-stripe?action=resume_plan", { body: data });
+    if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
+    return z.object({ ok: z.literal(true), action: z.literal("resume") }).parse(result.data) as PlanLifecycleResult;
   });
