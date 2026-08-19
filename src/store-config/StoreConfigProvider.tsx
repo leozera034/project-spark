@@ -1,12 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  fetchOperationalPreview,
-  fetchStoreConfiguration,
-  listMyStores,
-} from "./api";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
+
+import { fetchOperationalPreview, fetchStoreConfiguration } from "./api";
 import { extractCode, toFriendlyMessage } from "./errors";
 import type { StoreConfiguration, StoreOperationalPreview, StoreOption } from "./types";
 
@@ -20,7 +18,6 @@ interface StoreConfigValue {
   isLoading: boolean;
   error: string | null;
   refresh: () => void;
-  /** Executa uma RPC de escrita, tratando conflito, auditoria e recarga. */
   save: <T>(fn: () => Promise<T>, successMessage: string) => Promise<boolean>;
   isSaving: boolean;
 }
@@ -35,29 +32,21 @@ export function useStoreConfig(): StoreConfigValue {
 
 export function StoreConfigProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const [storeId, setStoreId] = useState<string | null>(null);
-
-  const storesQuery = useQuery({
-    queryKey: ["store-config", "stores"],
-    queryFn: listMyStores,
-    staleTime: 60_000,
-  });
-
-  const stores = storesQuery.data ?? [];
-  const effectiveStoreId = storeId ?? (stores.length === 1 ? stores[0].id : null);
-  const selectionRequired = storeId === null && stores.length > 1;
+  const scope = useStoreScope();
+  const effectiveStoreId = scope.storeId;
+  const enabled = Boolean(effectiveStoreId) && !scope.selectionRequired && !scope.isLoading;
 
   const configQuery = useQuery({
     queryKey: ["store-config", "configuration", effectiveStoreId],
     queryFn: () => fetchStoreConfiguration(effectiveStoreId),
-    enabled: !selectionRequired && (stores.length > 0 || storesQuery.isLoading === false),
+    enabled,
     retry: false,
   });
 
   const operationalQuery = useQuery({
     queryKey: ["store-config", "operational", effectiveStoreId],
     queryFn: () => fetchOperationalPreview(effectiveStoreId),
-    enabled: !selectionRequired && Boolean(configQuery.data),
+    enabled: enabled && Boolean(configQuery.data),
     refetchInterval: 60_000,
     retry: false,
   });
@@ -66,9 +55,7 @@ export function StoreConfigProvider({ children }: { children: React.ReactNode })
     void queryClient.invalidateQueries({ queryKey: ["store-config"] });
   }, [queryClient]);
 
-  const mutation = useMutation({
-    mutationFn: async (fn: () => Promise<unknown>) => fn(),
-  });
+  const mutation = useMutation({ mutationFn: async (fn: () => Promise<unknown>) => fn() });
 
   const save = useCallback<StoreConfigValue["save"]>(
     async (fn, successMessage) => {
@@ -90,26 +77,25 @@ export function StoreConfigProvider({ children }: { children: React.ReactNode })
   const value = useMemo<StoreConfigValue>(
     () => ({
       storeId: effectiveStoreId,
-      setStoreId,
-      stores,
-      selectionRequired,
+      setStoreId: (id) => void scope.selectStore(id),
+      stores: scope.stores,
+      selectionRequired: scope.selectionRequired,
       configuration: (configQuery.data as StoreConfiguration | undefined) ?? null,
       operational: (operationalQuery.data as StoreOperationalPreview | undefined) ?? null,
-      isLoading: storesQuery.isLoading || (!selectionRequired && configQuery.isLoading),
-      error: configQuery.error ? toFriendlyMessage(configQuery.error) : null,
+      isLoading: scope.isLoading || (enabled && configQuery.isLoading),
+      error: scope.error ? scope.error.message : configQuery.error ? toFriendlyMessage(configQuery.error) : null,
       refresh,
       save,
       isSaving: mutation.isPending,
     }),
     [
       effectiveStoreId,
-      stores,
-      selectionRequired,
+      scope,
       configQuery.data,
       configQuery.isLoading,
       configQuery.error,
       operationalQuery.data,
-      storesQuery.isLoading,
+      enabled,
       refresh,
       save,
       mutation.isPending,
