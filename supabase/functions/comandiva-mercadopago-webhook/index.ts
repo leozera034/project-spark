@@ -4,12 +4,15 @@ import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 const MP_API = "https://api.mercadopago.com";
 const MAX_BODY_BYTES = 64 * 1024;
 const SIGNATURE_TOLERANCE_SECONDS = 600;
+const PROVIDER_TIMEOUT_MS = 8_000;
 const PROCESSABLE_EVENT_TYPES = new Set([
   "subscription_preapproval",
   "subscription_authorized_payment",
   "payment",
 ]);
 const IGNORED_EVENT_TYPES = new Set(["subscription_preapproval_plan"]);
+
+type JsonRecord = Record<string, unknown>;
 
 function parseKeys(raw: string | undefined): Record<string, string> {
   if (!raw) return {};
@@ -121,10 +124,10 @@ async function validSignature(req: Request, dataIdRaw: string, secret: string): 
   return constantTimeHexEquals(computed, v1);
 }
 
-function payloadDataId(payload: Record<string, unknown>): string {
+function payloadDataId(payload: JsonRecord): string {
   const data = payload.data;
   if (!data || typeof data !== "object") return "";
-  const value = (data as Record<string, unknown>).id;
+  const value = (data as JsonRecord).id;
   return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
 }
 
@@ -142,13 +145,38 @@ function scalar(value: unknown): string | number | boolean | null {
     : null;
 }
 
-function objectValue(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
+function stringValue(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
 }
 
-function sanitizedNotification(payload: Record<string, unknown>) {
+function intValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value)) return value;
+  if (typeof value === "string" && /^-?\d+$/.test(value.trim())) return Number(value);
+  return null;
+}
+
+function moneyToCents(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  const raw = String(value).trim().replace(",", ".");
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(raw);
+  if (!match) return null;
+  const whole = Number(match[2]);
+  if (!Number.isSafeInteger(whole)) return null;
+  const fractionRaw = match[3] ?? "";
+  const firstTwo = (fractionRaw + "00").slice(0, 2);
+  const remainder = fractionRaw.slice(2);
+  let cents = whole * 100 + Number(firstTwo);
+  if (remainder && Number(`0.${remainder}`) >= 0.5) cents += 1;
+  return match[1] === "-" ? -cents : cents;
+}
+
+function objectValue(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {};
+}
+
+function sanitizedNotification(payload: JsonRecord) {
   const data = objectValue(payload.data);
   return {
     id: scalar(payload.id),
@@ -161,7 +189,7 @@ function sanitizedNotification(payload: Record<string, unknown>) {
   };
 }
 
-function sanitizedSnapshot(eventType: string, raw: Record<string, unknown>) {
+function sanitizedSnapshot(eventType: string, raw: JsonRecord) {
   if (eventType === "subscription_preapproval") {
     const recurring = objectValue(raw.auto_recurring);
     const freeTrial = objectValue(recurring.free_trial);
@@ -173,6 +201,7 @@ function sanitizedSnapshot(eventType: string, raw: Record<string, unknown>) {
       reason: scalar(raw.reason),
       date_created: scalar(raw.date_created),
       last_modified: scalar(raw.last_modified),
+      next_payment_date: scalar(raw.next_payment_date),
       auto_recurring: {
         frequency: scalar(recurring.frequency),
         frequency_type: scalar(recurring.frequency_type),
@@ -215,11 +244,29 @@ function sanitizedSnapshot(eventType: string, raw: Record<string, unknown>) {
   };
 }
 
+async function fetchProviderJson(accessToken: string, url: string): Promise<{ ok: boolean; status: number; body: JsonRecord }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+  try {
+    const upstream = await fetch(url, {
+      method: "GET",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return { ok: upstream.ok, status: upstream.status, body: objectValue(await upstream.json().catch(() => ({}))) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function finalizeEvent(
   admin: ReturnType<typeof adminClient>,
   providerEventKey: string,
   processingStatus: "processed" | "ignored" | "failed",
-  providerSnapshot: Record<string, unknown> | null,
+  providerSnapshot: JsonRecord | null,
   lastError: string | null,
 ) {
   const { data, error } = await admin.rpc("finalize_mercado_pago_webhook_event", {
@@ -229,13 +276,48 @@ async function finalizeEvent(
     p_last_error: lastError,
   });
   if (error || data !== true) {
-    console.error(
-      "[comandiva-mercadopago-webhook] finalize failed",
-      error?.code ?? "event_not_found",
-    );
+    console.error("[comandiva-mercadopago-webhook] finalize failed", error?.code ?? "event_not_found");
     return false;
   }
   return true;
+}
+
+async function reconcileAddonPreapproval(
+  admin: ReturnType<typeof adminClient>,
+  raw: JsonRecord,
+): Promise<{ relevant: boolean; ok: boolean; error?: string }> {
+  const externalReference = stringValue(raw.external_reference);
+  if (!externalReference?.startsWith("comandiva:addon:")) return { relevant: false, ok: true };
+
+  const recurring = objectValue(raw.auto_recurring);
+  const providerSubscriptionId = stringValue(raw.id);
+  const providerStatus = stringValue(raw.status);
+  const amountCents = moneyToCents(recurring.transaction_amount);
+  const currency = stringValue(recurring.currency_id);
+  const frequency = intValue(recurring.frequency);
+  const frequencyType = stringValue(recurring.frequency_type);
+  const nextPaymentDate = stringValue(raw.next_payment_date);
+
+  if (!providerSubscriptionId || !providerStatus || amountCents == null || !currency || frequency == null || !frequencyType) {
+    return { relevant: true, ok: false, error: "addon_preapproval_snapshot_incomplete" };
+  }
+
+  const { error } = await admin.rpc("billing_reconcile_mercado_pago_preapproval", {
+    _provider_subscription_id: providerSubscriptionId,
+    _provider_status: providerStatus,
+    _external_reference: externalReference,
+    _amount_cents: amountCents,
+    _currency: currency,
+    _frequency: frequency,
+    _frequency_type: frequencyType,
+    _next_payment_date: nextPaymentDate,
+  } as never);
+
+  if (error) {
+    console.error("[comandiva-mercadopago-webhook] addon reconciliation rejected", error.code ?? "unknown");
+    return { relevant: true, ok: false, error: `addon_reconcile_${error.message?.slice(0, 120) ?? error.code ?? "failed"}` };
+  }
+  return { relevant: true, ok: true };
 }
 
 Deno.serve(async (req: Request) => {
@@ -258,7 +340,6 @@ Deno.serve(async (req: Request) => {
   if (Number.isFinite(length) && length > MAX_BODY_BYTES) {
     return response(413, { ok: false, error: "payload_too_large" });
   }
-
   if (!webhookSecret) return response(503, { ok: false, error: "webhook_not_configured" });
 
   const url = new URL(req.url);
@@ -267,22 +348,17 @@ Deno.serve(async (req: Request) => {
     return response(401, { ok: false, error: "invalid_signature" });
   }
 
-  let payload: Record<string, unknown>;
+  let payload: JsonRecord;
   try {
-    payload = await req.json();
+    payload = objectValue(await req.json());
   } catch {
     return response(400, { ok: false, error: "invalid_json" });
   }
-
-  if (payload.live_mode === true) {
-    return response(403, { ok: false, error: "live_event_rejected_in_test" });
-  }
+  if (payload.live_mode === true) return response(403, { ok: false, error: "live_event_rejected_in_test" });
 
   const eventType = typeof payload.type === "string" ? payload.type.slice(0, 120) : "unknown";
   const action = typeof payload.action === "string" ? payload.action.slice(0, 160) : "unknown";
-  const notificationId = typeof payload.id === "string" || typeof payload.id === "number"
-    ? String(payload.id)
-    : "";
+  const notificationId = typeof payload.id === "string" || typeof payload.id === "number" ? String(payload.id) : "";
   const requestId = req.headers.get("x-request-id")?.trim() ?? "";
   const resourceId = signedDataId || payloadDataId(payload);
   const providerEventKey = notificationId
@@ -301,29 +377,19 @@ Deno.serve(async (req: Request) => {
     console.error("[comandiva-mercadopago-webhook] claim failed", error.code ?? "unknown");
     return response(500, { ok: false, error: "event_claim_failed" });
   }
-
-  if (claim === "duplicate") {
-    return response(200, { ok: true, duplicate: true });
-  }
-  if (claim === "busy") {
-    return response(503, { ok: false, error: "event_in_progress" });
-  }
-  if (claim !== "process") {
-    return response(500, { ok: false, error: "event_claim_failed" });
-  }
+  if (claim === "duplicate") return response(200, { ok: true, duplicate: true });
+  if (claim === "busy") return response(503, { ok: false, error: "event_in_progress" });
+  if (claim !== "process") return response(500, { ok: false, error: "event_claim_failed" });
 
   if (IGNORED_EVENT_TYPES.has(eventType) || !PROCESSABLE_EVENT_TYPES.has(eventType)) {
     const finalized = await finalizeEvent(admin, providerEventKey, "ignored", null, null);
-    return finalized
-      ? response(200, { ok: true, ignored: true })
-      : response(500, { ok: false, error: "event_finalize_failed" });
+    return finalized ? response(200, { ok: true, ignored: true }) : response(500, { ok: false, error: "event_finalize_failed" });
   }
 
   if (!resourceId) {
     await finalizeEvent(admin, providerEventKey, "failed", null, "provider_resource_id_missing");
     return response(400, { ok: false, error: "provider_resource_id_missing" });
   }
-
   if (!accessToken) {
     await finalizeEvent(admin, providerEventKey, "failed", null, "provider_token_missing");
     return response(503, { ok: false, error: "provider_lookup_not_configured" });
@@ -336,15 +402,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const upstream = await fetch(resourceUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const raw = (await upstream.json().catch(() => ({}))) as Record<string, unknown>;
+    const upstream = await fetchProviderJson(accessToken, resourceUrl);
     if (!upstream.ok) {
       await finalizeEvent(
         admin,
@@ -356,10 +414,40 @@ Deno.serve(async (req: Request) => {
       return response(502, { ok: false, error: "provider_lookup_failed" });
     }
 
-    const snapshot = sanitizedSnapshot(eventType, raw);
+    const snapshot = sanitizedSnapshot(eventType, upstream.body);
+
+    if (eventType === "subscription_preapproval") {
+      const reconciliation = await reconcileAddonPreapproval(admin, upstream.body);
+      if (!reconciliation.ok) {
+        await finalizeEvent(admin, providerEventKey, "failed", snapshot, reconciliation.error ?? "addon_reconcile_failed");
+        return response(409, { ok: false, error: "addon_reconciliation_rejected" });
+      }
+    }
+
+    if (eventType === "subscription_authorized_payment") {
+      const preapprovalId = stringValue(upstream.body.preapproval_id);
+      if (preapprovalId) {
+        const preapproval = await fetchProviderJson(accessToken, `${MP_API}/preapproval/${encodeURIComponent(preapprovalId)}`);
+        if (!preapproval.ok) {
+          await finalizeEvent(
+            admin,
+            providerEventKey,
+            "failed",
+            snapshot,
+            `provider_preapproval_lookup_${preapproval.status}`,
+          );
+          return response(502, { ok: false, error: "provider_preapproval_lookup_failed" });
+        }
+        const reconciliation = await reconcileAddonPreapproval(admin, preapproval.body);
+        if (!reconciliation.ok) {
+          await finalizeEvent(admin, providerEventKey, "failed", snapshot, reconciliation.error ?? "addon_reconcile_failed");
+          return response(409, { ok: false, error: "addon_reconciliation_rejected" });
+        }
+      }
+    }
+
     const finalized = await finalizeEvent(admin, providerEventKey, "processed", snapshot, null);
     if (!finalized) return response(500, { ok: false, error: "event_finalize_failed" });
-
     return response(200, { ok: true, verified: true });
   } catch (lookupError) {
     console.error(
