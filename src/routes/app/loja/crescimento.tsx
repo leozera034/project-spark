@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  Bot,
   ChartNoAxesCombined,
   Crown,
   MessageCircle,
@@ -9,27 +8,26 @@ import {
   Search,
   Sparkles,
   TrendingUp,
-  UserRoundPlus,
   Users,
   WalletCards,
 } from "lucide-react";
 
 import { useAuth } from "@/auth/useAuth";
+import { WhatsAppAutomationBuilder } from "@/components/store/WhatsAppAutomationBuilder";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import type { GrowthSegment } from "@/lib/store-growth.functions";
 import {
-  useStoreAutomationRules,
   useStoreCustomerInsights,
   useStoreGrowthActions,
   useStoreGrowthSummary,
   useStoreMarketingCampaigns,
   useStoreRevenueSeries,
 } from "@/store/growth/store-growth.queries";
-import type { GrowthSegment } from "@/lib/store-growth.functions";
 
 export const Route = createFileRoute("/app/loja/crescimento")({
   head: () => ({
@@ -72,7 +70,6 @@ function GrowthCenter() {
   });
   const revenue = useStoreRevenueSeries(storeId, 30);
   const campaigns = useStoreMarketingCampaigns(storeId);
-  const automations = useStoreAutomationRules(storeId);
   const actions = useStoreGrowthActions();
 
   const maxRevenue = useMemo(
@@ -105,13 +102,6 @@ function GrowthCenter() {
         },
       },
     );
-  };
-
-  const createAutomation = (
-    eventCode: "novo_cliente" | "pedido_concluido" | "cliente_inativo_30d" | "cliente_vip",
-    name: string,
-  ) => {
-    actions.saveRule.mutate({ storeId, eventCode, name, enabled: true, config: {} });
   };
 
   return (
@@ -336,53 +326,7 @@ function GrowthCenter() {
           </CardContent>
         </Card>
 
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="size-5 text-brand" /> Automações operacionais
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Regras persistidas e auditáveis; nada de condicionais escondidas no frontend.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(automations.data ?? []).map((rule) => (
-              <div
-                key={rule.id}
-                className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border bg-surface-muted/45 p-4"
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{rule.name}</p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {rule.event_code.replaceAll("_", " ")}
-                  </p>
-                </div>
-                <Badge className="shrink-0" variant={rule.is_enabled ? "default" : "secondary"}>
-                  {rule.is_enabled ? "Ativa" : "Pausada"}
-                </Badge>
-              </div>
-            ))}
-            {(automations.data?.length ?? 0) === 0 ? (
-              <div className="grid gap-2">
-                <AutomationPreset
-                  icon={UserRoundPlus}
-                  label="Boas-vindas ao novo cliente"
-                  onClick={() => createAutomation("novo_cliente", "Boas-vindas ao novo cliente")}
-                />
-                <AutomationPreset
-                  icon={Crown}
-                  label="Reconhecer cliente VIP"
-                  onClick={() => createAutomation("cliente_vip", "Reconhecer cliente VIP")}
-                />
-                <AutomationPreset
-                  icon={RefreshCw}
-                  label="Reativar cliente após 30 dias"
-                  onClick={() => createAutomation("cliente_inativo_30d", "Reativar cliente após 30 dias")}
-                />
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
+        <WhatsAppAutomationBuilder storeId={storeId} />
       </section>
 
       <div className="rounded-2xl border border-brand/15 bg-brand-soft p-4 text-sm leading-relaxed text-brand-soft-foreground">
@@ -419,31 +363,5 @@ function Metric({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function AutomationPreset({
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  icon: typeof Bot;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex min-h-14 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-border bg-surface-muted/45 p-4 text-left transition hover:border-brand/20 hover:bg-brand-soft/60"
-    >
-      <span className="flex min-w-0 items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft">
-          <Icon className="size-4 text-brand-soft-foreground" />
-        </span>
-        <span className="min-w-0 break-words font-semibold">{label}</span>
-      </span>
-      <span className="shrink-0 text-xs font-semibold text-brand">Ativar</span>
-    </button>
   );
 }
