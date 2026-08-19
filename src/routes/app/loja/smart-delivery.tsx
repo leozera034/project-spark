@@ -61,14 +61,14 @@ const DIAGNOSTIC_LABEL: Record<string, string> = {
   addon_not_entitled: "O add-on Smart Delivery não está ativo para esta loja.",
   store_paused: "A loja pausou o Smart Delivery manualmente.",
   provider_global_kill_switch: "A proteção global do provider está ligada.",
-  api_key_missing: "A chave de servidor do Google Maps ainda não foi homologada.",
-  billing_not_confirmed: "O billing do Google Maps ainda não foi confirmado pela plataforma.",
-  routes_api_disabled: "A Routes API ainda não foi liberada pela plataforma.",
-  geocoding_api_disabled: "A Geocoding API ainda não foi liberada pela plataforma.",
+  api_key_missing: "A chave de servidor do openrouteservice ainda não está disponível para o backend.",
+  billing_not_confirmed: "O gate técnico do provider ainda não foi liberado pela plataforma.",
+  routes_api_disabled: "O serviço de rotas ainda não foi liberado pela plataforma.",
+  geocoding_api_disabled: "O serviço de geocodificação ainda não foi liberado pela plataforma.",
   provider_health_error: "O último health check do provider registrou uma falha.",
   store_coordinates_missing: "A localização da loja ainda não possui coordenadas válidas.",
-  routes_usage_limit_reached: "O limite mensal de rotas foi atingido.",
-  geocoding_usage_limit_reached: "O limite mensal de geocodificação foi atingido.",
+  routes_usage_limit_reached: "O limite interno de rotas foi atingido.",
+  geocoding_usage_limit_reached: "O limite interno de geocodificação foi atingido.",
   failed_jobs_present: "Existem jobs de Smart Delivery que terminaram com falha.",
   stale_processing_jobs: "Existem jobs em processamento com lock expirado.",
 };
@@ -89,8 +89,12 @@ function formatQuantity(value: number) {
   return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 }
 
+function providerLabel(provider: string) {
+  return provider === "openrouteservice" ? "openrouteservice / HeiGIT" : provider;
+}
+
 function usageLabel(metric: SmartDeliveryUsageItem["metric_code"]) {
-  return metric === "routes.compute" ? "Rotas Google" : "Endereços geocodificados";
+  return metric === "routes.compute" ? "Rotas inteligentes" : "Endereços geocodificados";
 }
 
 function usagePercent(item: SmartDeliveryUsageItem) {
@@ -217,7 +221,7 @@ function SmartDeliveryControlCenterPage() {
             </div>
             <h1 className="font-display text-3xl font-black tracking-tight">Centro Smart Delivery</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-              Readiness, consumo, limites e fila operacional. Esta tela não configura credenciais, não aumenta quota e não dispara chamadas pagas.
+              Readiness, consumo, limites e fila operacional. O provider atual é {providerLabel(data.provider.code)}; esta tela nunca exibe a chave e não ativa serviços pagos.
             </p>
           </div>
           <Button variant="secondary" onClick={() => void control.refetch()} disabled={control.isFetching}>
@@ -235,7 +239,7 @@ function SmartDeliveryControlCenterPage() {
                 Kill switch da loja
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                É independente da proteção global da plataforma. Retomar nunca ignora add-on, billing, APIs, localização ou hard limits.
+                É independente da proteção global da plataforma. Retomar nunca ignora add-on, disponibilidade do provider, localização ou limites internos.
               </p>
             </div>
             {data.control.is_paused ? (
@@ -268,10 +272,10 @@ function SmartDeliveryControlCenterPage() {
           <CardContent className="space-y-2">
             <ReadinessRow label="Add-on Smart Delivery" ready={data.smart_delivery_entitled} detail={data.smart_delivery_entitled ? "Entitlement ativo para a loja." : "Nenhuma assinatura/entitlement ativo."} />
             <ReadinessRow label="Coordenadas da loja" ready={data.store.coordinates_set} detail={data.store.coordinates_set ? `Origem: ${data.store.location_source}.` : "Necessárias para calcular rota loja → cliente."} />
-            <ReadinessRow label="Chave Google de servidor" ready={data.provider.api_key_configured} detail="Configurada apenas na infraestrutura, nunca exibida aqui." />
-            <ReadinessRow label="Billing do provider" ready={data.provider.billing_confirmed} detail="Confirmação controlada pela plataforma." />
-            <ReadinessRow label="Routes API" ready={data.provider.routes_api_enabled} detail={data.capabilities.routes_ready ? "Rota pode passar por todos os gates." : "A rota real permanece bloqueada."} />
-            <ReadinessRow label="Geocoding API" ready={data.provider.geocoding_api_enabled} detail={data.capabilities.geocoding_ready ? "Geocodificação pode passar por todos os gates." : "Geocodificação real permanece bloqueada."} />
+            <ReadinessRow label="Chave openrouteservice" ready={data.provider.api_key_configured} detail="Configurada somente no backend e nunca exibida aqui." />
+            <ReadinessRow label="Provider autorizado" ready={data.provider.billing_confirmed} detail="Gate técnico de compatibilidade do backend; não representa cobrança, cartão ou plano pago." />
+            <ReadinessRow label="Rotas openrouteservice" ready={data.provider.routes_api_enabled} detail={data.capabilities.routes_ready ? "Rotas podem passar por todos os gates." : "A rota pelo provider permanece bloqueada."} />
+            <ReadinessRow label="Geocodificação openrouteservice" ready={data.provider.geocoding_api_enabled} detail={data.capabilities.geocoding_ready ? "Geocodificação pode passar por todos os gates." : "Geocodificação pelo provider permanece bloqueada."} />
           </CardContent>
         </Card>
 
@@ -332,7 +336,7 @@ function SmartDeliveryControlCenterPage() {
             <p className="text-xs text-muted-foreground">
               Pendentes/processando agora: {totalPending}. Mais antigo: {formatDateTime(data.jobs.oldest_pending_at)}. Locks vencidos: {data.jobs.stale_processing}.
             </p>
-            <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">Retries são automáticos e classificados no worker. Esta central não oferece reexecução manual que possa gerar chamada paga duplicada.</p>
+            <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">Retries são automáticos e classificados no worker. Esta central não oferece reexecução manual que possa gerar chamada duplicada ao provider.</p>
           </CardContent>
         </Card>
 
