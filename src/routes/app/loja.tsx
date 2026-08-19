@@ -9,6 +9,7 @@ import {
 import {
   BarChart3,
   Bike,
+  Blocks,
   ChefHat,
   CreditCard,
   LayoutGrid,
@@ -59,6 +60,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app/loja/cozinha", label: "Cozinha", icon: ChefHat, mobile: true },
   { to: "/app/loja/cardapio", label: "Cardápio", icon: UtensilsCrossed, mobile: true },
   { to: "/app/loja/crescimento", label: "Crescimento", icon: TrendingUp },
+  { to: "/app/loja/modulos", label: "Módulos", icon: Blocks },
   { to: "/app/loja/entregadores", label: "Entregadores", icon: Bike },
   { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, mobile: true },
   { to: "/app/loja/plano", label: "Plano e assinatura", icon: CreditCard },
