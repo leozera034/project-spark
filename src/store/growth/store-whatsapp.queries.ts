@@ -6,6 +6,8 @@ import {
   listStoreMessageTemplates,
   saveStoreMessageTemplate,
   setCustomerWhatsAppMarketingConsent,
+  submitStoreMessageTemplateToMeta,
+  syncStoreMetaWhatsAppTemplates,
 } from "@/lib/store-whatsapp.functions";
 
 type TemplateInput = {
@@ -15,7 +17,6 @@ type TemplateInput = {
   name: string;
   purpose: "transactional" | "marketing";
   body: string;
-  providerTemplateName?: string | null;
   providerLanguage?: string;
   isActive?: boolean;
 };
@@ -43,13 +44,18 @@ export function useStoreMessageTemplates(storeId: string | null) {
     queryKey: ["store-growth", storeId, "message-templates"],
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
+    refetchInterval: 60_000,
   });
 }
 
 export function useStoreWhatsAppActions() {
   const queryClient = useQueryClient();
   const saveTemplateFn = useServerFn(saveStoreMessageTemplate);
+  const submitTemplateFn = useServerFn(submitStoreMessageTemplateToMeta);
+  const syncTemplatesFn = useServerFn(syncStoreMetaWhatsAppTemplates);
   const setConsentFn = useServerFn(setCustomerWhatsAppMarketingConsent);
+
+  const invalidateGrowth = () => queryClient.invalidateQueries({ queryKey: ["store-growth"] });
 
   const saveTemplate = useMutation({
     mutationFn: (data: TemplateInput) =>
@@ -60,14 +66,24 @@ export function useStoreWhatsAppActions() {
           isActive: data.isActive ?? true,
         },
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
+    onSuccess: invalidateGrowth,
+  });
+
+  const submitTemplate = useMutation({
+    mutationFn: (data: { storeId: string; templateId: string }) => submitTemplateFn({ data }),
+    onSuccess: invalidateGrowth,
+  });
+
+  const syncTemplates = useMutation({
+    mutationFn: (data: { storeId: string }) => syncTemplatesFn({ data }),
+    onSuccess: invalidateGrowth,
   });
 
   const setConsent = useMutation({
     mutationFn: (data: ConsentInput) =>
       setConsentFn({ data: { ...data, source: data.source ?? "manual" } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
+    onSuccess: invalidateGrowth,
   });
 
-  return { saveTemplate, setConsent };
+  return { saveTemplate, submitTemplate, syncTemplates, setConsent };
 }
