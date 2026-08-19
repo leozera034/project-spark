@@ -15,8 +15,6 @@ services:
         value: http
       - key: SERVER_PORT
         value: 10000
-      - key: SERVER_URL
-        sync: false
       - key: TELEMETRY_ENABLED
         value: "false"
       - key: CORS_ORIGIN
