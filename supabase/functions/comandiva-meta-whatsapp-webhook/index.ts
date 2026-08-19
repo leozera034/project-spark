@@ -9,6 +9,9 @@ const TEMPLATE_EVENTS = new Set([
   "PENDING",
   "PAUSED",
   "DISABLED",
+  "FLAGGED",
+  "PENDING_DELETION",
+  "DELETED",
   "IN_APPEAL",
   "REINSTATED",
 ]);
