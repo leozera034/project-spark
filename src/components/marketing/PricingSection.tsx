@@ -27,20 +27,20 @@ export function PricingSection({ plans }: { plans: PublicPlan[] }) {
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#706675]">
             Compare limites e recursos com preços carregados diretamente do nosso catálogo comercial.
-            Nada de valor escondido ou preço diferente entre site e sistema.
+            A cobrança dos planos pagos é processada com segurança pela Stripe.
           </p>
 
           <div className="mt-7 flex flex-wrap justify-center gap-2">
             {maximumTrialDays > 0 ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-                <Sparkles className="size-3.5 text-[#FF6A4D]" /> Teste de até {maximumTrialDays} dias sem cartão
+                <Sparkles className="size-3.5 text-[#FF6A4D]" /> Teste de até {maximumTrialDays} dias nos planos elegíveis
               </span>
             ) : null}
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-              <ShieldCheck className="size-3.5 text-[#FF6A4D]" /> Sem comissão por pedido
+              <ShieldCheck className="size-3.5 text-[#FF6A4D]" /> Plano gratuito claramente identificado
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-              <CreditCard className="size-3.5 text-[#FF6A4D]" /> Cobrança online em ativação
+              <CreditCard className="size-3.5 text-[#FF6A4D]" /> Assinaturas pagas via Stripe
             </span>
           </div>
         </Reveal>
@@ -51,7 +51,7 @@ export function PricingSection({ plans }: { plans: PublicPlan[] }) {
 
         <Reveal delay={120} className="mx-auto mt-7 max-w-3xl text-center">
           <p className="text-sm leading-6 text-[#706675]">
-            Você pode iniciar o teste sem cartão. Nenhuma contratação paga será cobrada enquanto a cobrança online não estiver ativa e apresentada claramente no painel.
+            Nenhum plano pago é liberado apenas pelo retorno do checkout. A ativação acontece depois da confirmação financeira recebida e conciliada pelo backend.
           </p>
         </Reveal>
       </div>
