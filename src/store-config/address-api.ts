@@ -24,6 +24,15 @@ export interface StoreAddressInput {
   expectedUpdatedAt: string;
 }
 
+export interface StoreLocationCoordinatesInput {
+  storeId: string;
+  latitude: number;
+  longitude: number;
+  source?: "manual_browser" | "manual_admin" | "google_geocoding";
+  accuracyMeters?: number | null;
+  expectedUpdatedAt: string;
+}
+
 export async function updateStoreAddress(input: StoreAddressInput): Promise<StoreConfiguration> {
   return unwrap(
     await rpc("update_store_address", {
@@ -35,6 +44,21 @@ export async function updateStoreAddress(input: StoreAddressInput): Promise<Stor
       _neighborhood: input.neighborhood,
       _city: input.city,
       _state: input.state,
+      _expected_updated_at: input.expectedUpdatedAt,
+    }),
+  ) as StoreConfiguration;
+}
+
+export async function updateStoreLocationCoordinates(
+  input: StoreLocationCoordinatesInput,
+): Promise<StoreConfiguration> {
+  return unwrap(
+    await rpc("update_store_location_coordinates", {
+      _store_id: input.storeId,
+      _latitude: input.latitude,
+      _longitude: input.longitude,
+      _source: input.source ?? "manual_browser",
+      _accuracy_meters: input.accuracyMeters ?? null,
       _expected_updated_at: input.expectedUpdatedAt,
     }),
   ) as StoreConfiguration;
