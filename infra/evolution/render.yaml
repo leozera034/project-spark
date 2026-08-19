@@ -34,7 +34,9 @@ services:
       - key: DATABASE_PROVIDER
         value: postgresql
       - key: DATABASE_CONNECTION_URI
-        sync: false
+        fromDatabase:
+          name: comandiva-evolution-db
+          property: connectionString
       - key: DATABASE_CONNECTION_CLIENT_NAME
         value: comandiva_evolution_qa
       - key: DATABASE_SAVE_DATA_INSTANCE
@@ -79,3 +81,11 @@ services:
         value: "false"
       - key: LANGUAGE
         value: pt-BR
+
+databases:
+  - name: comandiva-evolution-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "15"
+    databaseName: evolution
+    user: evolution
