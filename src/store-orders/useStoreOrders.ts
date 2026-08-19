@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { extractCode, toFriendlyMessage } from "@/store-config/errors";
-import { listMyStores } from "@/store-config/api";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 import {
   fetchOrderCounts,
@@ -26,8 +26,20 @@ import type { StoreOrderAction, StoreOrderStatus } from "./types";
 
 const FALLBACK_POLL_MS = 20_000;
 
+/**
+ * Compatibilidade com as telas legadas que esperam um resultado parecido com
+ * React Query. O escopo global já exige uma escolha explícita quando há 2+ lojas,
+ * então os consumidores recebem somente a loja atualmente selecionada.
+ */
 export function useMyStores() {
-  return useQuery({ queryKey: ["store-orders", "stores"], queryFn: listMyStores, staleTime: 60_000 });
+  const scope = useStoreScope();
+  const selected = scope.selectedStore ? [scope.selectedStore] : [];
+  return {
+    data: selected,
+    isLoading: scope.isLoading,
+    error: scope.error,
+    refetch: scope.refreshStores,
+  };
 }
 
 export interface QueueFilters {

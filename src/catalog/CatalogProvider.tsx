@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { listMyStores } from "@/store-config/api";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 import type { StoreOption } from "@/store-config/types";
 
 import { catalogErrorMessage, fetchCatalogOverview, listCategories } from "./api";
@@ -36,19 +36,11 @@ export function useCatalog(): CatalogValue {
 
 export function CatalogProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const scope = useStoreScope();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 
-  const storesQuery = useQuery({
-    queryKey: ["catalog", "stores"],
-    queryFn: listMyStores,
-    staleTime: 60_000,
-  });
-
-  const stores = storesQuery.data ?? [];
-  const effectiveStoreId = storeId ?? (stores.length === 1 ? stores[0].id : null);
-  const selectionRequired = storeId === null && stores.length > 1;
-  const enabled = !selectionRequired && !storesQuery.isLoading;
+  const effectiveStoreId = scope.storeId;
+  const enabled = Boolean(effectiveStoreId) && !scope.selectionRequired && !scope.isLoading;
 
   const overviewQuery = useQuery({
     queryKey: ["catalog", "overview", effectiveStoreId],
@@ -93,18 +85,22 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CatalogValue>(
     () => ({
       storeId: effectiveStoreId,
-      stores,
-      selectionRequired,
-      setStoreId,
+      stores: scope.stores,
+      selectionRequired: scope.selectionRequired,
+      setStoreId: (id) => {
+        void scope.selectStore(id);
+      },
       overview: overviewQuery.data ?? null,
       categories,
       activeCategories: categories.filter((c) => !c.is_archived),
-      isLoading: storesQuery.isLoading || (enabled && (overviewQuery.isLoading || categoriesQuery.isLoading)),
-      error: overviewQuery.error
-        ? catalogErrorMessage(overviewQuery.error)
-        : categoriesQuery.error
-          ? catalogErrorMessage(categoriesQuery.error)
-          : null,
+      isLoading: scope.isLoading || (enabled && (overviewQuery.isLoading || categoriesQuery.isLoading)),
+      error: scope.error
+        ? scope.error.message
+        : overviewQuery.error
+          ? catalogErrorMessage(overviewQuery.error)
+          : categoriesQuery.error
+            ? catalogErrorMessage(categoriesQuery.error)
+            : null,
       refresh,
       run,
       pendingKey,
@@ -113,15 +109,17 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       effectiveStoreId,
-      stores,
-      selectionRequired,
+      scope.stores,
+      scope.selectionRequired,
+      scope.selectStore,
+      scope.isLoading,
+      scope.error,
       overviewQuery.data,
       overviewQuery.isLoading,
       overviewQuery.error,
       categories,
       categoriesQuery.isLoading,
       categoriesQuery.error,
-      storesQuery.isLoading,
       enabled,
       refresh,
       run,
