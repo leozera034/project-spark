@@ -55,6 +55,7 @@ function templateStatusVariant(status: StoreMessageTemplate["provider_status"]) 
 }
 
 function providerLabel(provider: string | null | undefined) {
+  if (provider === "evolution_api") return "Evolution API";
   if (provider === "meta_whatsapp") return "Meta WhatsApp";
   if (provider === "360dialog_whatsapp") return "360dialog";
   if (provider === "twilio_whatsapp") return "Twilio";
@@ -128,6 +129,7 @@ function WhatsAppCenter() {
     );
   }
 
+  const isEvolution = readiness.data?.provider === "evolution_api";
   const canUseMetaTemplates = Boolean(
     readiness.data?.automatic_entitled
       && readiness.data?.provider_connected
@@ -189,8 +191,13 @@ function WhatsAppCenter() {
       });
       resetForm();
 
+      if (isEvolution) {
+        setTemplateNotice("Template local salvo e pronto para uso pela Evolution API. Nenhuma aprovação da Meta é necessária nesse provider.");
+        return;
+      }
+
       if (!canUseMetaTemplates) {
-        setTemplateNotice("Template salvo como rascunho local. A conexão oficial da Meta é necessária para enviá-lo para aprovação.");
+        setTemplateNotice("Template salvo como rascunho local. Conecte um provedor compatível para habilitar o envio automático.");
         return;
       }
 
@@ -249,7 +256,7 @@ function WhatsAppCenter() {
             </div>
             <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">WhatsApp no Comandiva</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-              Templates, consentimento, consumo e histórico em uma única central. O modo assistido segue gratuito; o envio automático permanece bloqueado até a integração estar homologada.
+              Templates, consentimento, consumo e histórico em uma única central. O modo assistido segue gratuito e o automático só libera depois da homologação do provider conectado.
             </p>
           </div>
           <Badge className="w-fit border-white/20 bg-white/10 text-white hover:bg-white/10">
@@ -273,8 +280,8 @@ function WhatsAppCenter() {
         />
         <StatusCard
           icon={Send}
-          label="Templates aprovados"
-          value={String(readiness.data?.templates_approved ?? 0)}
+          label={isEvolution ? "Templates prontos" : "Templates aprovados"}
+          value={String(isEvolution ? readiness.data?.templates_ready ?? 0 : readiness.data?.templates_approved ?? 0)}
           detail={`${readiness.data?.templates_total ?? 0} cadastrados`}
         />
         <StatusCard
@@ -285,10 +292,21 @@ function WhatsAppCenter() {
         />
       </section>
 
-      <WhatsAppMetaConnectionCard
-        storeId={storeId}
-        automaticEntitled={Boolean(readiness.data?.automatic_entitled)}
-      />
+      {isEvolution ? (
+        <Card className="border-emerald-500/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><CheckCircle2 className="size-5 text-emerald-600" /> Evolution API conectada</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              O Comandiva usa templates locais para automações neste provider. Credenciais e transporte ficam somente no backend.
+            </p>
+          </CardHeader>
+        </Card>
+      ) : (
+        <WhatsAppMetaConnectionCard
+          storeId={storeId}
+          automaticEntitled={Boolean(readiness.data?.automatic_entitled)}
+        />
+      )}
 
       {templateNotice ? (
         <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-700 dark:text-emerald-300">
@@ -306,7 +324,9 @@ function WhatsAppCenter() {
           <CardHeader>
             <CardTitle>{editingId ? "Editar template" : "Novo template"}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Você edita o conteúdo. Nome técnico, ID remoto, categoria e aprovação são controlados pelo backend e pela Meta.
+              {isEvolution
+                ? "Você controla o conteúdo localmente; o backend valida variáveis e monta a mensagem no momento do envio."
+                : "Você edita o conteúdo. Nome técnico, ID remoto, categoria e aprovação são controlados pelo backend e pelo provedor."}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -355,7 +375,9 @@ function WhatsAppCenter() {
                 maxLength={4096}
               />
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Ao alterar mensagem, finalidade ou idioma de um template homologado, ele volta para rascunho e precisa de nova aprovação.
+                {isEvolution
+                  ? <>Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Elas são resolvidas pelo backend no momento do envio.</>
+                  : <>Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Ao alterar mensagem, finalidade ou idioma de um template homologado, ele volta para rascunho e pode exigir nova aprovação.</>}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -365,9 +387,11 @@ function WhatsAppCenter() {
               >
                 {templateBusy
                   ? "Processando..."
-                  : canUseMetaTemplates
-                    ? editingId ? "Salvar e reenviar à Meta" : "Salvar e enviar à Meta"
-                    : editingId ? "Salvar alterações" : "Criar rascunho"}
+                  : isEvolution
+                    ? editingId ? "Salvar template local" : "Criar template local"
+                    : canUseMetaTemplates
+                      ? editingId ? "Salvar e reenviar à Meta" : "Salvar e enviar à Meta"
+                      : editingId ? "Salvar alterações" : "Criar rascunho"}
               </Button>
               {editingId ? (
                 <Button type="button" variant="outline" onClick={resetForm} disabled={templateBusy}>
@@ -384,7 +408,9 @@ function WhatsAppCenter() {
               <div>
                 <CardTitle>Templates da loja</CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Aprovação vem exclusivamente da Meta. O Comandiva sincroniza o status e bloqueia automações enquanto não estiver aprovado.
+                  {isEvolution
+                    ? "Na Evolution API, templates ativos são locais e podem entrar nas automações sem aprovação prévia da Meta."
+                    : "Quando o provider exige homologação remota, o Comandiva sincroniza o status e só libera automações após a aprovação."}
                 </p>
               </div>
               {canUseMetaTemplates ? (
@@ -411,11 +437,11 @@ function WhatsAppCenter() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold">{template.name}</p>
-                        <Badge variant={templateStatusVariant(template.provider_status)}>
-                          {templateStatusLabel(template.provider_status)}
+                        <Badge variant={isEvolution ? "secondary" : templateStatusVariant(template.provider_status)}>
+                          {isEvolution ? "Local" : templateStatusLabel(template.provider_status)}
                         </Badge>
                         <Badge variant="outline">{template.purpose === "marketing" ? "Marketing" : "Transacional"}</Badge>
-                        {category ? <Badge variant="outline">Meta: {category}</Badge> : null}
+                        {!isEvolution && category ? <Badge variant="outline">Meta: {category}</Badge> : null}
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{template.code} · {template.provider_language}</p>
                     </div>
@@ -438,27 +464,29 @@ function WhatsAppCenter() {
                   </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
 
-                  {template.provider_template_name ? (
+                  {isEvolution ? (
+                    <p className="mt-2 text-xs text-muted-foreground">Template local disponível para o worker da Evolution API quando a automação estiver habilitada.</p>
+                  ) : template.provider_template_name ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Meta: {template.provider_template_name}
                       {template.provider_template_id ? ` · ID ${template.provider_template_id}` : ""}
                     </p>
                   ) : (
-                    <p className="mt-2 text-xs text-muted-foreground">Ainda não enviado à Meta.</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Ainda não enviado ao provedor remoto.</p>
                   )}
 
-                  {template.provider_rejection_reason ? (
+                  {!isEvolution && template.provider_rejection_reason ? (
                     <p className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs leading-5 text-destructive">
                       Motivo retornado pela Meta: {template.provider_rejection_reason}
                     </p>
                   ) : null}
-                  {template.provider_submission_error ? (
+                  {!isEvolution && template.provider_submission_error ? (
                     <p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-amber-700 dark:text-amber-300">
                       Falha na última tentativa de envio: {template.provider_submission_error}
                     </p>
                   ) : null}
 
-                  {template.provider_status_updated_at || template.provider_synced_at ? (
+                  {!isEvolution && (template.provider_status_updated_at || template.provider_synced_at) ? (
                     <p className="mt-3 text-[11px] text-muted-foreground">
                       Status atualizado: {formatDate(template.provider_status_updated_at ?? template.provider_synced_at)}
                     </p>
