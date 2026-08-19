@@ -13,6 +13,7 @@ import type {
   CourierDetail,
   CourierListPayload,
   CourierPresenceFilter,
+  CourierVehicle,
   DeliveryAssignment,
   EligibleCourier,
   StoreDeliveryOccurrence,
@@ -69,18 +70,20 @@ export async function updateCourier(input: {
   storeId: string | null;
   courierId: string;
   expectedVersion: number;
-  fullName?: string | null;
-  phone?: string | null;
-  canAcceptDeliveries?: boolean | null;
-}): Promise<{ version: number }> {
-  return unwrap<{ version: number }>(
-    await rpc("update_store_courier", {
+  fullName: string;
+  phone: string;
+  vehicle: Exclude<CourierVehicle, "nao_informado">;
+  canAcceptDeliveries: boolean;
+}): Promise<CourierDetail> {
+  return unwrap<CourierDetail>(
+    await rpc("update_store_courier_profile", {
       _store_id: input.storeId,
       _courier_id: input.courierId,
       _expected_version: input.expectedVersion,
-      _full_name: input.fullName ?? null,
-      _phone: input.phone ?? null,
-      _can_accept_deliveries: input.canAcceptDeliveries ?? null,
+      _full_name: input.fullName,
+      _phone: input.phone,
+      _vehicle: input.vehicle,
+      _can_accept_deliveries: input.canAcceptDeliveries,
     }),
   );
 }
@@ -196,32 +199,21 @@ export async function resolveDeliveryOccurrence(input: {
   );
 }
 
-/**
- * Fase 19 — RPCs operacionais do entregador
- */
-
+/** Fase 19 — RPCs operacionais do entregador */
 export async function fetchMyCourierOperationalContext(): Promise<CourierOperationalContext> {
-  return unwrap<CourierOperationalContext>(
-    await rpc("get_my_courier_operational_context", {})
-  );
+  return unwrap<CourierOperationalContext>(await rpc("get_my_courier_operational_context", {}));
 }
 
 export async function setMyCourierOnline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_online", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_online", {}));
 }
 
 export async function setMyCourierOffline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("set_my_courier_offline", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_offline", {}));
 }
 
 export async function heartbeatMyCourierPresence(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(
-    await rpc("heartbeat_my_courier_presence", {})
-  );
+  return unwrap<CourierPresenceResult>(await rpc("heartbeat_my_courier_presence", {}));
 }
 
 export async function acceptMyDeliveryAssignment(input: {
@@ -229,13 +221,11 @@ export async function acceptMyDeliveryAssignment(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("accept_my_delivery_assignment", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("accept_my_delivery_assignment", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function declineMyDeliveryAssignment(input: {
@@ -244,14 +234,12 @@ export async function declineMyDeliveryAssignment(input: {
   reasonCode: string;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("decline_my_delivery_assignment", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _reason_code: input.reasonCode,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("decline_my_delivery_assignment", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _reason_code: input.reasonCode,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function confirmMyArrivalAtStore(input: {
@@ -259,13 +247,11 @@ export async function confirmMyArrivalAtStore(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("confirm_my_arrival_at_store", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("confirm_my_arrival_at_store", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function confirmMyOrderPickup(input: {
@@ -273,13 +259,11 @@ export async function confirmMyOrderPickup(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("confirm_my_order_pickup", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("confirm_my_order_pickup", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function startMyDelivery(input: {
@@ -287,13 +271,11 @@ export async function startMyDelivery(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("start_my_delivery", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("start_my_delivery", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function completeMyDelivery(input: {
@@ -301,13 +283,11 @@ export async function completeMyDelivery(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("complete_my_delivery", {
-      _delivery_id: input.deliveryId,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("complete_my_delivery", {
+    _delivery_id: input.deliveryId,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
 
 export async function reportMyDeliveryOccurrence(input: {
@@ -317,13 +297,11 @@ export async function reportMyDeliveryOccurrence(input: {
   expectedVersion: number;
   idempotencyKey: string;
 }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(
-    await rpc("report_my_delivery_occurrence", {
-      _delivery_id: input.deliveryId,
-      _code: input.code,
-      _note: input.note ?? null,
-      _expected_version: input.expectedVersion,
-      _idempotency_key: input.idempotencyKey,
-    })
-  );
+  return unwrap<DeliveryActionResult>(await rpc("report_my_delivery_occurrence", {
+    _delivery_id: input.deliveryId,
+    _code: input.code,
+    _note: input.note ?? null,
+    _expected_version: input.expectedVersion,
+    _idempotency_key: input.idempotencyKey,
+  }));
 }
