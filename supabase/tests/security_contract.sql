@@ -127,6 +127,52 @@ BEGIN
     RAISE EXCEPTION 'Growth reads must require reports permission and billing capability';
   END IF;
 
+  IF to_regprocedure('public.get_my_store_delivery_report_summary(text,date,date)') IS NULL
+     OR to_regprocedure('public.get_my_store_delivery_report_series(text,date,date)') IS NULL
+     OR to_regprocedure('public.list_my_store_delivery_report_by_courier(text,date,date)') IS NULL
+     OR to_regprocedure('public.list_my_store_completed_deliveries(text,date,date,uuid,integer,integer)') IS NULL
+     OR to_regprocedure('public.get_my_courier_delivery_counter(date,date)') IS NULL
+     OR to_regprocedure('public.list_my_completed_deliveries(integer,integer)') IS NULL THEN
+    RAISE EXCEPTION 'Delivery report RPC contract is incomplete';
+  END IF;
+
+  IF pg_get_functiondef('private.require_delivery_report_store()'::regprocedure) NOT ILIKE '%reports.view_operational%'
+     OR pg_get_functiondef('public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure) NOT ILIKE '%private.require_delivery_report_store%'
+     OR pg_get_functiondef('public.get_my_store_delivery_report_series(text,date,date)'::regprocedure) NOT ILIKE '%private.require_delivery_report_store%'
+     OR pg_get_functiondef('public.list_my_store_delivery_report_by_courier(text,date,date)'::regprocedure) NOT ILIKE '%private.require_delivery_report_store%'
+     OR pg_get_functiondef('public.list_my_store_completed_deliveries(text,date,date,uuid,integer,integer)'::regprocedure) NOT ILIKE '%private.require_delivery_report_store%' THEN
+    RAISE EXCEPTION 'Store delivery reports must require reports.view_operational';
+  END IF;
+
+  IF pg_get_functiondef('public.get_my_courier_delivery_counter(date,date)'::regprocedure) NOT ILIKE '%private.require_current_courier%'
+     OR pg_get_functiondef('public.get_my_courier_delivery_counter(date,date)'::regprocedure) NOT ILIKE '%courier.view_self%'
+     OR pg_get_functiondef('public.list_my_completed_deliveries(integer,integer)'::regprocedure) NOT ILIKE '%private.require_current_courier%'
+     OR pg_get_functiondef('public.list_my_completed_deliveries(integer,integer)'::regprocedure) NOT ILIKE '%courier.view_self%' THEN
+    RAISE EXCEPTION 'Courier delivery reports must be self-scoped and permission-guarded';
+  END IF;
+
+  IF pg_get_functiondef('public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure) ILIKE '%fulfillment_type%'
+     OR pg_get_functiondef('public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure) ILIKE '%''delivery''%'
+     OR pg_get_functiondef('public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure) NOT ILIKE '%o.fulfillment = ''entrega''%'
+     OR pg_get_functiondef('public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure) NOT ILIKE '%o.status = ''entregue''%' THEN
+    RAISE EXCEPTION 'Delivery reports must use the current order schema and terminal delivery states';
+  END IF;
+
+  IF has_function_privilege('anon','public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure,'EXECUTE')
+     OR has_function_privilege('anon','public.get_my_store_delivery_report_series(text,date,date)'::regprocedure,'EXECUTE')
+     OR has_function_privilege('anon','public.list_my_store_delivery_report_by_courier(text,date,date)'::regprocedure,'EXECUTE')
+     OR has_function_privilege('anon','public.list_my_store_completed_deliveries(text,date,date,uuid,integer,integer)'::regprocedure,'EXECUTE')
+     OR has_function_privilege('anon','public.get_my_courier_delivery_counter(date,date)'::regprocedure,'EXECUTE')
+     OR has_function_privilege('anon','public.list_my_completed_deliveries(integer,integer)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.get_my_store_delivery_report_summary(text,date,date)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.get_my_store_delivery_report_series(text,date,date)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.list_my_store_delivery_report_by_courier(text,date,date)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.list_my_store_completed_deliveries(text,date,date,uuid,integer,integer)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.get_my_courier_delivery_counter(date,date)'::regprocedure,'EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.list_my_completed_deliveries(integer,integer)'::regprocedure,'EXECUTE') THEN
+    RAISE EXCEPTION 'Delivery report RPC ACLs must remain authenticated-only';
+  END IF;
+
   IF has_function_privilege(
       'authenticated',
       'public.provision_store_with_owner(text,text,uuid,text,text,text,text,text,text,text,text,text,uuid)'::regprocedure,
