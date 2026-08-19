@@ -3,14 +3,22 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export type SmartDeliveryProvider = "openrouteservice" | "google_maps";
+export type SmartDeliveryLocationSource =
+  | "unverified"
+  | "manual_browser"
+  | "manual_admin"
+  | "google_geocoding"
+  | "openrouteservice_geocoding";
+
 export interface StoreSmartDeliveryReadiness {
   static_neighborhood_eta_available: boolean;
   static_neighborhood_count: number;
   store_coordinates_set: boolean;
-  store_location_source: "unverified" | "manual_browser" | "manual_admin" | "google_geocoding";
+  store_location_source: SmartDeliveryLocationSource;
   geocoded_customer_addresses: number;
   smart_delivery_entitled: boolean;
-  provider: "google_maps";
+  provider: SmartDeliveryProvider;
   api_key_configured: boolean;
   billing_confirmed: boolean;
   routes_api_enabled: boolean;
@@ -42,7 +50,7 @@ export type SmartDeliveryOverallStatus = "ready" | "partial" | "paused" | "block
 export type SmartDeliveryMetricCode = "routes.compute" | "geocoding.address";
 
 export interface SmartDeliveryUsageItem {
-  provider: "google_maps";
+  provider: SmartDeliveryProvider;
   metric_code: SmartDeliveryMetricCode;
   period_start: string;
   period_end: string;
@@ -72,7 +80,7 @@ export interface StoreSmartDeliveryControlCenter {
   smart_delivery_entitled: boolean;
   store: {
     coordinates_set: boolean;
-    location_source: "unverified" | "manual_browser" | "manual_admin" | "google_geocoding";
+    location_source: SmartDeliveryLocationSource;
     local_approximation_ready: boolean;
   };
   control: {
@@ -82,7 +90,7 @@ export interface StoreSmartDeliveryControlCenter {
     version: number;
   };
   provider: {
-    code: "google_maps";
+    code: SmartDeliveryProvider;
     api_key_configured: boolean;
     billing_confirmed: boolean;
     routes_api_enabled: boolean;
@@ -131,14 +139,23 @@ export interface StoreSmartDeliveryPauseResult {
 }
 
 const storeIdSchema = z.string().uuid();
+const smartDeliveryProviderSchema = z.enum(["openrouteservice", "google_maps"]);
+const smartDeliveryLocationSourceSchema = z.enum([
+  "unverified",
+  "manual_browser",
+  "manual_admin",
+  "google_geocoding",
+  "openrouteservice_geocoding",
+]);
+
 const readinessSchema = z.object({
   static_neighborhood_eta_available: z.boolean(),
   static_neighborhood_count: z.number().int().nonnegative(),
   store_coordinates_set: z.boolean(),
-  store_location_source: z.enum(["unverified", "manual_browser", "manual_admin", "google_geocoding"]),
+  store_location_source: smartDeliveryLocationSourceSchema,
   geocoded_customer_addresses: z.number().int().nonnegative(),
   smart_delivery_entitled: z.boolean(),
-  provider: z.literal("google_maps"),
+  provider: smartDeliveryProviderSchema,
   api_key_configured: z.boolean(),
   billing_confirmed: z.boolean(),
   routes_api_enabled: z.boolean(),
@@ -167,7 +184,7 @@ const previewSchema = z.object({
 });
 
 const usageItemSchema = z.object({
-  provider: z.literal("google_maps"),
+  provider: smartDeliveryProviderSchema,
   metric_code: z.enum(["routes.compute", "geocoding.address"]),
   period_start: z.string(),
   period_end: z.string(),
@@ -197,7 +214,7 @@ const controlCenterSchema = z.object({
   smart_delivery_entitled: z.boolean(),
   store: z.object({
     coordinates_set: z.boolean(),
-    location_source: z.enum(["unverified", "manual_browser", "manual_admin", "google_geocoding"]),
+    location_source: smartDeliveryLocationSourceSchema,
     local_approximation_ready: z.boolean(),
   }),
   control: z.object({
@@ -207,7 +224,7 @@ const controlCenterSchema = z.object({
     version: z.number().int().nonnegative(),
   }),
   provider: z.object({
-    code: z.literal("google_maps"),
+    code: smartDeliveryProviderSchema,
     api_key_configured: z.boolean(),
     billing_confirmed: z.boolean(),
     routes_api_enabled: z.boolean(),
