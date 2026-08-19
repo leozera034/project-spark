@@ -11,11 +11,11 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { useAuth } from "@/auth/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStoreAddons } from "@/store/addons/store-addons.queries";
 import type { StoreAddon } from "@/lib/store-addons.functions";
+import { useStoreAddons } from "@/store/addons/store-addons.queries";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/modulos")({
   head: () => ({
@@ -66,9 +66,9 @@ function subscriptionLabel(status: NonNullable<StoreAddon["subscription"]>["stat
 }
 
 function StoreModulesPage() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId } = useStoreScope();
   const addons = useStoreAddons(storeId);
+  const canViewBilling = addons.data?.can_view_billing ?? false;
 
   if (!storeId) {
     return (
@@ -95,7 +95,9 @@ function StoreModulesPage() {
 
       <Card className="border-dashed">
         <CardContent className="p-5 text-sm text-muted-foreground">
-          Nenhuma integração paga foi ativada. O catálogo abaixo já está ligado ao novo motor de add-ons, mas preços e cobrança só serão liberados após homologação de cada provedor.
+          {addons.data && !canViewBilling
+            ? "Você pode conhecer os módulos disponíveis, mas valores e estado de cobrança ficam visíveis apenas ao proprietário da loja."
+            : "Nenhuma integração paga foi ativada. O catálogo abaixo já está ligado ao novo motor de add-ons, mas preços e cobrança só serão liberados após homologação de cada provedor."}
         </CardContent>
       </Card>
 
@@ -149,7 +151,9 @@ function StoreModulesPage() {
                         ) : null}
                       </>
                     ) : (
-                      <p className="text-sm font-semibold text-muted-foreground">Preço ainda não publicado</p>
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        {canViewBilling ? "Preço ainda não publicado" : "Informação comercial restrita ao proprietário"}
+                      </p>
                     )}
                   </div>
                 </CardContent>
