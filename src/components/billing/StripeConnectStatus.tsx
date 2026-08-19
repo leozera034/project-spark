@@ -1,7 +1,10 @@
-import { CreditCard, Landmark, ShieldCheck, TriangleAlert } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, CreditCard, Landmark, Loader2, ShieldCheck, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 
-import type { StripeConnectStatus as StripeConnectStatusData, StripeRuntimeReadiness } from "@/lib/stripe-connect.functions";
 import { Badge } from "@/components/ui/badge";
+import { beginStripeConnectOnboarding } from "@/lib/stripe-connect.functions";
+import type { StripeConnectStatus as StripeConnectStatusData, StripeRuntimeReadiness } from "@/lib/stripe-connect.functions";
 
 function formatBps(value: number | null | undefined) {
   if (!Number.isFinite(value)) return null;
@@ -9,19 +12,43 @@ function formatBps(value: number | null | undefined) {
 }
 
 export function StripeConnectStatus({
+  storeId,
   status,
   readiness,
   loading,
+  onRefresh,
 }: {
+  storeId: string;
   status?: StripeConnectStatusData;
   readiness?: StripeRuntimeReadiness;
   loading?: boolean;
+  onRefresh?: () => void | Promise<void>;
 }) {
+  const [starting, setStarting] = useState(false);
   if (loading) return <div className="h-44 animate-pulse rounded-[24px] border border-border bg-muted/45" />;
 
   const platformReady = readiness?.ready_for_connect === true;
   const accountReady = status?.connected === true && status.charges_enabled === true && status.payouts_enabled === true;
   const requirements = Array.isArray(status?.requirements_currently_due) ? status.requirements_currently_due : [];
+
+  async function startOnboarding() {
+    if (starting || !platformReady || accountReady) return;
+    setStarting(true);
+    try {
+      const result = await beginStripeConnectOnboarding({ data: { storeId } });
+      if (result.alreadyReady) {
+        toast.success("A conta Stripe desta loja já está pronta para receber pagamentos.");
+        await onRefresh?.();
+        return;
+      }
+      if (!result.onboardingUrl) throw new Error("A Stripe não retornou o link de cadastro.");
+      window.location.assign(result.onboardingUrl);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível abrir o cadastro Stripe.");
+    } finally {
+      setStarting(false);
+    }
+  }
 
   return (
     <article className="panel overflow-hidden">
@@ -40,6 +67,17 @@ export function StripeConnectStatus({
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               O Stripe Connect vincula a conta de pagamentos da loja ao Comandiva. O dinheiro dos pedidos é processado na conta Stripe da própria loja; o Comandiva não armazena dados de cartão.
             </p>
+            {!accountReady && platformReady ? (
+              <button
+                type="button"
+                onClick={() => void startOnboarding()}
+                disabled={starting}
+                className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-brand-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {starting ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpRight className="size-4" />}
+                {status?.connected ? "Continuar cadastro Stripe" : "Conectar conta Stripe"}
+              </button>
+            ) : null}
           </div>
         </div>
         <div className="grid min-w-[230px] gap-2 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
@@ -68,7 +106,7 @@ export function StripeConnectStatus({
         <div className="border-t border-border bg-muted/25 px-5 py-4 sm:px-6">
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <CreditCard className="mt-0.5 size-4 shrink-0" />
-            <p>O onboarding será disponibilizado no painel da loja quando a conta conectada for criada.</p>
+            <p>O cadastro é concluído em ambiente seguro da Stripe. Ao finalizar, você volta automaticamente para esta página.</p>
           </div>
         </div>
       )}
