@@ -19,6 +19,9 @@ export interface StoreConfigStore {
   state: string | null;
   latitude: number | null;
   longitude: number | null;
+  location_source: "unverified" | "manual_browser" | "manual_admin" | "google_geocoding";
+  location_verified_at: string | null;
+  location_accuracy_meters: number | null;
   timezone: string;
   accepts_delivery: boolean;
   accepts_pickup: boolean;
@@ -133,7 +136,8 @@ export function resolveMinOrder(
 }
 
 /**
- * Precedência do tempo estimado (Fase 08): sem rota nem distância ainda.
+ * Precedência do tempo estimado (Fase 08): o bairro continua sendo o fallback
+ * operacional. Rotas inteligentes são calculadas em camada separada.
  */
 export function resolveEta(
   neighborhood: Pick<StoreConfigNeighborhood, "eta_minutes"> | null,
