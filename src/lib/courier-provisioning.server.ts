@@ -6,6 +6,7 @@ export const courierCreationSchema = z.object({
   fullName: z.string().trim().min(3).max(100),
   phone: z.string().trim().min(8).max(20),
   loginIdentifier: z.string().trim().min(4).max(30).regex(/^[a-z0-9._]+$/, "Identificador inválido"),
+  vehicle: z.enum(["moto", "carro"]),
   canAcceptDeliveries: z.boolean(),
   isActive: z.boolean(),
   idempotencyKey: z.string().min(10).max(160),
@@ -14,9 +15,9 @@ export const courierCreationSchema = z.object({
 export type CourierCreationInput = z.infer<typeof courierCreationSchema>;
 
 /**
- * Privileged courier creation now runs inside the external Supabase Edge
- * gateway. The Lovable server forwards only the validated user's access token;
- * Auth admin credentials never leave Supabase.
+ * Privileged courier creation runs inside the external Supabase Edge gateway.
+ * The app server forwards only the validated user's access token; Auth admin
+ * credentials never leave Supabase.
  */
 export async function provisionCourierForStore(
   data: CourierCreationInput,
@@ -28,10 +29,7 @@ export async function provisionCourierForStore(
 
   try {
     return await invokePediuBackendAction<CourierCreationResult>(
-      {
-        action: "create_courier",
-        input: data,
-      },
+      { action: "create_courier", input: data },
       { accessToken },
     );
   } catch (error) {
