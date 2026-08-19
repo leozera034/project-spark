@@ -1,0 +1,30 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.111.0";
+import { z } from "npm:zod@3.24.2";
+
+const APP_ORIGIN="https://shark-cardapio.lovable.app";
+const MAX_BODY_BYTES=48*1024;
+const schema=z.object({storeName:z.string().trim().min(3).max(80),slug:z.string().trim().min(3).max(60).regex(/^[a-z0-9-]+$/),segment:z.string().trim().max(60).optional(),city:z.string().trim().min(2).max(80),state:z.string().trim().length(2).transform(v=>v.toUpperCase()),phone:z.string().trim().min(8).max(20),ownerName:z.string().trim().min(3).max(100),email:z.string().trim().email().max(160).transform(v=>v.toLowerCase()),password:z.string().min(8).max(72).regex(/[A-Za-z]/).regex(/[0-9]/),planCode:z.enum(["gratis","essencial","profissional","avancado"]).default("gratis")});
+type J=Record<string,unknown>;
+function parse(raw:string|undefined):Record<string,string>{try{return raw?JSON.parse(raw):{}}catch{return{}}}
+function keyFetch(key:string):typeof fetch{return(input,init)=>{const h=new Headers(typeof Request!=="undefined"&&input instanceof Request?input.headers:undefined);if(init?.headers)new Headers(init.headers).forEach((v,k)=>h.set(k,v));if(key.startsWith("sb_")&&h.get("Authorization")===`Bearer ${key}`)h.delete("Authorization");h.set("apikey",key);return fetch(input,{...init,headers:h})}}
+function admin(){const url=Deno.env.get("SUPABASE_URL"),m=parse(Deno.env.get("SUPABASE_SECRET_KEYS")),key=m.default??Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");if(!url||!key)throw new Error("backend_configuration_missing");return createClient(url,key,{global:{fetch:keyFetch(key)},auth:{persistSession:false,autoRefreshToken:false}})}
+function allowed(req:Request){const o=req.headers.get("origin")??"";return o===APP_ORIGIN||/^https:\/\/[a-z0-9-]+\.lovable\.app$/i.test(o)?o:APP_ORIGIN}
+function json(req:Request,body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":allowed(req),"access-control-allow-headers":"apikey, content-type","access-control-allow-methods":"POST, OPTIONS",vary:"Origin"}})}
+function knownKey(req:Request){const supplied=req.headers.get("apikey")??"";if(!supplied)return false;const modern=Object.values(parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"))),legacy=Deno.env.get("SUPABASE_ANON_KEY");return modern.includes(supplied)||(Boolean(legacy)&&legacy===supplied)}
+async function sha(v:string){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+function ip(req:Request){const v=(req.headers.get("cf-connecting-ip")??req.headers.get("x-real-ip")??"").trim();return v&&v.length<=64&&/^[0-9a-fA-F:.]+$/.test(v)?v:null}
+async function limit(a:ReturnType<typeof admin>,key:string,n:number,seconds:number){const{data,error}=await a.rpc("consume_edge_rate_limit",{_key:key,_limit:n,_window_seconds:seconds} as never);return !error&&data===true}
+
+Deno.serve(async(req)=>{
+  if(req.method==="OPTIONS")return json(req,{ok:true});if(req.method!=="POST")return json(req,{ok:false,error:"method_not_allowed"},405);if(!knownKey(req))return json(req,{ok:false,error:"invalid_api_key"},401);
+  const len=Number(req.headers.get("content-length")??0);if(Number.isFinite(len)&&len>MAX_BODY_BYTES)return json(req,{ok:false,error:"payload_too_large"},413);
+  let raw:J;try{raw=await req.json()}catch{return json(req,{ok:false,error:"invalid_input"},400)}const parsed=schema.safeParse(raw);if(!parsed.success)return json(req,{ok:false,error:"invalid_input"},400);const input=parsed.data,a=admin();
+  const emailKey=(await sha(input.email)).slice(0,24),slugKey=(await sha(input.slug)).slice(0,24),address=ip(req),checks=[limit(a,"signup:global:minute",10,60),limit(a,"signup:global:day",250,86400),limit(a,`signup:email:${emailKey}:day`,3,86400),limit(a,`signup:slug:${slugKey}:hour`,5,3600)];if(address){const k=(await sha(address)).slice(0,24);checks.push(limit(a,`signup:ip:${k}:minute`,5,60),limit(a,`signup:ip:${k}:day`,30,86400))}if((await Promise.all(checks)).some(x=>!x))return json(req,{ok:false,error:"rate_limited"},429);
+  const availability=await a.rpc("check_public_store_slug",{_slug:input.slug} as never);if(availability.error)return json(req,{ok:false,error:"onboarding_unavailable"},502);const state=availability.data as{available?:boolean;reason?:string|null}|null;if(!state?.available)return json(req,{ok:false,error:state?.reason==="em_uso"?"slug_in_use":"invalid_slug"},409);
+  const idem=await sha(`store-onboarding:${input.email}:${input.slug}`),requestHash=await sha([input.storeName,input.slug,input.city,input.state,input.ownerName,input.email,input.planCode].join("|"));
+  const created=await a.auth.admin.createUser({email:input.email,password:input.password,email_confirm:true,user_metadata:{full_name:input.ownerName,origin:"store_onboarding"}});if(created.error||!created.data.user){const duplicate=/already|registered|exists/i.test(created.error?.message??"");return json(req,{ok:false,error:duplicate?"email_in_use":"account_creation_failed"},duplicate?409:502)}
+  const userId=created.data.user.id;const provision=await a.rpc("provision_store_with_owner",{_idempotency_key:idem,_request_hash:requestHash,_owner_user_id:userId,_owner_full_name:input.ownerName,_store_name:input.storeName,_slug:input.slug,_city:input.city,_state:input.state,_segment:input.segment??null,_phone:input.phone,_plan_code:input.planCode,_origin:"autoatendimento",_requested_by:null} as never);
+  if(provision.error||!provision.data){await a.auth.admin.deleteUser(userId).catch(()=>undefined);try{await a.rpc("fail_store_provisioning",{_idempotency_key:idem,_reason:provision.error?.code??"provision_failed"} as never)}catch{/*best effort*/}return json(req,{ok:false,error:"provision_failed"},502)}
+  const result=provision.data as{store_id:string;slug:string};await a.from("stores").update({status:"ativa"}).eq("id",result.store_id);return json(req,{ok:true,data:{storeId:result.store_id,slug:result.slug}});
+});
