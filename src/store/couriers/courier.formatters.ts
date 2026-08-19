@@ -2,7 +2,12 @@
  * Rótulos legíveis da gestão de entregadores.
  * Enum bruto nunca aparece na interface.
  */
-import type { CourierListItem, CourierPresence } from "./courier.types";
+import type {
+  CourierListItem,
+  CourierPresence,
+  CourierVehicle,
+  DeliveryRouteEstimate,
+} from "./courier.types";
 
 /** Janela de presença espelhada do servidor (`private.courier_presence_window`). */
 export const PRESENCE_WINDOW_MS = 150_000;
@@ -26,15 +31,40 @@ export const PRESENCE_LABEL: Record<CourierPresence, string> = {
   sem_sinal: "Sem sinal",
 };
 
+export const COURIER_VEHICLE_LABEL: Record<CourierVehicle, string> = {
+  moto: "Moto",
+  carro: "Carro",
+  nao_informado: "Veículo não informado",
+};
+
 export function accountLabel(isActive: boolean): string {
   return isActive ? "Ativo" : "Inativo";
 }
 
-/** Disponível ≠ online. Disponível é ativo, elegível e sem entrega ativa. */
+/** Disponível ≠ online. Disponível é ativo, elegível, com veículo e sem entrega ativa. */
 export function availabilityLabel(courier: CourierListItem): "Disponível" | "Ocupado" | "Indisponível" {
   if (courier.currentAssignment) return "Ocupado";
-  if (!courier.isActive || !courier.canAcceptDeliveries) return "Indisponível";
+  if (!courier.isActive || !courier.canAcceptDeliveries || courier.vehicle === "nao_informado") {
+    return "Indisponível";
+  }
   return "Disponível";
+}
+
+export function formatRouteDistance(distanceMeters: number): string {
+  if (!Number.isFinite(distanceMeters) || distanceMeters < 0) return "—";
+  if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`;
+  return `${(distanceMeters / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
+}
+
+export function formatRouteDuration(durationSeconds: number): string {
+  if (!Number.isFinite(durationSeconds) || durationSeconds < 0) return "—";
+  return `${Math.max(1, Math.ceil(durationSeconds / 60))} min`;
+}
+
+export function routeQualityLabel(route: DeliveryRouteEstimate): string {
+  if (route.isApproximate) return "Estimativa aproximada";
+  if (route.provider === "google_maps") return "Rota Google";
+  return "Rota calculada";
 }
 
 export const DELIVERY_STATUS_LABEL: Record<string, string> = {
@@ -74,6 +104,7 @@ export const REASSIGN_REASON_LABEL: Record<string, string> = {
 
 export const BLOCKING_REASON_LABEL: Record<string, string> = {
   conta_inativa: "Conta inativa",
+  veiculo_nao_informado: "Defina Moto ou Carro no cadastro",
   sem_permissao_de_aceite: "Não pode aceitar entregas",
   entrega_ativa: "Já possui entrega ativa",
   offline: "Offline agora",
