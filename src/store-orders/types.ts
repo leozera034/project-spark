@@ -19,7 +19,6 @@ export type StoreOrderStatus =
   | "recusado"
   | "cancelado";
 
-/** Ações que o servidor autoriza para o pedido, já filtradas por permissão. */
 export type StoreOrderAction =
   | "accept"
   | "start_preparation"
@@ -29,6 +28,17 @@ export type StoreOrderAction =
   | "cancel";
 
 export type FulfillmentType = "entrega" | "retirada";
+
+export interface StoreDeliveryRoute {
+  distanceMeters: number;
+  durationSeconds: number;
+  estimatedMinutes: number;
+  provider: string | null;
+  mode: string | null;
+  isApproximate: boolean;
+  quality: "approximate" | "provider_route";
+  estimatedAt: string | null;
+}
 
 export interface StoreOrderListItem {
   id: string;
@@ -43,6 +53,7 @@ export interface StoreOrderListItem {
   total: number;
   paymentLabel: string | null;
   etaMinutes: number | null;
+  route?: StoreDeliveryRoute | null;
   version: number;
   isDelayed: boolean;
   delayMinutes: number;
@@ -70,7 +81,11 @@ export interface StoreOrderDetail {
   version: number;
   etaMinutes: number | null;
   customer: { firstName: string; fullName: string | null; phone: string | null };
-  delivery: { neighborhood: string | null; address: Record<string, unknown> | null } | null;
+  delivery: {
+    neighborhood: string | null;
+    address: Record<string, unknown> | null;
+    route?: StoreDeliveryRoute | null;
+  } | null;
   items: Array<{
     productName: string;
     variantName: string | null;
@@ -114,7 +129,6 @@ export interface TransitionReason {
   sort_order: number;
 }
 
-/** Fila operacional: agrupamento de status usado no painel. */
 export interface OrderQueue {
   key: string;
   label: string;
