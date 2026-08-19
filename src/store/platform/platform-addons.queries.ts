@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import {
   listPlatformAddonOffers,
+  syncPlatformAddonPriceWithMercadoPago,
   updatePlatformAddonCatalog,
   upsertPlatformAddonPrice,
   type AddonAvailability,
@@ -22,6 +23,7 @@ export function usePlatformAddonPricingActions() {
   const queryClient = useQueryClient();
   const updateCatalogFn = useServerFn(updatePlatformAddonCatalog);
   const upsertPriceFn = useServerFn(upsertPlatformAddonPrice);
+  const syncProviderFn = useServerFn(syncPlatformAddonPriceWithMercadoPago);
 
   const updateCatalog = useMutation({
     mutationFn: (data: { addonId: string; availabilityStatus: AddonAvailability; isActive: boolean }) =>
@@ -44,5 +46,10 @@ export function usePlatformAddonPricingActions() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }),
   });
 
-  return { updateCatalog, upsertPrice };
+  const syncProvider = useMutation({
+    mutationFn: (data: { addonPriceId: string }) => syncProviderFn({ data }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }),
+  });
+
+  return { updateCatalog, upsertPrice, syncProvider };
 }
