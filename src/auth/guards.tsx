@@ -1,6 +1,8 @@
 import { Navigate, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import { StoreScopeProvider } from "@/store-scope/StoreScopeProvider";
+
 import { AUTH_ROUTES } from "./auth.routes";
 import type { AccountEnvironment } from "./auth.types";
 import { routeForContext } from "./auth.redirects";
@@ -51,6 +53,9 @@ export function RequireEnvironment({
   if (!authContext) return <Navigate to={AUTH_ROUTES.noAccess} replace />;
   if (authContext.account_environment !== environment) {
     return <Navigate to={routeForContext(authContext)} replace />;
+  }
+  if (environment === "store") {
+    return <StoreScopeProvider>{children}</StoreScopeProvider>;
   }
   return <>{children}</>;
 }
