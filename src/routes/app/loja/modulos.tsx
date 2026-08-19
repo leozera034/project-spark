@@ -23,6 +23,7 @@ import { useStoreAddons } from "@/store/addons/store-addons.queries";
 import { useStoreWhatsAppReadiness } from "@/store/growth/store-whatsapp.queries";
 import { useStoreEmailReadiness } from "@/store/integrations/store-email.queries";
 import { useStorePushReadiness } from "@/store/integrations/store-push.queries";
+import { useStoreSmartDeliveryReadiness } from "@/store/integrations/store-smart-delivery.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/modulos")({
@@ -86,6 +87,7 @@ function StoreModulesPage() {
   const whatsapp = useStoreWhatsAppReadiness(storeId);
   const email = useStoreEmailReadiness(storeId);
   const push = useStorePushReadiness(storeId);
+  const smartDelivery = useStoreSmartDeliveryReadiness(storeId);
   const canViewBilling = addons.data?.can_view_billing ?? false;
 
   if (!storeId) {
@@ -261,6 +263,65 @@ function StoreModulesPage() {
               : push.data?.ready_for_send
                 ? "O backend FCM está homologado. A entrega no aparelho ainda depende do app nativo do entregador registrar um token real e tratar foreground/background/toque."
                 : "O worker e o gatilho de nova entrega já existem, mas permanecem sem envio real até configurar FIREBASE_PROJECT_ID e a conta de serviço correta. O shell Android do entregador também continua sendo um gate separado."}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="size-5 text-primary" /> Entrega inteligente · ETA e rotas
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Bairro continua como fallback gratuito. Coordenadas permitem estimativa local sem API; rotas reais entram somente com add-on e provider homologado.
+              </p>
+            </div>
+            <Badge variant={smartDelivery.data?.ready_for_smart_routes ? "default" : "outline"}>
+              {smartDelivery.data?.ready_for_smart_routes ? "Smart Delivery pronto" : "Fallback protegido"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
+          <ReadinessItem
+            label="ETA por bairro"
+            value={`${smartDelivery.data?.static_neighborhood_count ?? 0} áreas`}
+            ready={Boolean(smartDelivery.data?.static_neighborhood_eta_available)}
+          />
+          <ReadinessItem
+            label="Coordenada da loja"
+            value={smartDelivery.data?.store_coordinates_set ? "Definida" : "Pendente"}
+            ready={Boolean(smartDelivery.data?.store_coordinates_set)}
+          />
+          <ReadinessItem
+            label="Aproximação local"
+            value={smartDelivery.data?.local_approximation_ready ? "Disponível" : "Aguardando localização"}
+            ready={Boolean(smartDelivery.data?.local_approximation_ready)}
+          />
+          <ReadinessItem
+            label="Add-on Smart Delivery"
+            value={smartDelivery.data?.smart_delivery_entitled ? "Ativo" : "Não contratado"}
+            ready={Boolean(smartDelivery.data?.smart_delivery_entitled)}
+          />
+          <ReadinessItem
+            label="Google Routes"
+            value={smartDelivery.data?.provider_ready ? "Homologado" : "Bloqueado"}
+            ready={Boolean(smartDelivery.data?.provider_ready)}
+          />
+          <div className="sm:col-span-2 lg:col-span-5 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {smartDelivery.isError
+                ? "Não foi possível consultar o núcleo de rotas. O ETA por bairro continua funcionando e nenhuma API paga é chamada."
+                : smartDelivery.data?.ready_for_smart_routes
+                  ? "Loja, entitlement e provider estão prontos para rotas inteligentes. O cache reduz chamadas repetidas e o provider continua sujeito a limite e kill switch."
+                  : smartDelivery.data?.local_approximation_ready
+                    ? "A loja já pode usar distância e tempo aproximados sem custo de API. Google Routes permanece desligado até preço, billing e credencial serem homologados."
+                    : "O checkout continua usando ETA e taxa por bairro. Capture a localização da loja para habilitar a camada gratuita de aproximação sem alterar a cobrança do pedido."}
+            </span>
+            <Button asChild variant="outline" className="shrink-0">
+              <Link to="/app/loja/configuracoes/endereco">Configurar localização</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
