@@ -51,6 +51,12 @@ const createCourierSchema = z.object({
   idempotencyKey: z.string().min(10).max(160),
 });
 const resetCourierSchema = z.object({ courier_id: z.string().uuid() });
+const smartDeliveryControlSchema = z.object({ storeId: z.string().uuid() });
+const smartDeliveryPauseSchema = z.object({
+  storeId: z.string().uuid(),
+  paused: z.boolean(),
+  reason: z.string().trim().max(240).nullable().optional(),
+});
 
 function allowedOrigin(req: Request): string {
   const origin = req.headers.get("origin") ?? "";
@@ -420,6 +426,46 @@ async function resetCourierAccess(req: Request, payload: Record<string, unknown>
   return response(req, { ok: true, data: { temporaryPassword } });
 }
 
+async function getSmartDeliveryControlCenter(req: Request, payload: Record<string, unknown>) {
+  const user = await authenticatedUser(req);
+  if (!user) return response(req, { ok: false, error: "unauthorized" }, 401);
+  const parsed = smartDeliveryControlSchema.safeParse(payload.input);
+  if (!parsed.success) return response(req, { ok: false, error: "invalid_input" }, 400);
+  const admin = adminClient();
+  const { data, error } = await admin.rpc("backend_get_store_smart_delivery_control_center", {
+    _actor_user_id: user.id,
+    _store_id: parsed.data.storeId,
+  } as never);
+  if (error) {
+    if (error.code === "42501") return response(req, { ok: false, error: "unauthorized" }, 403);
+    console.error("[pediu-backend-api] Smart Delivery control read failed", error.code ?? "unknown");
+    return response(req, { ok: false, error: "smart_delivery_control_unavailable" }, 502);
+  }
+  return response(req, { ok: true, data });
+}
+
+async function setSmartDeliveryPause(req: Request, payload: Record<string, unknown>) {
+  const user = await authenticatedUser(req);
+  if (!user) return response(req, { ok: false, error: "unauthorized" }, 401);
+  const parsed = smartDeliveryPauseSchema.safeParse(payload.input);
+  if (!parsed.success) return response(req, { ok: false, error: "invalid_input" }, 400);
+  const admin = adminClient();
+  const allowed = await consumeRateLimit(admin, `smart-delivery:control:${user.id}:minute`, 20, 60);
+  if (!allowed) return response(req, { ok: false, error: "rate_limited" }, 429);
+  const { data, error } = await admin.rpc("backend_set_store_smart_delivery_pause", {
+    _actor_user_id: user.id,
+    _store_id: parsed.data.storeId,
+    _paused: parsed.data.paused,
+    _reason: parsed.data.paused ? parsed.data.reason ?? null : null,
+  } as never);
+  if (error) {
+    if (error.code === "42501") return response(req, { ok: false, error: "unauthorized" }, 403);
+    console.error("[pediu-backend-api] Smart Delivery pause mutation failed", error.code ?? "unknown");
+    return response(req, { ok: false, error: "smart_delivery_control_unavailable" }, 502);
+  }
+  return response(req, { ok: true, data });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return response(req, { ok: true });
   if (req.method !== "POST") return response(req, { ok: false, error: "method_not_allowed" }, 405);
@@ -436,6 +482,8 @@ Deno.serve(async (req: Request) => {
     if (action === "create_store_account") return await createStoreAccount(req, payload);
     if (action === "create_courier") return await createCourier(req, payload);
     if (action === "reset_courier_access") return await resetCourierAccess(req, payload);
+    if (action === "get_smart_delivery_control_center") return await getSmartDeliveryControlCenter(req, payload);
+    if (action === "set_smart_delivery_pause") return await setSmartDeliveryPause(req, payload);
     return response(req, { ok: false, error: "action_not_allowed" }, 403);
   } catch (error) {
     console.error("[pediu-backend-api] unhandled request error", error instanceof Error ? error.message : "unknown");
