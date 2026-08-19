@@ -6,6 +6,7 @@ DECLARE
   exposed text[];
   missing_rls text[];
   unexpected_category_definers text[];
+  platform_scope_constraint_ok boolean;
 BEGIN
   SELECT array_agg(format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)))
     INTO exposed
@@ -46,6 +47,37 @@ BEGIN
 
   IF unexpected_category_definers IS NOT NULL THEN
     RAISE EXCEPTION 'Category profile RPCs must remain SECURITY INVOKER: %', unexpected_category_definers;
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'user_roles'
+      AND c.conname = 'user_roles_scope_check'
+      AND c.convalidated
+      AND pg_get_constraintdef(c.oid) ILIKE '%admin_plataforma%'
+      AND pg_get_constraintdef(c.oid) ILIKE '%store_id IS NULL%'
+  ) INTO platform_scope_constraint_ok;
+
+  IF NOT platform_scope_constraint_ok THEN
+    RAISE EXCEPTION 'user_roles must structurally keep admin_plataforma global (store_id IS NULL)';
+  END IF;
+
+  IF pg_get_functiondef('private.is_platform_admin()'::regprocedure) NOT ILIKE '%store_id IS NULL%'
+     OR pg_get_functiondef('private.has_permission(public.app_permission,uuid)'::regprocedure) NOT ILIKE '%store_id IS NULL%' THEN
+    RAISE EXCEPTION 'Platform authorization helpers must enforce global-role scope';
+  END IF;
+
+  IF pg_get_functiondef('public.get_platform_health_summary()'::regprocedure) NOT ILIKE '%platform.stores.view%'
+     OR pg_get_functiondef('public.list_platform_stores(text,text,integer,integer)'::regprocedure) NOT ILIKE '%platform.stores.view%'
+     OR pg_get_functiondef('public.get_platform_billing_summary()'::regprocedure) NOT ILIKE '%platform.billing.view%'
+     OR pg_get_functiondef('public.get_platform_recent_errors(integer)'::regprocedure) NOT ILIKE '%platform.audit.view%'
+     OR pg_get_functiondef('public.admin_suspend_store(uuid,text)'::regprocedure) NOT ILIKE '%platform.stores.suspend%'
+     OR pg_get_functiondef('public.admin_reactivate_store(uuid)'::regprocedure) NOT ILIKE '%platform.stores.reactivate%' THEN
+    RAISE EXCEPTION 'Platform RPCs must retain their explicit permission guards';
   END IF;
 
   IF has_function_privilege(
