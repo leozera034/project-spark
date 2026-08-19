@@ -71,7 +71,6 @@ export const saveStoreMessageTemplate = createServerFn({ method: "POST" })
       body: z.string().trim().min(1).max(4096),
       providerTemplateName: z.string().trim().max(512).nullable().optional(),
       providerLanguage: z.string().trim().min(2).max(20).default("pt_BR"),
-      providerStatus: z.enum(["draft", "pending", "approved", "rejected"]).default("draft"),
       isActive: z.boolean().default(true),
     }).parse(data),
   )
@@ -85,7 +84,7 @@ export const saveStoreMessageTemplate = createServerFn({ method: "POST" })
       _body: data.body,
       _provider_template_name: data.providerTemplateName ?? null,
       _provider_language: data.providerLanguage,
-      _provider_status: data.providerStatus,
+      _provider_status: "draft",
       _is_active: data.isActive,
     });
     if (result.error) throw result.error;
