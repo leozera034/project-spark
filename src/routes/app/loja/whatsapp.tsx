@@ -6,6 +6,7 @@ import {
   Clock3,
   MessageCircle,
   Pencil,
+  RefreshCw,
   Send,
   ShieldCheck,
   Users,
@@ -60,6 +61,13 @@ function providerLabel(provider: string | null | undefined) {
   return "Não conectado";
 }
 
+function providerCategoryLabel(category: StoreMessageTemplate["provider_category"]) {
+  if (category === "UTILITY") return "Utilidade";
+  if (category === "MARKETING") return "Marketing";
+  if (category === "AUTHENTICATION") return "Autenticação";
+  return null;
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
@@ -69,6 +77,28 @@ function formatDate(value: string | null | undefined) {
     timeStyle: "short",
     timeZone: "America/Sao_Paulo",
   }).format(date);
+}
+
+function templateOperationError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("TEMPLATE_VARIABLES_INVALID")) {
+    return "Use variáveis sequenciais no formato {{1}}, {{2}}, sem pular números.";
+  }
+  if (message.includes("TEMPLATE_INACTIVE")) return "Ative o template antes de enviá-lo para a Meta.";
+  if (message.includes("FORBIDDEN")) return "Sua conta não tem permissão para gerenciar os templates desta loja.";
+  if (message.startsWith("META_TEMPLATE_SUBMISSION_FAILED:")) {
+    return message.slice("META_TEMPLATE_SUBMISSION_FAILED:".length).trim() || "A Meta recusou a submissão do template.";
+  }
+  if (message.startsWith("META_TEMPLATE_SYNC_FAILED:")) {
+    return message.slice("META_TEMPLATE_SYNC_FAILED:".length).trim() || "A Meta recusou a sincronização dos templates.";
+  }
+  if (message.includes("META_TEMPLATE_SUBMISSION_UNAVAILABLE")) {
+    return "O template foi salvo, mas a integração Meta ainda não está disponível para enviá-lo.";
+  }
+  if (message.includes("META_TEMPLATE_SYNC_UNAVAILABLE")) {
+    return "Não foi possível sincronizar os templates agora.";
+  }
+  return "Não foi possível concluir a operação do template com a Meta.";
 }
 
 function WhatsAppCenter() {
@@ -87,6 +117,8 @@ function WhatsAppCenter() {
   const [purpose, setPurpose] = useState<"transactional" | "marketing">("transactional");
   const [body, setBody] = useState("");
   const [language, setLanguage] = useState("pt_BR");
+  const [templateNotice, setTemplateNotice] = useState<string | null>(null);
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   if (!storeId) {
     return (
@@ -95,6 +127,13 @@ function WhatsAppCenter() {
       </div>
     );
   }
+
+  const canUseMetaTemplates = Boolean(
+    readiness.data?.automatic_entitled
+      && readiness.data?.provider_connected
+      && readiness.data?.provider === "meta_whatsapp",
+  );
+  const templateBusy = actions.saveTemplate.isPending || actions.submitTemplate.isPending;
 
   const resetForm = () => {
     setEditingId(null);
@@ -106,6 +145,8 @@ function WhatsAppCenter() {
   };
 
   const editTemplate = (template: StoreMessageTemplate) => {
+    setTemplateNotice(null);
+    setTemplateError(null);
     setEditingId(template.id);
     setCode(template.code);
     setName(template.name);
@@ -114,10 +155,29 @@ function WhatsAppCenter() {
     setLanguage(template.provider_language);
   };
 
-  const saveTemplate = () => {
-    if (!code.trim() || !name.trim() || !body.trim()) return;
-    actions.saveTemplate.mutate(
-      {
+  const submitTemplate = async (templateId: string) => {
+    setTemplateNotice(null);
+    setTemplateError(null);
+    try {
+      const result = await actions.submitTemplate.mutateAsync({ storeId, templateId });
+      setTemplateNotice(
+        result.status === "approved"
+          ? "Template sincronizado e aprovado pela Meta."
+          : result.status === "rejected"
+            ? "A Meta retornou o template como rejeitado. Veja o motivo no card."
+            : "Template enviado à Meta e aguardando aprovação.",
+      );
+    } catch (error) {
+      setTemplateError(templateOperationError(error));
+    }
+  };
+
+  const saveTemplate = async () => {
+    if (!code.trim() || !name.trim() || !body.trim() || templateBusy) return;
+    setTemplateNotice(null);
+    setTemplateError(null);
+    try {
+      const saved = await actions.saveTemplate.mutateAsync({
         storeId,
         id: editingId,
         code: code.trim(),
@@ -126,9 +186,41 @@ function WhatsAppCenter() {
         body: body.trim(),
         providerLanguage: language.trim() || "pt_BR",
         isActive: true,
-      },
-      { onSuccess: resetForm },
-    );
+      });
+      resetForm();
+
+      if (!canUseMetaTemplates) {
+        setTemplateNotice("Template salvo como rascunho local. A conexão oficial da Meta é necessária para enviá-lo para aprovação.");
+        return;
+      }
+
+      try {
+        const submitted = await actions.submitTemplate.mutateAsync({ storeId, templateId: saved.id });
+        setTemplateNotice(
+          submitted.status === "approved"
+            ? "Template salvo e confirmado como aprovado pela Meta."
+            : "Template salvo e enviado à Meta para aprovação.",
+        );
+      } catch (error) {
+        setTemplateError(`O template foi salvo no Comandiva. ${templateOperationError(error)}`);
+      }
+    } catch {
+      setTemplateError("Não foi possível salvar o template no Comandiva.");
+    }
+  };
+
+  const syncTemplates = async () => {
+    if (!canUseMetaTemplates || actions.syncTemplates.isPending) return;
+    setTemplateNotice(null);
+    setTemplateError(null);
+    try {
+      const result = await actions.syncTemplates.mutateAsync({ storeId });
+      setTemplateNotice(
+        `Sincronização concluída: ${result.remoteCount.toLocaleString("pt-BR")} template(s) na Meta e ${result.matchedCount.toLocaleString("pt-BR")} vínculo(s) atualizado(s) no Comandiva.`,
+      );
+    } catch (error) {
+      setTemplateError(templateOperationError(error));
+    }
   };
 
   const usedMessages = (usage.data?.items ?? []).reduce(
@@ -198,12 +290,23 @@ function WhatsAppCenter() {
         automaticEntitled={Boolean(readiness.data?.automatic_entitled)}
       />
 
+      {templateNotice ? (
+        <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+          {templateNotice}
+        </p>
+      ) : null}
+      {templateError ? (
+        <p className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {templateError}
+        </p>
+      ) : null}
+
       <section className="grid gap-6 xl:grid-cols-[1fr_1.15fr]">
         <Card>
           <CardHeader>
             <CardTitle>{editingId ? "Editar template" : "Novo template"}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              O lojista edita apenas o conteúdo. Nome técnico e aprovação no provider são controlados pelo backend.
+              Você edita o conteúdo. Nome técnico, ID remoto, categoria e aprovação são controlados pelo backend e pela Meta.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -252,18 +355,22 @@ function WhatsAppCenter() {
                 maxLength={4096}
               />
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Ao alterar o conteúdo de um template já homologado, o backend remove a aprovação anterior para exigir nova validação.
+                Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Ao alterar mensagem, finalidade ou idioma de um template homologado, ele volta para rascunho e precisa de nova aprovação.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={saveTemplate}
-                disabled={actions.saveTemplate.isPending || !code.trim() || !name.trim() || !body.trim()}
+                onClick={() => void saveTemplate()}
+                disabled={templateBusy || !code.trim() || !name.trim() || !body.trim()}
               >
-                {actions.saveTemplate.isPending ? "Salvando..." : editingId ? "Salvar alterações" : "Criar rascunho"}
+                {templateBusy
+                  ? "Processando..."
+                  : canUseMetaTemplates
+                    ? editingId ? "Salvar e reenviar à Meta" : "Salvar e enviar à Meta"
+                    : editingId ? "Salvar alterações" : "Criar rascunho"}
               </Button>
               {editingId ? (
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="button" variant="outline" onClick={resetForm} disabled={templateBusy}>
                   Cancelar edição
                 </Button>
               ) : null}
@@ -273,35 +380,92 @@ function WhatsAppCenter() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Templates da loja</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Nenhum template é tratado como aprovado até o provider confirmar pelo backend.
-            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>Templates da loja</CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Aprovação vem exclusivamente da Meta. O Comandiva sincroniza o status e bloqueia automações enquanto não estiver aprovado.
+                </p>
+              </div>
+              {canUseMetaTemplates ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void syncTemplates()}
+                  disabled={actions.syncTemplates.isPending || templateBusy}
+                >
+                  <RefreshCw className={`size-3.5 ${actions.syncTemplates.isPending ? "animate-spin" : ""}`} />
+                  {actions.syncTemplates.isPending ? "Sincronizando..." : "Sincronizar Meta"}
+                </Button>
+              ) : null}
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(templates.data ?? []).map((template) => (
-              <div key={template.id} className="rounded-2xl border border-border p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">{template.name}</p>
-                      <Badge variant={templateStatusVariant(template.provider_status)}>
-                        {templateStatusLabel(template.provider_status)}
-                      </Badge>
-                      <Badge variant="outline">{template.purpose === "marketing" ? "Marketing" : "Transacional"}</Badge>
+            {(templates.data ?? []).map((template) => {
+              const category = providerCategoryLabel(template.provider_category);
+              const canSubmit = canUseMetaTemplates && (template.provider_status === "draft" || template.provider_status === "rejected");
+              return (
+                <div key={template.id} className="rounded-2xl border border-border p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold">{template.name}</p>
+                        <Badge variant={templateStatusVariant(template.provider_status)}>
+                          {templateStatusLabel(template.provider_status)}
+                        </Badge>
+                        <Badge variant="outline">{template.purpose === "marketing" ? "Marketing" : "Transacional"}</Badge>
+                        {category ? <Badge variant="outline">Meta: {category}</Badge> : null}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{template.code} · {template.provider_language}</p>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{template.code} · {template.provider_language}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {canSubmit ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => void submitTemplate(template.id)}
+                          disabled={actions.submitTemplate.isPending || actions.syncTemplates.isPending}
+                        >
+                          <Send className="size-3.5" />
+                          {template.provider_status === "rejected" ? "Reenviar à Meta" : "Enviar à Meta"}
+                        </Button>
+                      ) : null}
+                      <Button type="button" size="sm" variant="outline" onClick={() => editTemplate(template)} disabled={templateBusy}>
+                        <Pencil className="size-3.5" /> Editar
+                      </Button>
+                    </div>
                   </div>
-                  <Button type="button" size="sm" variant="outline" onClick={() => editTemplate(template)}>
-                    <Pencil className="size-3.5" /> Editar
-                  </Button>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
+
+                  {template.provider_template_name ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Meta: {template.provider_template_name}
+                      {template.provider_template_id ? ` · ID ${template.provider_template_id}` : ""}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-muted-foreground">Ainda não enviado à Meta.</p>
+                  )}
+
+                  {template.provider_rejection_reason ? (
+                    <p className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs leading-5 text-destructive">
+                      Motivo retornado pela Meta: {template.provider_rejection_reason}
+                    </p>
+                  ) : null}
+                  {template.provider_submission_error ? (
+                    <p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-amber-700 dark:text-amber-300">
+                      Falha na última tentativa de envio: {template.provider_submission_error}
+                    </p>
+                  ) : null}
+
+                  {template.provider_status_updated_at || template.provider_synced_at ? (
+                    <p className="mt-3 text-[11px] text-muted-foreground">
+                      Status atualizado: {formatDate(template.provider_status_updated_at ?? template.provider_synced_at)}
+                    </p>
+                  ) : null}
                 </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
-                {template.provider_template_name ? (
-                  <p className="mt-2 text-xs text-muted-foreground">Provider: {template.provider_template_name}</p>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
             {!templates.isLoading && (templates.data?.length ?? 0) === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                 Nenhum template cadastrado ainda.
