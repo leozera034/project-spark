@@ -10,14 +10,11 @@ export type CreateStoreAccountInput=z.input<typeof createSchema>;
 export const checkStoreSlug=createServerFn({method:"POST"}).inputValidator((data:unknown)=>z.object({slug:z.string().trim().max(80)}).parse(data)).handler(async({data})=>{const{supabaseAdmin}=await import("@/integrations/supabase/client.server");const{data:result,error}=await supabaseAdmin.rpc("check_public_store_slug",{_slug:data.slug} as never);if(error)return{slug:data.slug,available:false,reason:"indisponivel" as string|null};return result as{slug:string;available:boolean;reason:string|null}});
 
 export const createStoreAccount=createServerFn({method:"POST"}).inputValidator((data:unknown)=>createSchema.parse(data)).handler(async({data})=>{
-  const{invokePediuBackendAction,PediuBackendApiError}=await import("@/integrations/supabase/client.server");
+  const{invokeComandivaStoreSignup,PediuBackendApiError}=await import("@/integrations/supabase/client.server");
   try{
-    // The currently deployed onboarding Edge schema predates the formal free code. It only uses this field
-    // as requested-plan metadata; provision_store_with_owner still enforces the free fallback for self-service.
-    const provisioningPlanCode=data.planCode==="gratis"?"essencial":data.planCode;
-    return await invokePediuBackendAction<{storeId:string;slug:string}>({action:"create_store_account",input:{...data,planCode:provisioningPlanCode,email:data.email.toLowerCase(),state:data.state.toUpperCase()}});
+    return await invokeComandivaStoreSignup<{storeId:string;slug:string}>({...data,email:data.email.toLowerCase(),state:data.state.toUpperCase()});
   }catch(error){
-    if(error instanceof PediuBackendApiError){switch(error.code){case"slug_in_use":throw new Error("Esse endereço de loja já está em uso.");case"invalid_slug":throw new Error("Endereço de loja inválido.");case"email_in_use":throw new Error("Já existe uma conta com esse e-mail. Entre com ela ou use outro e-mail.");case"invalid_input":throw new Error("Revise os dados informados e tente novamente.");case"rate_limited":throw new Error("Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.");case"account_creation_failed":throw new Error("Não foi possível criar o acesso do proprietário.");default:break}}
+    if(error instanceof PediuBackendApiError){switch(error.code){case"slug_in_use":throw new Error("Esse endereço de loja já está em uso.");case"invalid_slug":throw new Error("Endereço de loja inválido.");case"email_in_use":throw new Error("Já existe uma conta com esse e-mail. Entre com ela ou use outro e-mail.");case"invalid_input":throw new Error("Revise os dados informados e tente novamente.");case"rate_limited":throw new Error("Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.");case"account_creation_failed":throw new Error("Não foi possível criar o acesso do proprietário.");case"provision_failed":throw new Error("O acesso foi criado, mas a loja não pôde ser provisionada com segurança.");default:break}}
     console.error("[store-onboarding] external Edge provisioning failed");throw new Error("Não foi possível criar a loja agora. Tente novamente.");
   }
 });
