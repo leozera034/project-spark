@@ -18,6 +18,19 @@ export interface StoreEmailReadiness {
 }
 
 const storeIdSchema = z.string().uuid();
+const readinessSchema = z.object({
+  provider: z.literal("resend"),
+  transactional_core_ready: z.boolean(),
+  api_key_configured: z.boolean(),
+  sending_domain: z.string().nullable(),
+  domain_verified: z.boolean(),
+  webhook_secret_configured: z.boolean(),
+  webhook_delivery_verified: z.boolean(),
+  ready_for_send: z.boolean(),
+  last_health_at: z.string().nullable(),
+  last_valid_webhook_at: z.string().nullable(),
+  last_error: z.string().nullable(),
+});
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
@@ -30,22 +43,23 @@ export const getStoreEmailReadiness = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((value: unknown) => z.object({ storeId: storeIdSchema }).parse(value))
   .handler(async ({ data, context }) => {
-    const result = await rpcCaller(context.supabase)("get_my_store_email_readiness", {
+    const rpc = rpcCaller(context.supabase);
+
+    // Authorize store membership before allowing this request to trigger any
+    // provider-side health check.
+    const before = await rpc("get_my_store_email_readiness", {
       _store_id: data.storeId,
     });
-    if (result.error) throw result.error;
+    if (before.error) throw before.error;
 
-    return z.object({
-      provider: z.literal("resend"),
-      transactional_core_ready: z.boolean(),
-      api_key_configured: z.boolean(),
-      sending_domain: z.string().nullable(),
-      domain_verified: z.boolean(),
-      webhook_secret_configured: z.boolean(),
-      webhook_delivery_verified: z.boolean(),
-      ready_for_send: z.boolean(),
-      last_health_at: z.string().nullable(),
-      last_valid_webhook_at: z.string().nullable(),
-      last_error: z.string().nullable(),
-    }).parse(result.data) satisfies StoreEmailReadiness;
+    // The health endpoint persists both success and failure states. A failed
+    // provider probe must not hide the last canonical readiness row from the UI.
+    await context.supabase.functions.invoke("comandiva-email-readiness").catch(() => undefined);
+
+    const after = await rpc("get_my_store_email_readiness", {
+      _store_id: data.storeId,
+    });
+    if (after.error) throw after.error;
+
+    return readinessSchema.parse(after.data) satisfies StoreEmailReadiness;
   });
