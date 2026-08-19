@@ -2,6 +2,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { prioritizeStoreIds } from "@/store-scope/store-scope";
 
 import { AuthContext } from "./AuthContext";
 import { AUTH_MESSAGES, AuthFlowError, logAuthFailure } from "./auth.errors";
@@ -16,7 +17,9 @@ async function loadAuthContext(): Promise<AuthContextData | null> {
     logAuthFailure("carregar_contexto");
     return null;
   }
-  return (data as unknown as AuthContextData) ?? null;
+  const context = (data as unknown as AuthContextData) ?? null;
+  if (!context) return null;
+  return { ...context, store_ids: prioritizeStoreIds(context.store_ids ?? []) };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
