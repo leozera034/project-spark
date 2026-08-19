@@ -1,4 +1,4 @@
-export type MapsProviderName = "google_maps" | "local_haversine";
+export type MapsProviderName = "openrouteservice" | "google_maps" | "local_haversine";
 export type MapsTravelMode = "drive" | "two_wheeler" | "bicycle" | "walk";
 
 export interface GeoPoint {
