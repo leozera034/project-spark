@@ -5,6 +5,8 @@
 import type { CheckoutSubmitResult, PublicPaymentMethod } from "./checkout.types";
 
 const TIMEOUT_MS = 20_000;
+const STRIPE_ORDER_CHECKOUT_URL =
+  "https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/comandiva-stripe-order-checkout";
 
 export class CheckoutError extends Error {
   constructor(public readonly code: string) {
@@ -105,5 +107,59 @@ export async function postOrder(
       throw new CheckoutError("failed");
     }
     return payload;
+  });
+}
+
+export async function createStripeOrderCheckout(input: {
+  slug: string;
+  orderId: string;
+  trackingToken: string;
+}): Promise<{ checkoutUrl: string }> {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new CheckoutError("offline");
+  }
+  return withTimeout(async (signal) => {
+    const response = await fetch(STRIPE_ORDER_CHECKOUT_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "create_checkout", ...input }),
+      signal,
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | { ok?: boolean; checkoutUrl?: string; error?: string }
+      | null;
+    if (!response.ok || !payload?.ok || !payload.checkoutUrl) {
+      throw new CheckoutError(payload?.error ?? "stripe_checkout_failed");
+    }
+    return { checkoutUrl: payload.checkoutUrl };
+  });
+}
+
+export type StripeOrderPaymentStatus = {
+  configured: boolean;
+  status: string;
+  amount_cents?: number;
+  currency?: string;
+  updated_at?: string;
+};
+
+export async function fetchStripeOrderPaymentStatus(input: {
+  orderId: string;
+  trackingToken: string;
+}): Promise<StripeOrderPaymentStatus> {
+  return withTimeout(async (signal) => {
+    const response = await fetch(STRIPE_ORDER_CHECKOUT_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "status", ...input }),
+      signal,
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | { ok?: boolean; payment?: StripeOrderPaymentStatus; error?: string }
+      | null;
+    if (!response.ok || !payload?.ok || !payload.payment) {
+      throw new CheckoutError(payload?.error ?? "stripe_status_failed");
+    }
+    return payload.payment;
   });
 }
