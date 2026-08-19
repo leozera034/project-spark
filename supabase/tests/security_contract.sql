@@ -5,6 +5,7 @@ DO $$
 DECLARE
   exposed text[];
   missing_rls text[];
+  unexpected_category_definers text[];
 BEGIN
   SELECT array_agg(format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)))
     INTO exposed
@@ -33,9 +34,18 @@ BEGIN
     RAISE EXCEPTION 'check_public_store_slug must remain service-role-only behind the Edge gateway';
   END IF;
 
-  IF (SELECT p.prosecdef FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-      WHERE n.nspname='public' AND p.oid='public.list_active_category_profiles()'::regprocedure) THEN
-    RAISE EXCEPTION 'list_active_category_profiles must remain SECURITY INVOKER';
+  SELECT array_agg(p.oid::regprocedure::text ORDER BY p.oid::regprocedure::text)
+    INTO unexpected_category_definers
+    FROM pg_proc p
+   WHERE p.oid = ANY (ARRAY[
+     'public.list_active_category_profiles()'::regprocedure::oid,
+     'public.admin_list_category_profiles()'::regprocedure::oid,
+     'public.admin_save_category_profile(uuid,text,text,text,text,jsonb,jsonb,boolean,integer)'::regprocedure::oid
+   ])
+     AND p.prosecdef;
+
+  IF unexpected_category_definers IS NOT NULL THEN
+    RAISE EXCEPTION 'Category profile RPCs must remain SECURITY INVOKER: %', unexpected_category_definers;
   END IF;
 
   IF has_function_privilege(
