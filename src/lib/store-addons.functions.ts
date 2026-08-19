@@ -46,6 +46,7 @@ export interface StoreAddon {
 }
 
 export interface StoreAddonsResponse {
+  can_view_billing: boolean;
   items: StoreAddon[];
 }
 
