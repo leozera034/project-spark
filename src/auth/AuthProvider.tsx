@@ -2,7 +2,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { prioritizeStoreIds } from "@/store-scope/store-scope";
+import { prioritizeStoreIds, setSelectedStoreId } from "@/store-scope/store-scope";
 
 import { AuthContext } from "./AuthContext";
 import { AUTH_MESSAGES, AuthFlowError, logAuthFailure } from "./auth.errors";
@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "PASSWORD_RECOVERY") setIsRecoverySession(true);
       if (event === "SIGNED_OUT") {
+        setSelectedStoreId(null);
         setAuthContext(null);
         setIsRecoverySession(false);
         return;
@@ -139,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       async signOut(scope = "local") {
         await supabase.auth.signOut({ scope });
+        setSelectedStoreId(null);
         if (mounted.current) {
           setAuthContext(null);
           setSession(null);
