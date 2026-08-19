@@ -15,9 +15,11 @@ export interface StoreWhatsAppReadiness {
   assisted_available: boolean;
   automatic_entitled: boolean;
   provider_connected: boolean;
-  provider: "meta_whatsapp" | "360dialog_whatsapp" | "twilio_whatsapp" | null;
+  provider: "evolution_api" | "meta_whatsapp" | "360dialog_whatsapp" | "twilio_whatsapp" | null;
   templates_total: number;
   templates_approved: number;
+  templates_ready: number;
+  requires_provider_template_approval: boolean;
   ready_for_automatic: boolean;
 }
 
