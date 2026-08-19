@@ -6,7 +6,7 @@ import { getPlatformBillingProviderReadiness } from "@/lib/platform-billing-read
 export function usePlatformBillingProviderReadiness() {
   const fn = useServerFn(getPlatformBillingProviderReadiness);
   return useQuery({
-    queryKey: ["platform", "billing-provider-readiness", "mercado_pago", "test"],
+    queryKey: ["platform", "billing-provider-readiness", "stripe"],
     queryFn: () => fn({ data: undefined }),
     staleTime: 30_000,
     retry: 0,
