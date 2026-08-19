@@ -34,6 +34,16 @@ export type StripeRuntimeReadiness = {
   last_error?: string | null;
 };
 
+export type StripeConnectOnboardingResult = {
+  ok: boolean;
+  alreadyReady?: boolean;
+  accountId?: string;
+  onboardingUrl?: string;
+  expiresAt?: number;
+  error?: string;
+  providerMessage?: string | null;
+};
+
 export const getStripeConnectStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
@@ -51,4 +61,17 @@ export const getStripeRuntimeReadiness = createServerFn({ method: "GET" })
     const result = await rpc("get_stripe_runtime_readiness");
     if (result.error) throw result.error;
     return result.data as StripeRuntimeReadiness;
+  });
+
+export const beginStripeConnectOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => inputSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: result, error } = await context.supabase.functions.invoke("comandiva-stripe-onboarding", {
+      body: { storeId: data.storeId },
+    });
+    if (error) throw error;
+    const payload = result as StripeConnectOnboardingResult;
+    if (!payload?.ok) throw new Error(payload?.providerMessage || payload?.error || "Não foi possível iniciar o cadastro Stripe.");
+    return payload;
   });
