@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   Bot,
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StoreAddon } from "@/lib/store-addons.functions";
 import { useStoreAddons } from "@/store/addons/store-addons.queries";
@@ -143,12 +144,17 @@ function StoreModulesPage() {
             value={String(whatsapp.data?.templates_approved ?? 0)}
             ready={(whatsapp.data?.templates_approved ?? 0) > 0}
           />
-          <div className="sm:col-span-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground">
-            {whatsapp.isError
-              ? "Não foi possível consultar o estado do WhatsApp agora. Nenhum envio automático é liberado sem validação do backend."
-              : whatsapp.data?.ready_for_automatic
-                ? "Infraestrutura pronta para envio automático. O worker do provider ainda precisa estar homologado antes de liberar disparos reais."
-                : "Envio automático permanece bloqueado. O Comandiva não consome API paga enquanto os pré-requisitos acima não estiverem completos."}
+          <div className="sm:col-span-3 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {whatsapp.isError
+                ? "Não foi possível consultar o estado do WhatsApp agora. Nenhum envio automático é liberado sem validação do backend."
+                : whatsapp.data?.ready_for_automatic
+                  ? "Infraestrutura pronta para envio automático. O worker do provider ainda precisa estar homologado antes de liberar disparos reais."
+                  : "Envio automático permanece bloqueado. O Comandiva não consome API paga enquanto os pré-requisitos acima não estiverem completos."}
+            </span>
+            <Button asChild variant="outline" className="shrink-0">
+              <Link to="/app/loja/whatsapp">Abrir central</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
