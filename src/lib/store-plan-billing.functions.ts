@@ -71,9 +71,7 @@ async function edgeErrorCode(error: unknown) {
   if (typeof Response !== "undefined" && response instanceof Response) {
     try {
       const payload = (await response.clone().json()) as { error?: unknown };
-      if (typeof payload?.error === "string" && /^[a-z0-9_]{2,100}$/i.test(payload.error)) {
-        return payload.error;
-      }
+      if (typeof payload?.error === "string" && /^[a-z0-9_]{2,100}$/i.test(payload.error)) return payload.error;
     } catch {
       // Intentionally collapse provider details into a stable internal error code.
     }
@@ -114,43 +112,29 @@ export const getMyStorePlanBillingDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const { data: result, error } = await context.supabase.rpc("get_my_store_plan_billing_detail", {
-      _store_id: data.storeId,
-    } as never);
+    const { data: result, error } = await context.supabase.rpc("get_my_store_plan_billing_detail", { _store_id: data.storeId } as never);
     if (error) throw error;
     return result as StorePlanBillingDetail;
   });
 
 export const createStorePlanCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
-    z.object({
-      storeId: storeIdSchema,
-      planCode: paidPlanCodeSchema,
-      billingInterval: billingIntervalSchema,
-      idempotencyKey: z.string().trim().min(8).max(160),
-    }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({
+    storeId: storeIdSchema,
+    planCode: paidPlanCodeSchema,
+    billingInterval: billingIntervalSchema,
+    idempotencyKey: z.string().trim().min(8).max(160),
+  }).parse(data))
   .handler(async ({ data, context }) => {
     const result = await context.supabase.functions.invoke("comandiva-stripe?action=create_plan_checkout", {
       headers: { "x-idempotency-key": data.idempotencyKey },
-      body: {
-        storeId: data.storeId,
-        planCode: data.planCode,
-        billingInterval: data.billingInterval,
-      },
+      body: { storeId: data.storeId, planCode: data.planCode, billingInterval: data.billingInterval },
     });
     if (result.error) throw checkoutError(await edgeErrorCode(result.error));
     const parsed = z.object({
-      ok: z.literal(true),
-      reused: z.boolean(),
-      provider: z.literal("stripe"),
-      attemptId: z.string().uuid(),
-      checkoutSessionId: z.string().optional(),
-      checkoutUrl: z.string().url().refine((value) => value.startsWith("https://")),
-      planCode: z.string().optional(),
-      billingInterval: billingIntervalSchema.optional(),
-      trialDays: z.number().int().nonnegative().optional(),
+      ok: z.literal(true), reused: z.boolean(), provider: z.literal("stripe"), attemptId: z.string().uuid(),
+      checkoutSessionId: z.string().optional(), checkoutUrl: z.string().url().refine((v) => v.startsWith("https://")),
+      planCode: z.string().optional(), billingInterval: billingIntervalSchema.optional(), trialDays: z.number().int().nonnegative().optional(),
     }).safeParse(result.data);
     if (!parsed.success) throw new Error("PLAN_CHECKOUT_FAILED");
     return parsed.data;
@@ -160,9 +144,7 @@ export const createStoreBillingPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const result = await context.supabase.functions.invoke("comandiva-stripe?action=create_billing_portal", {
-      body: { storeId: data.storeId },
-    });
+    const result = await context.supabase.functions.invoke("comandiva-stripe?action=create_billing_portal", { body: { storeId: data.storeId } });
     if (result.error) {
       const code = await edgeErrorCode(result.error);
       if (code === "billing_customer_missing") throw new Error("BILLING_CUSTOMER_MISSING");
@@ -177,21 +159,11 @@ export const createStoreBillingPortal = createServerFn({ method: "POST" })
 
 export const changeStorePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({
-    storeId: storeIdSchema,
-    planCode: paidPlanCodeSchema,
-    billingInterval: billingIntervalSchema,
-  }).parse(data))
+  .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema, planCode: paidPlanCodeSchema, billingInterval: billingIntervalSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const result = await context.supabase.functions.invoke("comandiva-stripe?action=change_plan", { body: data });
+    const result = await context.supabase.functions.invoke("comandiva-stripe-plan-lifecycle?action=change_plan", { body: data });
     if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
-    const parsed = z.object({
-      ok: z.literal(true),
-      action: z.enum(["upgrade", "downgrade"]),
-      scheduled: z.boolean().optional(),
-      effectiveAt: z.string().nullable().optional(),
-      providerStatus: z.string().nullable().optional(),
-    }).safeParse(result.data);
+    const parsed = z.object({ ok: z.literal(true), action: z.enum(["upgrade", "downgrade"]), scheduled: z.boolean().optional(), effectiveAt: z.string().nullable().optional(), providerStatus: z.string().nullable().optional() }).safeParse(result.data);
     if (!parsed.success) throw new Error("PLAN_LIFECYCLE_FAILED");
     return parsed.data as PlanLifecycleResult;
   });
@@ -200,20 +172,16 @@ export const cancelStorePlanAtPeriodEnd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const result = await context.supabase.functions.invoke("comandiva-stripe?action=cancel_plan", { body: data });
+    const result = await context.supabase.functions.invoke("comandiva-stripe-plan-lifecycle?action=cancel_plan", { body: data });
     if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
-    return z.object({
-      ok: z.literal(true),
-      action: z.literal("cancel"),
-      effectiveAt: z.string().nullable().optional(),
-    }).parse(result.data) as PlanLifecycleResult;
+    return z.object({ ok: z.literal(true), action: z.literal("cancel"), effectiveAt: z.string().nullable().optional() }).parse(result.data) as PlanLifecycleResult;
   });
 
 export const resumeStorePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const result = await context.supabase.functions.invoke("comandiva-stripe?action=resume_plan", { body: data });
+    const result = await context.supabase.functions.invoke("comandiva-stripe-plan-lifecycle?action=resume_plan", { body: data });
     if (result.error) throw lifecycleError(await edgeErrorCode(result.error));
     return z.object({ ok: z.literal(true), action: z.literal("resume") }).parse(result.data) as PlanLifecycleResult;
   });
