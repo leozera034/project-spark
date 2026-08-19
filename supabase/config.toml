@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.spark-storage-migrate-once]
 verify_jwt = true
+
+[functions.comandiva-whatsapp-worker]
+verify_jwt = false
+
+[functions.comandiva-meta-whatsapp-webhook]
+verify_jwt = false
