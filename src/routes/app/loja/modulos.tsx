@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { AddonPurchaseReadiness } from "@/components/store/AddonPurchaseReadiness";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,7 +109,7 @@ function StoreModulesPage() {
         <CardContent className="p-5 text-sm text-muted-foreground">
           {addons.data && !canViewBilling
             ? "Você pode conhecer os módulos disponíveis, mas valores e estado de cobrança ficam visíveis apenas ao proprietário da loja."
-            : "Nenhuma integração paga foi ativada. O catálogo abaixo já está ligado ao novo motor de add-ons, mas preços e cobrança só serão liberados após homologação de cada provedor."}
+            : "Nenhuma integração paga foi ativada. O catálogo abaixo já está ligado ao motor de add-ons; a contratação só será liberada quando preço e provedor de cobrança estiverem homologados."}
         </CardContent>
       </Card>
 
@@ -214,6 +215,12 @@ function StoreModulesPage() {
                       </p>
                     )}
                   </div>
+
+                  <AddonPurchaseReadiness
+                    storeId={storeId}
+                    addon={addon}
+                    canViewBilling={canViewBilling}
+                  />
                 </CardContent>
               </Card>
             );
