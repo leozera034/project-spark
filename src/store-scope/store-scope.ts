@@ -19,7 +19,9 @@ export function setSelectedStoreId(storeId: string | null) {
 
 export function subscribeSelectedStore(listener: () => void) {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function useSelectedStoreId(): string | null {
