@@ -5,6 +5,7 @@ const MP_API = "https://api.mercadopago.com";
 const APP_ORIGIN = "https://shark-cardapio.lovable.app";
 const PROVIDER_TIMEOUT_MS = 8_000;
 const MAX_BODY_BYTES = 32 * 1024;
+const ENVIRONMENT = "production";
 
 type JsonRecord = Record<string, unknown>;
 type AuthenticatedUser = { id: string; email: string | null };
@@ -139,7 +140,7 @@ async function rateLimit(key: string, limit: number, windowSeconds: number): Pro
 }
 
 function mercadoPagoToken(): string | null {
-  return Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_TEST")?.trim() || null;
+  return Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_PROD")?.trim() || null;
 }
 
 function mercadoPagoNotificationUrl(): string | null {
@@ -277,7 +278,7 @@ async function providerHealth(req: Request): Promise<Response> {
     return json(req, {
       ok: false,
       provider: "mercado_pago",
-      environment: "test",
+      environment: ENVIRONMENT,
       configured: false,
     }, 503);
   }
@@ -287,7 +288,7 @@ async function providerHealth(req: Request): Promise<Response> {
     return json(req, {
       ok: upstream.ok,
       provider: "mercado_pago",
-      environment: "test",
+      environment: ENVIRONMENT,
       configured: true,
       connected: upstream.ok,
       upstreamStatus: upstream.status,
@@ -297,7 +298,7 @@ async function providerHealth(req: Request): Promise<Response> {
     return json(req, {
       ok: false,
       provider: "mercado_pago",
-      environment: "test",
+      environment: ENVIRONMENT,
       configured: true,
       connected: false,
       error: "provider_unreachable",
@@ -403,7 +404,7 @@ async function syncAddonPrice(req: Request): Promise<Response> {
       _provider_plan_id: planId,
       _provider_status: stringValue(plan.status) ?? "active",
       _metadata: {
-        environment: "test",
+        environment: ENVIRONMENT,
         init_point: stringValue(plan.init_point),
         synced_at: new Date().toISOString(),
       },
@@ -412,7 +413,7 @@ async function syncAddonPrice(req: Request): Promise<Response> {
 
     return json(req, {
       ok: true,
-      environment: "test",
+      environment: ENVIRONMENT,
       provider: "mercado_pago",
       created,
       plan: {
@@ -495,7 +496,7 @@ async function createAddonCheckout(req: Request): Promise<Response> {
     return json(req, {
       ok: true,
       reused: true,
-      environment: "test",
+      environment: ENVIRONMENT,
       provider: "mercado_pago",
       attemptId: checkout.attempt_id,
       status: checkout.provider_status ?? "pending",
@@ -514,7 +515,7 @@ async function createAddonCheckout(req: Request): Promise<Response> {
       return json(req, {
         ok: true,
         reused: true,
-        environment: "test",
+        environment: ENVIRONMENT,
         provider: "mercado_pago",
         attemptId: checkout.attempt_id,
         status: stringValue(claim.attempt_status) ?? "pending",
@@ -641,7 +642,7 @@ async function createAddonCheckout(req: Request): Promise<Response> {
     return json(req, {
       ok: true,
       reused: checkout.reused,
-      environment: "test",
+      environment: ENVIRONMENT,
       provider: "mercado_pago",
       attemptId: checkout.attempt_id,
       status: providerStatus,
