@@ -87,6 +87,13 @@ BEGIN
     RAISE EXCEPTION 'Store membership helpers must reject inactive user profiles';
   END IF;
 
+  IF pg_get_functiondef('private.current_courier_id()'::regprocedure) NOT ILIKE '%user_profiles%'
+     OR pg_get_functiondef('private.current_courier_id()'::regprocedure) NOT ILIKE '%p.is_active%'
+     OR pg_get_functiondef('private.current_courier_store_id()'::regprocedure) NOT ILIKE '%user_profiles%'
+     OR pg_get_functiondef('private.current_courier_store_id()'::regprocedure) NOT ILIKE '%p.is_active%' THEN
+    RAISE EXCEPTION 'Courier identity helpers must reject inactive user profiles';
+  END IF;
+
   IF pg_get_functiondef('public.list_my_stores()'::regprocedure) NOT ILIKE '%user_profiles%'
      OR pg_get_functiondef('public.list_my_stores()'::regprocedure) NOT ILIKE '%p.is_active%' THEN
     RAISE EXCEPTION 'list_my_stores must reject inactive user profiles';
