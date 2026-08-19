@@ -1,0 +1,12 @@
+revoke all on function public.begin_store_meta_whatsapp_onboarding(uuid) from public, anon;
+revoke all on function public.get_store_meta_whatsapp_connection(uuid) from public, anon;
+revoke all on function public.claim_meta_whatsapp_onboarding_session(uuid,uuid,uuid,text,text,text) from public, anon, authenticated;
+revoke all on function public.fail_meta_whatsapp_onboarding_session(uuid,uuid,uuid,text,text) from public, anon, authenticated;
+revoke all on function public.complete_meta_whatsapp_connection(uuid,uuid,uuid,text,text,text,text,text,text,text,text,boolean,integer,timestamptz) from public, anon, authenticated;
+revoke all on function public.get_meta_whatsapp_access_token(uuid,text) from public, anon, authenticated;
+grant execute on function public.begin_store_meta_whatsapp_onboarding(uuid) to authenticated;
+grant execute on function public.get_store_meta_whatsapp_connection(uuid) to authenticated;
+grant execute on function public.claim_meta_whatsapp_onboarding_session(uuid,uuid,uuid,text,text,text) to service_role;
+grant execute on function public.fail_meta_whatsapp_onboarding_session(uuid,uuid,uuid,text,text) to service_role;
+grant execute on function public.complete_meta_whatsapp_connection(uuid,uuid,uuid,text,text,text,text,text,text,text,text,boolean,integer,timestamptz) to service_role;
+grant execute on function public.get_meta_whatsapp_access_token(uuid,text) to service_role;
