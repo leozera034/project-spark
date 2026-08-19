@@ -116,7 +116,9 @@ async function persistHealth(input: {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method !== "GET") return response({ ok: false, error: "method_not_allowed" }, 405);
+  if (req.method !== "GET" && req.method !== "POST") {
+    return response({ ok: false, error: "method_not_allowed" }, 405);
+  }
   if (!(await rateLimit())) return response({ ok: false, error: "rate_limited" }, 429);
 
   const token = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_TEST")?.trim() ?? "";
