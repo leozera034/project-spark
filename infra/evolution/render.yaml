@@ -1,0 +1,81 @@
+services:
+  - type: web
+    name: comandiva-evolution-qa
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./infra/evolution/Dockerfile
+    dockerContext: .
+    healthCheckPath: /server/ok
+    autoDeployTrigger: off
+    envVars:
+      - key: SERVER_NAME
+        value: comandiva-evolution-qa
+      - key: SERVER_TYPE
+        value: http
+      - key: SERVER_PORT
+        value: 10000
+      - key: SERVER_URL
+        sync: false
+      - key: TELEMETRY_ENABLED
+        value: "false"
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: CORS_METHODS
+        value: GET,POST,PUT,DELETE
+      - key: CORS_CREDENTIALS
+        value: "false"
+      - key: LOG_LEVEL
+        value: ERROR,WARN,INFO
+      - key: LOG_BAILEYS
+        value: error
+      - key: DEL_INSTANCE
+        value: "false"
+      - key: DATABASE_PROVIDER
+        value: postgresql
+      - key: DATABASE_CONNECTION_URI
+        sync: false
+      - key: DATABASE_CONNECTION_CLIENT_NAME
+        value: comandiva_evolution_qa
+      - key: DATABASE_SAVE_DATA_INSTANCE
+        value: "true"
+      - key: DATABASE_SAVE_DATA_NEW_MESSAGE
+        value: "false"
+      - key: DATABASE_SAVE_MESSAGE_UPDATE
+        value: "false"
+      - key: DATABASE_SAVE_DATA_CONTACTS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_CHATS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_LABELS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_HISTORIC
+        value: "false"
+      - key: DATABASE_SAVE_IS_ON_WHATSAPP
+        value: "false"
+      - key: DATABASE_DELETE_MESSAGE
+        value: "false"
+      - key: CACHE_REDIS_ENABLED
+        value: "false"
+      - key: CACHE_REDIS_SAVE_INSTANCES
+        value: "false"
+      - key: CACHE_LOCAL_ENABLED
+        value: "true"
+      - key: RABBITMQ_ENABLED
+        value: "false"
+      - key: WEBSOCKET_ENABLED
+        value: "false"
+      - key: WEBHOOK_GLOBAL_ENABLED
+        value: "false"
+      - key: CONFIG_SESSION_PHONE_CLIENT
+        value: Comandiva
+      - key: CONFIG_SESSION_PHONE_NAME
+        value: Chrome
+      - key: QRCODE_LIMIT
+        value: "30"
+      - key: AUTHENTICATION_API_KEY
+        generateValue: true
+      - key: AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES
+        value: "false"
+      - key: LANGUAGE
+        value: pt-BR
