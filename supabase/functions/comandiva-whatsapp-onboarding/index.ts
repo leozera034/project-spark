@@ -152,11 +152,7 @@ async function start(req: Request, storeId: string) {
   if (!auth) return json(401, { ok: false, error: "unauthorized" });
   const meta = metaConfig();
   if (!meta.configured) {
-    return json(503, {
-      ok: false,
-      error: "meta_app_not_configured",
-      configured: false,
-    });
+    return json(503, { ok: false, error: "meta_app_not_configured", configured: false });
   }
 
   const { data, error } = await auth.client.rpc("begin_store_meta_whatsapp_onboarding", {
@@ -180,10 +176,7 @@ async function start(req: Request, storeId: string) {
   });
 }
 
-async function complete(
-  req: Request,
-  input: JsonRecord,
-) {
+async function complete(req: Request, input: JsonRecord) {
   const auth = await authenticatedContext(req);
   if (!auth) return json(401, { ok: false, error: "unauthorized" });
   const meta = metaConfig();
@@ -245,8 +238,10 @@ async function complete(
     const appToken = `${meta.appId}|${meta.appSecret}`;
     const debugUrl = new URL(`https://graph.facebook.com/${meta.graphVersion}/debug_token`);
     debugUrl.searchParams.set("input_token", accessToken);
-    debugUrl.searchParams.set("access_token", appToken);
-    const debugged = await metaFetch(debugUrl.toString(), { method: "GET" });
+    const debugged = await metaFetch(debugUrl.toString(), {
+      method: "GET",
+      headers: { Authorization: `Bearer ${appToken}` },
+    });
     const debugData = objectValue(debugged.data.data);
     if (!debugged.ok || debugData.is_valid !== true || safeString(debugData.app_id, 80) !== meta.appId) {
       await failSession(admin, sessionId, storeId, auth.userId, "META_TOKEN_INVALID", "Meta returned an invalid integration token.");
