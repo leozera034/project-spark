@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
+  createStoreAddonCheckout,
   getMyStoreAddons,
   getMyStoreEntitlements,
   getMyStoreUsageSummary,
@@ -54,5 +55,25 @@ export function useAddonPurchasePreflight(
     enabled: Boolean(storeId) && enabled,
     staleTime: 15_000,
     retry: 0,
+  });
+}
+
+export function useAddonCheckout() {
+  const queryClient = useQueryClient();
+  const fn = useServerFn(createStoreAddonCheckout);
+
+  return useMutation({
+    mutationFn: (data: {
+      storeId: string;
+      addonCode: string;
+      billingInterval?: "monthly" | "annual";
+      idempotencyKey: string;
+    }) => fn({ data }),
+    onSuccess: (_result, variables) => {
+      void queryClient.invalidateQueries({ queryKey: ["store-addons", variables.storeId] });
+      void queryClient.invalidateQueries({
+        queryKey: ["store-addon-purchase-preflight", variables.storeId, variables.addonCode],
+      });
+    },
   });
 }
