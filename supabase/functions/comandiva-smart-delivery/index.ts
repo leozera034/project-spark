@@ -1,8 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 
-const GOOGLE_TIMEOUT_MS = 8_000;
-const PROVIDER = "google_maps";
+const PROVIDER_TIMEOUT_MS = 8_000;
+const PROVIDER = "openrouteservice";
+const ORS_BASE = "https://api.heigit.org";
 type J = Record<string, unknown>;
 
 type StoreReadiness = {
@@ -14,7 +15,6 @@ type StoreReadiness = {
   kill_switch_enabled?: boolean;
   ready_for_smart_routes?: boolean;
 };
-
 type StoreConfig = {
   store?: {
     latitude?: number | null;
@@ -32,17 +32,14 @@ type StoreConfig = {
 function obj(value: unknown): J {
   return value && typeof value === "object" && !Array.isArray(value) ? value as J : {};
 }
-
 function str(value: unknown, max = 512): string | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const parsed = String(value).trim();
   return parsed ? parsed.slice(0, max) : null;
 }
-
 function numberValue(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
-
 function parseKeys(raw: string | undefined): Record<string, string> {
   if (!raw) return {};
   try {
@@ -52,7 +49,6 @@ function parseKeys(raw: string | undefined): Record<string, string> {
     return {};
   }
 }
-
 function keyAwareFetch(apiKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined);
@@ -62,7 +58,6 @@ function keyAwareFetch(apiKey: string): typeof fetch {
     return fetch(input, { ...init, headers });
   };
 }
-
 function config() {
   const url = Deno.env.get("SUPABASE_URL")?.trim() ?? "";
   const publishable = parseKeys(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")).default
@@ -74,7 +69,6 @@ function config() {
   if (!url || !publishable || !secret) throw new Error("backend_configuration_missing");
   return { url, publishable, secret };
 }
-
 function adminClient() {
   const cfg = config();
   return createClient(cfg.url, cfg.secret, {
@@ -82,7 +76,6 @@ function adminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
-
 async function actorClient(req: Request) {
   const authorization = req.headers.get("authorization") ?? "";
   if (!authorization.startsWith("Bearer ")) return null;
@@ -100,7 +93,6 @@ async function actorClient(req: Request) {
   if (error || !data.user?.id) return null;
   return { client, userId: data.user.id };
 }
-
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -110,32 +102,22 @@ function json(status: number, body: unknown) {
     },
   });
 }
-
 function validUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
-
 function validCoordinate(latitude: number, longitude: number) {
   return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 }
-
-function googleTravelMode(mode: string) {
-  if (mode === "drive") return "DRIVE";
-  if (mode === "two_wheeler") return "TWO_WHEELER";
-  if (mode === "bicycle") return "BICYCLE";
-  if (mode === "walk") return "WALK";
+function orsProfile(mode: string) {
+  if (mode === "drive") return "driving-car";
+  if (mode === "two_wheeler") return "driving-car";
+  if (mode === "bicycle") return "cycling-regular";
+  if (mode === "walk") return "foot-walking";
   return null;
 }
-
-function parseGoogleDuration(value: unknown): number | null {
-  if (typeof value !== "string" || !/^\d+(?:\.\d+)?s$/.test(value)) return null;
-  const seconds = Number(value.slice(0, -1));
-  return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds) : null;
-}
-
-async function googleRequest(url: string, init: RequestInit) {
+async function providerRequest(url: string, init: RequestInit) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), GOOGLE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     const data = obj(await response.json().catch(() => ({})));
@@ -144,16 +126,19 @@ async function googleRequest(url: string, init: RequestInit) {
     clearTimeout(timer);
   }
 }
-
-async function consumeRateLimit(admin: ReturnType<typeof adminClient>, key: string, limit: number) {
+async function consumeRateLimit(
+  admin: ReturnType<typeof adminClient>,
+  key: string,
+  limit: number,
+  windowSeconds = 60,
+) {
   const { data, error } = await admin.rpc("consume_edge_rate_limit", {
     _key: key,
     _limit: limit,
-    _window_seconds: 60,
+    _window_seconds: windowSeconds,
   } as never);
   return !error && data === true;
 }
-
 async function usageAllowed(admin: ReturnType<typeof adminClient>, storeId: string, metric: string) {
   const { data, error } = await admin.rpc("backend_check_smart_delivery_usage", {
     _store_id: storeId,
@@ -162,7 +147,6 @@ async function usageAllowed(admin: ReturnType<typeof adminClient>, storeId: stri
   } as never);
   return !error && data === true;
 }
-
 async function recordUsage(
   admin: ReturnType<typeof adminClient>,
   storeId: string,
@@ -179,14 +163,13 @@ async function recordUsage(
     _idempotency_key: `${metric}:${requestId}`,
     _metadata: {
       ...metadata,
-      provider_cost_reconciliation_pending: true,
+      provider_cost_reconciliation_pending: false,
     },
   };
   let result = await admin.rpc("backend_record_smart_delivery_usage", args as never);
   if (result.error) result = await admin.rpc("backend_record_smart_delivery_usage", args as never);
   return !result.error;
 }
-
 async function loadStoreContext(actor: Awaited<ReturnType<typeof actorClient>>, storeId: string) {
   if (!actor) throw new Error("unauthorized");
   const readinessResult = await actor.client.rpc("get_my_store_smart_delivery_readiness", { _store_id: storeId } as never);
@@ -198,9 +181,32 @@ async function loadStoreContext(actor: Awaited<ReturnType<typeof actorClient>>, 
     configuration: obj(configResult.data) as StoreConfig,
   };
 }
-
-function googleKey() {
-  return Deno.env.get("GOOGLE_MAPS_SERVER_API_KEY")?.trim() ?? "";
+function providerKey() {
+  return Deno.env.get("OPENROUTESERVICE_API_KEY")?.trim() ?? "";
+}
+async function interactiveBudgetAllowed(
+  admin: ReturnType<typeof adminClient>,
+  storeId: string,
+  userId: string,
+  kind: "route" | "geocode",
+) {
+  const rules = kind === "route"
+    ? [
+      [`smart-delivery:ors:routes:global:minute`, 30, 60],
+      [`smart-delivery:ors:routes:global:day`, 1800, 86400],
+      [`smart-delivery:ors:routes:store:${storeId}:minute`, 10, 60],
+      [`smart-delivery:ors:routes:user:${userId}:minute`, 8, 60],
+    ] as const
+    : [
+      [`smart-delivery:ors:geocode:global:minute`, 20, 60],
+      [`smart-delivery:ors:geocode:global:day`, 900, 86400],
+      [`smart-delivery:ors:geocode:store:${storeId}:minute`, 5, 60],
+      [`smart-delivery:ors:geocode:user:${userId}:minute`, 4, 60],
+    ] as const;
+  for (const [key, limit, seconds] of rules) {
+    if (!(await consumeRateLimit(admin, key, limit, seconds))) return false;
+  }
+  return true;
 }
 
 async function computeRoute(
@@ -218,7 +224,7 @@ async function computeRoute(
   const destinationLatitude = numberValue(destination.latitude);
   const destinationLongitude = numberValue(destination.longitude);
   const travelMode = str(input.travelMode, 32) ?? "two_wheeler";
-  const googleMode = googleTravelMode(travelMode);
+  const profile = orsProfile(travelMode);
   const originLatitude = numberValue(configuration.store?.latitude);
   const originLongitude = numberValue(configuration.store?.longitude);
   if (
@@ -226,7 +232,7 @@ async function computeRoute(
     || destinationLatitude == null || destinationLongitude == null
     || !validCoordinate(originLatitude, originLongitude)
     || !validCoordinate(destinationLatitude, destinationLongitude)
-    || !googleMode
+    || !profile
   ) {
     return json(400, { ok: false, error: "invalid_route_request" });
   }
@@ -234,70 +240,77 @@ async function computeRoute(
   if (!(await usageAllowed(admin, storeId, "routes.compute"))) {
     return json(429, { ok: false, error: "smart_delivery_usage_limit" });
   }
-  if (!(await consumeRateLimit(admin, `smart-delivery:routes:${storeId}:${actor.userId}`, 60))) {
-    return json(429, { ok: false, error: "rate_limited" });
+  if (!(await interactiveBudgetAllowed(admin, storeId, actor.userId, "route"))) {
+    return json(429, { ok: false, error: "provider_budget_guard" });
   }
 
-  const apiKey = googleKey();
-  if (!apiKey) return json(503, { ok: false, error: "google_maps_secret_missing" });
+  const apiKey = providerKey();
+  if (!apiKey) return json(503, { ok: false, error: "openrouteservice_secret_missing" });
 
   const requestIdInput = str(input.requestId, 64);
   const requestId = requestIdInput && validUuid(requestIdInput) ? requestIdInput : crypto.randomUUID();
-  const upstream = await googleRequest("https://routes.googleapis.com/directions/v2:computeRoutes", {
+  const upstream = await providerRequest(`${ORS_BASE}/openrouteservice/v2/directions/${profile}/json`, {
     method: "POST",
     headers: {
+      Authorization: apiKey,
       "content-type": "application/json",
-      "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
+      Accept: "application/json",
     },
     body: JSON.stringify({
-      origin: { location: { latLng: { latitude: originLatitude, longitude: originLongitude } } },
-      destination: { location: { latLng: { latitude: destinationLatitude, longitude: destinationLongitude } } },
-      travelMode: googleMode,
-      computeAlternativeRoutes: false,
-      languageCode: "pt-BR",
-      units: "METRIC",
+      coordinates: [[originLongitude, originLatitude], [destinationLongitude, destinationLatitude]],
     }),
   });
 
   if (!upstream.ok) {
-    const googleError = obj(upstream.data.error);
-    console.error("[comandiva-smart-delivery] routes failed", upstream.status, str(googleError.status, 80));
+    const error = obj(upstream.data.error);
+    console.error("[comandiva-smart-delivery] routes failed", upstream.status, str(error.code, 80));
     return json(upstream.status === 429 ? 429 : 502, {
       ok: false,
-      error: "google_routes_failed",
-      providerStatus: str(googleError.status, 80),
+      error: "openrouteservice_routes_failed",
+      providerStatus: upstream.status,
       fallback: "local_or_neighborhood",
     });
   }
 
   const routes = Array.isArray(upstream.data.routes) ? upstream.data.routes.map(obj) : [];
-  const route = routes[0] ?? {};
-  const distanceMeters = numberValue(route.distanceMeters);
-  const durationSeconds = parseGoogleDuration(route.duration);
-  if (distanceMeters == null || distanceMeters < 0 || durationSeconds == null) {
-    return json(502, { ok: false, error: "google_routes_response_invalid", fallback: "local_or_neighborhood" });
+  const summary = routes[0] ? obj(routes[0].summary) : {};
+  const distanceMeters = numberValue(summary.distance);
+  const durationSeconds = numberValue(summary.duration);
+  if (distanceMeters == null || distanceMeters < 0 || durationSeconds == null || durationSeconds < 0) {
+    return json(502, {
+      ok: false,
+      error: "openrouteservice_routes_response_invalid",
+      fallback: "local_or_neighborhood",
+    });
   }
 
   const meteringPersisted = await recordUsage(admin, storeId, "routes.compute", requestId, {
     travel_mode: travelMode,
-    response_fields: ["distanceMeters", "duration"],
+    provider_profile: profile,
+    traffic_aware: false,
   });
   if (!meteringPersisted) {
     console.error("[comandiva-smart-delivery] route metering persistence failed", requestId);
-    return json(503, { ok: false, error: "usage_metering_failed", requestId, fallback: "local_or_neighborhood" });
+    return json(503, {
+      ok: false,
+      error: "usage_metering_failed",
+      requestId,
+      fallback: "local_or_neighborhood",
+    });
   }
 
   return json(200, {
     ok: true,
     requestId,
     provider: PROVIDER,
-    attribution: "Google Maps",
+    attribution: "openrouteservice / OpenStreetMap contributors",
     travelMode,
-    distanceMeters,
-    durationSeconds,
+    providerProfile: profile,
+    distanceMeters: Math.round(distanceMeters),
+    durationSeconds: Math.ceil(durationSeconds),
     approximate: false,
     cached: false,
+    trafficAware: false,
   });
 }
 
@@ -310,7 +323,6 @@ async function geocodeStore(
   const { readiness, configuration } = await loadStoreContext(actor, storeId);
   const geocodingReady = readiness.smart_delivery_entitled === true
     && readiness.api_key_configured === true
-    && readiness.billing_confirmed === true
     && readiness.geocoding_api_enabled === true
     && readiness.kill_switch_enabled === false;
   if (!geocodingReady) return json(409, { ok: false, error: "smart_geocoding_not_ready" });
@@ -318,8 +330,8 @@ async function geocodeStore(
   if (!(await usageAllowed(admin, storeId, "geocoding.address"))) {
     return json(429, { ok: false, error: "smart_delivery_usage_limit" });
   }
-  if (!(await consumeRateLimit(admin, `smart-delivery:geocode:${storeId}:${actor.userId}`, 10))) {
-    return json(429, { ok: false, error: "rate_limited" });
+  if (!(await interactiveBudgetAllowed(admin, storeId, actor.userId, "geocode"))) {
+    return json(429, { ok: false, error: "provider_budget_guard" });
   }
 
   const store = configuration.store ?? {};
@@ -332,43 +344,51 @@ async function geocodeStore(
     store.postal_code,
     "Brasil",
   ].filter((value) => typeof value === "string" && value.trim()).join(", ");
-  if (address.length < 8 || address.length > 500) return json(409, { ok: false, error: "store_address_incomplete" });
+  if (address.length < 8 || address.length > 500) {
+    return json(409, { ok: false, error: "store_address_incomplete" });
+  }
 
-  const apiKey = googleKey();
-  if (!apiKey) return json(503, { ok: false, error: "google_maps_secret_missing" });
+  const apiKey = providerKey();
+  if (!apiKey) return json(503, { ok: false, error: "openrouteservice_secret_missing" });
+
   const requestIdInput = str(input.requestId, 64);
   const requestId = requestIdInput && validUuid(requestIdInput) ? requestIdInput : crypto.randomUUID();
+  const endpoint = new URL(`${ORS_BASE}/pelias/v1/search`);
+  endpoint.searchParams.set("text", address);
+  endpoint.searchParams.set("boundary.country", "BR");
+  endpoint.searchParams.set("size", "1");
 
-  const endpoint = `https://geocode.googleapis.com/v4/geocode/address/${encodeURIComponent(address)}`;
-  const upstream = await googleRequest(endpoint, {
+  const upstream = await providerRequest(endpoint.toString(), {
     method: "GET",
-    headers: {
-      "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "results.placeId,results.location,results.granularity,results.formattedAddress",
-    },
+    headers: { Authorization: apiKey, Accept: "application/json" },
   });
   if (!upstream.ok) {
-    const googleError = obj(upstream.data.error);
-    console.error("[comandiva-smart-delivery] geocode failed", upstream.status, str(googleError.status, 80));
+    const error = obj(upstream.data.error);
+    console.error("[comandiva-smart-delivery] geocode failed", upstream.status, str(error.code, 80));
     return json(upstream.status === 429 ? 429 : 502, {
       ok: false,
-      error: "google_geocoding_failed",
-      providerStatus: str(googleError.status, 80),
+      error: "openrouteservice_geocoding_failed",
+      providerStatus: upstream.status,
     });
   }
 
-  const results = Array.isArray(upstream.data.results) ? upstream.data.results.map(obj) : [];
-  const first = results[0] ?? {};
-  const location = obj(first.location);
-  const latitude = numberValue(location.latitude);
-  const longitude = numberValue(location.longitude);
+  const features = Array.isArray(upstream.data.features) ? upstream.data.features.map(obj) : [];
+  const first = features[0] ?? {};
+  const geometry = obj(first.geometry);
+  const coordinates = Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
+  const longitude = typeof coordinates[0] === "number" ? coordinates[0] : null;
+  const latitude = typeof coordinates[1] === "number" ? coordinates[1] : null;
   if (latitude == null || longitude == null || !validCoordinate(latitude, longitude)) {
     return json(404, { ok: false, error: "geocode_not_found" });
   }
+  const properties = obj(first.properties);
+  const placeId = str(properties.gid, 256) ?? str(properties.id, 256);
+  const granularity = str(properties.accuracy, 80) ?? str(properties.layer, 80);
+  const formattedAddress = str(properties.label, 500);
 
   const meteringPersisted = await recordUsage(admin, storeId, "geocoding.address", requestId, {
-    granularity: str(first.granularity, 80),
-    response_fields: ["placeId", "location", "granularity", "formattedAddress"],
+    granularity,
+    provider_layer: str(properties.layer, 80),
   });
   if (!meteringPersisted) {
     console.error("[comandiva-smart-delivery] geocode metering persistence failed", requestId);
@@ -379,12 +399,12 @@ async function geocodeStore(
     ok: true,
     requestId,
     provider: PROVIDER,
-    attribution: "Google Maps",
-    placeId: str(first.placeId, 256),
+    attribution: "openrouteservice / OpenStreetMap contributors",
+    placeId,
     latitude,
     longitude,
-    granularity: str(first.granularity, 80),
-    formattedAddress: str(first.formattedAddress, 500),
+    granularity,
+    formattedAddress,
     persisted: false,
   });
 }
@@ -395,8 +415,8 @@ Deno.serve(async (req: Request) => {
       ok: true,
       service: "comandiva-smart-delivery",
       provider: PROVIDER,
-      googleSecretConfigured: Boolean(googleKey()),
-      googleContentCacheEnabled: false,
+      providerSecretConfigured: Boolean(providerKey()),
+      providerContentCacheEnabled: false,
     });
   }
   if (req.method !== "POST") return json(405, { ok: false, error: "method_not_allowed" });
