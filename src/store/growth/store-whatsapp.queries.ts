@@ -17,7 +17,6 @@ type TemplateInput = {
   body: string;
   providerTemplateName?: string | null;
   providerLanguage?: string;
-  providerStatus?: "draft" | "pending" | "approved" | "rejected";
   isActive?: boolean;
 };
 
@@ -58,7 +57,6 @@ export function useStoreWhatsAppActions() {
         data: {
           ...data,
           providerLanguage: data.providerLanguage ?? "pt_BR",
-          providerStatus: data.providerStatus ?? "draft",
           isActive: data.isActive ?? true,
         },
       }),
