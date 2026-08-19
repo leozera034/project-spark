@@ -50,6 +50,12 @@ const SEGMENTS: Array<{ key: GrowthSegment | "todos"; label: string }> = [
   { key: "inativos", label: "Inativos" },
 ];
 
+function normalizeBrazilWhatsAppPhone(rawPhone: string) {
+  const digits = rawPhone.replace(/\D/g, "");
+  if (!digits) return "";
+  return digits.startsWith("55") && digits.length >= 12 ? digits : `55${digits}`;
+}
+
 function GrowthCenter() {
   const { authContext } = useAuth();
   const storeId = authContext?.store_ids?.[0] ?? null;
@@ -206,7 +212,7 @@ function GrowthCenter() {
           </CardHeader>
           <CardContent className="divide-y divide-border p-0">
             {(customers.data?.items ?? []).map((customer) => {
-              const phone = customer.phone.replace(/\D/g, "");
+              const phone = normalizeBrazilWhatsAppPhone(customer.phone);
               return (
                 <div
                   key={customer.id}
@@ -225,7 +231,7 @@ function GrowthCenter() {
                   </div>
                   <a
                     className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-success/20 bg-success-soft px-3 text-sm font-semibold text-success"
-                    href={`https://wa.me/55${phone}`}
+                    href={`https://wa.me/${phone}`}
                     target="_blank"
                     rel="noreferrer"
                   >
