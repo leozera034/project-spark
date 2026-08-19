@@ -2,6 +2,7 @@ import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Activity,
   BarChart3,
+  Boxes,
   Building2,
   LogOut,
   Menu,
@@ -33,10 +34,11 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV = [
-  { href: "#visao-geral", label: "Visão geral", icon: BarChart3 },
-  { href: "#operacao", label: "Operação", icon: Activity },
-  { href: "#lojas", label: "Lojas", icon: Building2 },
-  { href: "#observabilidade", label: "Observabilidade", icon: ShieldCheck },
+  { href: "/admin/#visao-geral", label: "Visão geral", icon: BarChart3 },
+  { href: "/admin/#operacao", label: "Operação", icon: Activity },
+  { href: "/admin/#lojas", label: "Lojas", icon: Building2 },
+  { href: "/admin/modulos", label: "Módulos e preços", icon: Boxes },
+  { href: "/admin/#observabilidade", label: "Observabilidade", icon: ShieldCheck },
 ] as const;
 
 function AdminLayout() {
