@@ -8,6 +8,26 @@ import {
   setCustomerWhatsAppMarketingConsent,
 } from "@/lib/store-whatsapp.functions";
 
+type TemplateInput = {
+  storeId: string;
+  id?: string | null;
+  code: string;
+  name: string;
+  purpose: "transactional" | "marketing";
+  body: string;
+  providerTemplateName?: string | null;
+  providerLanguage?: string;
+  providerStatus?: "draft" | "pending" | "approved" | "rejected";
+  isActive?: boolean;
+};
+
+type ConsentInput = {
+  storeId: string;
+  customerId: string;
+  optedIn: boolean;
+  source?: string;
+};
+
 export function useStoreWhatsAppReadiness(storeId: string | null) {
   const fn = useServerFn(getStoreWhatsAppReadiness);
   return useQuery({
@@ -33,12 +53,21 @@ export function useStoreWhatsAppActions() {
   const setConsentFn = useServerFn(setCustomerWhatsAppMarketingConsent);
 
   const saveTemplate = useMutation({
-    mutationFn: (data: Parameters<typeof saveTemplateFn>[0]["data"]) => saveTemplateFn({ data }),
+    mutationFn: (data: TemplateInput) =>
+      saveTemplateFn({
+        data: {
+          ...data,
+          providerLanguage: data.providerLanguage ?? "pt_BR",
+          providerStatus: data.providerStatus ?? "draft",
+          isActive: data.isActive ?? true,
+        },
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
   });
 
   const setConsent = useMutation({
-    mutationFn: (data: Parameters<typeof setConsentFn>[0]["data"]) => setConsentFn({ data }),
+    mutationFn: (data: ConsentInput) =>
+      setConsentFn({ data: { ...data, source: data.source ?? "manual" } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["store-growth"] }),
   });
 
