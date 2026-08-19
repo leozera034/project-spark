@@ -110,6 +110,16 @@ BEGIN
     RAISE EXCEPTION 'Growth RPCs must use current terminal order_status values';
   END IF;
 
+  IF pg_get_functiondef('private.require_growth_access(uuid)'::regprocedure) NOT ILIKE '%reports.view_operational%'
+     OR pg_get_functiondef('private.require_growth_access(uuid)'::regprocedure) NOT ILIKE '%can_use_growth%'
+     OR pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) NOT ILIKE '%private.require_growth_access%'
+     OR pg_get_functiondef('public.get_store_revenue_series(uuid,integer)'::regprocedure) NOT ILIKE '%private.require_growth_access%'
+     OR pg_get_functiondef('public.list_store_customer_insights(uuid,text,text,integer,integer)'::regprocedure) NOT ILIKE '%private.require_growth_access%'
+     OR pg_get_functiondef('public.list_store_marketing_campaigns(uuid)'::regprocedure) NOT ILIKE '%private.require_growth_access%'
+     OR pg_get_functiondef('public.list_store_automation_rules(uuid)'::regprocedure) NOT ILIKE '%private.require_growth_access%' THEN
+    RAISE EXCEPTION 'Growth reads must require reports permission and billing capability';
+  END IF;
+
   IF has_function_privilege(
       'authenticated',
       'public.provision_store_with_owner(text,text,uuid,text,text,text,text,text,text,text,text,text,uuid)'::regprocedure,
