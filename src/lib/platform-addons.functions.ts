@@ -5,9 +5,36 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+type FunctionError = { context?: Response; message?: string };
 
 function rpcCaller(client: { rpc: unknown }): RpcCaller {
   return client.rpc as RpcCaller;
+}
+
+async function edgeErrorCode(error: unknown): Promise<string> {
+  const response = (error as FunctionError | null)?.context;
+  if (typeof Response !== "undefined" && response instanceof Response) {
+    try {
+      const payload = (await response.clone().json()) as { error?: unknown };
+      if (typeof payload?.error === "string" && /^[a-z0-9_]{2,100}$/i.test(payload.error)) {
+        return payload.error;
+      }
+    } catch {
+      // Provider/internal details stay hidden from the admin UI.
+    }
+  }
+  return "operation_failed";
+}
+
+function publicProviderSyncError(code: string): Error {
+  if (code === "forbidden") return new Error("FORBIDDEN");
+  if (code === "provider_not_configured") return new Error("MERCADO_PAGO_TEST_NOT_CONFIGURED");
+  if (code === "provider_unreachable") return new Error("MERCADO_PAGO_UNREACHABLE");
+  if (code === "provider_plan_create_failed") return new Error("MERCADO_PAGO_PLAN_CREATE_FAILED");
+  if (code === "provider_plan_update_failed") return new Error("MERCADO_PAGO_PLAN_UPDATE_FAILED");
+  if (code === "provider_plan_validation_failed") return new Error("MERCADO_PAGO_PLAN_VALIDATION_FAILED");
+  if (code === "rate_limited") return new Error("RATE_LIMITED");
+  return new Error("MERCADO_PAGO_SYNC_FAILED");
 }
 
 export type AddonAvailability = "planned" | "beta" | "available" | "retired";
@@ -46,6 +73,17 @@ export interface PlatformAddonOffer {
 export interface PlatformAddonOfferCatalog {
   provider: "mercado_pago";
   items: PlatformAddonOffer[];
+}
+
+export interface PlatformAddonProviderSyncResult {
+  environment: "test";
+  provider: "mercado_pago";
+  created: boolean;
+  plan: {
+    id: string;
+    status: string | null;
+    initPoint: string | null;
+  };
 }
 
 const addonIdSchema = z.string().uuid();
@@ -116,4 +154,29 @@ export const upsertPlatformAddonPrice = createServerFn({ method: "POST" })
     });
     if (result.error) throw result.error;
     return result.data as Record<string, unknown>;
+  });
+
+export const syncPlatformAddonPriceWithMercadoPago = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ addonPriceId: addonIdSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.functions.invoke(
+      "comandiva-billing?action=sync_addon_price",
+      { body: { addonPriceId: data.addonPriceId } },
+    );
+    if (result.error) throw publicProviderSyncError(await edgeErrorCode(result.error));
+
+    const parsed = z.object({
+      ok: z.literal(true),
+      environment: z.literal("test"),
+      provider: z.literal("mercado_pago"),
+      created: z.boolean(),
+      plan: z.object({
+        id: z.string().min(1).max(200),
+        status: z.string().nullable(),
+        initPoint: z.string().url().nullable(),
+      }),
+    }).safeParse(result.data);
+    if (!parsed.success) throw new Error("MERCADO_PAGO_SYNC_FAILED");
+    return parsed.data satisfies PlatformAddonProviderSyncResult;
   });
