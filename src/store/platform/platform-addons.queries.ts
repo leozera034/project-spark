@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import {
   listPlatformAddonOffers,
-  syncPlatformAddonPriceWithMercadoPago,
+  syncPlatformAddonPriceWithStripe,
   updatePlatformAddonCatalog,
   upsertPlatformAddonPrice,
   type AddonAvailability,
@@ -12,44 +12,17 @@ import {
 
 export function usePlatformAddonOffers() {
   const fn = useServerFn(listPlatformAddonOffers);
-  return useQuery({
-    queryKey: ["platform", "addons"],
-    queryFn: () => fn({ data: undefined }),
-    staleTime: 15_000,
-  });
+  return useQuery({ queryKey: ["platform", "addons"], queryFn: () => fn({ data: undefined }), staleTime: 15_000 });
 }
 
 export function usePlatformAddonPricingActions() {
   const queryClient = useQueryClient();
   const updateCatalogFn = useServerFn(updatePlatformAddonCatalog);
   const upsertPriceFn = useServerFn(upsertPlatformAddonPrice);
-  const syncProviderFn = useServerFn(syncPlatformAddonPriceWithMercadoPago);
+  const syncProviderFn = useServerFn(syncPlatformAddonPriceWithStripe);
 
-  const updateCatalog = useMutation({
-    mutationFn: (data: { addonId: string; availabilityStatus: AddonAvailability; isActive: boolean }) =>
-      updateCatalogFn({ data }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }),
-  });
-
-  const upsertPrice = useMutation({
-    mutationFn: (data: {
-      addonId: string;
-      billingInterval: AddonBillingInterval;
-      amountCents: number;
-      trialDays: number;
-      meteringMetricCode?: string | null;
-      includedUnits?: number | null;
-      hardLimitUnits?: number | null;
-      overageUnitAmountMicros?: number | null;
-      isActive: boolean;
-    }) => upsertPriceFn({ data }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }),
-  });
-
-  const syncProvider = useMutation({
-    mutationFn: (data: { addonPriceId: string }) => syncProviderFn({ data }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }),
-  });
-
+  const updateCatalog = useMutation({ mutationFn: (data: { addonId: string; availabilityStatus: AddonAvailability; isActive: boolean }) => updateCatalogFn({ data }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }) });
+  const upsertPrice = useMutation({ mutationFn: (data: { addonId: string; billingInterval: AddonBillingInterval; amountCents: number; trialDays: number; meteringMetricCode?: string | null; includedUnits?: number | null; hardLimitUnits?: number | null; overageUnitAmountMicros?: number | null; isActive: boolean }) => upsertPriceFn({ data }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }) });
+  const syncProvider = useMutation({ mutationFn: (data: { addonPriceId: string }) => syncProviderFn({ data }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["platform", "addons"] }) });
   return { updateCatalog, upsertPrice, syncProvider };
 }
