@@ -1,9 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 
-const PROVIDER = "google_maps";
+const PROVIDER = "openrouteservice";
+const ORS_BASE = "https://api.heigit.org";
 const BATCH_SIZE = 10;
-const GOOGLE_TIMEOUT_MS = 8_000;
+const PROVIDER_TIMEOUT_MS = 8_000;
+
 type JsonRecord = Record<string, unknown>;
 type ClaimedJob = {
   id: string;
@@ -26,6 +28,9 @@ function str(value: unknown, max = 512): string | null {
 }
 function num(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+function validCoordinate(latitude: number, longitude: number) {
+  return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 }
 function parseKeys(raw: string | undefined): Record<string, string> {
   if (!raw) return {};
@@ -61,8 +66,8 @@ function json(body: unknown, status = 200) {
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 }
-function googleApiKey() {
-  return Deno.env.get("GOOGLE_MAPS_SERVER_API_KEY")?.trim() ?? "";
+function orsApiKey() {
+  return Deno.env.get("OPENROUTESERVICE_API_KEY")?.trim() ?? "";
 }
 function retryAfterSeconds(headers: Headers): number | null {
   const raw = headers.get("retry-after")?.trim();
@@ -78,21 +83,16 @@ function retryDelay(attempt: number, headers?: Headers) {
   if (header !== null) return Math.max(15, Math.min(header, 3600));
   return Math.min(900, 30 * Math.pow(2, Math.max(0, attempt - 1)));
 }
-function parseDurationSeconds(value: unknown): number | null {
-  if (typeof value !== "string" || !/^\d+(?:\.\d+)?s$/.test(value)) return null;
-  const seconds = Number(value.slice(0, -1));
-  return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds) : null;
-}
-function googleTravelMode(mode: string) {
-  if (mode === "drive") return "DRIVE";
-  if (mode === "two_wheeler") return "TWO_WHEELER";
-  if (mode === "bicycle") return "BICYCLE";
-  if (mode === "walk") return "WALK";
+function orsProfile(mode: string) {
+  if (mode === "drive") return "driving-car";
+  if (mode === "two_wheeler") return "driving-car";
+  if (mode === "bicycle") return "cycling-regular";
+  if (mode === "walk") return "foot-walking";
   return null;
 }
-async function googleRequest(url: string, init: RequestInit) {
+async function providerRequest(url: string, init: RequestInit) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), GOOGLE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     const payload = obj(await response.json().catch(() => ({})));
@@ -101,12 +101,12 @@ async function googleRequest(url: string, init: RequestInit) {
     clearTimeout(timer);
   }
 }
-function classifyGoogleFailure(status: number, payload: JsonRecord, headers: Headers) {
-  const error = obj(payload.error);
-  const code = str(error.status, 120) ?? `HTTP_${status}`;
-  const message = str(error.message, 500) ?? `Google Maps request failed with HTTP ${status}`;
+function classifyProviderFailure(status: number, payload: JsonRecord, headers: Headers) {
+  const nested = obj(payload.error);
+  const code = str(nested.code, 120) ?? str(payload.code, 120) ?? `HTTP_${status}`;
+  const message = str(nested.message, 500) ?? str(payload.message, 500) ?? `OpenRouteService request failed with HTTP ${status}`;
   const retryable = status === 408 || status === 429 || status >= 500;
-  return { code, message, retryable, retryAfter: retryDelay(1, headers) };
+  return { code: `ORS_${code}`.slice(0, 120), message, retryable, retryAfter: retryDelay(1, headers) };
 }
 async function verifyWorkerSecret(candidate: string) {
   if (!candidate) return false;
@@ -114,14 +114,39 @@ async function verifyWorkerSecret(candidate: string) {
   const { data, error } = await admin.rpc("backend_verify_smart_delivery_worker_secret", { _candidate: candidate } as never);
   return !error && data === true;
 }
-async function consumeWorkerRateLimit() {
-  const admin = adminClient();
+async function consumeRateLimit(
+  admin: ReturnType<typeof adminClient>,
+  key: string,
+  limit: number,
+  windowSeconds: number,
+) {
   const { data, error } = await admin.rpc("consume_edge_rate_limit", {
-    _key: "smart-delivery:google:worker:minute",
-    _limit: 120,
-    _window_seconds: 60,
+    _key: key,
+    _limit: limit,
+    _window_seconds: windowSeconds,
   } as never);
   return !error && data === true;
+}
+async function providerBudgetAllowed(
+  admin: ReturnType<typeof adminClient>,
+  storeId: string,
+  kind: "route" | "geocode",
+) {
+  const rules = kind === "route"
+    ? [
+      [`smart-delivery:ors:routes:global:minute`, 30, 60],
+      [`smart-delivery:ors:routes:global:day`, 1800, 86400],
+      [`smart-delivery:ors:routes:store:${storeId}:minute`, 10, 60],
+    ] as const
+    : [
+      [`smart-delivery:ors:geocode:global:minute`, 20, 60],
+      [`smart-delivery:ors:geocode:global:day`, 900, 86400],
+      [`smart-delivery:ors:geocode:store:${storeId}:minute`, 5, 60],
+    ] as const;
+  for (const [key, limit, seconds] of rules) {
+    if (!(await consumeRateLimit(admin, key, limit, seconds))) return false;
+  }
+  return true;
 }
 async function failJob(
   admin: ReturnType<typeof adminClient>,
@@ -148,6 +173,109 @@ async function cancelJob(admin: ReturnType<typeof adminClient>, job: ClaimedJob,
     _reason: reason.slice(0, 500),
   } as never);
 }
+async function recordHealth(
+  admin: ReturnType<typeof adminClient>,
+  apiKeyConfigured: boolean,
+  routesEnabled: boolean,
+  geocodingEnabled: boolean,
+  killSwitch: boolean,
+  errorCode: string | null,
+  errorDetail: string | null,
+) {
+  const result = await admin.rpc("backend_record_smart_delivery_provider_health", {
+    _api_key_configured: apiKeyConfigured,
+    _routes_api_enabled: routesEnabled,
+    _geocoding_api_enabled: geocodingEnabled,
+    _kill_switch_enabled: killSwitch,
+    _error_code: errorCode,
+    _error_detail: errorDetail,
+  } as never);
+  return !result.error;
+}
+async function probeProvider(admin: ReturnType<typeof adminClient>, apiKey: string) {
+  if (!(await consumeRateLimit(admin, "smart-delivery:ors:health:hour", 4, 3600))) {
+    return json({ ok: false, provider: PROVIDER, error: "health_probe_rate_limited" }, 429);
+  }
+  if (!apiKey) {
+    await recordHealth(
+      admin, false, false, false, true,
+      "OPENROUTESERVICE_API_KEY_MISSING",
+      "OPENROUTESERVICE_API_KEY is not available to the Edge Function runtime.",
+    );
+    return json({ ok: false, provider: PROVIDER, keyConfigured: false, routes: false, geocoding: false }, 503);
+  }
+
+  let geocodingOk = false;
+  let routesOk = false;
+  let geocodingStatus: number | null = null;
+  let routesStatus: number | null = null;
+  let detail: string | null = null;
+
+  try {
+    const geocodeUrl = new URL(`${ORS_BASE}/pelias/v1/search`);
+    geocodeUrl.searchParams.set("text", "Limeira do Oeste, Minas Gerais, Brasil");
+    geocodeUrl.searchParams.set("boundary.country", "BR");
+    geocodeUrl.searchParams.set("size", "1");
+    const geocode = await providerRequest(geocodeUrl.toString(), {
+      method: "GET",
+      headers: { Authorization: apiKey, Accept: "application/json" },
+    });
+    geocodingStatus = geocode.response.status;
+    const features = Array.isArray(geocode.payload.features) ? geocode.payload.features.map(obj) : [];
+    const geometry = features[0] ? obj(features[0].geometry) : {};
+    const coordinates = Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
+    geocodingOk = geocode.response.ok
+      && typeof coordinates[0] === "number"
+      && typeof coordinates[1] === "number";
+    if (!geocodingOk) detail = `geocoding_http_${geocodingStatus ?? "unknown"}`;
+  } catch (error) {
+    detail = error instanceof DOMException && error.name === "AbortError" ? "geocoding_timeout" : "geocoding_network_error";
+  }
+
+  try {
+    const route = await providerRequest(`${ORS_BASE}/openrouteservice/v2/directions/driving-car/json`, {
+      method: "POST",
+      headers: {
+        Authorization: apiKey,
+        "content-type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        coordinates: [[8.681495, 49.41461], [8.686507, 49.41943]],
+      }),
+    });
+    routesStatus = route.response.status;
+    const routes = Array.isArray(route.payload.routes) ? route.payload.routes.map(obj) : [];
+    const summary = routes[0] ? obj(routes[0].summary) : {};
+    routesOk = route.response.ok && num(summary.distance) !== null && num(summary.duration) !== null;
+    if (!routesOk) detail = [detail, `routes_http_${routesStatus ?? "unknown"}`].filter(Boolean).join("; ").slice(0, 500);
+  } catch (error) {
+    const routeDetail = error instanceof DOMException && error.name === "AbortError" ? "routes_timeout" : "routes_network_error";
+    detail = [detail, routeDetail].filter(Boolean).join("; ").slice(0, 500);
+  }
+
+  const ready = geocodingOk && routesOk;
+  const persisted = await recordHealth(
+    admin,
+    true,
+    routesOk,
+    geocodingOk,
+    !ready,
+    ready ? null : "ORS_HEALTH_PARTIAL",
+    ready ? null : detail ?? "OpenRouteService health probe did not validate all required capabilities.",
+  );
+  return json({
+    ok: ready && persisted,
+    provider: PROVIDER,
+    keyConfigured: true,
+    routes: routesOk,
+    routesStatus,
+    geocoding: geocodingOk,
+    geocodingStatus,
+    killSwitchEnabled: !ready,
+    healthPersisted: persisted,
+  }, ready && persisted ? 200 : 503);
+}
 
 async function processGeocode(
   admin: ReturnType<typeof adminClient>,
@@ -170,55 +298,59 @@ async function processGeocode(
     await cancelJob(admin, job, workerId, "address_incomplete");
     return "cancelled" as const;
   }
+  if (!(await providerBudgetAllowed(admin, job.store_id, "geocode"))) {
+    await failJob(admin, job, workerId, "ORS_BUDGET_GUARD", "OpenRouteService geocoding safety budget reached.", true, 120);
+    return "failed" as const;
+  }
 
   try {
-    const endpoint = new URL(`https://geocode.googleapis.com/v4/geocode/address/${encodeURIComponent(addressText)}`);
-    endpoint.searchParams.set("regionCode", "BR");
-    endpoint.searchParams.set("languageCode", "pt-BR");
-    const { response, payload } = await googleRequest(endpoint.toString(), {
+    const endpoint = new URL(`${ORS_BASE}/pelias/v1/search`);
+    endpoint.searchParams.set("text", addressText);
+    endpoint.searchParams.set("boundary.country", "BR");
+    endpoint.searchParams.set("size", "1");
+    const { response, payload } = await providerRequest(endpoint.toString(), {
       method: "GET",
-      headers: {
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "results.placeId,results.location,results.granularity",
-      },
+      headers: { Authorization: apiKey, Accept: "application/json" },
     });
     if (!response.ok) {
-      const failure = classifyGoogleFailure(response.status, payload, response.headers);
+      const failure = classifyProviderFailure(response.status, payload, response.headers);
       await failJob(admin, job, workerId, failure.code, failure.message, failure.retryable, retryDelay(job.attempts, response.headers));
       return "failed" as const;
     }
 
-    const rows = Array.isArray(payload.results) ? payload.results.map(obj) : [];
-    const first = rows[0];
+    const features = Array.isArray(payload.features) ? payload.features.map(obj) : [];
+    const first = features[0];
     if (!first) {
-      await failJob(admin, job, workerId, "GEOCODE_NOT_FOUND", "No geocoding result matched the saved address.", false);
+      await failJob(admin, job, workerId, "ORS_GEOCODE_NOT_FOUND", "No geocoding result matched the saved address.", false);
       return "failed" as const;
     }
-    const location = obj(first.location);
-    const latitude = num(location.latitude);
-    const longitude = num(location.longitude);
-    if (latitude === null || longitude === null || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      await failJob(admin, job, workerId, "GEOCODE_RESPONSE_INVALID", "Google Geocoding returned an invalid location.", false);
+    const geometry = obj(first.geometry);
+    const coordinates = Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
+    const longitude = typeof coordinates[0] === "number" ? coordinates[0] : null;
+    const latitude = typeof coordinates[1] === "number" ? coordinates[1] : null;
+    if (latitude === null || longitude === null || !validCoordinate(latitude, longitude)) {
+      await failJob(admin, job, workerId, "ORS_GEOCODE_RESPONSE_INVALID", "OpenRouteService returned an invalid location.", false);
       return "failed" as const;
     }
+    const properties = obj(first.properties);
     const requestId = crypto.randomUUID();
     const completion = await admin.rpc("backend_complete_smart_delivery_geocode_job", {
       _job_id: job.id,
       _worker_id: workerId,
       _latitude: latitude,
       _longitude: longitude,
-      _place_id: str(first.placeId, 256),
-      _precision: str(first.granularity, 80),
+      _place_id: str(properties.gid, 256) ?? str(properties.id, 256),
+      _precision: str(properties.accuracy, 80) ?? str(properties.layer, 80),
       _request_id: requestId,
     } as never);
     if (completion.error || completion.data !== true) {
-      await failJob(admin, job, workerId, "GEOCODE_PERSIST_FAILED", "Could not persist the geocoding result.", true);
+      await failJob(admin, job, workerId, "ORS_GEOCODE_PERSIST_FAILED", "Could not persist the geocoding result.", true);
       return "failed" as const;
     }
     return "completed" as const;
   } catch (error) {
-    const code = error instanceof DOMException && error.name === "AbortError" ? "GOOGLE_TIMEOUT" : "GOOGLE_NETWORK_ERROR";
-    await failJob(admin, job, workerId, code, error instanceof Error ? error.message : "Google network error", true);
+    const code = error instanceof DOMException && error.name === "AbortError" ? "ORS_TIMEOUT" : "ORS_NETWORK_ERROR";
+    await failJob(admin, job, workerId, code, error instanceof Error ? error.message : "OpenRouteService network error", true);
     return "failed" as const;
   }
 }
@@ -237,45 +369,44 @@ async function processRoute(
   const destinationLatitude = num(destination.latitude);
   const destinationLongitude = num(destination.longitude);
   const travelMode = str(context.travelMode, 32) ?? "two_wheeler";
-  const providerMode = googleTravelMode(travelMode);
+  const profile = orsProfile(travelMode);
   if (
-    originLatitude === null || originLongitude === null || destinationLatitude === null || destinationLongitude === null || !providerMode
-    || originLatitude < -90 || originLatitude > 90 || destinationLatitude < -90 || destinationLatitude > 90
-    || originLongitude < -180 || originLongitude > 180 || destinationLongitude < -180 || destinationLongitude > 180
+    originLatitude === null || originLongitude === null || destinationLatitude === null || destinationLongitude === null || !profile
+    || !validCoordinate(originLatitude, originLongitude)
+    || !validCoordinate(destinationLatitude, destinationLongitude)
   ) {
     await cancelJob(admin, job, workerId, "route_context_invalid");
     return "cancelled" as const;
   }
+  if (!(await providerBudgetAllowed(admin, job.store_id, "route"))) {
+    await failJob(admin, job, workerId, "ORS_BUDGET_GUARD", "OpenRouteService directions safety budget reached.", true, 120);
+    return "failed" as const;
+  }
 
   try {
-    const { response, payload } = await googleRequest("https://routes.googleapis.com/directions/v2:computeRoutes", {
+    const { response, payload } = await providerRequest(`${ORS_BASE}/openrouteservice/v2/directions/${profile}/json`, {
       method: "POST",
       headers: {
+        Authorization: apiKey,
         "content-type": "application/json",
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
+        Accept: "application/json",
       },
       body: JSON.stringify({
-        origin: { location: { latLng: { latitude: originLatitude, longitude: originLongitude } } },
-        destination: { location: { latLng: { latitude: destinationLatitude, longitude: destinationLongitude } } },
-        travelMode: providerMode,
-        computeAlternativeRoutes: false,
-        languageCode: "pt-BR",
-        units: "METRIC",
+        coordinates: [[originLongitude, originLatitude], [destinationLongitude, destinationLatitude]],
       }),
     });
     if (!response.ok) {
-      const failure = classifyGoogleFailure(response.status, payload, response.headers);
+      const failure = classifyProviderFailure(response.status, payload, response.headers);
       await failJob(admin, job, workerId, failure.code, failure.message, failure.retryable, retryDelay(job.attempts, response.headers));
       return "failed" as const;
     }
 
     const routes = Array.isArray(payload.routes) ? payload.routes.map(obj) : [];
-    const route = routes[0];
-    const distanceMeters = route ? num(route.distanceMeters) : null;
-    const durationSeconds = route ? parseDurationSeconds(route.duration) : null;
-    if (distanceMeters === null || distanceMeters < 0 || durationSeconds === null) {
-      await failJob(admin, job, workerId, "ROUTE_RESPONSE_INVALID", "Google Routes returned no usable route.", false);
+    const summary = routes[0] ? obj(routes[0].summary) : {};
+    const distanceMeters = num(summary.distance);
+    const durationSeconds = num(summary.duration);
+    if (distanceMeters === null || distanceMeters < 0 || durationSeconds === null || durationSeconds < 0) {
+      await failJob(admin, job, workerId, "ORS_ROUTE_RESPONSE_INVALID", "OpenRouteService returned no usable route.", false);
       return "failed" as const;
     }
     const requestId = crypto.randomUUID();
@@ -283,32 +414,53 @@ async function processRoute(
       _job_id: job.id,
       _worker_id: workerId,
       _distance_meters: Math.round(distanceMeters),
-      _duration_seconds: durationSeconds,
+      _duration_seconds: Math.ceil(durationSeconds),
       _travel_mode: travelMode,
       _request_id: requestId,
     } as never);
     if (completion.error || completion.data !== true) {
-      await failJob(admin, job, workerId, "ROUTE_PERSIST_FAILED", "Could not persist the route estimate.", true);
+      await failJob(admin, job, workerId, "ORS_ROUTE_PERSIST_FAILED", "Could not persist the route estimate.", true);
       return "failed" as const;
     }
     return "completed" as const;
   } catch (error) {
-    const code = error instanceof DOMException && error.name === "AbortError" ? "GOOGLE_TIMEOUT" : "GOOGLE_NETWORK_ERROR";
-    await failJob(admin, job, workerId, code, error instanceof Error ? error.message : "Google network error", true);
+    const code = error instanceof DOMException && error.name === "AbortError" ? "ORS_TIMEOUT" : "ORS_NETWORK_ERROR";
+    await failJob(admin, job, workerId, code, error instanceof Error ? error.message : "OpenRouteService network error", true);
     return "failed" as const;
   }
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
+
   const workerSecret = req.headers.get("x-comandiva-worker-secret")?.trim() ?? "";
   if (!(await verifyWorkerSecret(workerSecret))) return json({ ok: false, error: "unauthorized" }, 401);
-  if (!(await consumeWorkerRateLimit())) return json({ ok: false, error: "rate_limited" }, 429);
-
-  const apiKey = googleApiKey();
-  if (!apiKey) return json({ ok: false, processed: 0, error: "GOOGLE_MAPS_SERVER_API_KEY_MISSING" }, 503);
 
   const admin = adminClient();
+  if (!(await consumeRateLimit(admin, "smart-delivery:ors:worker:minute", 60, 60))) {
+    return json({ ok: false, error: "rate_limited" }, 429);
+  }
+
+  let input: JsonRecord = {};
+  try {
+    input = obj(await req.json());
+  } catch {
+    return json({ ok: false, error: "invalid_json" }, 400);
+  }
+
+  const apiKey = orsApiKey();
+  if (str(input.action, 40) === "health_probe") {
+    return await probeProvider(admin, apiKey);
+  }
+  if (!apiKey) {
+    await recordHealth(
+      admin, false, false, false, true,
+      "OPENROUTESERVICE_API_KEY_MISSING",
+      "OPENROUTESERVICE_API_KEY is not available to the Edge Function runtime.",
+    );
+    return json({ ok: false, processed: 0, error: "OPENROUTESERVICE_API_KEY_MISSING" }, 503);
+  }
+
   const workerId = `smart-delivery:${Deno.env.get("SB_EXECUTION_ID")?.trim() || crypto.randomUUID()}`.slice(0, 180);
   const claim = await admin.rpc("backend_claim_smart_delivery_jobs", { _worker_id: workerId, _limit: BATCH_SIZE } as never);
   if (claim.error) {
@@ -324,7 +476,10 @@ Deno.serve(async (req: Request) => {
   for (const job of jobs) {
     const jobId = str(job.id, 80);
     if (!jobId) continue;
-    const contextResult = await admin.rpc("backend_get_smart_delivery_job_context", { _job_id: jobId, _worker_id: workerId } as never);
+    const contextResult = await admin.rpc("backend_get_smart_delivery_job_context", {
+      _job_id: jobId,
+      _worker_id: workerId,
+    } as never);
     if (contextResult.error) {
       await failJob(admin, job, workerId, "JOB_CONTEXT_FAILED", "Could not load the smart delivery job context.", true);
       failed += 1;
