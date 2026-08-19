@@ -82,6 +82,7 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
         : null;
   const selectedStore = stores.find((store) => store.id === effectiveStoreId) ?? null;
   const selectionRequired = !storesQuery.isLoading && stores.length > 1 && !effectiveStoreId;
+  const scopeHydrating = Boolean(effectiveStoreId && effectiveStoreId !== selectedStoreId);
 
   useEffect(() => {
     if (storesQuery.isLoading) return;
@@ -116,25 +117,42 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
     [authContext?.user_id, queryClient, refreshAuthContext, stores],
   );
 
+  const refreshStores = useCallback(async () => storesQuery.refetch(), [storesQuery.refetch]);
+  const scopeError = storesQuery.error instanceof Error
+    ? storesQuery.error
+    : storesQuery.error
+      ? new Error("STORE_SCOPE_ERROR")
+      : null;
+
   const value = useMemo<StoreScopeValue>(
     () => ({
       storeId: effectiveStoreId,
       selectedStore,
       stores,
       selectionRequired,
-      isLoading: storesQuery.isLoading,
-      error: storesQuery.error instanceof Error ? storesQuery.error : storesQuery.error ? new Error("STORE_SCOPE_ERROR") : null,
+      isLoading: storesQuery.isLoading || scopeHydrating,
+      error: scopeError,
       selectStore,
-      refreshStores: () => storesQuery.refetch(),
+      refreshStores,
     }),
-    [effectiveStoreId, selectedStore, stores, selectionRequired, storesQuery.isLoading, storesQuery.error, storesQuery, selectStore],
+    [
+      effectiveStoreId,
+      selectedStore,
+      stores,
+      selectionRequired,
+      storesQuery.isLoading,
+      scopeHydrating,
+      scopeError,
+      selectStore,
+      refreshStores,
+    ],
   );
 
-  if (storesQuery.isLoading) {
+  if (storesQuery.isLoading || scopeHydrating) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4" role="status">
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <RefreshCw className="size-4 animate-spin" /> Carregando suas lojas…
+          <RefreshCw className="size-4 animate-spin" /> Carregando sua loja…
         </div>
       </div>
     );
