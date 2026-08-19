@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
+  Bell,
   Bot,
   CheckCircle2,
   CreditCard,
@@ -21,6 +22,7 @@ import type { StoreAddon } from "@/lib/store-addons.functions";
 import { useStoreAddons } from "@/store/addons/store-addons.queries";
 import { useStoreWhatsAppReadiness } from "@/store/growth/store-whatsapp.queries";
 import { useStoreEmailReadiness } from "@/store/integrations/store-email.queries";
+import { useStorePushReadiness } from "@/store/integrations/store-push.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/modulos")({
@@ -83,6 +85,7 @@ function StoreModulesPage() {
   const addons = useStoreAddons(storeId);
   const whatsapp = useStoreWhatsAppReadiness(storeId);
   const email = useStoreEmailReadiness(storeId);
+  const push = useStorePushReadiness(storeId);
   const canViewBilling = addons.data?.can_view_billing ?? false;
 
   if (!storeId) {
@@ -206,6 +209,58 @@ function StoreModulesPage() {
               : email.data?.ready_for_send
                 ? "A infraestrutura do provider está pronta para o worker transacional."
                 : "Nenhum e-mail real será enviado enquanto o domínio próprio, a chave do provider e o webhook não estiverem validados. Domínios de outros projetos não são reutilizados."}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="size-5 text-primary" /> Push operacional · FCM
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                O backend de push já possui outbox, deduplicação, retry, invalidação de token e worker agendado. Nenhuma notificação é enviada sem o Firebase homologado.
+              </p>
+            </div>
+            <Badge variant={push.data?.ready_for_send ? "default" : "outline"}>
+              {push.data?.ready_for_send ? "Backend FCM pronto" : "FCM bloqueado"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
+          <ReadinessItem
+            label="Core Push"
+            value={push.data?.push_core_ready ? "Pronto" : "Indisponível"}
+            ready={Boolean(push.data?.push_core_ready)}
+          />
+          <ReadinessItem
+            label="Credencial Firebase"
+            value={push.data?.credentials_configured ? "Configurada" : "Pendente"}
+            ready={Boolean(push.data?.credentials_configured)}
+          />
+          <ReadinessItem
+            label="FCM HTTP v1"
+            value={push.data?.cloud_messaging_api_enabled ? "Habilitada" : "Não validada"}
+            ready={Boolean(push.data?.cloud_messaging_api_enabled)}
+          />
+          <ReadinessItem
+            label="Validate-only"
+            value={push.data?.validate_only_verified ? "Validado" : "Pendente"}
+            ready={Boolean(push.data?.validate_only_verified)}
+          />
+          <ReadinessItem
+            label="Tokens frescos"
+            value={`${push.data?.fresh_tokens ?? 0} de ${push.data?.active_tokens ?? 0}`}
+            ready={(push.data?.fresh_tokens ?? 0) > 0}
+          />
+          <div className="sm:col-span-2 lg:col-span-5 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground">
+            {push.isError
+              ? "Não foi possível consultar o Firebase agora. O worker permanece fail-closed."
+              : push.data?.ready_for_send
+                ? "O backend FCM está homologado. A entrega no aparelho ainda depende do app nativo do entregador registrar um token real e tratar foreground/background/toque."
+                : "O worker e o gatilho de nova entrega já existem, mas permanecem sem envio real até configurar FIREBASE_PROJECT_ID e a conta de serviço correta. O shell Android do entregador também continua sendo um gate separado."}
           </div>
         </CardContent>
       </Card>
