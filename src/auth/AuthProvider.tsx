@@ -2,7 +2,11 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { prioritizeStoreIds, setSelectedStoreId } from "@/store-scope/store-scope";
+import {
+  prioritizeStoreIds,
+  setSelectedStoreId,
+  useSelectedStoreId,
+} from "@/store-scope/store-scope";
 
 import { AuthContext } from "./AuthContext";
 import { AUTH_MESSAGES, AuthFlowError, logAuthFailure } from "./auth.errors";
@@ -23,12 +27,22 @@ async function loadAuthContext(): Promise<AuthContextData | null> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const selectedStoreId = useSelectedStoreId();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authContext, setAuthContext] = useState<AuthContextData | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const mounted = useRef(true);
+
+  const effectiveAuthContext = useMemo<AuthContextData | null>(() => {
+    if (!authContext) return null;
+    if (!selectedStoreId || !authContext.store_ids.includes(selectedStoreId)) return authContext;
+    return {
+      ...authContext,
+      store_ids: [selectedStoreId, ...authContext.store_ids.filter((id) => id !== selectedStoreId)],
+    };
+  }, [authContext, selectedStoreId]);
 
   const refreshAuthContext = useCallback(async () => {
     const next = await loadAuthContext();
@@ -102,10 +116,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {
       session,
       user,
-      authContext,
+      authContext: effectiveAuthContext,
       isInitializing,
       isAuthenticated: Boolean(session),
-      requiresPasswordChange: authContext?.requires_password_change === true,
+      requiresPasswordChange: effectiveAuthContext?.requires_password_change === true,
       isRecoverySession,
 
       signInStore: (email, password) => signInWithEmail(email, password, "store"),
@@ -170,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async completeInitialPasswordChange(password) {
         const { error } = await supabase.auth.updateUser({ password });
         if (error) {
-          logAuthFailure("troca_inicial");
+          logAuthFailure("atualizar_senha");
           throw new AuthFlowError(AUTH_MESSAGES.weakPassword);
         }
         // Só após o sucesso real da alteração o indicador é removido.
@@ -182,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await refreshAuthContext();
       },
     };
-  }, [session, user, authContext, isInitializing, isRecoverySession, refreshAuthContext, signInWithEmail]);
+  }, [session, user, effectiveAuthContext, isInitializing, isRecoverySession, refreshAuthContext, signInWithEmail]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
