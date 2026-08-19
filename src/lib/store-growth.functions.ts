@@ -20,6 +20,7 @@ export type AutomationEventCode =
   | "pedido_pronto"
   | "pedido_aguardando_entregador"
   | "pedido_saiu_para_entrega"
+  | "pedido_aguardando_retirada"
   | "pedido_entregue"
   | "pedido_retirado"
   | "pedido_recusado"
@@ -115,6 +116,7 @@ const automationEventSchema = z.enum([
   "pedido_pronto",
   "pedido_aguardando_entregador",
   "pedido_saiu_para_entrega",
+  "pedido_aguardando_retirada",
   "pedido_entregue",
   "pedido_retirado",
   "pedido_recusado",
