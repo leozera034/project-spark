@@ -40,6 +40,17 @@ export interface StoreGrowthSummary {
   avgTicket30d: number;
 }
 
+export interface StoreCrmSegmentSummary {
+  customers: number;
+  newCustomers: number;
+  repeatCustomers: number;
+  vipCustomers: number;
+  inactiveCustomers: number;
+  marketingOptIns: number;
+  lastScannedAt: string | null;
+  lastTransitionAt: string | null;
+}
+
 export interface CustomerInsight {
   id: string;
   first_name: string;
@@ -133,6 +144,15 @@ export const getStoreGrowthSummary = createServerFn({ method: "GET" })
     const result = await rpcCaller(context.supabase)("get_store_growth_summary", { _store_id: data.storeId });
     if (result.error) throw result.error;
     return result.data as StoreGrowthSummary;
+  });
+
+export const getStoreCrmSegmentSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const result = await rpcCaller(context.supabase)("get_store_crm_segment_summary", { _store_id: data.storeId });
+    if (result.error) throw result.error;
+    return result.data as StoreCrmSegmentSummary;
   });
 
 export const listStoreCustomerInsights = createServerFn({ method: "GET" })
