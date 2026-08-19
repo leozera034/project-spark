@@ -7,6 +7,7 @@ const PROVIDER_TIMEOUT_MS = 12_000;
 
 type JsonRecord = Record<string, unknown>;
 type SupportedProvider = "meta_whatsapp" | "evolution_api";
+type AdminClient = ReturnType<typeof adminClient>;
 
 type ClaimedJob = {
   id: string;
@@ -48,60 +49,44 @@ function parseKeys(raw: string | undefined): Record<string, string> {
     return {};
   }
 }
-
 function keyAwareFetch(apiKey: string): typeof fetch {
   return (input, init) => {
-    const headers = new Headers(
-      typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
-    );
+    const headers = new Headers(typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined);
     if (init?.headers) new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    if (apiKey.startsWith("sb_") && headers.get("Authorization") === `Bearer ${apiKey}`) {
-      headers.delete("Authorization");
-    }
+    if (apiKey.startsWith("sb_") && headers.get("Authorization") === `Bearer ${apiKey}`) headers.delete("Authorization");
     headers.set("apikey", apiKey);
     return fetch(input, { ...init, headers });
   };
 }
-
 function adminClient() {
-  const url = Deno.env.get("SUPABASE_URL");
+  const url = Deno.env.get("SUPABASE_URL")?.trim() ?? "";
   const modern = parseKeys(Deno.env.get("SUPABASE_SECRET_KEYS"));
-  const key = modern.default ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const key = modern.default ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? "";
   if (!url || !key) throw new Error("backend_configuration_missing");
   return createClient(url, key, {
     global: { fetch: keyAwareFetch(key) },
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
-
 function response(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-    },
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 }
-
-function constantTimeEquals(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function workerAuthorized(req: Request): boolean {
-  const expected = Deno.env.get("COMANDIVA_WORKER_SECRET")?.trim() ?? "";
-  if (!expected) return false;
-  const supplied = req.headers.get("x-comandiva-worker-secret")?.trim() ?? "";
-  return Boolean(supplied) && constantTimeEquals(supplied, expected);
-}
-
 function objectValue(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {};
 }
-
+async function workerAuthorized(admin: AdminClient, req: Request): Promise<boolean> {
+  const candidate = req.headers.get("x-comandiva-worker-secret")?.trim() ?? "";
+  if (!candidate) return false;
+  const { data, error } = await admin.rpc("backend_verify_whatsapp_worker_secret", { _candidate: candidate });
+  return !error && data === true;
+}
+async function workerSecretReady(admin: AdminClient): Promise<boolean> {
+  const { data, error } = await admin.rpc("backend_whatsapp_worker_secret_ready");
+  return !error && data === true;
+}
 function bodyParameters(variables: JsonRecord): string[] {
   const raw = variables.body_parameters;
   if (raw === undefined) return [];
@@ -113,25 +98,15 @@ function bodyParameters(variables: JsonRecord): string[] {
     return text;
   });
 }
-
 function metaPayload(dispatch: PreparedDispatch): JsonRecord {
   const templateName = dispatch.template_name?.trim() ?? "";
   const templateLanguage = dispatch.template_language?.trim() ?? "";
   if (!templateName || !templateLanguage) throw new Error("meta_template_not_ready");
   const parameters = bodyParameters(objectValue(dispatch.variables)).map((text) => ({ type: "text", text }));
-  const template: JsonRecord = {
-    name: templateName,
-    language: { code: templateLanguage },
-  };
+  const template: JsonRecord = { name: templateName, language: { code: templateLanguage } };
   if (parameters.length > 0) template.components = [{ type: "body", parameters }];
-  return {
-    messaging_product: "whatsapp",
-    to: dispatch.recipient_e164,
-    type: "template",
-    template,
-  };
+  return { messaging_product: "whatsapp", to: dispatch.recipient_e164, type: "template", template };
 }
-
 function renderEvolutionText(dispatch: PreparedDispatch): string {
   const body = dispatch.template_body?.trim() ?? "";
   if (!body || body.length > 4096) throw new Error("evolution_template_body_invalid");
@@ -144,7 +119,6 @@ function renderEvolutionText(dispatch: PreparedDispatch): string {
   if (/\{\{[^{}]+\}\}/.test(rendered)) throw new Error("evolution_template_placeholder_unresolved");
   return rendered;
 }
-
 function evolutionConfig(): { baseUrl: string; apiKey: string } | null {
   const rawBase = Deno.env.get("EVOLUTION_API_BASE_URL")?.trim() ?? "";
   const apiKey = Deno.env.get("EVOLUTION_API_KEY")?.trim() ?? "";
@@ -160,7 +134,6 @@ function evolutionConfig(): { baseUrl: string; apiKey: string } | null {
     return null;
   }
 }
-
 function safeProviderError(raw: unknown, status: number, prefix: string): { code: string; message: string } {
   const root = objectValue(raw);
   const error = objectValue(root.error);
@@ -179,7 +152,6 @@ function safeProviderError(raw: unknown, status: number, prefix: string): { code
   if (!message || message === "{}") message = `Provider returned HTTP ${status}`;
   return { code, message: message.slice(0, 500) };
 }
-
 async function providerFetch(url: string, init: RequestInit): Promise<{ response: Response; raw: unknown }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
@@ -191,15 +163,7 @@ async function providerFetch(url: string, init: RequestInit): Promise<{ response
     clearTimeout(timeout);
   }
 }
-
-async function failJob(
-  admin: ReturnType<typeof adminClient>,
-  jobId: string,
-  messageId: string | null,
-  code: string,
-  message: string,
-  retryable: boolean,
-) {
+async function failJob(admin: AdminClient, jobId: string, messageId: string | null, code: string, message: string, retryable: boolean) {
   const { error } = await admin.rpc("fail_whatsapp_automation_job", {
     _job_id: jobId,
     _message_id: messageId,
@@ -209,13 +173,7 @@ async function failJob(
   });
   if (error) console.error("[comandiva-whatsapp-worker] fail transition error", error.code ?? "unknown");
 }
-
-async function completeJob(
-  admin: ReturnType<typeof adminClient>,
-  job: ClaimedJob,
-  dispatch: PreparedDispatch,
-  providerMessageId: string,
-) {
+async function completeJob(admin: AdminClient, job: ClaimedJob, dispatch: PreparedDispatch, providerMessageId: string) {
   if (!providerMessageId || providerMessageId.length < 6) {
     await failJob(admin, job.id, dispatch.message_id, "PROVIDER_RESULT_AMBIGUOUS", "Provider accepted the request without a usable message id; automatic retry blocked.", false);
     return { jobId: job.id, status: "failed", stage: "provider_response" };
@@ -231,12 +189,7 @@ async function completeJob(
   }
   return { jobId: job.id, status: "sent", provider: dispatch.provider };
 }
-
-async function processMeta(
-  admin: ReturnType<typeof adminClient>,
-  job: ClaimedJob,
-  dispatch: PreparedDispatch,
-) {
+async function processMeta(admin: AdminClient, job: ClaimedJob, dispatch: PreparedDispatch) {
   const credentialRef = dispatch.credential_ref?.trim() ?? "";
   const phoneNumberId = dispatch.phone_number_id?.trim() ?? "";
   const graphVersion = dispatch.graph_api_version?.trim() ?? "";
@@ -244,7 +197,6 @@ async function processMeta(
     await failJob(admin, job.id, dispatch.message_id, "META_CONFIGURATION_MISSING", "Meta WhatsApp provider configuration is incomplete.", false);
     return { jobId: job.id, status: "failed", stage: "configuration" };
   }
-
   const tokenResult = await admin.rpc("get_meta_whatsapp_access_token", {
     _store_id: dispatch.store_id,
     _credential_ref: credentialRef,
@@ -253,7 +205,6 @@ async function processMeta(
     await failJob(admin, job.id, dispatch.message_id, tokenResult.error?.code ?? "PROVIDER_SECRET_MISSING", "Meta credential is unavailable.", false);
     return { jobId: job.id, status: "failed", stage: "credential" };
   }
-
   let payload: JsonRecord;
   try {
     payload = metaPayload(dispatch);
@@ -261,16 +212,12 @@ async function processMeta(
     await failJob(admin, job.id, dispatch.message_id, "INVALID_TEMPLATE_VARIABLES", "Template variables are invalid.", false);
     return { jobId: job.id, status: "failed", stage: "payload" };
   }
-
   try {
     const result = await providerFetch(
       `https://graph.facebook.com/${encodeURIComponent(graphVersion)}/${encodeURIComponent(phoneNumberId)}/messages`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenResult.data.trim()}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${tokenResult.data.trim()}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       },
     );
@@ -284,43 +231,33 @@ async function processMeta(
     const root = objectValue(result.raw);
     const messages = Array.isArray(root.messages) ? root.messages : [];
     const first = objectValue(messages[0]);
-    const providerMessageId = typeof first.id === "string" ? first.id.trim() : "";
-    return await completeJob(admin, job, dispatch, providerMessageId);
+    return await completeJob(admin, job, dispatch, typeof first.id === "string" ? first.id.trim() : "");
   } catch (error) {
     await failJob(admin, job.id, dispatch.message_id, "PROVIDER_RESULT_AMBIGUOUS", error instanceof Error ? error.message : "Meta request ended without a reliable response.", false);
     return { jobId: job.id, status: "failed", stage: "provider_ambiguous" };
   }
 }
-
 function evolutionMessageId(raw: unknown): string {
   const root = objectValue(raw);
   const key = objectValue(root.key);
   const message = objectValue(root.message);
   const messageKey = objectValue(message.key);
-  const candidates = [key.id, root.id, messageKey.id, root.messageId];
-  for (const candidate of candidates) {
+  for (const candidate of [key.id, root.id, messageKey.id, root.messageId]) {
     if (typeof candidate === "string" && candidate.trim().length >= 6) return candidate.trim();
   }
   return "";
 }
-
 function evolutionWantsTopLevelText(raw: unknown): boolean {
   const text = JSON.stringify(raw).toLowerCase();
   return text.includes("requires property") && (text.includes('property \\"text\\"') || text.includes("property 'text'") || text.includes("property text"));
 }
-
-async function processEvolution(
-  admin: ReturnType<typeof adminClient>,
-  job: ClaimedJob,
-  dispatch: PreparedDispatch,
-) {
+async function processEvolution(admin: AdminClient, job: ClaimedJob, dispatch: PreparedDispatch) {
   const config = evolutionConfig();
   const instanceName = dispatch.instance_name?.trim() ?? "";
   if (!config || !instanceName) {
     await failJob(admin, job.id, dispatch.message_id, "EVOLUTION_RUNTIME_NOT_CONFIGURED", "Evolution API runtime or instance configuration is unavailable.", false);
     return { jobId: job.id, status: "failed", stage: "configuration" };
   }
-
   let text: string;
   try {
     text = renderEvolutionText(dispatch);
@@ -328,7 +265,6 @@ async function processEvolution(
     await failJob(admin, job.id, dispatch.message_id, "INVALID_TEMPLATE_VARIABLES", error instanceof Error ? error.message : "Evolution message template is invalid.", false);
     return { jobId: job.id, status: "failed", stage: "payload" };
   }
-
   const url = `${config.baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`;
   const headers = { apikey: config.apiKey, "Content-Type": "application/json", Accept: "application/json" };
   try {
@@ -337,10 +273,6 @@ async function processEvolution(
       headers,
       body: JSON.stringify({ number: dispatch.recipient_e164, textMessage: { text } }),
     });
-
-    // Evolution 2.3.7 has a known schema mismatch where some builds reject the documented
-    // textMessage shape with an explicit HTTP 400 requiring top-level text. That response is
-    // an explicit rejection, so one compatibility retry cannot duplicate an accepted message.
     if (result.response.status === 400 && evolutionWantsTopLevelText(result.raw)) {
       result = await providerFetch(url, {
         method: "POST",
@@ -348,7 +280,6 @@ async function processEvolution(
         body: JSON.stringify({ number: dispatch.recipient_e164, text }),
       });
     }
-
     if (!result.response.ok) {
       const safe = safeProviderError(result.raw, result.response.status, "EVOLUTION");
       const retryable = result.response.status === 429;
@@ -356,15 +287,13 @@ async function processEvolution(
       await failJob(admin, job.id, dispatch.message_id, ambiguous ? "PROVIDER_RESULT_AMBIGUOUS" : safe.code, safe.message, retryable && !ambiguous);
       return { jobId: job.id, status: retryable && !ambiguous ? "retry_scheduled" : "failed", stage: ambiguous ? "provider_ambiguous" : "provider" };
     }
-
     return await completeJob(admin, job, dispatch, evolutionMessageId(result.raw));
   } catch (error) {
     await failJob(admin, job.id, dispatch.message_id, "PROVIDER_RESULT_AMBIGUOUS", error instanceof Error ? error.message : "Evolution API request ended without a reliable response.", false);
     return { jobId: job.id, status: "failed", stage: "provider_ambiguous" };
   }
 }
-
-async function processJob(admin: ReturnType<typeof adminClient>, job: ClaimedJob) {
+async function processJob(admin: AdminClient, job: ClaimedJob) {
   let dispatch: PreparedDispatch | null = null;
   try {
     const prepared = await admin.rpc("prepare_whatsapp_automation_job", { _job_id: job.id });
@@ -378,69 +307,51 @@ async function processJob(admin: ReturnType<typeof adminClient>, job: ClaimedJob
     await failJob(admin, job.id, dispatch.message_id, "WHATSAPP_PROVIDER_NOT_SUPPORTED_BY_WORKER", "WhatsApp provider is not supported by this worker.", false);
     return { jobId: job.id, status: "failed", stage: "provider_selection" };
   } catch (error) {
-    await failJob(
-      admin,
-      job.id,
-      dispatch?.message_id ?? null,
-      "WORKER_UNHANDLED",
-      error instanceof Error ? error.message : "Unhandled worker error.",
-      false,
-    );
+    await failJob(admin, job.id, dispatch?.message_id ?? null, "WORKER_UNHANDLED", error instanceof Error ? error.message : "Unhandled worker error.", false);
     return { jobId: job.id, status: "failed", stage: "unhandled" };
   }
 }
 
 Deno.serve(async (req: Request) => {
-  const workerConfigured = Boolean(Deno.env.get("COMANDIVA_WORKER_SECRET")?.trim());
-  const evolutionConfigured = evolutionConfig() !== null;
+  let admin: AdminClient;
+  try {
+    admin = adminClient();
+  } catch {
+    return response(503, { ok: false, error: "backend_configuration_missing" });
+  }
 
+  const workerConfigured = await workerSecretReady(admin);
+  const evolutionConfigured = evolutionConfig() !== null;
   if (req.method === "GET") {
     return response(workerConfigured ? 200 : 503, {
       ok: workerConfigured,
       service: "comandiva-whatsapp-worker",
       workerConfigured,
-      providers: {
-        meta_whatsapp: true,
-        evolution_api: evolutionConfigured,
-      },
+      providers: { meta_whatsapp: true, evolution_api: evolutionConfigured },
     });
   }
-
   if (req.method !== "POST") return response(405, { ok: false, error: "method_not_allowed" });
   if (!workerConfigured) return response(503, { ok: false, error: "worker_not_configured" });
-  if (!workerAuthorized(req)) return response(401, { ok: false, error: "unauthorized" });
+  if (!(await workerAuthorized(admin, req))) return response(401, { ok: false, error: "unauthorized" });
 
   const length = Number(req.headers.get("content-length") ?? 0);
   if (Number.isFinite(length) && length > MAX_BODY_BYTES) return response(413, { ok: false, error: "payload_too_large" });
-
   let input: JsonRecord = {};
   try {
     input = objectValue(await req.json());
   } catch {
     return response(400, { ok: false, error: "invalid_json" });
   }
-
   const requested = Number(input.limit ?? 5);
   const limit = Number.isFinite(requested) ? Math.max(1, Math.min(Math.floor(requested), MAX_BATCH)) : 5;
   const workerId = `edge:${crypto.randomUUID()}`;
-  const admin = adminClient();
-
-  const claim = await admin.rpc("claim_whatsapp_automation_jobs", {
-    _worker_id: workerId,
-    _limit: limit,
-  });
+  const claim = await admin.rpc("claim_whatsapp_automation_jobs", { _worker_id: workerId, _limit: limit });
   if (claim.error) {
     console.error("[comandiva-whatsapp-worker] claim failed", claim.error.code ?? "unknown");
     return response(500, { ok: false, error: "claim_failed" });
   }
-
   const jobs = (Array.isArray(claim.data) ? claim.data : []) as ClaimedJob[];
   const results = [];
   for (const job of jobs) results.push(await processJob(admin, job));
-
-  return response(200, {
-    ok: true,
-    claimed: jobs.length,
-    results,
-  });
+  return response(200, { ok: true, claimed: jobs.length, results });
 });
