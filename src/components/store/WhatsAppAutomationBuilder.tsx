@@ -54,8 +54,8 @@ function automaticConfig(rule: AutomationRule) {
 
 function automationError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
-  if (message.includes("WHATSAPP_PROVIDER_NOT_CONNECTED")) return "Conecte o WhatsApp oficial da Meta antes de ativar esta automação.";
-  if (message.includes("MESSAGE_TEMPLATE_NOT_PROVIDER_APPROVED")) return "O template precisa estar aprovado pela Meta.";
+  if (message.includes("WHATSAPP_PROVIDER_NOT_CONNECTED")) return "Conecte um provedor de WhatsApp automático antes de ativar esta automação.";
+  if (message.includes("MESSAGE_TEMPLATE_NOT_PROVIDER_APPROVED")) return "O provedor conectado exige aprovação prévia deste template.";
   if (message.includes("VARIABLE_BINDING_COUNT_MISMATCH")) return "Mapeie todas as variáveis exigidas pelo template.";
   if (message.includes("VARIABLE_BINDING_NOT_ALLOWED")) return "Uma das variáveis escolhidas não é permitida para esse evento.";
   if (message.includes("BILLING_RESTRICTED")) return "O plano atual não permite alterar automações.";
@@ -81,11 +81,10 @@ export function WhatsAppAutomationBuilder({ storeId }: { storeId: string }) {
   const effectiveEventCode = eventCode || events[0]?.code || "";
   const selectedEvent = events.find((event) => event.code === effectiveEventCode) ?? null;
   const selectedTemplate = templates.find((template) => template.id === templateId) ?? null;
-  const automaticReady = Boolean(
-    readiness.data?.automatic_entitled
-      && readiness.data?.provider_connected
-      && readiness.data?.provider === "meta_whatsapp",
-  );
+  const providerReady = Boolean(readiness.data?.automatic_entitled && readiness.data?.provider_connected);
+  const automaticReady = Boolean(readiness.data?.ready_for_automatic);
+  const isEvolution = readiness.data?.provider === "evolution_api";
+  const requiresApproval = readiness.data?.requires_provider_template_approval ?? true;
 
   const templateById = useMemo(
     () => new Map(templates.map((template) => [template.id, template])),
@@ -186,8 +185,11 @@ export function WhatsAppAutomationBuilder({ storeId }: { storeId: string }) {
               <Bot className="size-5 text-brand" /> Automações WhatsApp
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Evento → template aprovado → variáveis validadas → fila de envio. Valores do pedido e do cliente são resolvidos no backend.
+              Evento → template validado → variáveis validadas → fila de envio. Valores do pedido e do cliente são resolvidos no backend.
             </p>
+            {isEvolution ? (
+              <p className="mt-1 text-xs text-muted-foreground">Integração automática powered by Evolution API · self-hosted.</p>
+            ) : null}
           </div>
           <Badge variant={automaticReady ? "default" : "secondary"} className="w-fit">
             {automaticReady ? "Automático disponível" : "Configuração pendente"}
@@ -198,11 +200,11 @@ export function WhatsAppAutomationBuilder({ storeId }: { storeId: string }) {
         {notice ? <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</p> : null}
         {error ? <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</p> : null}
 
-        {!automaticReady ? (
+        {!providerReady ? (
           <div className="rounded-2xl border border-dashed border-border bg-surface-muted/40 p-5">
             <p className="font-semibold">Conclua o WhatsApp Automático</p>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              O construtor fica disponível quando o add-on estiver ativo e a conta oficial da Meta estiver conectada.
+              O construtor fica disponível quando o add-on estiver ativo e um provedor WhatsApp estiver conectado.
             </p>
             <Button asChild className="mt-3" size="sm">
               <Link to="/app/loja/whatsapp">Abrir Central WhatsApp</Link>
@@ -210,9 +212,11 @@ export function WhatsAppAutomationBuilder({ storeId }: { storeId: string }) {
           </div>
         ) : templates.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-surface-muted/40 p-5">
-            <p className="font-semibold">Falta um template aprovado</p>
+            <p className="font-semibold">Falta um template disponível</p>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Crie o template na Central WhatsApp e aguarde a aprovação da Meta. Assim que ele for aprovado, aparecerá aqui automaticamente.
+              {requiresApproval
+                ? "Crie o template na Central WhatsApp e aguarde a aprovação do provedor. Assim que aprovado, ele aparecerá aqui."
+                : "Crie um template ativo na Central WhatsApp. No Evolution API ele pode ser usado localmente sem aprovação da Meta."}
             </p>
             <Button asChild className="mt-3" size="sm" variant="outline">
               <Link to="/app/loja/whatsapp">Gerenciar templates</Link>
@@ -240,7 +244,7 @@ export function WhatsAppAutomationBuilder({ storeId }: { storeId: string }) {
             {selectedEvent ? <p className="mt-2 text-xs leading-5 text-muted-foreground">{selectedEvent.description}</p> : null}
 
             <div className="mt-4">
-              <Label>Template aprovado pela Meta</Label>
+              <Label>{requiresApproval ? "Template aprovado pelo provedor" : "Template local da automação"}</Label>
               <select
                 className="mt-2 h-11 w-full rounded-xl border border-input bg-surface px-3 text-sm text-foreground"
                 value={templateId}
