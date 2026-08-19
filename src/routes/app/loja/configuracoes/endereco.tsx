@@ -13,6 +13,12 @@ export const Route = createFileRoute("/app/loja/configuracoes/endereco")({
   component: EnderecoSection,
 });
 
+function geolocationErrorCode(error: unknown): number | null {
+  if (typeof error !== "object" || error === null || !("code" in error)) return null;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "number" && Number.isFinite(code) ? code : null;
+}
+
 function EnderecoSection() {
   const { configuration, storeId, save, isSaving } = useStoreConfig();
   const consultCep = useServerFn(lookupCep);
@@ -119,7 +125,7 @@ function EnderecoSection() {
         );
       }
     } catch (error) {
-      const code = error instanceof GeolocationPositionError ? error.code : null;
+      const code = geolocationErrorCode(error);
       if (code === 1) setLocationMessage("Permissão de localização negada. O endereço continua funcionando normalmente.");
       else if (code === 2) setLocationMessage("O dispositivo não conseguiu determinar a localização agora.");
       else setLocationMessage("A localização demorou demais. Tente novamente quando estiver na loja.");
