@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 
 const MP_API = "https://api.mercadopago.com";
 const PROVIDER = "mercado_pago";
-const ENVIRONMENT = "test";
+const ENVIRONMENT = "production";
 const PROVIDER_TIMEOUT_MS = 8_000;
 
 type JsonRecord = Record<string, unknown>;
@@ -121,8 +121,8 @@ Deno.serve(async (req: Request) => {
   }
   if (!(await rateLimit())) return response({ ok: false, error: "rate_limited" }, 429);
 
-  const token = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_TEST")?.trim() ?? "";
-  const webhookSecret = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET_TEST")?.trim() ?? "";
+  const token = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_PROD")?.trim() ?? "";
+  const webhookSecret = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET_PROD")?.trim() ?? "";
   const webhookSecretFingerprint = webhookSecret ? await sha256Hex(webhookSecret) : null;
 
   if (!token) {
