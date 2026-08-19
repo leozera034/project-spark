@@ -142,6 +142,18 @@ function mercadoPagoToken(): string | null {
   return Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN_TEST")?.trim() || null;
 }
 
+function mercadoPagoNotificationUrl(): string | null {
+  const raw = Deno.env.get("SUPABASE_URL")?.trim() ?? "";
+  if (!raw) return null;
+  try {
+    const base = new URL(raw);
+    if (base.protocol !== "https:") return null;
+    return `${base.origin}/functions/v1/comandiva-mercadopago-webhook?source_news=webhooks`;
+  } catch {
+    return null;
+  }
+}
+
 async function authenticatedUser(req: Request): Promise<AuthenticatedUser | null> {
   const raw = req.headers.get("authorization")?.trim() ?? "";
   const match = /^Bearer\s+(.+)$/i.exec(raw);
@@ -458,6 +470,8 @@ async function createAddonCheckout(req: Request): Promise<Response> {
   }
   const token = mercadoPagoToken();
   if (!token) return json(req, { ok: false, error: "provider_not_configured" }, 503);
+  const notificationUrl = mercadoPagoNotificationUrl();
+  if (!notificationUrl) return json(req, { ok: false, error: "webhook_url_not_configured" }, 503);
 
   const admin = adminClient();
   const { data: startData, error: startError } = await admin.rpc("billing_begin_addon_checkout", {
@@ -572,6 +586,7 @@ async function createAddonCheckout(req: Request): Promise<Response> {
           checkout.trial_days,
         ),
         back_url: `${APP_ORIGIN}/app/loja/modulos?billing=return`,
+        notification_url: notificationUrl,
         status: "pending",
       };
       const created = await mpRequest(token, "/preapproval", {
