@@ -5,6 +5,7 @@ import {
   getMyStoreAddons,
   getMyStoreEntitlements,
   getMyStoreUsageSummary,
+  getStoreAddonPurchasePreflight,
 } from "@/lib/store-addons.functions";
 
 export function useStoreAddons(storeId: string | null) {
@@ -37,5 +38,21 @@ export function useStoreUsageSummary(storeId: string | null, periodStart?: strin
     enabled: Boolean(storeId),
     staleTime: 30_000,
     retry: 1,
+  });
+}
+
+export function useAddonPurchasePreflight(
+  storeId: string | null,
+  addonCode: string,
+  billingInterval: "monthly" | "annual" = "monthly",
+  enabled = true,
+) {
+  const fn = useServerFn(getStoreAddonPurchasePreflight);
+  return useQuery({
+    queryKey: ["store-addon-purchase-preflight", storeId, addonCode, billingInterval],
+    queryFn: () => fn({ data: { storeId: storeId!, addonCode, billingInterval } }),
+    enabled: Boolean(storeId) && enabled,
+    staleTime: 15_000,
+    retry: 0,
   });
 }
