@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { WhatsAppMetaConnectionCard } from "@/components/store/WhatsAppMetaConnectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,6 +192,11 @@ function WhatsAppCenter() {
           detail={`${consentSummary.data?.not_recorded ?? 0} sem registro`}
         />
       </section>
+
+      <WhatsAppMetaConnectionCard
+        storeId={storeId}
+        automaticEntitled={Boolean(readiness.data?.automatic_entitled)}
+      />
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1.15fr]">
         <Card>
