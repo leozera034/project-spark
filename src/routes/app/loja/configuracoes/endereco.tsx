@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { LocateFixed } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { lookupCep } from "@/lib/public-data.functions";
-import { updateStoreAddress } from "@/store-config/address-api";
+import { updateStoreAddress, updateStoreLocationCoordinates } from "@/store-config/address-api";
 import { SectionForm, TextField, useSectionForm } from "@/store-config/form-kit";
 import { useStoreConfig } from "@/store-config/StoreConfigProvider";
 
@@ -29,10 +30,13 @@ function EnderecoSection() {
 
   const [cepBusy, setCepBusy] = useState(false);
   const [cepMessage, setCepMessage] = useState<string | null>(null);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const canEdit = configuration?.can.update_profile ?? false;
   const normalizedCep = form.value.postalCode.replace(/\D/g, "");
   const canLookupCep = canEdit && normalizedCep.length === 8 && !cepBusy;
+  const hasCoordinates = store?.latitude != null && store?.longitude != null;
 
   const postalError = normalizedCep.length !== 8 ? "Informe um CEP com 8 dígitos." : null;
   const streetError = form.value.street.trim().length < 2 ? "Informe a rua ou logradouro." : null;
@@ -74,10 +78,60 @@ function EnderecoSection() {
     }
   }
 
+  async function handleCurrentLocation() {
+    if (!storeId || !store || !canEdit || form.dirty || isSaving || locationBusy) return;
+    setLocationMessage(null);
+
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationMessage("Este dispositivo não oferece localização pelo navegador.");
+      return;
+    }
+
+    setLocationBusy(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10_000,
+          maximumAge: 30_000,
+        });
+      });
+
+      const accuracy = Number.isFinite(position.coords.accuracy) ? Math.round(position.coords.accuracy) : null;
+      const saved = await save(
+        () =>
+          updateStoreLocationCoordinates({
+            storeId,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            source: "manual_browser",
+            accuracyMeters: accuracy,
+            expectedUpdatedAt: store.updated_at,
+          }),
+        "Localização operacional da loja atualizada.",
+      );
+
+      if (saved) {
+        setLocationMessage(
+          accuracy != null
+            ? `Coordenada capturada pelo dispositivo com precisão aproximada de ${accuracy} m.`
+            : "Coordenada capturada pelo dispositivo.",
+        );
+      }
+    } catch (error) {
+      const code = error instanceof GeolocationPositionError ? error.code : null;
+      if (code === 1) setLocationMessage("Permissão de localização negada. O endereço continua funcionando normalmente.");
+      else if (code === 2) setLocationMessage("O dispositivo não conseguiu determinar a localização agora.");
+      else setLocationMessage("A localização demorou demais. Tente novamente quando estiver na loja.");
+    } finally {
+      setLocationBusy(false);
+    }
+  }
+
   return (
     <SectionForm
       title="Endereço da loja"
-      description="Endereço operacional usado como base para retirada e, futuramente, cálculo de rotas e entregas."
+      description="Endereço operacional usado como base para retirada, distância e estimativas de entrega."
       disabled={!canEdit}
       dirty={form.dirty}
       saving={isSaving}
@@ -184,8 +238,34 @@ function EnderecoSection() {
         />
       </div>
 
+      <div className="rounded-2xl border border-border bg-muted/30 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Localização operacional</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {hasCoordinates
+                ? "A coordenada da loja está salva e pode alimentar estimativas locais de distância."
+                : "Salve o endereço e, estando na loja, capture a localização do dispositivo. Não usa Google Maps nem API paga."}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!canEdit || form.dirty || isSaving || locationBusy}
+            onClick={() => void handleCurrentLocation()}
+          >
+            <LocateFixed className="mr-2 size-4" />
+            {locationBusy ? "Localizando..." : hasCoordinates ? "Atualizar localização" : "Usar localização atual"}
+          </Button>
+        </div>
+        {form.dirty ? (
+          <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">Salve primeiro as alterações do endereço para evitar associar uma coordenada ao endereço antigo.</p>
+        ) : null}
+        {locationMessage ? <p className="mt-3 text-xs text-muted-foreground">{locationMessage}</p> : null}
+      </div>
+
       <p className="text-xs leading-5 text-muted-foreground">
-        A consulta por CEP não define a coordenada exata da porta da loja. Latitude e longitude não são alteradas automaticamente por esta tela.
+        Se o endereço textual mudar, a coordenada anterior é invalidada automaticamente. O ETA por bairro continua como fallback e não depende de localização.
       </p>
     </SectionForm>
   );
