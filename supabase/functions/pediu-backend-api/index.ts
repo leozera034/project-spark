@@ -45,6 +45,7 @@ const createCourierSchema = z.object({
   fullName: z.string().trim().min(3).max(100),
   phone: z.string().trim().min(8).max(20),
   loginIdentifier: z.string().trim().min(4).max(30).regex(/^[a-z0-9._]+$/),
+  vehicle: z.enum(["moto", "carro"]),
   canAcceptDeliveries: z.boolean(),
   isActive: z.boolean(),
   idempotencyKey: z.string().min(10).max(160),
@@ -345,7 +346,7 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
 
   const syntheticEmail = await courierSyntheticEmail(input.loginIdentifier);
   const temporaryPassword = generateTemporaryPassword();
-  const requestHash = await sha256([input.fullName, input.phone, input.loginIdentifier, input.canAcceptDeliveries, input.isActive].join("|"));
+  const requestHash = await sha256([input.fullName, input.phone, input.loginIdentifier, input.vehicle, input.canAcceptDeliveries, input.isActive].join("|"));
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email: syntheticEmail,
     password: temporaryPassword,
@@ -358,7 +359,7 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
   }
 
   const authUserId = authData.user.id;
-  const { data: provisioned, error: provisionError } = await admin.rpc("provision_store_courier_admin", {
+  const { data: provisioned, error: provisionError } = await admin.rpc("provision_store_courier_admin_v2", {
     _actor_user_id: user.id,
     _store_id: storeId,
     _auth_user_id: authUserId,
@@ -366,6 +367,7 @@ async function createCourier(req: Request, payload: Record<string, unknown>) {
     _phone: input.phone,
     _login_identifier: input.loginIdentifier,
     _synthetic_email: syntheticEmail,
+    _vehicle: input.vehicle,
     _can_accept_deliveries: input.canAcceptDeliveries,
     _is_active: input.isActive,
     _idempotency_key: input.idempotencyKey,
