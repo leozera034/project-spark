@@ -3,6 +3,7 @@ import {
   Bot,
   CheckCircle2,
   CreditCard,
+  Mail,
   MapPin,
   Megaphone,
   MessageCircle,
@@ -19,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StoreAddon } from "@/lib/store-addons.functions";
 import { useStoreAddons } from "@/store/addons/store-addons.queries";
 import { useStoreWhatsAppReadiness } from "@/store/growth/store-whatsapp.queries";
+import { useStoreEmailReadiness } from "@/store/integrations/store-email.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/modulos")({
@@ -80,6 +82,7 @@ function StoreModulesPage() {
   const { storeId } = useStoreScope();
   const addons = useStoreAddons(storeId);
   const whatsapp = useStoreWhatsAppReadiness(storeId);
+  const email = useStoreEmailReadiness(storeId);
   const canViewBilling = addons.data?.can_view_billing ?? false;
 
   if (!storeId) {
@@ -156,6 +159,53 @@ function StoreModulesPage() {
             <Button asChild variant="outline" className="shrink-0">
               <Link to="/app/loja/whatsapp">Abrir central</Link>
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="size-5 text-primary" /> E-mail transacional
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Outbox, idempotência e suppression já fazem parte do core. O envio real só entra com domínio próprio do Comandiva e provider validado.
+              </p>
+            </div>
+            <Badge variant={email.data?.ready_for_send ? "default" : "outline"}>
+              {email.data?.ready_for_send ? "Provider pronto" : "Envio bloqueado"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 p-5 sm:grid-cols-4">
+          <ReadinessItem
+            label="Core transacional"
+            value={email.data?.transactional_core_ready ? "Pronto" : "Indisponível"}
+            ready={Boolean(email.data?.transactional_core_ready)}
+          />
+          <ReadinessItem
+            label="API key"
+            value={email.data?.api_key_configured ? "Configurada" : "Pendente"}
+            ready={Boolean(email.data?.api_key_configured)}
+          />
+          <ReadinessItem
+            label="Domínio Comandiva"
+            value={email.data?.domain_verified ? (email.data.sending_domain ?? "Verificado") : "Não configurado"}
+            ready={Boolean(email.data?.domain_verified)}
+          />
+          <ReadinessItem
+            label="Webhook"
+            value={email.data?.webhook_secret_configured ? "Configurado" : "Pendente"}
+            ready={Boolean(email.data?.webhook_secret_configured)}
+          />
+          <div className="sm:col-span-4 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground">
+            {email.isError
+              ? "Não foi possível consultar a infraestrutura de e-mail. O worker permanece bloqueado por segurança."
+              : email.data?.ready_for_send
+                ? "A infraestrutura do provider está pronta para o worker transacional."
+                : "Nenhum e-mail real será enviado enquanto o domínio próprio, a chave do provider e o webhook não estiverem validados. Domínios de outros projetos não são reutilizados."}
           </div>
         </CardContent>
       </Card>
