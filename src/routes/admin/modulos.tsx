@@ -1,5 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Boxes, CircleDollarSign, Loader2, RefreshCw, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import {
+  Boxes,
+  CheckCircle2,
+  CircleDollarSign,
+  KeyRound,
+  Loader2,
+  RadioTower,
+  RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +29,7 @@ import {
   usePlatformAddonOffers,
   usePlatformAddonPricingActions,
 } from "@/store/platform/platform-addons.queries";
+import { usePlatformBillingProviderReadiness } from "@/store/platform/platform-billing-readiness.queries";
 
 export const Route = createFileRoute("/admin/modulos")({
   head: () => ({
@@ -88,9 +100,11 @@ function PlatformAddonPricingPage() {
         <SummaryCard icon={ShieldCheck} label="Provider ready" value={providerReady} detail={`${available} disponíveis`} />
       </section>
 
+      <BillingProviderReadinessCard />
+
       <Card className="border-amber-500/20 bg-amber-500/[.04]">
         <CardContent className="p-4 text-sm leading-6 text-muted-foreground">
-          Publicar preço aqui <strong className="text-foreground">não cria cobrança</strong>. “Sincronizar Mercado Pago TEST” cria ou atualiza somente o plano de homologação no ambiente de teste. A loja só recebe checkout quando o preflight validar preço, provider e estado financeiro.
+          Publicar preço aqui <strong className="text-foreground">não cria cobrança</strong>. “Sincronizar Mercado Pago TEST” cria ou atualiza somente o plano de homologação no ambiente de teste. A loja só recebe checkout quando o preflight validar preço, provider, financeiro e entrega real de webhook.
         </CardContent>
       </Card>
 
@@ -121,6 +135,147 @@ function PlatformAddonPricingPage() {
       )}
     </main>
   );
+}
+
+function BillingProviderReadinessCard() {
+  const readiness = usePlatformBillingProviderReadiness();
+  const data = readiness.data;
+
+  if (readiness.isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center gap-3 p-5 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Validando infraestrutura de cobrança…
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (readiness.isError || !data) {
+    return (
+      <Card className="border-destructive/20 bg-destructive/[.03]">
+        <CardContent className="flex items-start gap-3 p-5 text-sm text-destructive">
+          <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+          Não foi possível ler o diagnóstico do Mercado Pago. O checkout permanece bloqueado por segurança.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={data.ready_for_checkout ? "border-success/25" : "border-amber-500/25"}>
+      <CardHeader className="pb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-lg">Readiness do Mercado Pago TEST</CardTitle>
+              <Badge variant={data.ready_for_checkout ? "default" : "outline"}>
+                {data.ready_for_checkout ? "Checkout liberável" : "Checkout bloqueado"}
+              </Badge>
+            </div>
+            <CardDescription className="mt-2 max-w-3xl">
+              Token, secret e entrega real de webhook são verificados separadamente. Secret configurado sozinho nunca libera contratação.
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={readiness.isFetching}
+            onClick={() => void readiness.refetch()}
+          >
+            {readiness.isFetching ? (
+              <><Loader2 className="size-3.5 animate-spin" /> Atualizando…</>
+            ) : (
+              <><RefreshCw className="size-3.5" /> Atualizar diagnóstico</>
+            )}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 md:grid-cols-3">
+          <ReadinessSignal
+            icon={KeyRound}
+            label="Access token"
+            ok={data.token_connected}
+            detail={
+              data.token_connected
+                ? `Conectado${data.token_upstream_status ? ` · upstream ${data.token_upstream_status}` : ""}`
+                : data.token_configured ? "Configurado, mas sem conexão válida" : "Não configurado"
+            }
+          />
+          <ReadinessSignal
+            icon={ShieldCheck}
+            label="Secret do webhook"
+            ok={data.webhook_secret_configured}
+            detail={data.webhook_secret_configured ? "Presente no backend" : "Não configurado"}
+          />
+          <ReadinessSignal
+            icon={RadioTower}
+            label="Entrega real"
+            ok={data.webhook_delivery_verified}
+            detail={
+              data.webhook_delivery_verified
+                ? `Verificada${data.last_valid_webhook_at ? ` · ${formatReadinessDate(data.last_valid_webhook_at)}` : ""}`
+                : "Nenhum webhook real processado ainda"
+            }
+          />
+        </div>
+
+        {!data.webhook_delivery_verified ? (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/[.05] px-4 py-3 text-sm leading-6 text-muted-foreground">
+            <strong className="text-foreground">Bloqueio intencional:</strong> a API do Mercado Pago responde e o secret existe, mas ainda falta observar uma entrega real com assinatura válida e reconsulta autoritativa ao provider.
+          </div>
+        ) : null}
+
+        {data.last_valid_webhook_event_type ? (
+          <p className="text-xs text-muted-foreground">
+            Último evento validado: <span className="font-semibold text-foreground">{data.last_valid_webhook_event_type}</span>
+          </p>
+        ) : null}
+
+        {data.last_error ? (
+          <p className="text-xs text-destructive">Último erro técnico: {data.last_error}</p>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReadinessSignal({
+  icon: Icon,
+  label,
+  ok,
+  detail,
+}: {
+  icon: typeof KeyRound;
+  label: string;
+  ok: boolean;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface-muted/30 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="grid size-9 place-items-center rounded-xl border border-border bg-background">
+          <Icon className="size-4" />
+        </span>
+        <Badge variant={ok ? "default" : "outline"}>
+          {ok ? <><CheckCircle2 className="mr-1 size-3" /> OK</> : "Pendente"}
+        </Badge>
+      </div>
+      <p className="mt-3 text-sm font-bold">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
+    </div>
+  );
+}
+
+function formatReadinessDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function SummaryCard({
