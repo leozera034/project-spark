@@ -25,9 +25,9 @@ import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
+import { Route as IntegracaoMercadoPagoRouteImport } from './routes/integracao/mercado-pago'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
 import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
-import { Route as PreviewDemoRouteImport } from './routes/preview/demo'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
 import { Route as AppEntregadorEntregaRouteImport } from './routes/app/entregador/entrega'
 import { Route as AppEntregadorHistoricoRouteImport } from './routes/app/entregador/historico'
@@ -37,6 +37,7 @@ import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/conf
 import { Route as AppLojaCozinhaRouteImport } from './routes/app/loja/cozinha'
 import { Route as AppLojaCrescimentoRouteImport } from './routes/app/loja/crescimento'
 import { Route as AppLojaPedidosRouteImport } from './routes/app/loja/pedidos'
+import { Route as AppLojaPlanoRouteImport } from './routes/app/loja/plano'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
@@ -149,6 +150,11 @@ const EntrarLojaRoute = EntrarLojaRouteImport.update({
   path: '/entrar/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegracaoMercadoPagoRoute = IntegracaoMercadoPagoRouteImport.update({
+  id: '/integracao/mercado-pago',
+  path: '/integracao/mercado-pago',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -157,11 +163,6 @@ const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
 const PedidoSplatRoute = PedidoSplatRouteImport.update({
   id: '/pedido/$',
   path: '/pedido/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewDemoRoute = PreviewDemoRouteImport.update({
-  id: '/preview/demo',
-  path: '/preview/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppEntregadorIndexRoute = AppEntregadorIndexRouteImport.update({
@@ -207,6 +208,11 @@ const AppLojaCrescimentoRoute = AppLojaCrescimentoRouteImport.update({
 const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaPlanoRoute = AppLojaPlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
   getParentRoute: () => AppLojaRoute,
 } as any)
 const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
@@ -404,8 +410,8 @@ export interface FileRoutesByFullPath {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
-  '/preview/demo': typeof PreviewDemoRoute
   '/admin/': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/app/loja/plano': typeof AppLojaPlanoRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -461,14 +468,15 @@ export interface FileRoutesByTo {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
-  '/preview/demo': typeof PreviewDemoRoute
   '/admin': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/app/loja/plano': typeof AppLojaPlanoRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -521,8 +529,8 @@ export interface FileRoutesById {
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
+  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
-  '/preview/demo': typeof PreviewDemoRoute
   '/admin/': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
+  '/app/loja/plano': typeof AppLojaPlanoRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
@@ -584,8 +593,8 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/integracao/mercado-pago'
     | '/pedido/$'
-    | '/preview/demo'
     | '/admin/'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
@@ -594,6 +603,7 @@ export interface FileRouteTypes {
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
     | '/app/loja/pedidos'
+    | '/app/loja/plano'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -641,14 +651,15 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/integracao/mercado-pago'
     | '/pedido/$'
-    | '/preview/demo'
     | '/admin'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
     | '/app/loja/pedidos'
+    | '/app/loja/plano'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -700,8 +711,8 @@ export interface FileRouteTypes {
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
+    | '/integracao/mercado-pago'
     | '/pedido/$'
-    | '/preview/demo'
     | '/admin/'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
@@ -710,6 +721,7 @@ export interface FileRouteTypes {
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
     | '/app/loja/pedidos'
+    | '/app/loja/plano'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
@@ -761,8 +773,8 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
+  IntegracaoMercadoPagoRoute: typeof IntegracaoMercadoPagoRoute
   PedidoSplatRoute: typeof PedidoSplatRoute
-  PreviewDemoRoute: typeof PreviewDemoRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
   ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
@@ -881,6 +893,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarLojaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integracao/mercado-pago': {
+      id: '/integracao/mercado-pago'
+      path: '/integracao/mercado-pago'
+      fullPath: '/integracao/mercado-pago'
+      preLoaderRoute: typeof IntegracaoMercadoPagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/loja/$slug': {
       id: '/loja/$slug'
       path: '/$slug'
@@ -893,13 +912,6 @@ declare module '@tanstack/react-router' {
       path: '/pedido/$'
       fullPath: '/pedido/$'
       preLoaderRoute: typeof PedidoSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preview/demo': {
-      id: '/preview/demo'
-      path: '/preview/demo'
-      fullPath: '/preview/demo'
-      preLoaderRoute: typeof PreviewDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/entregador/': {
@@ -963,6 +975,13 @@ declare module '@tanstack/react-router' {
       path: '/pedidos'
       fullPath: '/app/loja/pedidos'
       preLoaderRoute: typeof AppLojaPedidosRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/plano': {
+      id: '/app/loja/plano'
+      path: '/plano'
+      fullPath: '/app/loja/plano'
+      preLoaderRoute: typeof AppLojaPlanoRouteImport
       parentRoute: typeof AppLojaRoute
     }
     '/loja/$slug/': {
@@ -1292,6 +1311,7 @@ interface AppLojaRouteChildren {
   AppLojaCozinhaRoute: typeof AppLojaCozinhaRoute
   AppLojaCrescimentoRoute: typeof AppLojaCrescimentoRoute
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
+  AppLojaPlanoRoute: typeof AppLojaPlanoRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
   AppLojaEntregadoresCourierIdRoute: typeof AppLojaEntregadoresCourierIdRoute
   AppLojaEntregadoresNovoRoute: typeof AppLojaEntregadoresNovoRoute
@@ -1305,6 +1325,7 @@ const AppLojaRouteChildren: AppLojaRouteChildren = {
   AppLojaCozinhaRoute: AppLojaCozinhaRoute,
   AppLojaCrescimentoRoute: AppLojaCrescimentoRoute,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
+  AppLojaPlanoRoute: AppLojaPlanoRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
   AppLojaEntregadoresCourierIdRoute: AppLojaEntregadoresCourierIdRoute,
   AppLojaEntregadoresNovoRoute: AppLojaEntregadoresNovoRoute,
@@ -1374,8 +1395,8 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
+  IntegracaoMercadoPagoRoute: IntegracaoMercadoPagoRoute,
   PedidoSplatRoute: PedidoSplatRoute,
-  PreviewDemoRoute: PreviewDemoRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
   ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }
