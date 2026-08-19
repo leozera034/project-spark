@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Store, TriangleAlert } from "lucide-react";
+import { ArrowLeft, LocateFixed, MapPin, Store, TriangleAlert } from "lucide-react";
 
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { brl } from "@/components/storefront/format";
@@ -33,6 +33,18 @@ import {
 import type { PublicPaymentMethod } from "@/storefront/checkout/checkout.types";
 
 const parentRoute = getRouteApi("/loja/$slug");
+
+type DeliveryLocation = {
+  latitude: number;
+  longitude: number;
+  accuracyMeters: number | null;
+};
+
+function geolocationErrorCode(error: unknown): number | null {
+  if (typeof error !== "object" || error === null || !("code" in error)) return null;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "number" && Number.isFinite(code) ? code : null;
+}
 
 export const Route = createFileRoute("/loja/$slug/checkout")({
   head: () => ({
@@ -71,6 +83,9 @@ function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const fulfillmentType = context?.type ?? null;
 
@@ -91,6 +106,11 @@ function CheckoutPage() {
       alive = false;
     };
   }, [slug, fulfillmentType]);
+
+  useEffect(() => {
+    setDeliveryLocation(null);
+    setLocationMessage(null);
+  }, [context?.type, context?.type === "entrega" ? context.address.localId : null]);
 
   const selectedMethod = useMemo(
     () => methods?.find((method) => method.id === methodId) ?? null,
@@ -124,6 +144,46 @@ function CheckoutPage() {
     );
   }
 
+  const captureDeliveryLocation = async () => {
+    if (context.type !== "entrega" || locationBusy || submitting) return;
+    setLocationMessage(null);
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationMessage("Este dispositivo não oferece localização pelo navegador. O pedido continua normalmente.");
+      return;
+    }
+
+    setLocationBusy(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10_000,
+          maximumAge: 30_000,
+        });
+      });
+      const accuracy = Number.isFinite(position.coords.accuracy)
+        ? Math.min(10_000, Math.max(0, Math.round(position.coords.accuracy)))
+        : null;
+      setDeliveryLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracyMeters: accuracy,
+      });
+      setLocationMessage(
+        accuracy !== null
+          ? `Localização adicionada com precisão aproximada de ${accuracy} m. A taxa de entrega não muda.`
+          : "Localização adicionada. A taxa de entrega não muda.",
+      );
+    } catch (locationError) {
+      const code = geolocationErrorCode(locationError);
+      if (code === 1) setLocationMessage("Permissão negada. O pedido continua usando o endereço e o bairro normalmente.");
+      else if (code === 2) setLocationMessage("Não foi possível determinar sua localização. O pedido continua normalmente.");
+      else setLocationMessage("A localização demorou demais. Você pode enviar o pedido sem ela.");
+    } finally {
+      setLocationBusy(false);
+    }
+  };
+
   const submit = async () => {
     setTouched(true);
     if (!canSubmit) return;
@@ -148,6 +208,9 @@ function CheckoutPage() {
                 complement: context.address.complement,
                 reference: context.address.referencePoint,
                 label: context.address.customLabel ?? context.address.label,
+                latitude: deliveryLocation?.latitude ?? context.address.latitude,
+                longitude: deliveryLocation?.longitude ?? context.address.longitude,
+                accuracyMeters: deliveryLocation?.accuracyMeters ?? null,
               }
             : null,
         payment: {
@@ -249,7 +312,7 @@ function CheckoutPage() {
           </div>
         </section>
 
-        <section className="panel space-y-2 p-4 sm:p-5">
+        <section className="panel space-y-3 p-4 sm:p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             {context.type === "entrega" ? (
               <MapPin className="size-4 shrink-0" />
@@ -259,13 +322,36 @@ function CheckoutPage() {
             {context.type === "entrega" ? "Entrega" : "Retirada"}
           </h2>
           {context.type === "entrega" ? (
-            <p className="break-words text-sm leading-relaxed text-muted-foreground">
-              {context.address.street}
-              {context.address.hasNoNumber ? ", s/n" : `, ${context.address.number ?? ""}`}
-              {context.address.complement ? ` · ${context.address.complement}` : ""}
-              <br />
-              {context.address.neighborhoodNameSnapshot}
-            </p>
+            <>
+              <p className="break-words text-sm leading-relaxed text-muted-foreground">
+                {context.address.street}
+                {context.address.hasNoNumber ? ", s/n" : `, ${context.address.number ?? ""}`}
+                {context.address.complement ? ` · ${context.address.complement}` : ""}
+                <br />
+                {context.address.neighborhoodNameSnapshot}
+              </p>
+              <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Opcional: se você estiver neste endereço agora, envie a localização do aparelho para melhorar a distância e a previsão operacional. A taxa continua definida pelo bairro.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  disabled={locationBusy || submitting}
+                  onClick={() => void captureDeliveryLocation()}
+                >
+                  <LocateFixed className="mr-2 size-4" />
+                  {locationBusy
+                    ? "Localizando..."
+                    : deliveryLocation || (context.address.latitude !== null && context.address.longitude !== null)
+                      ? "Atualizar localização"
+                      : "Usar minha localização neste endereço"}
+                </Button>
+                {locationMessage ? <p className="mt-2 text-xs text-muted-foreground">{locationMessage}</p> : null}
+              </div>
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">Retirada no balcão do estabelecimento.</p>
           )}
