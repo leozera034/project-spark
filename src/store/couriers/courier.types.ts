@@ -2,6 +2,19 @@
  * Fase 18 e 19 — contratos da gestão e operação de entregadores.
  */
 
+export type CourierVehicle = "moto" | "carro" | "nao_informado";
+
+export interface DeliveryRouteEstimate {
+  distanceMeters: number;
+  durationSeconds: number;
+  estimatedMinutes: number;
+  provider?: string | null;
+  mode?: string | null;
+  isApproximate: boolean;
+  quality: "approximate" | "provider_route";
+  estimatedAt: string | null;
+}
+
 // --- Filtros e Listagem (Fase 18) ---
 
 export type CourierAccountFilter = "ativo" | "inativo";
@@ -23,12 +36,14 @@ export interface CourierAssignmentSummary {
   orderNumber: number | null;
   deliveryStatus: string;
   assignedAt?: string | null;
+  route?: DeliveryRouteEstimate | null;
 }
 
 export interface CourierListItem {
   courierId: string;
   displayName: string;
   phoneMasked: string | null;
+  vehicle: CourierVehicle;
   isActive: boolean;
   canAcceptDeliveries: boolean;
   presenceStatus: "online" | "offline";
@@ -65,6 +80,7 @@ export interface CourierDetail {
   courierId: string;
   displayName: string;
   phone: string | null;
+  vehicle: CourierVehicle;
   loginIdentifier: string | null;
   loginEnabled: boolean;
   requiresPasswordChange: boolean;
@@ -85,6 +101,7 @@ export type CourierEligibility = "eligible" | "confirm" | "blocked";
 export interface EligibleCourier {
   courierId: string;
   displayName: string;
+  vehicle: CourierVehicle;
   presenceStatus: "online" | "offline";
   lastSeenAt: string | null;
   canAcceptDeliveries: boolean;
@@ -112,9 +129,11 @@ export interface DeliveryAssignment {
     status: string;
     version: number;
     assignedAt: string | null;
+    route?: DeliveryRouteEstimate | null;
     courier: {
       courierId: string;
       displayName: string;
+      vehicle: CourierVehicle;
       presenceStatus: "online" | "offline";
       isActive: boolean;
     } | null;
@@ -145,6 +164,7 @@ export interface CourierCreateInput {
   fullName: string;
   phone: string;
   loginIdentifier: string;
+  vehicle: Exclude<CourierVehicle, "nao_informado">;
   canAcceptDeliveries: boolean;
   isActive: boolean;
   idempotencyKey: string;
@@ -215,8 +235,10 @@ export interface DeliveryProjection {
   orderNumber: number;
   storeName?: string;
   neighborhood?: string | null;
+  vehicle?: CourierVehicle;
+  route?: DeliveryRouteEstimate | null;
   allowedActions: CourierOperationalAllowedAction[];
-  
+
   // Detalhes completos (quando reduced=false)
   orderId?: string;
   orderStatus?: string;
@@ -237,6 +259,7 @@ export interface DeliveryProjection {
 export interface CourierOperationalContext {
   courierId: string;
   displayName: string;
+  vehicle: CourierVehicle;
   storeName: string;
   storePublicAddress: string;
   storePhone: string;
