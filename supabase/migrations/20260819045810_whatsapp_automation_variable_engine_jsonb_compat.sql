@@ -1,0 +1,4 @@
+-- Compatibility follow-up applied to production after runtime verification.
+-- Fresh environments already receive the compatible implementation in
+-- 20260819045535_whatsapp_automation_variable_engine.sql.
+-- This file intentionally remains a no-op so local migration history matches production.
