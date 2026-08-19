@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.comandiva-meta-whatsapp-webhook]
 verify_jwt = false
+
+[functions.comandiva-whatsapp-onboarding]
+verify_jwt = true
