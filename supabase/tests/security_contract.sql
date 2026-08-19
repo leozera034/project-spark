@@ -80,6 +80,36 @@ BEGIN
     RAISE EXCEPTION 'Platform RPCs must retain their explicit permission guards';
   END IF;
 
+  IF pg_get_functiondef('private.is_store_member(uuid)'::regprocedure) NOT ILIKE '%user_profiles%'
+     OR pg_get_functiondef('private.is_store_member(uuid)'::regprocedure) NOT ILIKE '%p.is_active%'
+     OR pg_get_functiondef('private.is_store_manager(uuid)'::regprocedure) NOT ILIKE '%user_profiles%'
+     OR pg_get_functiondef('private.is_store_manager(uuid)'::regprocedure) NOT ILIKE '%p.is_active%' THEN
+    RAISE EXCEPTION 'Store membership helpers must reject inactive user profiles';
+  END IF;
+
+  IF pg_get_functiondef('public.list_my_stores()'::regprocedure) NOT ILIKE '%user_profiles%'
+     OR pg_get_functiondef('public.list_my_stores()'::regprocedure) NOT ILIKE '%p.is_active%' THEN
+    RAISE EXCEPTION 'list_my_stores must reject inactive user profiles';
+  END IF;
+
+  IF pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) ILIKE '%''rejeitado''%'
+     OR pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) ILIKE '%''concluido''%'
+     OR pg_get_functiondef('public.get_store_revenue_series(uuid,integer)'::regprocedure) ILIKE '%''rejeitado''%'
+     OR pg_get_functiondef('public.get_store_revenue_series(uuid,integer)'::regprocedure) ILIKE '%''concluido''%'
+     OR pg_get_functiondef('public.list_store_customer_insights(uuid,text,text,integer,integer)'::regprocedure) ILIKE '%''concluido''%' THEN
+    RAISE EXCEPTION 'Growth RPCs must not reference retired order_status literals';
+  END IF;
+
+  IF pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) NOT ILIKE '%''recusado''%'
+     OR pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) NOT ILIKE '%''entregue''%'
+     OR pg_get_functiondef('public.get_store_growth_summary(uuid)'::regprocedure) NOT ILIKE '%''retirado''%'
+     OR pg_get_functiondef('public.get_store_revenue_series(uuid,integer)'::regprocedure) NOT ILIKE '%''entregue''%'
+     OR pg_get_functiondef('public.get_store_revenue_series(uuid,integer)'::regprocedure) NOT ILIKE '%''retirado''%'
+     OR pg_get_functiondef('public.list_store_customer_insights(uuid,text,text,integer,integer)'::regprocedure) NOT ILIKE '%''entregue''%'
+     OR pg_get_functiondef('public.list_store_customer_insights(uuid,text,text,integer,integer)'::regprocedure) NOT ILIKE '%''retirado''%' THEN
+    RAISE EXCEPTION 'Growth RPCs must use current terminal order_status values';
+  END IF;
+
   IF has_function_privilege(
       'authenticated',
       'public.provision_store_with_owner(text,text,uuid,text,text,text,text,text,text,text,text,text,uuid)'::regprocedure,
