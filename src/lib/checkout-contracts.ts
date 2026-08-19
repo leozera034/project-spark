@@ -55,8 +55,22 @@ export const checkoutAddressSchema = z
     complement: z.string().trim().max(80).nullable().optional(),
     reference: z.string().trim().max(120).nullable().optional(),
     label: z.string().trim().max(40).nullable().optional(),
+    latitude: z.number().finite().min(-90).max(90).nullable().optional(),
+    longitude: z.number().finite().min(-180).max(180).nullable().optional(),
+    accuracyMeters: z.number().finite().min(0).max(10000).nullable().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    const hasLatitude = value.latitude !== null && value.latitude !== undefined;
+    const hasLongitude = value.longitude !== null && value.longitude !== undefined;
+    if (hasLatitude !== hasLongitude) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "latitude e longitude devem ser enviadas juntas",
+        path: [hasLatitude ? "longitude" : "latitude"],
+      });
+    }
+  });
 
 export const checkoutRequestSchema = z
   .object({
