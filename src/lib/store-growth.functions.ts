@@ -12,6 +12,22 @@ function rpcCaller(client: { rpc: unknown }): RpcCaller {
 
 export type GrowthSegment = "novos" | "recorrentes" | "vip" | "inativos";
 
+export type AutomationEventCode =
+  | "novo_cliente"
+  | "pedido_criado"
+  | "pedido_aceito"
+  | "pedido_em_preparo"
+  | "pedido_pronto"
+  | "pedido_aguardando_entregador"
+  | "pedido_saiu_para_entrega"
+  | "pedido_entregue"
+  | "pedido_retirado"
+  | "pedido_recusado"
+  | "pedido_cancelado"
+  | "pedido_concluido"
+  | "cliente_inativo_30d"
+  | "cliente_vip";
+
 export interface StoreGrowthSummary {
   customers: number;
   newCustomers30d: number;
@@ -54,8 +70,8 @@ export interface MarketingCampaign {
 
 export interface AutomationRule {
   id: string;
-  event_code: "novo_cliente" | "pedido_concluido" | "cliente_inativo_30d" | "cliente_vip";
-  action_code: "sugerir_whatsapp" | "criar_tarefa";
+  event_code: AutomationEventCode;
+  action_code: "sugerir_whatsapp" | "criar_tarefa" | "send_whatsapp_template";
   name: string;
   is_enabled: boolean;
   config: Record<string, unknown>;
@@ -63,7 +79,50 @@ export interface AutomationRule {
   updated_at: string;
 }
 
+export interface AutomationVariableDefinition {
+  code: string;
+  label: string;
+}
+
+export interface AutomationEventDefinition {
+  code: AutomationEventCode;
+  label: string;
+  description: string;
+  variables: AutomationVariableDefinition[];
+}
+
+export interface AutomationTemplateOption {
+  id: string;
+  name: string;
+  code: string;
+  purpose: "transactional" | "marketing";
+  provider_template_name: string;
+  provider_language: string;
+  parameter_count: number;
+}
+
+export interface AutomationBuilderCatalog {
+  events: AutomationEventDefinition[];
+  templates: AutomationTemplateOption[];
+}
+
 const storeIdSchema = z.object({ storeId: z.string().uuid() });
+const automationEventSchema = z.enum([
+  "novo_cliente",
+  "pedido_criado",
+  "pedido_aceito",
+  "pedido_em_preparo",
+  "pedido_pronto",
+  "pedido_aguardando_entregador",
+  "pedido_saiu_para_entrega",
+  "pedido_entregue",
+  "pedido_retirado",
+  "pedido_recusado",
+  "pedido_cancelado",
+  "pedido_concluido",
+  "cliente_inativo_30d",
+  "cliente_vip",
+]);
 
 export const getStoreGrowthSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -145,12 +204,21 @@ export const listStoreAutomationRules = createServerFn({ method: "GET" })
     return (result.data ?? []) as AutomationRule[];
   });
 
+export const getStoreAutomationBuilderCatalog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const result = await rpcCaller(context.supabase)("get_store_automation_builder_catalog", { _store_id: data.storeId });
+    if (result.error) throw result.error;
+    return result.data as AutomationBuilderCatalog;
+  });
+
 export const saveStoreAutomationRule = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({
     storeId: z.string().uuid(),
     id: z.string().uuid().nullable().optional(),
-    eventCode: z.enum(["novo_cliente", "pedido_concluido", "cliente_inativo_30d", "cliente_vip"]),
+    eventCode: automationEventSchema,
     name: z.string().trim().min(2).max(120),
     enabled: z.boolean(),
     config: z.record(z.string(), z.unknown()).default({}),
