@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { lookupCnpj } from "@/lib/public-data.functions";
 import { updateStoreProfile } from "@/store-config/api";
 import { SectionForm, TextField, useSectionForm } from "@/store-config/form-kit";
 import { useStoreConfig } from "@/store-config/StoreConfigProvider";
@@ -10,6 +14,7 @@ export const Route = createFileRoute("/app/loja/configuracoes/dados")({
 
 function DadosSection() {
   const { configuration, storeId, save, isSaving } = useStoreConfig();
+  const consultCnpj = useServerFn(lookupCnpj);
   const store = configuration?.store;
   const settings = configuration?.settings;
 
@@ -26,8 +31,42 @@ function DadosSection() {
     closedMessage: settings?.closed_message ?? "",
   });
 
+  const [cnpjBusy, setCnpjBusy] = useState(false);
+  const [cnpjMessage, setCnpjMessage] = useState<string | null>(null);
+
   const canEdit = configuration?.can.update_profile ?? false;
   const nameError = form.value.name.trim().length < 2 ? "Informe o nome da loja." : null;
+  const normalizedDocument = form.value.document.replace(/\D/g, "");
+  const canLookupCnpj = canEdit && normalizedDocument.length === 14 && !cnpjBusy;
+
+  async function handleCnpjLookup() {
+    if (!canLookupCnpj) return;
+    setCnpjBusy(true);
+    setCnpjMessage(null);
+
+    try {
+      const result = await consultCnpj({ data: { cnpj: normalizedDocument } });
+      if (!result.ok) {
+        setCnpjMessage(
+          result.reason === "not_found"
+            ? "CNPJ não encontrado. Você pode preencher os dados manualmente."
+            : "Consulta indisponível agora. Você pode continuar preenchendo manualmente.",
+        );
+        return;
+      }
+
+      form.set("legalName", result.data.legalName);
+      setCnpjMessage(
+        result.data.tradeName
+          ? `CNPJ localizado: ${result.data.tradeName}. Razão social preenchida automaticamente.`
+          : "CNPJ localizado. Razão social preenchida automaticamente.",
+      );
+    } catch {
+      setCnpjMessage("Consulta indisponível agora. Você pode continuar preenchendo manualmente.");
+    } finally {
+      setCnpjBusy(false);
+    }
+  }
 
   return (
     <SectionForm
@@ -75,15 +114,32 @@ function DadosSection() {
         maxLength={160}
         onChange={(v) => form.set("legalName", v)}
       />
-      <TextField
-        id="document"
-        label="CNPJ ou CPF"
-        hint="Somente números."
-        inputMode="numeric"
-        value={form.value.document}
-        maxLength={18}
-        onChange={(v) => form.set("document", v)}
-      />
+      <div className="space-y-2">
+        <TextField
+          id="document"
+          label="CNPJ ou CPF"
+          hint="Para CNPJ, o Comandiva pode consultar os dados públicos automaticamente."
+          inputMode="numeric"
+          value={form.value.document}
+          maxLength={18}
+          onChange={(v) => {
+            form.set("document", v);
+            setCnpjMessage(null);
+          }}
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!canLookupCnpj}
+            onClick={() => void handleCnpjLookup()}
+          >
+            {cnpjBusy ? "Consultando..." : "Consultar CNPJ"}
+          </Button>
+          {cnpjMessage ? <p className="text-xs text-muted-foreground">{cnpjMessage}</p> : null}
+        </div>
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField
           id="phone"
