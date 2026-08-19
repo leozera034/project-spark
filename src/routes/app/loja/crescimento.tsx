@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { GrowthSegment } from "@/lib/store-growth.functions";
 import {
+  useStoreCrmSegmentSummary,
   useStoreCustomerInsights,
   useStoreGrowthActions,
   useStoreGrowthSummary,
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/app/loja/crescimento")({
 });
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 const SEGMENTS: Array<{ key: GrowthSegment | "todos"; label: string }> = [
   { key: "todos", label: "Todos" },
   { key: "novos", label: "Novos" },
@@ -54,6 +56,12 @@ function normalizeBrazilWhatsAppPhone(rawPhone: string) {
   return digits.startsWith("55") && digits.length >= 12 ? digits : `55${digits}`;
 }
 
+function formatScanTime(value: string | null | undefined) {
+  if (!value) return "Aguardando clientes";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "Aguardando próxima varredura" : dateTime.format(parsed);
+}
+
 function GrowthCenter() {
   const { authContext } = useAuth();
   const storeId = authContext?.store_ids?.[0] ?? null;
@@ -64,6 +72,7 @@ function GrowthCenter() {
   const [campaignAudience, setCampaignAudience] = useState<"todos" | GrowthSegment>("todos");
 
   const summary = useStoreGrowthSummary(storeId);
+  const crm = useStoreCrmSegmentSummary(storeId);
   const customers = useStoreCustomerInsights(storeId, {
     search: search || undefined,
     segment: segment === "todos" ? undefined : segment,
@@ -125,6 +134,7 @@ function GrowthCenter() {
             className="border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white"
             onClick={() => {
               void summary.refetch();
+              void crm.refetch();
               void customers.refetch();
               void revenue.refetch();
             }}
@@ -160,6 +170,31 @@ function GrowthCenter() {
           detail={`${summary.data?.inactiveCustomers ?? 0} para reativar`}
         />
       </section>
+
+      <Card className="overflow-hidden border-brand/15">
+        <CardHeader className="border-b border-border bg-brand-soft/40">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>CRM automático de retenção</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Segmentos recalculados por pedidos concluídos reais; VIP e inatividade geram eventos deduplicados.
+              </p>
+            </div>
+            <Badge variant="secondary" className="w-fit shrink-0">Ativo · varredura a cada 6h</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          <CrmStat label="Novos" value={crm.data?.newCustomers ?? 0} />
+          <CrmStat label="Recorrentes" value={crm.data?.repeatCustomers ?? 0} />
+          <CrmStat label="VIP ativos" value={crm.data?.vipCustomers ?? 0} />
+          <CrmStat label="Inativos" value={crm.data?.inactiveCustomers ?? 0} />
+          <CrmStat label="Opt-ins WhatsApp" value={crm.data?.marketingOptIns ?? 0} />
+          <div className="sm:col-span-2 lg:col-span-5 flex flex-col gap-1 rounded-xl border border-border bg-surface-muted/40 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>Última varredura: <strong className="text-foreground">{formatScanTime(crm.data?.lastScannedAt)}</strong></span>
+            <span>Mensagens de retenção automáticas só entram na fila com opt-in de marketing.</span>
+          </div>
+        </CardContent>
+      </Card>
 
       <section className="grid min-w-0 gap-6 xl:grid-cols-[1.45fr_.75fr]">
         <Card className="min-w-0 overflow-hidden">
@@ -331,8 +366,17 @@ function GrowthCenter() {
 
       <div className="rounded-2xl border border-brand/15 bg-brand-soft p-4 text-sm leading-relaxed text-brand-soft-foreground">
         <ChartNoAxesCombined className="mr-2 inline size-4" />
-        Os segmentos são inferidos de pedidos reais: VIP = 5+ pedidos; recorrente = 2+; inativo = sem comprar há mais de 30 dias. Esses critérios podem virar configuração por loja numa evolução futura.
+        Segmentação autoritativa: inativo = mais de 30 dias sem pedido concluído; VIP ativo = 5+ pedidos; recorrente = 2+. Enquanto estiver inativo, o estado de inatividade prevalece sobre VIP. Ao voltar a comprar, o cliente sai de inativo sem repetir o evento VIP já conquistado.
       </div>
+    </div>
+  );
+}
+
+function CrmStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface px-4 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-[.1em] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-black text-foreground">{value}</p>
     </div>
   );
 }
