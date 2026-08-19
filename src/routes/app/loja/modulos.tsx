@@ -251,7 +251,10 @@ function StoreModulesPage() {
                     ? "A loja já pode usar distância e tempo aproximados sem custo de API. Google Routes permanece desligado até preço, billing e credencial serem homologados."
                     : "O checkout continua usando ETA e taxa por bairro. Capture a localização da loja para habilitar a camada gratuita de aproximação sem alterar a cobrança do pedido."}
             </span>
-            <Button asChild variant="outline" className="shrink-0"><Link to="/app/loja/configuracoes/endereco">Configurar localização</Link></Button>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button asChild variant="outline"><Link to="/app/loja/smart-delivery">Abrir central</Link></Button>
+              <Button asChild variant="ghost"><Link to="/app/loja/configuracoes/endereco">Localização</Link></Button>
+            </div>
           </div>
         </CardContent>
       </Card>
