@@ -9,8 +9,16 @@ export interface StoreConfigStore {
   phone: string | null;
   whatsapp: string | null;
   email: string | null;
+  postal_code: string | null;
+  street: string | null;
+  address_number: string | null;
+  address_complement: string | null;
+  neighborhood: string | null;
+  address_line: string | null;
   city: string | null;
   state: string | null;
+  latitude: number | null;
+  longitude: number | null;
   timezone: string;
   accepts_delivery: boolean;
   accepts_pickup: boolean;
