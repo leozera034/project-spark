@@ -38,6 +38,98 @@ export interface StoreDeliveryEstimatePreview {
   provider_route_available?: boolean;
 }
 
+export type SmartDeliveryOverallStatus = "ready" | "partial" | "paused" | "blocked";
+export type SmartDeliveryMetricCode = "routes.compute" | "geocoding.address";
+
+export interface SmartDeliveryUsageItem {
+  provider: "google_maps";
+  metric_code: SmartDeliveryMetricCode;
+  period_start: string;
+  period_end: string;
+  quantity: number;
+  included_units: number | null;
+  hard_limit_units: number | null;
+  warn_percent: number | null;
+  critical_percent: number | null;
+  limit_action: string | null;
+  provider_cost_micros: number;
+  customer_charge_micros: number;
+  next_unit_allowed: boolean;
+}
+
+export interface SmartDeliveryRecentIssue {
+  job_type: "geocode_address" | "compute_delivery_route";
+  status: "retry" | "failed" | "cancelled";
+  attempts: number;
+  max_attempts: number;
+  error_code: string | null;
+  updated_at: string;
+}
+
+export interface StoreSmartDeliveryControlCenter {
+  store_id: string;
+  overall_status: SmartDeliveryOverallStatus;
+  smart_delivery_entitled: boolean;
+  store: {
+    coordinates_set: boolean;
+    location_source: "unverified" | "manual_browser" | "manual_admin" | "google_geocoding";
+    local_approximation_ready: boolean;
+  };
+  control: {
+    is_paused: boolean;
+    pause_reason: string | null;
+    paused_at: string | null;
+    version: number;
+  };
+  provider: {
+    code: "google_maps";
+    api_key_configured: boolean;
+    billing_confirmed: boolean;
+    routes_api_enabled: boolean;
+    geocoding_api_enabled: boolean;
+    global_kill_switch_enabled: boolean;
+    routes_provider_ready: boolean;
+    geocoding_provider_ready: boolean;
+    last_health_at: string | null;
+    last_error_code: string | null;
+  };
+  capabilities: {
+    routes_ready: boolean;
+    geocoding_ready: boolean;
+  };
+  usage: {
+    period_start: string;
+    period_end: string;
+    items: SmartDeliveryUsageItem[];
+  };
+  cost_tracking: {
+    provider_cost_micros: number;
+    customer_charge_micros: number;
+    reconciliation_pending: boolean;
+  };
+  jobs: {
+    queued: number;
+    processing: number;
+    retry: number;
+    completed: number;
+    failed: number;
+    cancelled: number;
+    oldest_pending_at: string | null;
+    stale_processing: number;
+    recent_issues: SmartDeliveryRecentIssue[];
+  };
+  diagnostics: string[];
+}
+
+export interface StoreSmartDeliveryPauseResult {
+  store_id: string;
+  is_paused: boolean;
+  pause_reason: string | null;
+  paused_at: string | null;
+  version: number;
+  cancelled_pending_jobs: number;
+}
+
 const storeIdSchema = z.string().uuid();
 const readinessSchema = z.object({
   static_neighborhood_eta_available: z.boolean(),
@@ -72,6 +164,95 @@ const previewSchema = z.object({
   smart_delivery_entitled: z.boolean().optional(),
   provider_ready: z.boolean().optional(),
   provider_route_available: z.boolean().optional(),
+});
+
+const usageItemSchema = z.object({
+  provider: z.literal("google_maps"),
+  metric_code: z.enum(["routes.compute", "geocoding.address"]),
+  period_start: z.string(),
+  period_end: z.string(),
+  quantity: z.number().nonnegative(),
+  included_units: z.number().nonnegative().nullable(),
+  hard_limit_units: z.number().nonnegative().nullable(),
+  warn_percent: z.number().int().min(0).max(100).nullable(),
+  critical_percent: z.number().int().min(0).max(100).nullable(),
+  limit_action: z.string().nullable(),
+  provider_cost_micros: z.number().int().nonnegative(),
+  customer_charge_micros: z.number().int().nonnegative(),
+  next_unit_allowed: z.boolean(),
+});
+
+const recentIssueSchema = z.object({
+  job_type: z.enum(["geocode_address", "compute_delivery_route"]),
+  status: z.enum(["retry", "failed", "cancelled"]),
+  attempts: z.number().int().nonnegative(),
+  max_attempts: z.number().int().positive(),
+  error_code: z.string().nullable(),
+  updated_at: z.string(),
+});
+
+const controlCenterSchema = z.object({
+  store_id: z.string().uuid(),
+  overall_status: z.enum(["ready", "partial", "paused", "blocked"]),
+  smart_delivery_entitled: z.boolean(),
+  store: z.object({
+    coordinates_set: z.boolean(),
+    location_source: z.enum(["unverified", "manual_browser", "manual_admin", "google_geocoding"]),
+    local_approximation_ready: z.boolean(),
+  }),
+  control: z.object({
+    is_paused: z.boolean(),
+    pause_reason: z.string().nullable(),
+    paused_at: z.string().nullable(),
+    version: z.number().int().nonnegative(),
+  }),
+  provider: z.object({
+    code: z.literal("google_maps"),
+    api_key_configured: z.boolean(),
+    billing_confirmed: z.boolean(),
+    routes_api_enabled: z.boolean(),
+    geocoding_api_enabled: z.boolean(),
+    global_kill_switch_enabled: z.boolean(),
+    routes_provider_ready: z.boolean(),
+    geocoding_provider_ready: z.boolean(),
+    last_health_at: z.string().nullable(),
+    last_error_code: z.string().nullable(),
+  }),
+  capabilities: z.object({
+    routes_ready: z.boolean(),
+    geocoding_ready: z.boolean(),
+  }),
+  usage: z.object({
+    period_start: z.string(),
+    period_end: z.string(),
+    items: z.array(usageItemSchema),
+  }),
+  cost_tracking: z.object({
+    provider_cost_micros: z.number().int().nonnegative(),
+    customer_charge_micros: z.number().int().nonnegative(),
+    reconciliation_pending: z.boolean(),
+  }),
+  jobs: z.object({
+    queued: z.number().int().nonnegative(),
+    processing: z.number().int().nonnegative(),
+    retry: z.number().int().nonnegative(),
+    completed: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+    cancelled: z.number().int().nonnegative(),
+    oldest_pending_at: z.string().nullable(),
+    stale_processing: z.number().int().nonnegative(),
+    recent_issues: z.array(recentIssueSchema),
+  }),
+  diagnostics: z.array(z.string()),
+});
+
+const pauseResultSchema = z.object({
+  store_id: z.string().uuid(),
+  is_paused: z.boolean(),
+  pause_reason: z.string().nullable(),
+  paused_at: z.string().nullable(),
+  version: z.number().int().positive(),
+  cancelled_pending_jobs: z.number().int().nonnegative(),
 });
 
 type RpcResult = { data: unknown; error: unknown };
@@ -111,4 +292,37 @@ export const previewStoreDeliveryEstimate = createServerFn({ method: "POST" })
     });
     if (result.error) throw result.error;
     return previewSchema.parse(result.data) satisfies StoreDeliveryEstimatePreview;
+  });
+
+export const getStoreSmartDeliveryControlCenter = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((value: unknown) => z.object({ storeId: storeIdSchema }).parse(value))
+  .handler(async ({ data, context }) => {
+    const { invokePediuBackendAction } = await import("@/integrations/supabase/client.server");
+    const payload = await invokePediuBackendAction<StoreSmartDeliveryControlCenter>(
+      { action: "get_smart_delivery_control_center", input: { storeId: data.storeId } },
+      { accessToken: context.accessToken },
+    );
+    return controlCenterSchema.parse(payload) satisfies StoreSmartDeliveryControlCenter;
+  });
+
+export const setStoreSmartDeliveryPause = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((value: unknown) =>
+    z.object({
+      storeId: storeIdSchema,
+      paused: z.boolean(),
+      reason: z.string().trim().max(240).nullable().optional(),
+    }).parse(value),
+  )
+  .handler(async ({ data, context }) => {
+    const { invokePediuBackendAction } = await import("@/integrations/supabase/client.server");
+    const payload = await invokePediuBackendAction<StoreSmartDeliveryPauseResult>(
+      {
+        action: "set_smart_delivery_pause",
+        input: { storeId: data.storeId, paused: data.paused, reason: data.paused ? data.reason ?? null : null },
+      },
+      { accessToken: context.accessToken },
+    );
+    return pauseResultSchema.parse(payload) satisfies StoreSmartDeliveryPauseResult;
   });
