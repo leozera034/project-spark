@@ -19,7 +19,7 @@ async function validSignature(raw:string,header:string,secret:string){let ts="";
 async function stripeGet(path:string,account?:string){const sk=Deno.env.get("STRIPE_SECRET_KEY")?.trim();if(!sk)return{ok:false,status:503,body:{} as J};const h=new Headers({Authorization:`Bearer ${sk}`});if(account)h.set("Stripe-Account",account);const c=new AbortController(),t=setTimeout(()=>c.abort(),TIMEOUT_MS);try{const r=await fetch(`${STRIPE_API}${path}`,{headers:h,signal:c.signal});return{ok:r.ok,status:r.status,body:obj(await r.json().catch(()=>({})))}}finally{clearTimeout(t)}}
 function unixIso(v:unknown){const n=int(v);return n&&n>0?new Date(n*1000).toISOString():null}
 
-async function reconcileSubscription(raw:J){
+async function reconcileSubscription(raw:J,eventCreated:number|null){
   const metadata=obj(raw.metadata);const ext=str(metadata.comandiva_external_reference);if(!ext)return{relevant:false,ok:true};
   const items=obj(raw.items);const data=Array.isArray(items.data)?items.data:[];const first=obj(data[0]);const price=obj(first.price);
   const priceId=str(price.id),itemId=str(first.id),sid=str(raw.id),status=str(raw.status),customerId=str(raw.customer);
@@ -28,7 +28,7 @@ async function reconcileSubscription(raw:J){
   if(!sid||!status||!priceId)return{relevant:true,ok:false,error:"subscription_snapshot_incomplete"};
   const a=admin();
   if(ext.startsWith("comandiva:plan:")){
-    const {error}=await a.rpc("billing_reconcile_stripe_plan_subscription",{_provider_subscription_id:sid,_provider_customer_id:customerId,_provider_item_id:itemId,_provider_status:status,_external_reference:ext,_provider_price_id:priceId,_current_period_start:periodStart,_current_period_end:periodEnd,_trial_end:unixIso(raw.trial_end),_cancel_at_period_end:raw.cancel_at_period_end===true} as never);
+    const {error}=await a.rpc("billing_reconcile_stripe_plan_subscription_event",{_provider_subscription_id:sid,_provider_customer_id:customerId,_provider_item_id:itemId,_provider_status:status,_external_reference:ext,_provider_price_id:priceId,_current_period_start:periodStart,_current_period_end:periodEnd,_trial_end:unixIso(raw.trial_end),_cancel_at_period_end:raw.cancel_at_period_end===true,_provider_event_created:eventCreated} as never);
     return{relevant:true,kind:"plan",ok:!error,error:error?.message};
   }
   if(ext.startsWith("comandiva:addon:")){
@@ -38,43 +38,56 @@ async function reconcileSubscription(raw:J){
   return{relevant:false,ok:true};
 }
 
-async function recordPlanInvoice(raw:J,eventId:string){
-  const parent=obj(raw.parent);const subscriptionDetails=obj(parent.subscription_details);
-  const subId=str(raw.subscription)??str(subscriptionDetails.subscription);
-  if(!subId)return{relevant:false,ok:true};
+async function recordPlanInvoice(raw:J,eventId:string,eventCreated:number|null){
+  const parent=obj(raw.parent),subscriptionDetails=obj(parent.subscription_details);
+  const subId=str(raw.subscription)??str(subscriptionDetails.subscription);if(!subId)return{relevant:false,ok:true};
   const invoiceId=str(raw.id);if(!invoiceId)return{relevant:true,ok:false,error:"invoice_id_missing"};
-  const transitions=obj(raw.status_transitions);const paymentIntent=str(raw.payment_intent);
-  const {data,error}=await admin().rpc("billing_record_stripe_plan_invoice",{
-    _provider_subscription_id:subId,_provider_invoice_id:invoiceId,_provider_payment_id:paymentIntent,
-    _provider_event_key:eventId,_provider_status:str(raw.status)??"unknown",
-    _amount_due_cents:int(raw.amount_due)??0,_amount_paid_cents:int(raw.amount_paid)??0,
-    _currency:str(raw.currency)??"brl",_paid_at:unixIso(transitions.paid_at),_due_at:unixIso(raw.due_date),
-    _metadata:{billing_reason:str(raw.billing_reason),attempt_count:int(raw.attempt_count)}
-  } as never);
+  const transitions=obj(raw.status_transitions),paymentIntent=str(raw.payment_intent);
+  const {data,error}=await admin().rpc("billing_record_stripe_plan_invoice",{_provider_subscription_id:subId,_provider_invoice_id:invoiceId,_provider_payment_id:paymentIntent,_provider_event_key:eventId,_provider_status:str(raw.status)??"unknown",_amount_due_cents:int(raw.amount_due)??0,_amount_paid_cents:int(raw.amount_paid)??0,_currency:str(raw.currency)??"brl",_paid_at:unixIso(transitions.paid_at),_due_at:unixIso(raw.due_date),_metadata:{billing_reason:str(raw.billing_reason),attempt_count:int(raw.attempt_count),event_created:eventCreated}} as never);
   if(error)return{relevant:true,ok:false,error:error.message};
   return{relevant:obj(data).relevant===true,ok:true};
 }
 
-async function syncConnectedAccount(raw:J){const accountId=str(raw.id);if(!accountId)return false;const metadata=obj(raw.metadata);let storeId=str(metadata.comandiva_store_id);const a=admin();if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}if(!storeId)return false;const requirements=obj(raw.requirements);const {error}=await a.rpc("backend_upsert_stripe_connect_account",{_store_id:storeId,_stripe_account_id:accountId,_country:str(raw.country),_business_type:str(raw.business_type),_details_submitted:raw.details_submitted===true,_charges_enabled:raw.charges_enabled===true,_payouts_enabled:raw.payouts_enabled===true,_requirements_currently_due:Array.isArray(requirements.currently_due)?requirements.currently_due:[],_metadata:{source:"stripe_webhook"}} as never);return !error}
-async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null){const metadata=obj(raw.metadata);const orderId=str(metadata.comandiva_order_id),storeId=str(metadata.comandiva_store_id),pi=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);if(!orderId||!storeId||!pi||!status||!amount||!currency)return false;const account=connectedAccount??str(raw.on_behalf_of);if(!account)return false;const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_webhook"}} as never);return !error}
+async function syncConnectedAccount(raw:J){
+  const accountId=str(raw.id);if(!accountId)return false;const metadata=obj(raw.metadata);let storeId=str(metadata.comandiva_store_id);const a=admin();
+  if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}if(!storeId)return false;
+  const requirements=obj(raw.requirements);const {error}=await a.rpc("backend_upsert_stripe_connect_account",{_store_id:storeId,_stripe_account_id:accountId,_country:str(raw.country),_business_type:str(raw.business_type),_details_submitted:raw.details_submitted===true,_charges_enabled:raw.charges_enabled===true,_payouts_enabled:raw.payouts_enabled===true,_requirements_currently_due:Array.isArray(requirements.currently_due)?requirements.currently_due:[],_metadata:{source:"stripe_webhook"}} as never);return !error;
+}
+async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){
+  const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),storeId=str(metadata.comandiva_store_id),pi=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);
+  if(!orderId||!storeId||!pi||!status||!amount||!currency)return false;const account=connectedAccount??str(raw.on_behalf_of);if(!account)return false;
+  const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_webhook",event_created:eventCreated}} as never);return !error;
+}
 
 Deno.serve(async(req:Request)=>{
   if(req.method==="GET")return response(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()?200:503,{ok:Boolean(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()),provider:"stripe"});
   if(req.method!=="POST")return response(405,{ok:false,error:"method_not_allowed"});
   const len=Number(req.headers.get("content-length")??0);if(Number.isFinite(len)&&len>MAX_BODY_BYTES)return response(413,{ok:false,error:"payload_too_large"});
   const secret=Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()??"";if(!secret)return response(503,{ok:false,error:"webhook_not_configured"});
-  const raw=await req.text();const sig=req.headers.get("stripe-signature")??"";if(!await validSignature(raw,sig,secret))return response(401,{ok:false,error:"invalid_signature"});
+  const raw=await req.text(),sig=req.headers.get("stripe-signature")??"";if(!await validSignature(raw,sig,secret))return response(401,{ok:false,error:"invalid_signature"});
   let event:J;try{event=obj(JSON.parse(raw))}catch{return response(400,{ok:false,error:"invalid_json"})}
-  const eventId=str(event.id),eventType=str(event.type)??"unknown",connectedAccount=str(event.account);if(!eventId)return response(400,{ok:false,error:"event_id_missing"});
-  const a=admin();const claim=await a.rpc("backend_claim_stripe_webhook_event",{_event_id:eventId,_event_type:eventType,_connected_account_id:connectedAccount} as never);if(claim.error)return response(500,{ok:false,error:"event_claim_failed"});if(claim.data==="duplicate")return response(200,{ok:true,duplicate:true});if(claim.data!=="process")return response(503,{ok:false,error:"event_in_progress"});
+  const eventId=str(event.id),eventType=str(event.type)??"unknown",connectedAccount=str(event.account),eventCreated=int(event.created);if(!eventId)return response(400,{ok:false,error:"event_id_missing"});
+  const a=admin(),claim=await a.rpc("backend_claim_stripe_webhook_event",{_event_id:eventId,_event_type:eventType,_connected_account_id:connectedAccount} as never);
+  if(claim.error)return response(500,{ok:false,error:"event_claim_failed"});if(claim.data==="duplicate")return response(200,{ok:true,duplicate:true});if(claim.data!=="process")return response(503,{ok:false,error:"event_in_progress"});
   const finish=async(status:"processed"|"ignored"|"failed",err:string|null=null)=>{await a.rpc("backend_finalize_stripe_webhook_event",{_event_id:eventId,_processing_status:status,_last_error:err} as never)};
   try{
     const data=obj(event.data),resource=obj(data.object);
     if(eventType==="account.updated"){const ok=await syncConnectedAccount(resource);await finish(ok?"processed":"ignored",ok?null:"account_not_mapped");return response(200,{ok:true,processed:ok})}
-    if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
-    if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){const subId=str(resource.subscription);if(!subId){await finish("ignored");return response(200,{ok:true,ignored:true})}const up=await stripeGet(`/v1/subscriptions/${encodeURIComponent(subId)}?expand[]=items.data.price`);if(!up.ok){await finish("failed",`subscription_lookup_${up.status}`);return response(502,{ok:false,error:"subscription_lookup_failed"})}const rec=await reconcileSubscription(up.body);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}await finish(rec.relevant?"processed":"ignored");return response(200,{ok:true,processed:rec.relevant,kind:rec.kind})}
-    if(eventType==="customer.subscription.created"||eventType==="customer.subscription.updated"||eventType==="customer.subscription.deleted"||eventType==="customer.subscription.paused"||eventType==="customer.subscription.resumed"){const rec=await reconcileSubscription(resource);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}await finish(rec.relevant?"processed":"ignored");return response(200,{ok:true,processed:rec.relevant,kind:rec.kind})}
-    if(eventType==="invoice.paid"||eventType==="invoice.payment_succeeded"||eventType==="invoice.payment_failed"){const inv=await recordPlanInvoice(resource,eventId);if(!inv.ok){await finish("failed",inv.error??"invoice_reconcile_failed");return response(409,{ok:false,error:"invoice_reconcile_failed"})}const parent=obj(resource.parent),sd=obj(parent.subscription_details);const subId=str(resource.subscription)??str(sd.subscription);if(subId){const up=await stripeGet(`/v1/subscriptions/${encodeURIComponent(subId)}?expand[]=items.data.price`);if(up.ok){const rec=await reconcileSubscription(up.body);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}}}await finish(inv.relevant?"processed":"ignored");return response(200,{ok:true,processed:inv.relevant})}
-    await finish("ignored");return response(200,{ok:true,ignored:true})
+    if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
+    if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){
+      const subId=str(resource.subscription);if(!subId){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      const up=await stripeGet(`/v1/subscriptions/${encodeURIComponent(subId)}?expand[]=items.data.price`);if(!up.ok){await finish("failed",`subscription_lookup_${up.status}`);return response(502,{ok:false,error:"subscription_lookup_failed"})}
+      const rec=await reconcileSubscription(up.body,eventCreated);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}await finish(rec.relevant?"processed":"ignored");return response(200,{ok:true,processed:rec.relevant,kind:rec.kind});
+    }
+    if(["customer.subscription.created","customer.subscription.updated","customer.subscription.deleted","customer.subscription.paused","customer.subscription.resumed"].includes(eventType)){
+      const rec=await reconcileSubscription(resource,eventCreated);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}await finish(rec.relevant?"processed":"ignored");return response(200,{ok:true,processed:rec.relevant,kind:rec.kind});
+    }
+    if(["invoice.paid","invoice.payment_succeeded","invoice.payment_failed"].includes(eventType)){
+      const inv=await recordPlanInvoice(resource,eventId,eventCreated);if(!inv.ok){await finish("failed",inv.error??"invoice_reconcile_failed");return response(409,{ok:false,error:"invoice_reconcile_failed"})}
+      const parent=obj(resource.parent),sd=obj(parent.subscription_details),subId=str(resource.subscription)??str(sd.subscription);
+      if(subId){const up=await stripeGet(`/v1/subscriptions/${encodeURIComponent(subId)}?expand[]=items.data.price`);if(up.ok){const rec=await reconcileSubscription(up.body,eventCreated);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}}}
+      await finish(inv.relevant?"processed":"ignored");return response(200,{ok:true,processed:inv.relevant});
+    }
+    await finish("ignored");return response(200,{ok:true,ignored:true});
   }catch(e){const msg=e instanceof Error?e.message:"webhook_processing_failed";await finish("failed",msg);return response(500,{ok:false,error:"webhook_processing_failed"})}
 });
