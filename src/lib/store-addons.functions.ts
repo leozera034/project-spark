@@ -73,6 +73,34 @@ export interface StoreUsageSummaryResponse {
   items: StoreUsageItem[];
 }
 
+export interface AddonPurchaseBlocker {
+  code: string;
+  message: string;
+}
+
+export interface AddonPurchasePreflight {
+  ready: boolean;
+  provider: "mercado_pago";
+  addon: {
+    id: string;
+    code: string;
+    name: string;
+    availability_status: AddonAvailabilityStatus;
+  };
+  price: null | {
+    id: string;
+    billing_interval: "monthly" | "annual";
+    amount_cents: number;
+    currency: string;
+    trial_days: number;
+    included_units: number | null;
+    hard_limit_units: number | null;
+    metering_metric_code: string | null;
+    overage_unit_amount_micros: number | null;
+  };
+  blockers: AddonPurchaseBlocker[];
+}
+
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 
@@ -116,4 +144,24 @@ export const getMyStoreUsageSummary = createServerFn({ method: "GET" })
     });
     if (result.error) throw result.error;
     return result.data as StoreUsageSummaryResponse;
+  });
+
+export const getStoreAddonPurchasePreflight = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({
+      storeId: z.string().uuid(),
+      addonCode: z.string().regex(/^[a-z0-9_]+$/),
+      billingInterval: z.enum(["monthly", "annual"]).default("monthly"),
+    }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const rpc = context.supabase.rpc as RpcCaller;
+    const result = await rpc("get_store_addon_purchase_preflight", {
+      _store_id: data.storeId,
+      _addon_code: data.addonCode,
+      _billing_interval: data.billingInterval,
+    });
+    if (result.error) throw result.error;
+    return result.data as AddonPurchasePreflight;
   });
