@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
+  getStoreAutomationBuilderCatalog,
   getStoreGrowthSummary,
   getStoreRevenueSeries,
   listStoreAutomationRules,
@@ -9,6 +10,7 @@ import {
   listStoreMarketingCampaigns,
   saveStoreAutomationRule,
   saveStoreMarketingCampaign,
+  type AutomationEventCode,
   type GrowthSegment,
 } from "@/lib/store-growth.functions";
 
@@ -24,7 +26,7 @@ type CampaignInput = {
 type AutomationInput = {
   storeId: string;
   id?: string | null;
-  eventCode: "novo_cliente" | "pedido_concluido" | "cliente_inativo_30d" | "cliente_vip";
+  eventCode: AutomationEventCode;
   name: string;
   enabled: boolean;
   config?: Record<string, unknown>;
@@ -76,6 +78,16 @@ export function useStoreAutomationRules(storeId: string | null) {
     queryKey: ["store-growth", storeId, "automations"],
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
+  });
+}
+
+export function useStoreAutomationBuilderCatalog(storeId: string | null) {
+  const fn = useServerFn(getStoreAutomationBuilderCatalog);
+  return useQuery({
+    queryKey: ["store-growth", storeId, "automation-builder-catalog"],
+    queryFn: () => fn({ data: { storeId: storeId! } }),
+    enabled: Boolean(storeId),
+    staleTime: 30000,
   });
 }
 
