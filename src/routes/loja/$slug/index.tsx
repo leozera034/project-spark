@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { Clock, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
+import { Clock, MapPin, Search, ShoppingBag, X } from "lucide-react";
 
 import { CartBar } from "@/components/storefront/CartBar";
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
+import { StorefrontIdentityMark } from "@/components/storefront/StorefrontIdentityMark";
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -17,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { getDefaultStoreBanner } from "@/storefront/default-banners";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
@@ -39,6 +41,7 @@ function StorefrontPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const { store, settings, hours, is_open: isOpen } = storePayload;
+  const effectiveCoverUrl = settings.cover_url || getDefaultStoreBanner(store.segment);
 
   const grouped = useMemo(() => {
     const needle = foldText(term);
@@ -101,21 +104,12 @@ function StorefrontPage() {
       <OrderingContextBar />
 
       <header className="storefront-hero relative">
-        {settings.cover_url ? (
-          <img
-            src={settings.cover_url}
-            alt=""
-            className="h-40 w-full object-cover sm:h-60"
-            fetchPriority="high"
-          />
-        ) : (
-          <div
-            className="h-32 w-full sm:h-44"
-            style={{
-              background: `linear-gradient(120deg, ${settings.brand_primary}, ${settings.brand_accent})`,
-            }}
-          />
-        )}
+        <img
+          src={effectiveCoverUrl}
+          alt=""
+          className="h-40 w-full object-cover sm:h-60"
+          fetchPriority="high"
+        />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
 
         <ThemeToggle
@@ -125,17 +119,11 @@ function StorefrontPage() {
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <div className="-mt-12 flex min-w-0 items-end gap-3 sm:gap-4 rise-in">
-            {settings.logo_url ? (
-              <img
-                src={settings.logo_url}
-                alt={store.name}
-                className="size-18 shrink-0 rounded-2xl border-4 border-background object-cover shadow-e2 sm:size-22 sm:rounded-3xl"
-              />
-            ) : (
-              <div className="grid size-18 shrink-0 place-items-center rounded-2xl border-4 border-background bg-surface-muted shadow-e2 sm:size-22 sm:rounded-3xl">
-                <Store className="size-8 text-muted-foreground" />
-              </div>
-            )}
+            <StorefrontIdentityMark
+              segment={store.segment}
+              storeName={store.name}
+              logoUrl={settings.logo_url}
+            />
             <div className="min-w-0 pb-1.5">
               <h1 className="line-clamp-2 text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">
                 {store.name}
