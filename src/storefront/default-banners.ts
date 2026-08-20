@@ -20,7 +20,7 @@ export const DEFAULT_STORE_BANNERS: Record<StorefrontThemeProfile, string> = {
   pastelaria: "/storefront/banners/pastelaria.png",
   adega: "/storefront/banners/adega.png",
   mercado: "/storefront/banners/mercado.png",
-  outros: "/storefront/banners/outros.png",
+  outros: "/storefront/banners/outros.svg",
 };
 
 export const DEFAULT_WIZARD_MOBILE_BACKGROUNDS: Record<StorefrontThemeProfile, string> = {
