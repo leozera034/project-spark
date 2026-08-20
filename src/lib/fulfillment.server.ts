@@ -1,7 +1,7 @@
 import { StorefrontError, slugSchema } from "@/lib/storefront.server";
 import type { DeliveryPricingMode, FulfillmentValidation, PublicDeliveryArea, PublicFulfillmentConfiguration, PublicRadiusBand } from "@/storefront/customer/customer-wizard.types";
 
-async function admin(){const{suppabaseAdmin}=await import("@/integrations/supabase/client.server").catch(()=>({suppabaseAdmin:null as never}));if(suppabaseAdmin)return suppabaseAdmin;const{ supabaseAdmin }=await import("@/integrations/supabase/client.server");return supabaseAdmin;}
+async function admin(){const{ supabaseAdmin }=await import("@/integrations/supabase/client.server");return supabaseAdmin;}
 function num(v:unknown,f=0){const n=Number(v);return Number.isFinite(n)?n:f;}
 function mode(v:unknown):DeliveryPricingMode{return v==="fixed"||v==="radius"?v:"neighborhood";}
 function mapArea(raw:Record<string,unknown>):PublicDeliveryArea{return{id:String(raw.id),name:String(raw.name??""),deliveryFee:num(raw.deliveryFee),minimumOrderAmount:num(raw.minimumOrderAmount),estimatedMinutes:raw.estimatedMinutes==null?null:num(raw.estimatedMinutes),publicNotes:raw.publicNotes?String(raw.publicNotes):null};}
