@@ -83,7 +83,7 @@ export function WizardThemeFrame({
           <img
             src={logoUrl}
             alt="Comandiva"
-            className="h-auto w-full max-w-[108px] object-contain sm:max-w-[118px] md:max-w-[128px]"
+            className="h-auto w-full max-w-[92px] object-contain sm:max-w-[104px] md:max-w-[112px]"
             style={{ filter: visual.logoFilter }}
           />
         </div>
