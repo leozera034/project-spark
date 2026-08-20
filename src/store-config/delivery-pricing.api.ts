@@ -24,6 +24,26 @@ export type DeliveryPricingConfig = {
   radius_bands: DeliveryRadiusBand[];
 };
 
+export type DeliveryNeighborhoodDistanceCandidate = {
+  name: string;
+  latitude: number;
+  longitude: number;
+  distanceKm: number;
+  sampleCount: number;
+  lastSeenAt: string | null;
+  existingNeighborhoodId: string | null;
+  existingFee: number | null;
+  existingActive: boolean | null;
+  source: "customer_history";
+};
+
+export type DeliveryNeighborhoodDistancePayload = {
+  storeLocationReady: boolean;
+  storeLatitude: number | null;
+  storeLongitude: number | null;
+  items: DeliveryNeighborhoodDistanceCandidate[];
+};
+
 function unwrap<T>(result: { data: unknown; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
   if (result.data == null) throw new Error("NOT_FOUND");
@@ -63,5 +83,19 @@ export async function replaceDeliveryRadiusBands(
       eta_minutes: band.eta_minutes,
       is_active: band.is_active,
     })),
+  }));
+}
+
+export async function fetchDeliveryNeighborhoodDistanceCandidates(storeId: string): Promise<DeliveryNeighborhoodDistancePayload> {
+  return unwrap<DeliveryNeighborhoodDistancePayload>(await rpc("list_delivery_neighborhood_distance_candidates", { _store_id: storeId }));
+}
+
+export async function bulkUpsertDeliveryNeighborhoods(input: {
+  storeId: string;
+  items: Array<{ name: string; deliveryFee: number; minimumOrderAmount: number | null; estimatedMinutes: number }>;
+}): Promise<{ ok: boolean; saved: number }> {
+  return unwrap<{ ok: boolean; saved: number }>(await rpc("bulk_upsert_store_neighborhoods", {
+    _store_id: input.storeId,
+    _items: input.items,
   }));
 }
