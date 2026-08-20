@@ -14,6 +14,11 @@ type ThemeStyle = CSSProperties & {
   "--brand": string;
   "--brand-foreground": string;
   "--background": string;
+  "--card": string;
+  "--card-foreground": string;
+  "--input": string;
+  "--ring": string;
+  "--wizard-logo-surface": string;
 };
 
 export function WizardThemeFrame({
@@ -35,11 +40,16 @@ export function WizardThemeFrame({
     "--brand": visual.brand,
     "--brand-foreground": visual.brandForeground,
     "--background": visual.background,
+    "--card": visual.surface,
+    "--card-foreground": visual.surfaceForeground,
+    "--input": visual.inputBorder,
+    "--ring": visual.brand,
+    "--wizard-logo-surface": "oklch(0.992 0.007 82 / 0.94)",
   };
 
   const scrimStyle: CSSProperties = {
     background:
-      "linear-gradient(to bottom, transparent 0%, transparent 11%, color-mix(in oklch, var(--background) 54%, transparent) 31%, color-mix(in oklch, var(--background) 88%, transparent) 56%, color-mix(in oklch, var(--background) 98%, transparent) 100%)",
+      "linear-gradient(to bottom, transparent 0%, transparent 10%, color-mix(in oklch, var(--background) 46%, transparent) 28%, color-mix(in oklch, var(--background) 82%, transparent) 55%, color-mix(in oklch, var(--background) 97%, transparent) 100%)",
   };
 
   return (
@@ -63,11 +73,11 @@ export function WizardThemeFrame({
       <div className="relative z-30 mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5">
         {topSlot}
         <div className="mx-auto mt-2 flex w-full max-w-xl justify-center sm:mt-3">
-          <div className="rounded-[24px] border border-foreground/[.06] bg-card/90 px-4 py-2.5 shadow-lg shadow-black/[.06] backdrop-blur-md sm:px-5 sm:py-3">
+          <div className="rounded-[18px] border border-black/[.06] bg-[var(--wizard-logo-surface)] px-3 py-2 shadow-md shadow-black/[.08] backdrop-blur-md sm:px-3.5 sm:py-2.5">
             <img
               src={logoUrl}
               alt="Comandiva"
-              className="h-auto w-full max-w-[176px] object-contain sm:max-w-[210px] md:max-w-[226px]"
+              className="h-auto w-full max-w-[132px] object-contain sm:max-w-[148px] md:max-w-[160px]"
             />
           </div>
         </div>
