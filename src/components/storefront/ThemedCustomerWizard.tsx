@@ -18,7 +18,10 @@ type ThemeStyle = CSSProperties & {
   "--card-foreground": string;
   "--input": string;
   "--ring": string;
-  "--wizard-logo-surface": string;
+  "--wizard-field-bg": string;
+  "--wizard-field-fg": string;
+  "--wizard-field-placeholder": string;
+  "--wizard-field-border": string;
 };
 
 export function WizardThemeFrame({
@@ -44,12 +47,15 @@ export function WizardThemeFrame({
     "--card-foreground": visual.surfaceForeground,
     "--input": visual.inputBorder,
     "--ring": visual.brand,
-    "--wizard-logo-surface": "oklch(0.992 0.007 82 / 0.94)",
+    "--wizard-field-bg": visual.fieldBackground,
+    "--wizard-field-fg": visual.fieldForeground,
+    "--wizard-field-placeholder": visual.fieldPlaceholder,
+    "--wizard-field-border": visual.inputBorder,
   };
 
   const scrimStyle: CSSProperties = {
     background:
-      "linear-gradient(to bottom, transparent 0%, transparent 10%, color-mix(in oklch, var(--background) 46%, transparent) 28%, color-mix(in oklch, var(--background) 82%, transparent) 55%, color-mix(in oklch, var(--background) 97%, transparent) 100%)",
+      "linear-gradient(to bottom, transparent 0%, transparent 18%, color-mix(in oklch, var(--background) 10%, transparent) 38%, color-mix(in oklch, var(--background) 22%, transparent) 66%, color-mix(in oklch, var(--background) 38%, transparent) 100%)",
   };
 
   return (
@@ -72,14 +78,13 @@ export function WizardThemeFrame({
 
       <div className="relative z-30 mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5">
         {topSlot}
-        <div className="mx-auto mt-2 flex w-full max-w-xl justify-center sm:mt-3">
-          <div className="rounded-[18px] border border-black/[.06] bg-[var(--wizard-logo-surface)] px-3 py-2 shadow-md shadow-black/[.08] backdrop-blur-md sm:px-3.5 sm:py-2.5">
-            <img
-              src={logoUrl}
-              alt="Comandiva"
-              className="h-auto w-full max-w-[132px] object-contain sm:max-w-[148px] md:max-w-[160px]"
-            />
-          </div>
+        <div className="mx-auto mt-3 flex w-full max-w-xl justify-center sm:mt-4">
+          <img
+            src={logoUrl}
+            alt="Comandiva"
+            className="h-auto w-full max-w-[108px] object-contain sm:max-w-[118px] md:max-w-[128px]"
+            style={{ filter: visual.logoFilter }}
+          />
         </div>
       </div>
 
