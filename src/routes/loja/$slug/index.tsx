@@ -1,6 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { Clock, MapPin, Search, ShoppingBag, X } from "lucide-react";
+import {
+  Beef,
+  Bike,
+  Clock,
+  Coffee,
+  Flame,
+  Gift,
+  IceCreamBowl,
+  MapPin,
+  Pizza,
+  Search,
+  ShoppingBag,
+  ShoppingBasket,
+  Star,
+  Store,
+  UtensilsCrossed,
+  Wine,
+  X,
+} from "lucide-react";
 
 import { CartBar } from "@/components/storefront/CartBar";
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
@@ -16,13 +34,25 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
-import { getDefaultStoreBanner, getStorefrontThemeVisual } from "@/storefront/default-banners";
+import {
+  getDefaultStoreBanner,
+  getStorefrontThemeVisual,
+  resolveStorefrontThemeProfile,
+} from "@/storefront/default-banners";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
 export const Route = createFileRoute("/loja/$slug/")({
   component: StorefrontPage,
 });
+
+function categoryIconForName(name: string) {
+  const folded = foldText(name);
+  if (folded.includes("destaque")) return Star;
+  if (folded.includes("mais pedido") || folded.includes("popular")) return Flame;
+  if (folded.includes("combo")) return Gift;
+  return null;
+}
 
 function StorefrontPage() {
   const { store: storePayload, catalog } = parentRoute.useLoaderData() as {
@@ -39,8 +69,26 @@ function StorefrontPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const { store, settings, hours, is_open: isOpen } = storePayload;
-  const effectiveCoverUrl = settings.cover_url || getDefaultStoreBanner(store.segment);
-  const visual = getStorefrontThemeVisual(store.segment);
+  const profile = resolveStorefrontThemeProfile(store.segment);
+  const effectiveCoverUrl = settings.cover_url || getDefaultStoreBanner(profile);
+  const visual = getStorefrontThemeVisual(profile);
+
+  const ProductFallbackIcon =
+    profile === "pizzaria"
+      ? Pizza
+      : profile === "hamburgueria"
+        ? Beef
+        : profile === "acai" || profile === "sorveteria"
+          ? IceCreamBowl
+          : profile === "adega"
+            ? Wine
+            : profile === "mercado"
+              ? ShoppingBasket
+              : profile === "lanchonete"
+                ? Coffee
+                : profile === "restaurante" || profile === "pastelaria"
+                  ? UtensilsCrossed
+                  : Store;
 
   const grouped = useMemo(() => {
     const needle = foldText(term);
@@ -119,18 +167,21 @@ function StorefrontPage() {
             fetchPriority="high"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/12" />
-          <div
+          <svg
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-px left-1/2 h-10 w-[130%] -translate-x-1/2 bg-background sm:h-14"
-            style={{ borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }}
-          />
+            viewBox="0 0 1000 100"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute -bottom-px left-0 h-12 w-full sm:h-16"
+          >
+            <path d="M0 28 C180 72 386 83 585 60 C760 40 862 31 1000 45 V100 H0 Z" fill="var(--background)" />
+          </svg>
         </div>
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <div className="-mt-[54px] flex min-w-0 items-end gap-4 sm:-mt-[62px] sm:gap-5">
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
               <StorefrontIdentityMark
-                segment={store.segment}
+                segment={profile}
                 storeName={store.name}
                 logoUrl={settings.logo_url}
               />
@@ -158,10 +209,14 @@ function StorefrontPage() {
               {isOpen ? "Aberta agora" : "Fechada"}
             </span>
             {store.accepts_delivery ? (
-              <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Entrega</span>
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">
+                <Bike className="size-3.5 text-brand" />Entrega
+              </span>
             ) : null}
             {store.accepts_pickup ? (
-              <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Retirada</span>
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">
+                <ShoppingBag className="size-3.5 text-brand" />Retirada
+              </span>
             ) : null}
             {settings.min_order_amount > 0 ? (
               <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Mínimo {brl(settings.min_order_amount)}</span>
@@ -210,6 +265,7 @@ function StorefrontPage() {
             <nav className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6" aria-label="Categorias">
               {grouped.map(({ category }, index) => {
                 const active = activeCategory ? activeCategory === category.id : index === 0;
+                const CategoryIcon = categoryIconForName(category.name);
                 return (
                   <a
                     key={category.id}
@@ -221,12 +277,13 @@ function StorefrontPage() {
                         .getElementById(`categoria-${category.id}`)
                         ?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
-                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
                       active
                         ? "border-brand bg-brand text-brand-foreground shadow-[0_6px_16px_color-mix(in_srgb,var(--brand)_20%,transparent)]"
                         : "border-black/7 bg-white/70 text-foreground hover:-translate-y-0.5 hover:bg-white"
                     }`}
                   >
+                    {CategoryIcon ? <CategoryIcon className="size-4" /> : null}
                     {category.name}
                   </a>
                 );
@@ -319,7 +376,7 @@ function StorefrontPage() {
                         />
                       ) : (
                         <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand sm:size-24">
-                          <ShoppingBag className="size-7 sm:size-8" strokeWidth={1.8} />
+                          <ProductFallbackIcon className="size-7 sm:size-8" strokeWidth={1.8} />
                         </div>
                       )}
                     </button>
