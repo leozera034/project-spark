@@ -68,137 +68,63 @@ export type StorefrontThemeVisual = {
   brand: string;
   brandForeground: string;
   background: string;
+  surface: string;
+  surfaceForeground: string;
+  inputBorder: string;
 };
 
 // Tokens em OKLCH, no mesmo formato do design system global.
 // O tema muda a personalidade, mas preserva contraste e hierarquia.
 export const STOREFRONT_THEME_VISUALS: Record<StorefrontThemeProfile, StorefrontThemeVisual> = {
   pizzaria: {
-    foreground: "oklch(0.27 0.055 28)",
-    mutedForeground: "oklch(0.46 0.035 35)",
-    brand: "oklch(0.53 0.17 31)",
-    brandForeground: "oklch(0.985 0.006 80)",
-    background: "oklch(0.975 0.018 78)",
+    foreground: "oklch(0.27 0.055 28)", mutedForeground: "oklch(0.46 0.035 35)", brand: "oklch(0.53 0.17 31)", brandForeground: "oklch(0.985 0.006 80)", background: "oklch(0.975 0.018 78)", surface: "oklch(0.992 0.009 78)", surfaceForeground: "oklch(0.25 0.045 30)", inputBorder: "oklch(0.80 0.045 48)",
   },
   hamburgueria: {
-    foreground: "oklch(0.97 0.012 75)",
-    mutedForeground: "oklch(0.82 0.024 68)",
-    brand: "oklch(0.73 0.14 62)",
-    brandForeground: "oklch(0.22 0.035 46)",
-    background: "oklch(0.235 0.038 43)",
+    foreground: "oklch(0.97 0.012 75)", mutedForeground: "oklch(0.82 0.024 68)", brand: "oklch(0.73 0.14 62)", brandForeground: "oklch(0.22 0.035 46)", background: "oklch(0.235 0.038 43)", surface: "oklch(0.295 0.045 43)", surfaceForeground: "oklch(0.975 0.012 75)", inputBorder: "oklch(0.46 0.07 54)",
   },
   acai: {
-    foreground: "oklch(0.29 0.09 318)",
-    mutedForeground: "oklch(0.48 0.055 318)",
-    brand: "oklch(0.49 0.16 316)",
-    brandForeground: "oklch(0.985 0.008 320)",
-    background: "oklch(0.978 0.017 326)",
+    foreground: "oklch(0.29 0.09 318)", mutedForeground: "oklch(0.48 0.055 318)", brand: "oklch(0.49 0.16 316)", brandForeground: "oklch(0.985 0.008 320)", background: "oklch(0.978 0.017 326)", surface: "oklch(0.992 0.012 326)", surfaceForeground: "oklch(0.27 0.075 318)", inputBorder: "oklch(0.80 0.055 315)",
   },
   sorveteria: {
-    foreground: "oklch(0.30 0.065 350)",
-    mutedForeground: "oklch(0.50 0.045 350)",
-    brand: "oklch(0.61 0.15 353)",
-    brandForeground: "oklch(0.99 0.006 80)",
-    background: "oklch(0.979 0.018 18)",
+    foreground: "oklch(0.30 0.065 350)", mutedForeground: "oklch(0.50 0.045 350)", brand: "oklch(0.61 0.15 353)", brandForeground: "oklch(0.99 0.006 80)", background: "oklch(0.979 0.018 18)", surface: "oklch(0.994 0.012 18)", surfaceForeground: "oklch(0.28 0.055 350)", inputBorder: "oklch(0.84 0.05 350)",
   },
   restaurante: {
-    foreground: "oklch(0.28 0.06 17)",
-    mutedForeground: "oklch(0.47 0.036 23)",
-    brand: "oklch(0.48 0.13 18)",
-    brandForeground: "oklch(0.985 0.008 80)",
-    background: "oklch(0.974 0.015 78)",
+    foreground: "oklch(0.28 0.06 17)", mutedForeground: "oklch(0.47 0.036 23)", brand: "oklch(0.48 0.13 18)", brandForeground: "oklch(0.985 0.008 80)", background: "oklch(0.974 0.015 78)", surface: "oklch(0.992 0.009 78)", surfaceForeground: "oklch(0.26 0.05 18)", inputBorder: "oklch(0.80 0.045 30)",
   },
   lanchonete: {
-    foreground: "oklch(0.28 0.05 54)",
-    mutedForeground: "oklch(0.48 0.035 55)",
-    brand: "oklch(0.61 0.12 59)",
-    brandForeground: "oklch(0.20 0.028 48)",
-    background: "oklch(0.975 0.017 76)",
+    foreground: "oklch(0.28 0.05 54)", mutedForeground: "oklch(0.48 0.035 55)", brand: "oklch(0.61 0.12 59)", brandForeground: "oklch(0.20 0.028 48)", background: "oklch(0.975 0.017 76)", surface: "oklch(0.992 0.010 76)", surfaceForeground: "oklch(0.27 0.045 52)", inputBorder: "oklch(0.81 0.05 62)",
   },
   pastelaria: {
-    foreground: "oklch(0.29 0.055 60)",
-    mutedForeground: "oklch(0.49 0.04 63)",
-    brand: "oklch(0.67 0.14 66)",
-    brandForeground: "oklch(0.22 0.03 50)",
-    background: "oklch(0.977 0.02 78)",
+    foreground: "oklch(0.29 0.055 60)", mutedForeground: "oklch(0.49 0.04 63)", brand: "oklch(0.67 0.14 66)", brandForeground: "oklch(0.22 0.03 50)", background: "oklch(0.977 0.02 78)", surface: "oklch(0.993 0.012 78)", surfaceForeground: "oklch(0.28 0.05 58)", inputBorder: "oklch(0.82 0.06 68)",
   },
   adega: {
-    foreground: "oklch(0.97 0.012 70)",
-    mutedForeground: "oklch(0.83 0.025 35)",
-    brand: "oklch(0.57 0.13 10)",
-    brandForeground: "oklch(0.985 0.01 72)",
-    background: "oklch(0.235 0.042 25)",
+    foreground: "oklch(0.97 0.012 70)", mutedForeground: "oklch(0.83 0.025 35)", brand: "oklch(0.57 0.13 10)", brandForeground: "oklch(0.985 0.01 72)", background: "oklch(0.235 0.042 25)", surface: "oklch(0.292 0.050 24)", surfaceForeground: "oklch(0.975 0.012 70)", inputBorder: "oklch(0.46 0.075 20)",
   },
   mercado: {
-    foreground: "oklch(0.28 0.052 126)",
-    mutedForeground: "oklch(0.47 0.04 126)",
-    brand: "oklch(0.50 0.12 125)",
-    brandForeground: "oklch(0.985 0.008 90)",
-    background: "oklch(0.977 0.018 92)",
+    foreground: "oklch(0.28 0.052 126)", mutedForeground: "oklch(0.47 0.04 126)", brand: "oklch(0.50 0.12 125)", brandForeground: "oklch(0.985 0.008 90)", background: "oklch(0.977 0.018 92)", surface: "oklch(0.993 0.012 92)", surfaceForeground: "oklch(0.27 0.05 125)", inputBorder: "oklch(0.81 0.055 120)",
   },
   outros: {
-    foreground: "oklch(0.27 0.02 25)",
-    mutedForeground: "oklch(0.48 0.018 35)",
-    brand: "oklch(0.49 0.07 20)",
-    brandForeground: "oklch(0.985 0.006 80)",
-    background: "oklch(0.974 0.012 78)",
+    foreground: "oklch(0.27 0.02 25)", mutedForeground: "oklch(0.48 0.018 35)", brand: "oklch(0.49 0.07 20)", brandForeground: "oklch(0.985 0.006 80)", background: "oklch(0.974 0.012 78)", surface: "oklch(0.992 0.006 78)", surfaceForeground: "oklch(0.26 0.018 25)", inputBorder: "oklch(0.82 0.025 40)",
   },
 };
 
 const SEGMENT_TO_PROFILE: Record<string, StorefrontThemeProfile> = {
-  pizzaria: "pizzaria",
-  hamburgueria: "hamburgueria",
-  hamburguer: "hamburgueria",
-  hamburgeria: "hamburgueria",
-  acai: "acai",
-  açaí: "acai",
-  sorveteria: "sorveteria",
-  restaurante: "restaurante",
-  marmitaria: "restaurante",
-  "marmitaria / restaurante": "restaurante",
-  lanchonete: "lanchonete",
-  pastelaria: "pastelaria",
-  adega: "adega",
-  bebidas: "adega",
-  "bebidas / adega": "adega",
-  mercado: "mercado",
-  padaria: "mercado",
-  conveniencia: "mercado",
-  conveniência: "mercado",
-  "padaria / conveniência / mercado": "mercado",
-  outros: "outros",
-  outro: "outros",
+  pizzaria: "pizzaria", hamburgueria: "hamburgueria", hamburguer: "hamburgueria", hamburgeria: "hamburgueria", acai: "acai", açaí: "acai", sorveteria: "sorveteria", restaurante: "restaurante", marmitaria: "restaurante", "marmitaria / restaurante": "restaurante", lanchonete: "lanchonete", pastelaria: "pastelaria", adega: "adega", bebidas: "adega", "bebidas / adega": "adega", mercado: "mercado", padaria: "mercado", conveniencia: "mercado", conveniência: "mercado", "padaria / conveniência / mercado": "mercado", outros: "outros", outro: "outros",
 };
 
 export function resolveStorefrontThemeProfile(segment: string | null | undefined): StorefrontThemeProfile {
   if (!segment) return "outros";
   const normalized = segment.trim().toLocaleLowerCase("pt-BR");
-
   if (normalized.startsWith("__profile__:")) {
     const embedded = normalized.slice("__profile__:".length).trim();
     return SEGMENT_TO_PROFILE[embedded] ?? "outros";
   }
   if (normalized.startsWith("__other__:")) return "outros";
-
   return SEGMENT_TO_PROFILE[normalized] ?? "outros";
 }
 
-export function getDefaultStoreBanner(segment: string | null | undefined): string {
-  return DEFAULT_STORE_BANNERS[resolveStorefrontThemeProfile(segment)];
-}
-
-export function getDefaultWizardMobileBackground(segment: string | null | undefined): string {
-  return DEFAULT_WIZARD_MOBILE_BACKGROUNDS[resolveStorefrontThemeProfile(segment)];
-}
-
-export function getDefaultWizardDesktopBackground(segment: string | null | undefined): string {
-  return DEFAULT_WIZARD_DESKTOP_BACKGROUNDS[resolveStorefrontThemeProfile(segment)];
-}
-
-export function getDefaultThemeLogo(segment: string | null | undefined): string {
-  return DEFAULT_THEME_LOGOS[resolveStorefrontThemeProfile(segment)];
-}
-
-export function getStorefrontThemeVisual(segment: string | null | undefined): StorefrontThemeVisual {
-  return STOREFRONT_THEME_VISUALS[resolveStorefrontThemeProfile(segment)];
-}
+export function getDefaultStoreBanner(segment: string | null | undefined): string { return DEFAULT_STORE_BANNERS[resolveStorefrontThemeProfile(segment)]; }
+export function getDefaultWizardMobileBackground(segment: string | null | undefined): string { return DEFAULT_WIZARD_MOBILE_BACKGROUNDS[resolveStorefrontThemeProfile(segment)]; }
+export function getDefaultWizardDesktopBackground(segment: string | null | undefined): string { return DEFAULT_WIZARD_DESKTOP_BACKGROUNDS[resolveStorefrontThemeProfile(segment)]; }
+export function getDefaultThemeLogo(segment: string | null | undefined): string { return DEFAULT_THEME_LOGOS[resolveStorefrontThemeProfile(segment)]; }
+export function getStorefrontThemeVisual(segment: string | null | undefined): StorefrontThemeVisual { return STOREFRONT_THEME_VISUALS[resolveStorefrontThemeProfile(segment)]; }
