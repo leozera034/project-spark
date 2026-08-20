@@ -1,7 +1,19 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, BriefcaseBusiness, LayoutTemplate, PencilLine, Sparkles } from "lucide-react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  CheckCircle2,
+  LayoutTemplate,
+  Loader2,
+  PencilLine,
+  Sparkles,
+} from "lucide-react";
 
 import { useCatalog } from "@/catalog/CatalogProvider";
+import {
+  applyCatalogStarterTemplate,
+  type StarterTemplateCode,
+} from "@/catalog/starter-templates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/catalog/PageHeader";
@@ -10,17 +22,69 @@ export const Route = createFileRoute("/app/loja/cardapio/")({
   component: CardapioOverview,
 });
 
-const MENU_MODELS = [
-  ["Pizzaria", "Pizzas, tamanhos, sabores, bordas e adicionais."],
-  ["Hamburgueria", "Lanches, adicionais, molhos, ponto da carne e combos."],
-  ["Açaí", "Tamanhos, frutas, cremes, coberturas e complementos."],
-  ["Sorveteria", "Sabores, bolas, coberturas, recipientes e adicionais."],
-  ["Marmitaria / Restaurante", "Pratos, marmitas, proteínas, acompanhamentos e bebidas."],
-  ["Lanchonete", "Lanches, porções, bebidas, adicionais e combos."],
-  ["Pastelaria", "Sabores, tamanhos, adicionais e combos."],
-  ["Bebidas / Adega", "Volumes, embalagens, kits, gelo e complementos."],
-  ["Padaria / Mercado", "Produtos simples, peso/volume, variações, kits e estoque."],
-] as const;
+type MenuModel = {
+  code: StarterTemplateCode;
+  name: string;
+  description: string;
+  creates: string;
+};
+
+const MENU_MODELS: MenuModel[] = [
+  {
+    code: "pizzaria",
+    name: "Pizzaria",
+    description: "Pizzas, tamanhos, sabores, bordas e adicionais.",
+    creates: "Pizzas, combos, bebidas, sobremesas + grupos de sabores, borda, massa e adicionais.",
+  },
+  {
+    code: "hamburgueria",
+    name: "Hamburgueria",
+    description: "Lanches, adicionais, molhos, ponto da carne e combos.",
+    creates: "Hambúrgueres, combos, porções, bebidas, sobremesas + adicionais, molhos, ponto e pão.",
+  },
+  {
+    code: "acai",
+    name: "Açaí",
+    description: "Tamanhos, frutas, cremes, coberturas e complementos.",
+    creates: "Açaí, combos, bebidas + tamanho, frutas, cremes, coberturas e complementos.",
+  },
+  {
+    code: "sorveteria",
+    name: "Sorveteria",
+    description: "Sabores, bolas, coberturas, recipientes e adicionais.",
+    creates: "Sorvetes, picolés, açaí, bebidas + sabores, recipiente, coberturas e adicionais.",
+  },
+  {
+    code: "restaurante",
+    name: "Marmitaria / Restaurante",
+    description: "Pratos, marmitas, proteínas, acompanhamentos e bebidas.",
+    creates: "Pratos, marmitas, combos, porções, bebidas, sobremesas + tamanho, proteína e acompanhamentos.",
+  },
+  {
+    code: "lanchonete",
+    name: "Lanchonete",
+    description: "Lanches, porções, bebidas, adicionais e combos.",
+    creates: "Lanches, combos, porções, bebidas, sobremesas + adicionais, molhos e acompanhamentos.",
+  },
+  {
+    code: "pastelaria",
+    name: "Pastelaria",
+    description: "Sabores, tamanhos, adicionais e combos.",
+    creates: "Pastéis, combos, porções, bebidas + sabores, tamanho e adicionais.",
+  },
+  {
+    code: "adega",
+    name: "Bebidas / Adega",
+    description: "Volumes, embalagens, kits, gelo e complementos.",
+    creates: "Cervejas, refrigerantes, destilados, energéticos, água e gelo, kits + volume e embalagem.",
+  },
+  {
+    code: "mercado",
+    name: "Padaria / Mercado",
+    description: "Produtos simples, peso/volume, variações, kits e estoque.",
+    creates: "Padaria, mercearia, bebidas, frios, snacks, higiene + estrutura básica de variações.",
+  },
+];
 
 function Metric({ label, value, hint }: { label: string; value: number; hint?: string }) {
   return (
@@ -35,11 +99,32 @@ function Metric({ label, value, hint }: { label: string; value: number; hint?: s
 }
 
 function CardapioOverview() {
-  const { overview, categories } = useCatalog();
+  const navigate = useNavigate();
+  const {
+    overview,
+    categories,
+    storeId,
+    run,
+    pendingKey,
+    setPendingKey,
+    isBusy,
+  } = useCatalog();
   if (!overview) return null;
 
   const { counts, can } = overview;
   const emptyCatalog = counts.categories_total === 0;
+
+  async function useModel(model: MenuModel) {
+    if (!storeId || !can.create || isBusy) return;
+    const key = `starter:${model.code}`;
+    setPendingKey(key);
+    const result = await run(
+      () => applyCatalogStarterTemplate(storeId, model.code),
+      `Modelo ${model.name} aplicado. A estrutura inicial já está pronta para editar.`,
+    );
+    if (!result) return;
+    void navigate({ to: "/app/loja/cardapio/categorias" });
+  }
 
   return (
     <div className="space-y-6">
@@ -56,7 +141,7 @@ function CardapioOverview() {
             </div>
             <CardTitle className="text-lg">Começar com um modelo</CardTitle>
             <CardDescription>
-              Escolha seu tipo de negócio e parta de uma estrutura pronta. Depois altere só nomes, preços, fotos e regras que precisar.
+              Escolha seu tipo de negócio e a Comandiva cria automaticamente categorias e grupos de escolhas. Nada é apagado se você já tiver itens.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -112,25 +197,51 @@ function CardapioOverview() {
           </div>
           <h2 className="mt-1 text-xl font-bold">Escolha a estrutura mais próxima da sua operação</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Os recursos avançados aparecem somente quando fizerem sentido para o tipo de estabelecimento.
+            A aplicação é aditiva e idempotente: categorias e grupos existentes não são duplicados nem apagados.
           </p>
         </div>
+
+        {!can.create ? (
+          <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Seu perfil pode visualizar o cardápio, mas não tem permissão para aplicar modelos.
+          </div>
+        ) : null}
+
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {MENU_MODELS.map(([name, description]) => (
-            <Card key={name} className="group transition-colors hover:border-brand/35">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{name}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild variant="ghost" className="h-auto px-0 text-brand hover:bg-transparent hover:text-brand">
-                  <Link to={emptyCatalog ? "/app/loja/cardapio/categorias" : "/app/loja/cardapio/produtos/novo"}>
-                    Usar como base <ArrowRight className="ml-1 size-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {MENU_MODELS.map((model) => {
+            const loading = pendingKey === `starter:${model.code}` && isBusy;
+            return (
+              <Card key={model.code} className="group transition-colors hover:border-brand/35">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">{model.name}</CardTitle>
+                  <CardDescription>{model.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex gap-2 rounded-lg bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand" />
+                    <span>{model.creates}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto px-0 text-brand hover:bg-transparent hover:text-brand"
+                    disabled={!can.create || isBusy || !storeId}
+                    onClick={() => void useModel(model)}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-1 size-4 animate-spin" /> Criando estrutura…
+                      </>
+                    ) : (
+                      <>
+                        Usar como base <ArrowRight className="ml-1 size-4" />
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
