@@ -10,20 +10,20 @@ export type StorefrontThemeProfile =
   | "mercado"
   | "outros";
 
-// Os arquivos históricos foram importados com nomes trocados em parte do lote.
-// Este mapa é a fonte de verdade semântica: cada perfil aponta para a arte que
-// realmente representa aquela categoria, independentemente do nome físico do PNG.
+// Os novos banners foram importados com nomes semânticos definitivos.
+// Este mapa deve permanecer 1:1 para que cada segmento carregue exatamente
+// a arte correspondente que existe em public/storefront/banners/.
 export const DEFAULT_STORE_BANNERS: Record<StorefrontThemeProfile, string> = {
   pizzaria: "/storefront/banners/pizzaria.png",
-  hamburgueria: "/storefront/banners/sorveteria.png",
-  acai: "/storefront/banners/mercado.png",
-  sorveteria: "/storefront/banners/pastelaria.png",
-  restaurante: "/storefront/banners/lanchonete.png",
-  lanchonete: "/storefront/banners/hamburgueria.png",
-  pastelaria: "/storefront/banners/restaurante.png",
+  hamburgueria: "/storefront/banners/hamburgueria.png",
+  acai: "/storefront/banners/acai.png",
+  sorveteria: "/storefront/banners/sorveteria.png",
+  restaurante: "/storefront/banners/restaurante.png",
+  lanchonete: "/storefront/banners/lanchonete.png",
+  pastelaria: "/storefront/banners/pastelaria.png",
   adega: "/storefront/banners/adega.png",
-  mercado: "/storefront/banners/acai.png",
-  outros: "/storefront/banners/outros.svg",
+  mercado: "/storefront/banners/mercado.png",
+  outros: "/storefront/banners/outros.png",
 };
 
 export const DEFAULT_WIZARD_MOBILE_BACKGROUNDS: Record<StorefrontThemeProfile, string> = {
