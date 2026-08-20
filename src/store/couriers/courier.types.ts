@@ -119,13 +119,20 @@ export interface DeliveryAssignmentHistoryEntry {
 export interface DeliveryAssignment {
   applicable: boolean;
   orderStatus?: string;
+  orderVersion?: number;
   canAssign?: boolean;
+  canCancel?: boolean;
+  postReturnPending?: boolean;
   delivery?: {
     deliveryId: string;
     status: string;
     version: number;
     assignedAt: string | null;
     route?: DeliveryRouteEstimate | null;
+    returnStartedAt?: string | null;
+    returnedToStoreAt?: string | null;
+    returnReasonCode?: string | null;
+    returnNote?: string | null;
     courier: {
       courierId: string;
       displayName: string;
