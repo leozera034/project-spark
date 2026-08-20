@@ -32,7 +32,7 @@ import {
 export const Route = createFileRoute("/app/loja/cozinha")({
   head: () => ({
     meta: [
-      { title: "Cozinha | Pediu Aqui" },
+      { title: "Cozinha | Comandiva" },
       { name: "description", content: "Fila de preparo da cozinha, com itens e tempos." },
       { name: "robots", content: "noindex,nofollow" },
     ],
@@ -59,6 +59,16 @@ function timeLabel(iso: string | null): string {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function humanizePortionLabel(value: string | null): string | null {
+  if (!value) return null;
+  const match = value.trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (!match) return value;
+  const current = Number(match[1]);
+  const total = Number(match[2]);
+  if (!Number.isFinite(current) || !Number.isFinite(total) || total <= 0) return value;
+  return `em ${current} de ${total} ${total === 1 ? "parte" : "partes"}`;
+}
+
 function KitchenPage() {
   const online = useOnlineStatus();
   const stores = useMyStores();
@@ -79,8 +89,6 @@ function KitchenPage() {
   const toPrepare = orders.filter((o) => o.status === "aceito");
   const inPreparation = orders.filter((o) => o.status === "em_preparo");
 
-  // Pedido que sai da projeção sem ter sido concluído aqui saiu por fora
-  // (cancelamento pelo painel). O motivo interno nunca é exibido.
   useEffect(() => {
     if (!queue.data) return;
     const current = new Set(orders.map((o) => o.orderId));
@@ -192,7 +200,6 @@ function KitchenPage() {
         </div>
       ) : (
         <>
-          {/* Mobile: abas grandes. Telas maiores: duas colunas. */}
           <div className="mb-3 flex gap-2 lg:hidden" role="tablist" aria-label="Filas da cozinha">
             <Button
               role="tab"
@@ -349,17 +356,18 @@ function KitchenCard(props: {
               ) : null}
             </p>
             {item.optionGroups.length > 0 ? (
-              <ul className="mt-1 flex flex-col gap-0.5 pl-1 text-base text-muted-foreground">
-                {item.optionGroups.map((opt, index) => (
-                  <li key={`${item.itemId}-${index}`}>
-                    {opt.portionLabel ? (
-                      <span className="font-medium">{opt.portionLabel} </span>
-                    ) : null}
-                    {opt.itemName}
-                    {!opt.portionLabel && opt.quantity > 1 ? ` ×${opt.quantity}` : ""}
-                    <span className="opacity-70"> · {opt.groupName}</span>
-                  </li>
-                ))}
+              <ul className="mt-2 flex flex-col gap-1.5 pl-1 text-base text-muted-foreground">
+                {item.optionGroups.map((opt, index) => {
+                  const portion = humanizePortionLabel(opt.portionLabel);
+                  return (
+                    <li key={`${item.itemId}-${index}`} className="leading-snug">
+                      <span className="font-medium text-foreground/90">{opt.itemName}</span>
+                      {!opt.portionLabel && opt.quantity > 1 ? ` ×${opt.quantity}` : ""}
+                      {portion ? <span className="text-foreground/75"> — {portion}</span> : null}
+                      <span className="opacity-65"> · {opt.groupName}</span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : null}
             {item.note ? (
