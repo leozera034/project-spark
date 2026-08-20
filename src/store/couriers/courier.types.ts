@@ -15,13 +15,9 @@ export interface DeliveryRouteEstimate {
   estimatedAt: string | null;
 }
 
-// --- Filtros e Listagem (Fase 18) ---
-
 export type CourierAccountFilter = "ativo" | "inativo";
 export type CourierPresenceFilter = "online" | "offline";
 export type CourierAvailabilityFilter = "disponivel" | "ocupado";
-
-/** Presença derivada: intenção declarada + sinal recente. */
 export type CourierPresence = "online" | "offline" | "sem_sinal";
 
 export type CourierAllowedAction =
@@ -170,13 +166,13 @@ export interface CourierCreateInput {
   idempotencyKey: string;
 }
 
-// --- Tipos Operacionais (Fase 19) ---
-
 export type DeliveryStatus =
   | "atribuida"
   | "aceita"
   | "coletada"
   | "em_rota"
+  | "retornando_loja"
+  | "devolvida_loja"
   | "concluida"
   | "cancelada"
   | "pendente";
@@ -188,7 +184,17 @@ export type CourierOperationalAllowedAction =
   | "confirm_pickup"
   | "start_delivery"
   | "complete_delivery"
+  | "start_return_to_store"
+  | "complete_return_to_store"
   | "report_occurrence";
+
+export type DeliveryReturnReason =
+  | "customer_not_found"
+  | "incorrect_address"
+  | "customer_refused"
+  | "payment_problem"
+  | "unsafe_location"
+  | "other";
 
 export interface DeliveryOccurrence {
   occurrenceId: string;
@@ -238,8 +244,6 @@ export interface DeliveryProjection {
   vehicle?: CourierVehicle;
   route?: DeliveryRouteEstimate | null;
   allowedActions: CourierOperationalAllowedAction[];
-
-  // Detalhes completos (quando reduced=false)
   orderId?: string;
   orderStatus?: string;
   orderVersion?: number;
@@ -249,6 +253,10 @@ export interface DeliveryProjection {
   pickedUpAt?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
+  returnStartedAt?: string | null;
+  returnedToStoreAt?: string | null;
+  returnReasonCode?: DeliveryReturnReason | null;
+  returnNote?: string | null;
   pickup?: DeliveryPickupInfo;
   customer?: DeliveryCustomerInfo;
   payment?: DeliveryPaymentInfo;
