@@ -9,7 +9,6 @@ import { StorefrontIdentityMark } from "@/components/storefront/StorefrontIdenti
 import { WEEKDAY_LABELS, brl, foldText, shortTime } from "@/components/storefront/format";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -17,8 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { getDefaultStoreBanner } from "@/storefront/default-banners";
+import { getDefaultStoreBanner, getStorefrontThemeVisual } from "@/storefront/default-banners";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
@@ -42,6 +40,7 @@ function StorefrontPage() {
 
   const { store, settings, hours, is_open: isOpen } = storePayload;
   const effectiveCoverUrl = settings.cover_url || getDefaultStoreBanner(store.segment);
+  const visual = getStorefrontThemeVisual(store.segment);
 
   const grouped = useMemo(() => {
     const needle = foldText(term);
@@ -78,7 +77,7 @@ function StorefrontPage() {
           if (id) setActiveCategory(id);
         }
       },
-      { rootMargin: "-180px 0px -70% 0px", threshold: 0 },
+      { rootMargin: "-190px 0px -70% 0px", threshold: 0 },
     );
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -91,104 +90,116 @@ function StorefrontPage() {
   const closeProduct = () =>
     navigate({ to: "/loja/$slug", params: { slug }, search: {}, replace: true });
 
+  const storefrontStyle = {
+    "--brand": visual.brand,
+    "--brand-accent": visual.brand,
+    "--background": "#fffaf5",
+    "--foreground": "#2b1813",
+    "--muted-foreground": "#705d56",
+    "--card": "#ffffff",
+    "--card-foreground": "#2b1813",
+    "--border": "rgba(82,55,43,.14)",
+    "--input": "rgba(82,55,43,.16)",
+    "--ring": visual.brand,
+  } as React.CSSProperties;
+
   return (
     <main
-      className="storefront-global min-h-svh bg-background pb-[calc(7rem+env(safe-area-inset-bottom))]"
-      style={
-        {
-          "--brand": settings.brand_primary,
-          "--brand-accent": settings.brand_accent,
-        } as React.CSSProperties
-      }
+      className="storefront-global min-h-svh bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] text-foreground"
+      style={storefrontStyle}
     >
       <OrderingContextBar />
 
-      <header className="storefront-hero relative">
-        <img
-          src={effectiveCoverUrl}
-          alt=""
-          className="h-40 w-full object-cover sm:h-60"
-          fetchPriority="high"
-        />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-background/70" />
-
-        <ThemeToggle
-          className="absolute right-4 top-4 z-10 border-transparent bg-background/80 backdrop-blur sm:right-6"
-          style={{ top: "max(1rem, env(safe-area-inset-top))" }}
-        />
+      <header className="relative overflow-hidden">
+        <div className="relative h-[236px] sm:h-[300px]">
+          <img
+            src={effectiveCoverUrl}
+            alt=""
+            className="size-full object-cover"
+            fetchPriority="high"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/12" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-px left-1/2 h-10 w-[130%] -translate-x-1/2 bg-background sm:h-14"
+            style={{ borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }}
+          />
+        </div>
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="-mt-12 flex min-w-0 items-end gap-3 sm:gap-4 rise-in">
-            <StorefrontIdentityMark
-              segment={store.segment}
-              storeName={store.name}
-              logoUrl={settings.logo_url}
-            />
-            <div className="min-w-0 pb-1.5">
-              <h1 className="line-clamp-2 text-[clamp(1.375rem,5.2vw,2rem)] font-semibold leading-tight tracking-tight">
+          <div className="-mt-[54px] flex min-w-0 items-end gap-4 sm:-mt-[62px] sm:gap-5">
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <StorefrontIdentityMark
+                segment={store.segment}
+                storeName={store.name}
+                logoUrl={settings.logo_url}
+              />
+            </div>
+            <div className="min-w-0 pb-2.5 sm:pb-3">
+              <h1 className="line-clamp-2 text-[clamp(1.65rem,6vw,2.35rem)] font-black leading-[1.02] tracking-[-0.035em] text-foreground">
                 {store.name}
               </h1>
-              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              <p className="mt-1 truncate text-sm font-medium text-muted-foreground sm:text-base">
                 {store.segment ? `${store.segment} · ` : ""}
                 {store.city}/{store.state}
               </p>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
+          <div className="mt-7 flex flex-wrap items-center gap-2.5">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold shadow-[0_5px_14px_rgba(40,24,15,.04)] ${
                 isOpen
-                  ? "bg-success-soft text-success"
-                  : "bg-surface-muted text-muted-foreground"
+                  ? "border-emerald-600/20 bg-emerald-50 text-emerald-700"
+                  : "border-black/10 bg-white text-muted-foreground"
               }`}
             >
-              <span
-                className={`size-1.5 rounded-full ${isOpen ? "bg-success" : "bg-muted-foreground"}`}
-                aria-hidden="true"
-              />
+              <span className={`size-2 rounded-full ${isOpen ? "bg-emerald-500" : "bg-muted-foreground"}`} />
               {isOpen ? "Aberta agora" : "Fechada"}
             </span>
-            {store.accepts_delivery ? <Badge variant="outline">Entrega</Badge> : null}
-            {store.accepts_pickup ? <Badge variant="outline">Retirada</Badge> : null}
-            {settings.min_order_amount > 0 ? (
-              <Badge variant="outline">Mínimo {brl(settings.min_order_amount)}</Badge>
+            {store.accepts_delivery ? (
+              <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Entrega</span>
             ) : null}
-            <Badge variant="outline">
-              <Clock className="mr-1 size-3" />~{settings.default_prep_minutes} min
-            </Badge>
+            {store.accepts_pickup ? (
+              <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Retirada</span>
+            ) : null}
+            {settings.min_order_amount > 0 ? (
+              <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Mínimo {brl(settings.min_order_amount)}</span>
+            ) : null}
+            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">
+              <Clock className="mr-1 size-3.5" />~{settings.default_prep_minutes} min
+            </span>
           </div>
 
           {!isOpen && settings.closed_message ? (
-            <p className="mt-4 rounded-2xl border border-highlight/40 bg-highlight-soft p-4 text-sm text-highlight-soft-foreground">
+            <p className="mt-5 rounded-2xl border border-highlight/25 bg-white p-4 text-sm font-medium text-foreground shadow-sm">
               {settings.closed_message}
             </p>
-          ) : null}
-          {isOpen && settings.welcome_message ? (
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {settings.welcome_message}
+          ) : (
+            <p className="mt-5 text-[15px] font-medium leading-relaxed text-foreground/82 sm:text-base">
+              {settings.welcome_message || "Bem-vindo! Escolha seus favoritos e monte o pedido do seu jeito."}
             </p>
-          ) : null}
+          )}
         </div>
       </header>
 
-      <div className="sticky top-[60px] z-20 mt-6 border-b border-border/70 glass-bar">
-        <div className="mx-auto max-w-3xl space-y-3 px-4 py-3 sm:px-6">
+      <div className="sticky top-[60px] z-20 mt-5 border-b border-black/5 bg-background/94 backdrop-blur-xl">
+        <div className="mx-auto max-w-3xl space-y-3.5 px-4 py-3.5 sm:px-6">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-foreground/65" />
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Buscar no cardápio"
               aria-label="Buscar no cardápio"
-              className="storefront-search h-12 rounded-full pl-10 pr-10"
+              className="h-14 rounded-2xl border-black/8 bg-white pl-12 pr-11 text-[15px] font-medium text-black shadow-[0_8px_24px_rgba(74,43,29,.08)] placeholder:text-black/42 focus-visible:ring-brand"
             />
             {term ? (
               <button
                 type="button"
                 aria-label="Limpar busca"
                 onClick={() => setTerm("")}
-                className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="absolute right-2.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -196,14 +207,13 @@ function StorefrontPage() {
           </div>
 
           {grouped.length > 1 ? (
-            <nav className="rail -mx-4 gap-2 px-4 pb-1 sm:-mx-6 sm:px-6" aria-label="Categorias">
-              {grouped.map(({ category }) => {
-                const active = activeCategory === category.id;
+            <nav className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6" aria-label="Categorias">
+              {grouped.map(({ category }, index) => {
+                const active = activeCategory ? activeCategory === category.id : index === 0;
                 return (
                   <a
                     key={category.id}
                     href={`#categoria-${category.id}`}
-                    data-active={active ? "true" : "false"}
                     onClick={(event) => {
                       event.preventDefault();
                       setActiveCategory(category.id);
@@ -211,7 +221,11 @@ function StorefrontPage() {
                         .getElementById(`categoria-${category.id}`)
                         ?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
-                    className="storefront-category-chip press px-3.5 py-1.5 text-sm font-medium transition-colors"
+                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                      active
+                        ? "border-brand bg-brand text-brand-foreground shadow-[0_6px_16px_color-mix(in_srgb,var(--brand)_20%,transparent)]"
+                        : "border-black/7 bg-white/70 text-foreground hover:-translate-y-0.5 hover:bg-white"
+                    }`}
                   >
                     {category.name}
                   </a>
@@ -248,35 +262,36 @@ function StorefrontPage() {
               key={category.id}
               id={`categoria-${category.id}`}
               data-category-id={category.id}
-              className="scroll-mt-44 py-7"
+              className="scroll-mt-48 py-8"
             >
-              <div className="flex items-baseline gap-3">
-                <h2 className="min-w-0 text-lg font-semibold tracking-tight">{category.name}</h2>
-                <span className="h-px min-w-4 flex-1 bg-border" aria-hidden="true" />
-                <span className="shrink-0 text-xs font-medium text-muted-foreground tabular-nums">
+              <div className="flex items-end gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-black tracking-[-0.025em] text-foreground sm:text-2xl">{category.name}</h2>
+                  {category.description ? (
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{category.description}</p>
+                  ) : null}
+                </div>
+                <span className="shrink-0 pb-0.5 text-xs font-semibold text-muted-foreground tabular-nums">
                   {items.length} {items.length === 1 ? "item" : "itens"}
                 </span>
               </div>
-              {category.description ? (
-                <p className="mt-1 text-sm text-muted-foreground">{category.description}</p>
-              ) : null}
 
               <ul className="mt-4 space-y-3">
                 {items.map((product, productIndex) => (
-                  <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 55}>
+                  <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 45}>
                     <button
                       type="button"
                       onClick={() => openProduct(product.id)}
-                      className="storefront-product-card group hover-lift panel flex w-full items-center gap-3 p-3 text-left sm:gap-4 sm:p-3.5 disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:shadow-e1"
+                      className="group flex w-full items-center gap-3 rounded-2xl border border-black/[0.055] bg-white p-3.5 text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(61,37,25,.10)] sm:gap-4 sm:p-4 disabled:opacity-55 disabled:hover:translate-y-0"
                       disabled={product.is_sold_out}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-start gap-2">
-                          <p className="line-clamp-2 min-w-0 flex-1 font-semibold leading-snug">
+                          <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug text-foreground sm:text-base">
                             {product.name}
                           </p>
                           {product.is_featured ? (
-                            <span className="shrink-0 rounded-full bg-highlight-soft px-2 py-0.5 text-[10px] font-semibold text-highlight-soft-foreground sm:text-[11px]">
+                            <span className="shrink-0 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">
                               Destaque
                             </span>
                           ) : null}
@@ -286,11 +301,7 @@ function StorefrontPage() {
                             {product.description}
                           </p>
                         ) : null}
-                        <p
-                          className={`mt-2 text-sm font-semibold tabular-nums ${
-                            product.is_sold_out ? "text-muted-foreground" : "text-brand"
-                          }`}
-                        >
+                        <p className={`mt-2 text-sm font-extrabold tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
                           {product.is_sold_out
                             ? "Esgotado"
                             : product.from_price !== null && product.has_variants
@@ -304,9 +315,13 @@ function StorefrontPage() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="shrink-0 object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                          className="size-20 shrink-0 rounded-2xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025] sm:size-24"
                         />
-                      ) : null}
+                      ) : (
+                        <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand sm:size-24">
+                          <ShoppingBag className="size-7 sm:size-8" strokeWidth={1.8} />
+                        </div>
+                      )}
                     </button>
                   </Reveal>
                 ))}
@@ -315,7 +330,7 @@ function StorefrontPage() {
           ))
         )}
 
-        <Separator className="my-6" />
+        <Separator className="my-6 bg-black/8" />
 
         <footer className="space-y-4 pb-10 text-sm text-muted-foreground">
           {store.address_line ? (
@@ -335,7 +350,12 @@ function StorefrontPage() {
               </span>
             </p>
           ) : null}
-          <p className="text-xs">Cardápio digital com Comandiva.</p>
+          <div className="flex flex-col gap-2 border-t border-black/5 pt-5 text-xs sm:flex-row sm:items-center sm:justify-between">
+            <p>Cardápio digital com Comandiva.</p>
+            <a href="/criar-loja" className="font-bold text-brand transition-opacity hover:opacity-75">
+              Tem uma loja? Crie seu cardápio no Comandiva →
+            </a>
+          </div>
         </footer>
       </div>
 
