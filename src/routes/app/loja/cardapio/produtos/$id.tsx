@@ -18,6 +18,7 @@ import {
   type ProductFormValues,
 } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
+import { PizzaSimpleBuilder } from "@/catalog/simple/PizzaSimpleBuilder";
 import { SimpleOptionsBuilder } from "@/catalog/simple/SimpleOptionsBuilder";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -201,7 +202,8 @@ function EditarProduto() {
           />
         </TabsContent>
 
-        <TabsContent value="opcoes" className="mt-4">
+        <TabsContent value="opcoes" className="mt-4 space-y-4">
+          <PizzaSimpleBuilder productId={product.id} />
           <SimpleOptionsBuilder productId={product.id} />
         </TabsContent>
 
