@@ -1,4 +1,4 @@
-import { CreditCard, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
 import { PlanCatalog } from "@/components/billing/PlanCatalog";
 import { Reveal } from "@/components/motion/Reveal";
@@ -15,33 +15,26 @@ export function PricingSection({ plans }: { plans: PublicPlan[] }) {
   );
 
   return (
-    <section id="planos" className="relative overflow-hidden bg-[#FFF6F1] py-24 sm:py-28">
-      <div className="pointer-events-none absolute -left-40 top-10 size-[30rem] rounded-full bg-[#FF6A4D]/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 size-[30rem] rounded-full bg-[#8A7CA8]/12 blur-3xl" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="planos" className="bg-[#FCFAF8] py-20 sm:py-24">
+      <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         <Reveal className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-black uppercase tracking-[.22em] text-[#FF6A4D]">Planos Comandiva</p>
-          <h2 className="mt-4 text-balance font-display text-4xl font-extrabold tracking-[-.04em] text-[#291F2E] sm:text-5xl lg:text-6xl">
-            Escolha o nível certo para sua operação
+          <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Planos Comandiva</p>
+          <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+            Planos simples, com limites claros.
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#706675]">
-            Compare limites e recursos com preços carregados diretamente do nosso catálogo comercial.
-            A cobrança dos planos pagos é processada com segurança pela Stripe.
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#69626E]">
+            Escolha pelo tamanho da sua operação. Primeiro você vê preço, capacidade e o que realmente muda de um plano para o outro.
           </p>
 
           <div className="mt-7 flex flex-wrap justify-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#55207A]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#55207A] shadow-sm">
+              <Check className="size-3.5 text-[#188653]" /> Comece com R$ 0
+            </span>
             {maximumTrialDays > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-                <Sparkles className="size-3.5 text-[#FF6A4D]" /> Teste de até {maximumTrialDays} dias nos planos elegíveis
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#55207A]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#55207A] shadow-sm">
+                <Sparkles className="size-3.5 text-[#FF681F]" /> Até {maximumTrialDays} dias grátis em plano elegível
               </span>
             ) : null}
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-              <ShieldCheck className="size-3.5 text-[#FF6A4D]" /> Plano gratuito claramente identificado
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-              <CreditCard className="size-3.5 text-[#FF6A4D]" /> Assinaturas pagas via Stripe
-            </span>
           </div>
         </Reveal>
 
@@ -49,9 +42,9 @@ export function PricingSection({ plans }: { plans: PublicPlan[] }) {
           <PlanCatalog plans={plans} context="marketing" />
         </Reveal>
 
-        <Reveal delay={120} className="mx-auto mt-7 max-w-3xl text-center">
-          <p className="text-sm leading-6 text-[#706675]">
-            Nenhum plano pago é liberado apenas pelo retorno do checkout. A ativação acontece depois da confirmação financeira recebida e conciliada pelo backend.
+        <Reveal delay={120} className="mx-auto mt-6 max-w-3xl text-center">
+          <p className="text-sm leading-6 text-[#69626E]">
+            Os valores, limites e recursos exibidos aqui são carregados do catálogo comercial atual do Comandiva.
           </p>
         </Reveal>
       </div>
