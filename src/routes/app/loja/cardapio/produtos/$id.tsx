@@ -18,6 +18,7 @@ import {
   type ProductFormValues,
 } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
+import { ComboSimpleBuilder } from "@/catalog/simple/ComboSimpleBuilder";
 import { PizzaSimpleBuilder } from "@/catalog/simple/PizzaSimpleBuilder";
 import { SimpleOptionsBuilder } from "@/catalog/simple/SimpleOptionsBuilder";
 import { parsePriceInput } from "@/catalog/types";
@@ -204,6 +205,7 @@ function EditarProduto() {
 
         <TabsContent value="opcoes" className="mt-4 space-y-4">
           <PizzaSimpleBuilder productId={product.id} />
+          <ComboSimpleBuilder productId={product.id} />
           <SimpleOptionsBuilder productId={product.id} />
         </TabsContent>
 
@@ -211,7 +213,7 @@ function EditarProduto() {
           <Alert>
             <AlertTitle>Modo avançado</AlertTitle>
             <AlertDescription>
-              Use esta área somente quando a configuração simples não atender sua operação. Para adicionais, sabores, molhos, bebidas e acompanhamentos, prefira a aba “Escolhas e adicionais”.
+              Use esta área somente quando a configuração simples não atender sua operação. Para adicionais, sabores, molhos, bebidas, acompanhamentos e etapas de combo, prefira a aba “Escolhas e adicionais”.
             </AlertDescription>
           </Alert>
           <ProductBuilder productId={product.id} />
