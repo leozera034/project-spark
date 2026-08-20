@@ -21,10 +21,14 @@ export interface PlatformHealthSummary {
 
 export interface PlatformBillingSummary {
   activeSubscriptions: number;
+  trialSubscriptions: number;
+  manualAccessSubscriptions: number;
   courtesySubscriptions: number;
+  internalTrialSubscriptions: number;
   delinquentSubscriptions: number;
   suspendedSubscriptions: number;
   monthlyRecurringRevenue: number;
+  manualAccessReferenceValue: number;
   paidCurrentMonth: number;
   generatedAt: string;
 }
