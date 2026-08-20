@@ -1,9 +1,5 @@
-/**
- * Wizard público do cliente (Fase 12).
- * Uma decisão por tela, mobile-first, sem conta e sem telefone.
- */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bike, Check, MapPin, Store, Trash2 } from "lucide-react";
+import { Bike, Check, ChevronRight, Home, MapPin, Search, Store, Trash2, UserRound } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Badge } from "@/components/ui/badge";
@@ -16,397 +12,131 @@ import { WIZARD_MESSAGES } from "@/storefront/customer/customer-wizard.errors";
 import { isAddressStep, nextAddressStep, progressLabel } from "@/storefront/customer/customer-wizard.machine";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/customer-wizard.types";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
-const PRIMARY =
-  "tappable h-13 min-h-[52px] w-full rounded-xl text-base shadow-e1 active:scale-[0.99]";
-const FIELD = "mt-2 h-12 rounded-xl text-[16px]";
+const PRIMARY = "min-h-[62px] w-full rounded-2xl text-[17px] font-extrabold shadow-sm transition active:scale-[.985]";
+const SECONDARY = "min-h-[56px] w-full rounded-2xl text-base font-bold transition active:scale-[.985]";
+const FIELD = "mt-2 min-h-[58px] rounded-2xl px-4 text-[18px]";
+const SELECT_CARD = "flex min-h-[88px] w-full items-center gap-4 rounded-3xl border bg-background p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-md active:translate-y-0 active:scale-[.99] focus-visible:ring-2 focus-visible:ring-brand";
 
-function StepShell({
-  title,
-  description,
-  children,
-  footer,
-  progress,
-  onBack,
-}: {
+function StepShell({ title, description, children, footer, progress, onBack, icon }: {
   title: string;
   description?: string;
   children?: React.ReactNode;
   footer: React.ReactNode;
   progress?: string | null;
   onBack?: () => void;
+  icon?: React.ReactNode;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    headingRef.current?.focus();
-  }, [title]);
+  useEffect(() => { headingRef.current?.focus(); }, [title]);
 
   return (
-    <main className="flex min-h-svh flex-col bg-background" aria-labelledby="wizard-title">
-      <div className="mx-auto w-full max-w-md flex-1 px-5 pb-40 pt-8 sm:max-w-lg sm:px-6 sm:pt-12">
-        <div className="mb-4 flex justify-end">
-          <ThemeToggle />
+    <main className="min-h-svh bg-[radial-gradient(circle_at_top,hsl(var(--brand)/.10),transparent_36%),hsl(var(--background))]" aria-labelledby="wizard-title">
+      <div className="mx-auto w-full max-w-xl px-4 pb-36 pt-5 sm:px-6 sm:pt-8">
+        <div className="mb-6 flex items-center justify-between">
+          {onBack ? <Button variant="ghost" className="min-h-12 rounded-2xl px-4 text-base font-bold" onClick={onBack}>← Voltar</Button> : <span />}
+          {progress ? <span className="rounded-full border bg-background/80 px-3 py-1.5 text-xs font-black uppercase tracking-[.12em] text-muted-foreground shadow-sm">{progress}</span> : null}
         </div>
-        {progress ? (
-          <p
-            className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft-foreground"
-            aria-live="polite"
-          >
-            {progress}
-          </p>
-        ) : null}
-        <h1
-          id="wizard-title"
-          ref={headingRef}
-          tabIndex={-1}
-          key={`title-${title}`}
-          className="mt-3 text-[26px] font-semibold leading-tight sm:text-3xl tracking-tight outline-none rise-in"
-        >
-          {title}
-        </h1>
-        {description ? (
-          <p
-            key={`desc-${title}`}
-            className="mt-2.5 text-base leading-relaxed text-muted-foreground rise-in [animation-delay:60ms]"
-          >
-            {description}
-          </p>
-        ) : null}
-        <div key={`body-${title}`} className="mt-7 rise-in [animation-delay:110ms]">
-          {children}
-        </div>
+
+        <section className="rounded-[32px] border bg-background/95 p-5 shadow-lg shadow-black/[.04] backdrop-blur sm:p-7">
+          {icon ? <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-brand/10 text-brand">{icon}</div> : null}
+          <h1 id="wizard-title" ref={headingRef} tabIndex={-1} className="text-[30px] font-black leading-[1.05] tracking-tight outline-none sm:text-4xl">{title}</h1>
+          {description ? <p className="mt-3 text-[17px] leading-relaxed text-muted-foreground">{description}</p> : null}
+          <div className="mt-6">{children}</div>
+        </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-border/70 glass-bar p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex w-full max-w-md gap-3 sm:max-w-lg">
-          {onBack ? (
-            <Button
-              variant="outline"
-              className="h-13 min-h-[52px] rounded-xl"
-              onClick={onBack}
-            >
-              Voltar
-            </Button>
-          ) : null}
-          <div className="flex-1">{footer}</div>
-        </div>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+        <div className="mx-auto w-full max-w-xl">{footer}</div>
       </div>
     </main>
-
   );
+}
+
+function NoticeStack({ wizard, error }: { wizard: ReturnType<typeof useCustomerWizard>; error: string | null }) {
+  return <>
+    {!wizard.storageAvailable ? <p className="mb-4 rounded-2xl border bg-muted/30 p-4 text-sm">{WIZARD_MESSAGES.storageUnavailable}</p> : null}
+    {wizard.configuration && !wizard.configuration.storeIsOpen ? <p className="mb-4 rounded-2xl border bg-muted/30 p-4 text-sm">{WIZARD_MESSAGES.storeClosed}</p> : null}
+    {wizard.notice ? <p role="alert" className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/[.07] p-4 text-sm">{wizard.notice}</p> : null}
+    {error ? <p role="alert" className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm font-semibold text-destructive">{error}</p> : null}
+  </>;
 }
 
 function AddressSummary({ address, areaName }: { address: LocalSavedAddress; areaName: string }) {
   return (
-    <dl className="panel space-y-2.5 p-5 text-base">
-      <Row label="Identificação" value={address.customLabel ?? address.label} />
-      <Row label="Endereço" value={shortAddressLine(address)} />
-      <Row label="Bairro" value={areaName} />
-      {address.complement ? <Row label="Complemento" value={address.complement} /> : null}
-      {address.referencePoint ? <Row label="Referência" value={address.referencePoint} /> : null}
-    </dl>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
+    <div className="rounded-3xl border bg-muted/25 p-5">
+      <p className="text-lg font-extrabold">{address.customLabel ?? address.label}</p>
+      <p className="mt-2 text-base leading-relaxed">{shortAddressLine(address)}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{areaName}</p>
+      {address.complement ? <p className="mt-2 text-sm">Complemento: {address.complement}</p> : null}
+      {address.referencePoint ? <p className="mt-1 text-sm">Referência: {address.referencePoint}</p> : null}
     </div>
   );
 }
 
 export function CustomerWizard() {
   const wizard = useCustomerWizard();
-  const {
-    configuration,
-    configurationError,
-    draft,
-    profile,
-    selectedAddress,
-    session,
-    step,
-    notice,
-    busy,
-  } = wizard;
-
+  const { configuration, configurationError, draft, profile, selectedAddress, session, step, busy } = wizard;
   const [error, setError] = useState<string | null>(null);
   const [nameValue, setNameValue] = useState("");
   const [areaTerm, setAreaTerm] = useState("");
 
-  useEffect(() => {
-    setError(null);
-  }, [step]);
-
+  useEffect(() => { setError(null); }, [step]);
   const areas = configuration?.deliveryAreas ?? [];
   const filteredAreas = useMemo(() => {
-    const needle = areaTerm.trim().toLowerCase();
-    return needle ? areas.filter((a) => a.name.toLowerCase().includes(needle)) : areas;
+    const needle = areaTerm.trim().toLocaleLowerCase("pt-BR");
+    return needle ? areas.filter((area) => area.name.toLocaleLowerCase("pt-BR").includes(needle)) : areas;
   }, [areaTerm, areas]);
-
-  const draftArea = areas.find((a) => a.id === draft.neighborhoodId) ?? null;
   const progress = progressLabel(step);
   const back = () => wizard.goBack();
+  const notices = <NoticeStack wizard={wizard} error={error} />;
 
-  if (step === "loading_store") {
-    return (
-      <div className="grid min-h-svh place-items-center px-6 text-center">
-        <p className="text-sm text-muted-foreground">Carregando as opções de atendimento…</p>
-      </div>
-    );
-  }
+  if (step === "loading_store") return <div className="grid min-h-svh place-items-center bg-background px-6 text-center"><div className="space-y-4"><div className="mx-auto size-12 animate-pulse rounded-2xl bg-brand/15" /><p className="text-lg font-bold">Preparando o cardápio…</p><p className="text-sm text-muted-foreground">Só um instante.</p></div></div>;
+  if (step === "error") return <div className="grid min-h-svh place-items-center px-5"><div className="w-full max-w-md rounded-3xl border bg-background p-6 text-center shadow-lg"><p className="text-lg font-bold">{configurationError ?? WIZARD_MESSAGES.fulfillmentLoadFailed}</p><Button className={`mt-5 ${PRIMARY}`} onClick={wizard.reloadConfiguration}>Tentar novamente</Button></div></div>;
 
-  if (step === "error") {
-    return (
-      <div className="mx-auto grid min-h-svh max-w-md place-items-center px-6 text-center">
-        <div>
-          <p className="text-base">{configurationError ?? WIZARD_MESSAGES.fulfillmentLoadFailed}</p>
-          <Button className="mt-5 min-h-[52px]" onClick={wizard.reloadConfiguration}>
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (step === "read_only") return <StepShell title="Cardápio disponível para consulta" description={WIZARD_MESSAGES.noFulfillment} footer={<Button className={PRIMARY} disabled>Somente consulta</Button>}>{notices}</StepShell>;
 
-  const banner = (
-    <>
-      {!wizard.storageAvailable ? (
-        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
-          {WIZARD_MESSAGES.storageUnavailable}
-        </p>
-      ) : null}
-      {configuration && !configuration.storeIsOpen ? (
-        <p className="mb-4 rounded-lg border border-border p-3 text-sm text-muted-foreground">
-          {WIZARD_MESSAGES.storeClosed}
-        </p>
-      ) : null}
-      {notice ? (
-        <p role="alert" className="mb-4 rounded-lg border border-destructive/40 p-3 text-sm">
-          {notice}
-        </p>
-      ) : null}
-      {error ? (
-        <p role="alert" className="mb-4 text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
-    </>
+  if (step === "confirm_saved_name") return (
+    <StepShell title={`Oi, ${profile.firstName}! 👋`} description="Encontramos seus dados salvos neste aparelho. É você mesmo?" progress={progress} icon={<UserRound className="size-7" />} footer={<div className="grid gap-2"><Button className={PRIMARY} onClick={wizard.keepSavedName}>Sim, sou eu</Button><Button variant="outline" className={SECONDARY} onClick={wizard.requestNameChange}>Usar outro nome</Button></div>}>
+      {notices}
+      <p className="rounded-2xl bg-muted/35 p-4 text-sm leading-relaxed text-muted-foreground">Seus dados ficam somente neste aparelho para facilitar seu próximo pedido.</p>
+      <Button variant="ghost" className="mt-3 min-h-12 w-full rounded-xl" onClick={wizard.forgetLocalData}>Apagar dados salvos</Button>
+    </StepShell>
   );
 
-  if (step === "read_only") {
-    return (
-      <StepShell
-        title="Cardápio disponível para consulta"
-        description={WIZARD_MESSAGES.noFulfillment}
-        footer={
-          <Button className={PRIMARY} onClick={() => wizard.setStep("read_only")} disabled>
-            Somente consulta
-          </Button>
-        }
-      >
-        {banner}
-      </StepShell>
-    );
-  }
-
-  if (step === "confirm_saved_name") {
-    return (
-      <StepShell
-        title={`Olá, ${profile.firstName}. É você?`}
-        description={WIZARD_MESSAGES.localOnly}
-        progress={progress}
-        footer={
-          <div className="space-y-2">
-            <Button className={PRIMARY} onClick={wizard.keepSavedName}>
-              Sim, continuar
-            </Button>
-            <Button variant="outline" className={PRIMARY} onClick={wizard.requestNameChange}>
-              Alterar nome
-            </Button>
-          </div>
-        }
-      >
-        {banner}
-        <Button variant="ghost" className="min-h-[52px] w-full" onClick={wizard.forgetLocalData}>
-          Esquecer meus dados neste aparelho
-        </Button>
-      </StepShell>
-    );
-  }
-
-  if (step === "identify_customer") {
-    return (
-      <StepShell
-        title="Como podemos chamar você?"
-        description="Só o primeiro nome. Não pedimos sobrenome, CPF, e-mail, telefone nem senha."
-        progress={progress}
-        footer={
-          <Button
-            className={PRIMARY}
-            onClick={() => {
-              const message = wizard.submitName(nameValue || profile.firstName || "");
-              setError(message);
-            }}
-          >
-            Continuar
-          </Button>
-        }
-      >
-        {banner}
-        <Label htmlFor="primeiro-nome" className="text-base">
-          Primeiro nome
-        </Label>
-        <Input
-          id="primeiro-nome"
-          className={FIELD}
-          autoComplete="given-name"
-          maxLength={60}
-          defaultValue={profile.firstName ?? ""}
-          onChange={(event) => setNameValue(event.target.value)}
-          aria-describedby="nome-ajuda"
-        />
-        <p id="nome-ajuda" className="mt-2 text-sm text-muted-foreground">
-          {WIZARD_MESSAGES.localOnly}
-        </p>
-      </StepShell>
-    );
-  }
+  if (step === "identify_customer") return (
+    <StepShell title="Qual é o seu nome?" description="Digite só como a loja deve chamar você. É rápido e não precisa criar conta." progress={progress} icon={<UserRound className="size-7" />} footer={<Button className={PRIMARY} onClick={() => setError(wizard.submitName(nameValue || profile.firstName || ""))}>Continuar</Button>}>
+      {notices}
+      <Label htmlFor="primeiro-nome" className="text-lg font-extrabold">Seu primeiro nome</Label>
+      <Input id="primeiro-nome" autoFocus className={FIELD} autoComplete="given-name" maxLength={60} defaultValue={profile.firstName ?? ""} placeholder="Ex.: Maria" onChange={(event) => setNameValue(event.target.value)} />
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Não pedimos CPF, e-mail ou senha para entrar no cardápio.</p>
+    </StepShell>
+  );
 
   if (step === "choose_fulfillment") {
-    const only =
-      configuration!.deliveryEnabled && !configuration!.pickupEnabled
-        ? "entrega"
-        : !configuration!.deliveryEnabled && configuration!.pickupEnabled
-          ? "retirada"
-          : null;
-
+    const only = configuration!.deliveryEnabled && !configuration!.pickupEnabled ? "entrega" : !configuration!.deliveryEnabled && configuration!.pickupEnabled ? "retirada" : null;
     return (
-      <StepShell
-        title="Como você quer receber?"
-        description={
-          only
-            ? "Esta loja está atendendo apenas nesta modalidade. Confirme para continuar."
-            : "Você pode mudar depois, antes de enviar o pedido."
-        }
-        progress={progress}
-        onBack={back}
-        footer={<span className="sr-only">Escolha uma modalidade acima</span>}
-      >
-        {banner}
-        <div className="grid gap-4">
-          {configuration!.deliveryEnabled ? (
-            <button
-              type="button"
-              onClick={() => wizard.chooseFulfillment("entrega")}
-              className="flex min-h-[104px] flex-col items-start gap-2 rounded-2xl border p-5 text-left hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Bike aria-hidden="true" className="size-6" />
-              <span className="text-lg font-semibold">
-                {only === "entrega" ? "Continuar com entrega" : "Entrega"}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                A taxa depende do bairro e é confirmada na próxima etapa.
-              </span>
-              {profile.lastFulfillmentPreference === "entrega" ? (
-                <Badge variant="secondary">Usado da última vez</Badge>
-              ) : null}
-            </button>
-          ) : null}
-
-          {configuration!.pickupEnabled ? (
-            <button
-              type="button"
-              onClick={() => wizard.chooseFulfillment("retirada")}
-              className="flex min-h-[104px] flex-col items-start gap-2 rounded-2xl border p-5 text-left hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Store aria-hidden="true" className="size-6" />
-              <span className="text-lg font-semibold">
-                {only === "retirada" ? "Continuar com retirada" : "Retirada no estabelecimento"}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                Sem taxa de entrega. Preparo em ~{configuration!.defaultPreparationMinutes} min.
-              </span>
-              {profile.lastFulfillmentPreference === "retirada" ? (
-                <Badge variant="secondary">Usado da última vez</Badge>
-              ) : null}
-            </button>
-          ) : null}
+      <StepShell title="Como você quer receber?" description="Toque em uma opção para continuar." progress={progress} onBack={back} footer={<p className="text-center text-sm text-muted-foreground">Escolha uma das opções acima.</p>}>
+        {notices}
+        <div className="grid gap-3">
+          {configuration!.deliveryEnabled ? <button type="button" className={SELECT_CARD} onClick={() => wizard.chooseFulfillment("entrega")}><span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand"><Bike className="size-7" /></span><span className="min-w-0 flex-1"><span className="block text-xl font-black">{only === "entrega" ? "Continuar com entrega" : "Quero receber em casa"}</span><span className="mt-1 block text-sm leading-relaxed text-muted-foreground">Informe o endereço e veja a taxa.</span>{profile.lastFulfillmentPreference === "entrega" ? <Badge className="mt-2" variant="secondary">Usado da última vez</Badge> : null}</span><ChevronRight className="size-5 shrink-0 text-muted-foreground" /></button> : null}
+          {configuration!.pickupEnabled ? <button type="button" className={SELECT_CARD} onClick={() => wizard.chooseFulfillment("retirada")}><span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand"><Store className="size-7" /></span><span className="min-w-0 flex-1"><span className="block text-xl font-black">{only === "retirada" ? "Continuar com retirada" : "Vou buscar na loja"}</span><span className="mt-1 block text-sm leading-relaxed text-muted-foreground">Sem taxa de entrega · preparo em ~{configuration!.defaultPreparationMinutes} min.</span>{profile.lastFulfillmentPreference === "retirada" ? <Badge className="mt-2" variant="secondary">Usado da última vez</Badge> : null}</span><ChevronRight className="size-5 shrink-0 text-muted-foreground" /></button> : null}
         </div>
       </StepShell>
     );
   }
 
   if (step === "choose_saved_address") {
-    const mostRecent = [...profile.savedAddresses].sort((a, b) =>
-      String(b.lastUsedAt ?? b.updatedAt).localeCompare(String(a.lastUsedAt ?? a.updatedAt)),
-    )[0];
-
+    const mostRecent = [...profile.savedAddresses].sort((a,b) => String(b.lastUsedAt ?? b.updatedAt).localeCompare(String(a.lastUsedAt ?? a.updatedAt)))[0];
     return (
-      <StepShell
-        title="Para qual endereço?"
-        description="Escolher um endereço apenas o seleciona. A confirmação vem na próxima tela."
-        progress={progress}
-        onBack={back}
-        footer={
-          <Button variant="outline" className={PRIMARY} onClick={wizard.startNewAddress}>
-            Cadastrar novo endereço
-          </Button>
-        }
-      >
-        {banner}
-        <ul className="space-y-3">
+      <StepShell title="Onde vamos entregar?" description="Escolha um endereço salvo ou cadastre outro." progress={progress} onBack={back} footer={<Button className={PRIMARY} onClick={wizard.startNewAddress}>+ Cadastrar outro endereço</Button>}>
+        {notices}
+        <div className="space-y-3">
           {profile.savedAddresses.map((address) => {
             const area = areas.find((a) => a.id === address.neighborhoodId);
-            return (
-              <li key={address.localId} className="rounded-2xl border p-4">
-                <button
-                  type="button"
-                  className="w-full text-left"
-                  aria-pressed={session.selectedAddressLocalId === address.localId}
-                  onClick={() => wizard.selectSavedAddress(address.localId)}
-                >
-                  <span className="flex items-center gap-2 font-medium">
-                    <MapPin aria-hidden="true" className="size-4" />
-                    {address.customLabel ?? address.label}
-                    {mostRecent?.localId === address.localId ? (
-                      <Badge variant="secondary">Sugestão</Badge>
-                    ) : null}
-                  </span>
-                  <span className="mt-1 block text-sm text-muted-foreground">
-                    {shortAddressLine(address)} — {area?.name ?? address.neighborhoodNameSnapshot}
-                  </span>
-                  {!area ? (
-                    <span className="mt-1 block text-sm text-destructive">
-                      {WIZARD_MESSAGES.areaUnavailable}
-                    </span>
-                  ) : null}
-                </button>
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-h-[44px]"
-                    onClick={() => wizard.editAddress(address.localId)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="min-h-[44px]"
-                    onClick={() => wizard.deleteAddress(address.localId)}
-                  >
-                    <Trash2 aria-hidden="true" className="mr-1 size-4" />
-                    Excluir
-                  </Button>
-                </div>
-              </li>
-            );
+            return <div key={address.localId} className="rounded-3xl border bg-background p-4 shadow-sm"><button type="button" className="flex min-h-[72px] w-full items-start gap-3 text-left" aria-pressed={session.selectedAddressLocalId === address.localId} onClick={() => wizard.selectSavedAddress(address.localId)}><span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand"><MapPin className="size-5" /></span><span className="min-w-0 flex-1"><span className="font-extrabold">{address.customLabel ?? address.label}</span>{mostRecent?.localId === address.localId ? <Badge className="ml-2" variant="secondary">Mais recente</Badge> : null}<span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{shortAddressLine(address)} · {area?.name ?? address.neighborhoodNameSnapshot}</span>{!area ? <span className="mt-1 block text-sm text-destructive">{WIZARD_MESSAGES.areaUnavailable}</span> : null}</span><ChevronRight className="mt-2 size-5 text-muted-foreground" /></button><div className="mt-2 flex gap-2 border-t pt-3"><Button variant="outline" className="min-h-11 flex-1 rounded-xl" onClick={() => wizard.editAddress(address.localId)}>Editar</Button><Button variant="ghost" className="min-h-11 rounded-xl" onClick={() => wizard.deleteAddress(address.localId)}><Trash2 className="size-4" /> Excluir</Button></div></div>;
           })}
-        </ul>
+        </div>
       </StepShell>
     );
   }
@@ -414,395 +144,48 @@ export function CustomerWizard() {
   if (isAddressStep(step) && step !== "confirm_address") {
     const advance = () => wizard.setStep(nextAddressStep(step));
 
-    if (step === "address_neighborhood") {
-      return (
-        <StepShell
-          title="Em qual bairro será a entrega?"
-          description="A taxa e o pedido mínimo mudam conforme o bairro."
-          progress={progress}
-          onBack={back}
-          footer={
-            <Button className={PRIMARY} disabled={!draft.neighborhoodId} onClick={advance}>
-              Continuar
-            </Button>
-          }
-        >
-          {banner}
-          {areas.length > 6 ? (
-            <>
-              <Label htmlFor="busca-bairro" className="text-base">
-                Buscar bairro
-              </Label>
-              <Input
-                id="busca-bairro"
-                className={FIELD}
-                value={areaTerm}
-                onChange={(event) => setAreaTerm(event.target.value)}
-              />
-            </>
-          ) : null}
-          <div className="mt-4 space-y-2">
-            {filteredAreas.map((area) => (
-              <button
-                key={area.id}
-                type="button"
-                aria-pressed={draft.neighborhoodId === area.id}
-                onClick={() =>
-                  wizard.updateDraft({
-                    neighborhoodId: area.id,
-                    neighborhoodNameSnapshot: area.name,
-                  })
-                }
-                className={`flex min-h-[56px] w-full items-center justify-between rounded-xl border px-4 py-3 text-left ${
-                  draft.neighborhoodId === area.id ? "border-foreground bg-muted" : ""
-                }`}
-              >
-                <span className="font-medium">{area.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  Taxa {brl(area.deliveryFee)} · mínimo {brl(area.minimumOrderAmount)}
-                </span>
-              </button>
-            ))}
-            {filteredAreas.length === 0 ? (
-              <p className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                Esta loja ainda não entrega neste bairro.
-              </p>
-            ) : null}
-          </div>
-          {configuration!.pickupEnabled ? (
-            <Button
-              variant="ghost"
-              className="mt-4 min-h-[52px] w-full"
-              onClick={() => wizard.chooseFulfillment("retirada")}
-            >
-              Mudar para retirada
-            </Button>
-          ) : null}
-        </StepShell>
-      );
-    }
-
-    if (step === "address_street") {
-      return (
-        <StepShell
-          title="Qual é a rua ou avenida?"
-          progress={progress}
-          onBack={back}
-          footer={
-            <Button
-              className={PRIMARY}
-              disabled={draft.street.trim().length < 3}
-              onClick={advance}
-            >
-              Continuar
-            </Button>
-          }
-        >
-          {banner}
-          <Label htmlFor="rua" className="text-base">
-            Rua ou avenida
-          </Label>
-          <Input
-            id="rua"
-            className={FIELD}
-            maxLength={120}
-            value={draft.street}
-            onChange={(event) => wizard.updateDraft({ street: event.target.value })}
-          />
-        </StepShell>
-      );
-    }
-
-    if (step === "address_number") {
-      return (
-        <StepShell
-          title="Qual é o número?"
-          progress={progress}
-          onBack={back}
-          footer={
-            <Button
-              className={PRIMARY}
-              disabled={!draft.hasNoNumber && draft.number.trim().length === 0}
-              onClick={advance}
-            >
-              Continuar
-            </Button>
-          }
-        >
-          {banner}
-          <Label htmlFor="numero" className="text-base">
-            Número
-          </Label>
-          <Input
-            id="numero"
-            className={FIELD}
-            maxLength={20}
-            disabled={draft.hasNoNumber}
-            value={draft.number}
-            onChange={(event) => wizard.updateDraft({ number: event.target.value })}
-          />
-          <div className="mt-4 flex items-center gap-3">
-            <Checkbox
-              id="sem-numero"
-              checked={draft.hasNoNumber}
-              onCheckedChange={(checked) => wizard.updateDraft({ hasNoNumber: checked === true })}
-            />
-            <Label htmlFor="sem-numero" className="text-base">
-              Sem número
-            </Label>
-          </div>
-        </StepShell>
-      );
-    }
-
-    if (step === "address_complement") {
-      return (
-        <StepShell
-          title="Tem algum complemento?"
-          description="Apartamento, bloco, fundos, portão."
-          progress={progress}
-          onBack={back}
-          footer={
-            <div className="space-y-2">
-              <Button className={PRIMARY} onClick={advance}>
-                Continuar
-              </Button>
-              <Button
-                variant="ghost"
-                className={PRIMARY}
-                onClick={() => {
-                  wizard.updateDraft({ complement: "" });
-                  advance();
-                }}
-              >
-                Não tenho complemento
-              </Button>
-            </div>
-          }
-        >
-          {banner}
-          <Label htmlFor="complemento" className="text-base">
-            Complemento
-          </Label>
-          <Input
-            id="complemento"
-            className={FIELD}
-            maxLength={100}
-            value={draft.complement}
-            onChange={(event) => wizard.updateDraft({ complement: event.target.value })}
-          />
-        </StepShell>
-      );
-    }
-
-    if (step === "address_reference") {
-      return (
-        <StepShell
-          title="Algum ponto de referência?"
-          description="Ajuda quem entrega a chegar mais rápido."
-          progress={progress}
-          onBack={back}
-          footer={
-            <div className="space-y-2">
-              <Button className={PRIMARY} onClick={advance}>
-                Continuar
-              </Button>
-              <Button
-                variant="ghost"
-                className={PRIMARY}
-                onClick={() => {
-                  wizard.updateDraft({ referencePoint: "" });
-                  advance();
-                }}
-              >
-                Continuar sem referência
-              </Button>
-            </div>
-          }
-        >
-          {banner}
-          <Label htmlFor="referencia" className="text-base">
-            Ponto de referência
-          </Label>
-          <Input
-            id="referencia"
-            className={FIELD}
-            maxLength={140}
-            value={draft.referencePoint}
-            onChange={(event) => wizard.updateDraft({ referencePoint: event.target.value })}
-          />
-        </StepShell>
-      );
-    }
-
-    // address_label
-    const duplicate = wizard.duplicateOf(draft);
-    return (
-      <StepShell
-        title="Como você quer identificar este endereço?"
-        progress={progress}
-        onBack={back}
-        footer={
-          <Button
-            className={PRIMARY}
-            onClick={() => setError(wizard.saveDraftAndReview())}
-            disabled={draft.label === "Outro" && draft.customLabel.trim().length < 2}
-          >
-            Continuar
-          </Button>
-        }
-      >
-        {banner}
-        {duplicate ? (
-          <p className="mb-4 rounded-lg border border-border p-3 text-sm">
-            Você já tem um endereço igual salvo ({duplicate.customLabel ?? duplicate.label}).{" "}
-            <button
-              type="button"
-              className="underline"
-              onClick={() => wizard.editAddress(duplicate.localId)}
-            >
-              Editar o existente
-            </button>
-          </p>
-        ) : null}
-        <div className="grid gap-3">
-          {(["Casa", "Trabalho", "Outro"] as AddressLabel[]).map((option) => (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={draft.label === option}
-              onClick={() => wizard.updateDraft({ label: option })}
-              className={`min-h-[56px] rounded-xl border px-4 py-3 text-base font-medium ${
-                draft.label === option ? "border-foreground bg-muted" : ""
-              }`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-        {draft.label === "Outro" ? (
-          <div className="mt-4">
-            <Label htmlFor="rotulo" className="text-base">
-              Nome deste endereço
-            </Label>
-            <Input
-              id="rotulo"
-              className={FIELD}
-              maxLength={30}
-              value={draft.customLabel}
-              onChange={(event) => wizard.updateDraft({ customLabel: event.target.value })}
-            />
-          </div>
-        ) : null}
+    if (step === "address_neighborhood") return (
+      <StepShell title="Qual é o seu bairro?" description="Escolha o bairro da entrega. A taxa aparece junto para não ter surpresa." progress={progress} onBack={back} icon={<MapPin className="size-7" />} footer={<Button className={PRIMARY} disabled={!draft.neighborhoodId} onClick={advance}>Continuar</Button>}>
+        {notices}
+        {areas.length > 6 ? <div className="relative"><Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" /><Input className="min-h-[58px] rounded-2xl pl-12 text-lg" value={areaTerm} onChange={(event) => setAreaTerm(event.target.value)} placeholder="Digite seu bairro" /></div> : null}
+        <div className="mt-4 space-y-2">{filteredAreas.map((area) => <button key={area.id} type="button" aria-pressed={draft.neighborhoodId === area.id} onClick={() => wizard.updateDraft({ neighborhoodId: area.id, neighborhoodNameSnapshot: area.name })} className={`flex min-h-[68px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition ${draft.neighborhoodId === area.id ? "border-brand bg-brand/5 ring-2 ring-brand/15" : "bg-background"}`}><span className="font-extrabold">{area.name}</span><span className="text-right text-sm text-muted-foreground">{brl(area.deliveryFee)}<br /><span className="text-xs">mín. {brl(area.minimumOrderAmount)}</span></span></button>)}</div>
+        {filteredAreas.length === 0 ? <p className="mt-4 rounded-2xl bg-muted p-4 text-sm">Não encontramos esse bairro na área de entrega da loja.</p> : null}
+        {configuration!.pickupEnabled ? <Button variant="ghost" className={`mt-4 ${SECONDARY}`} onClick={() => wizard.chooseFulfillment("retirada")}>Prefiro retirar na loja</Button> : null}
       </StepShell>
     );
+
+    if (step === "address_street") return <StepShell title="Qual é a sua rua?" description="Pode ser rua, avenida, praça ou estrada." progress={progress} onBack={back} footer={<Button className={PRIMARY} disabled={draft.street.trim().length < 3} onClick={advance}>Continuar</Button>}><Label htmlFor="rua" className="text-lg font-extrabold">Rua ou avenida</Label><Input id="rua" autoFocus className={FIELD} maxLength={120} value={draft.street} placeholder="Ex.: Rua das Flores" onChange={(event) => wizard.updateDraft({ street: event.target.value })} /></StepShell>;
+
+    if (step === "address_number") return <StepShell title="Qual é o número?" description="Se o local não tiver número, marque a opção abaixo." progress={progress} onBack={back} footer={<Button className={PRIMARY} disabled={!draft.hasNoNumber && draft.number.trim().length === 0} onClick={advance}>Continuar</Button>}><Label htmlFor="numero" className="text-lg font-extrabold">Número</Label><Input id="numero" autoFocus inputMode="numeric" className={FIELD} maxLength={20} disabled={draft.hasNoNumber} value={draft.number} placeholder="Ex.: 125" onChange={(event) => wizard.updateDraft({ number: event.target.value })} /><label className="mt-4 flex min-h-[58px] cursor-pointer items-center gap-3 rounded-2xl border p-4"><Checkbox checked={draft.hasNoNumber} onCheckedChange={(checked) => wizard.updateDraft({ hasNoNumber: checked === true })} /><span className="text-base font-bold">Este endereço não tem número</span></label></StepShell>;
+
+    if (step === "address_complement") return <StepShell title="Tem complemento?" description="Apartamento, bloco, fundos ou portão. Se não tiver, é só continuar." progress={progress} onBack={back} footer={<Button className={PRIMARY} onClick={advance}>Continuar</Button>}><Label htmlFor="complemento" className="text-lg font-extrabold">Complemento <span className="font-normal text-muted-foreground">(opcional)</span></Label><Input id="complemento" autoFocus className={FIELD} maxLength={100} value={draft.complement} placeholder="Ex.: Apto 12, bloco B" onChange={(event) => wizard.updateDraft({ complement: event.target.value })} /></StepShell>;
+
+    if (step === "address_reference") return <StepShell title="Algum ponto de referência?" description="Isso ajuda muito o entregador, mas não é obrigatório." progress={progress} onBack={back} footer={<Button className={PRIMARY} onClick={advance}>Continuar</Button>}><Label htmlFor="referencia" className="text-lg font-extrabold">Referência <span className="font-normal text-muted-foreground">(opcional)</span></Label><Input id="referencia" autoFocus className={FIELD} maxLength={140} value={draft.referencePoint} placeholder="Ex.: Portão azul, perto da escola" onChange={(event) => wizard.updateDraft({ referencePoint: event.target.value })} /></StepShell>;
+
+    const duplicate = wizard.duplicateOf(draft);
+    return <StepShell title="Salve este endereço" description="Escolha um nome fácil para encontrar da próxima vez." progress={progress} onBack={back} footer={<Button className={PRIMARY} onClick={() => setError(wizard.saveDraftAndReview())} disabled={draft.label === "Outro" && draft.customLabel.trim().length < 2}>Revisar endereço</Button>}>
+      {notices}
+      {duplicate ? <p className="mb-4 rounded-2xl border bg-muted/30 p-4 text-sm">Já existe um endereço igual salvo como <strong>{duplicate.customLabel ?? duplicate.label}</strong>.</p> : null}
+      <div className="grid grid-cols-3 gap-2">{(["Casa","Trabalho","Outro"] as AddressLabel[]).map((option) => <button key={option} type="button" aria-pressed={draft.label === option} onClick={() => wizard.updateDraft({ label: option })} className={`min-h-[70px] rounded-2xl border px-2 font-extrabold transition ${draft.label === option ? "border-brand bg-brand/5 ring-2 ring-brand/15" : ""}`}>{option}</button>)}</div>
+      {draft.label === "Outro" ? <div className="mt-4"><Label htmlFor="rotulo" className="text-lg font-extrabold">Nome do endereço</Label><Input id="rotulo" autoFocus className={FIELD} maxLength={30} value={draft.customLabel} placeholder="Ex.: Casa da vó" onChange={(event) => wizard.updateDraft({ customLabel: event.target.value })} /></div> : null}
+    </StepShell>;
   }
 
   if (step === "confirm_address") {
     const address = selectedAddress;
     const area = address ? areas.find((a) => a.id === address.neighborhoodId) : null;
-
-    return (
-      <StepShell
-        title="Você quer receber neste endereço?"
-        description="Nada é confirmado só por chegar nesta tela."
-        onBack={back}
-        footer={
-          <Button
-            className={PRIMARY}
-            disabled={!address || !area || busy}
-            onClick={() => void wizard.confirmAddress()}
-          >
-            <Check aria-hidden="true" className="mr-2 size-4" />
-            {busy ? "Confirmando…" : "Sim, usar este endereço"}
-          </Button>
-        }
-      >
-        {banner}
-        {address ? (
-          <>
-            <AddressSummary
-              address={address}
-              areaName={area?.name ?? address.neighborhoodNameSnapshot}
-            />
-            {area ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Taxa informativa {brl(area.deliveryFee)} · pedido mínimo{" "}
-                {brl(area.minimumOrderAmount)}
-                {area.estimatedMinutes ? ` · ~${area.estimatedMinutes} min` : ""}. Os valores são
-                recalculados no envio do pedido.
-              </p>
-            ) : (
-              <p className="mt-3 text-sm text-destructive">{WIZARD_MESSAGES.areaUnavailable}</p>
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-muted-foreground">Escolha um endereço para continuar.</p>
-        )}
-
-        <div className="mt-5 grid gap-2">
-          <Button
-            variant="outline"
-            className="min-h-[52px]"
-            onClick={() => address && wizard.editAddress(address.localId)}
-          >
-            Editar endereço
-          </Button>
-          {profile.savedAddresses.length > 1 ? (
-            <Button
-              variant="outline"
-              className="min-h-[52px]"
-              onClick={() => wizard.setStep("choose_saved_address")}
-            >
-              Escolher outro
-            </Button>
-          ) : null}
-          <Button variant="outline" className="min-h-[52px]" onClick={wizard.startNewAddress}>
-            Cadastrar novo
-          </Button>
-          {configuration!.pickupEnabled ? (
-            <Button
-              variant="ghost"
-              className="min-h-[52px]"
-              onClick={() => wizard.chooseFulfillment("retirada")}
-            >
-              Mudar para retirada
-            </Button>
-          ) : null}
-        </div>
-      </StepShell>
-    );
+    return <StepShell title="Está tudo certo?" description="Confira o endereço antes de entrar no cardápio." onBack={back} icon={<Home className="size-7" />} footer={<Button className={PRIMARY} disabled={!address || !area || busy} onClick={() => void wizard.confirmAddress()}><Check className="mr-2 size-5" />{busy ? "Confirmando…" : "Sim, entrar no cardápio"}</Button>}>
+      {notices}
+      {address ? <><AddressSummary address={address} areaName={area?.name ?? address.neighborhoodNameSnapshot} />{area ? <div className="mt-4 rounded-2xl bg-brand/5 p-4 text-sm"><strong>Taxa de entrega: {brl(area.deliveryFee)}</strong><br /><span className="text-muted-foreground">Pedido mínimo {brl(area.minimumOrderAmount)}{area.estimatedMinutes ? ` · cerca de ${area.estimatedMinutes} min` : ""}</span></div> : <p className="mt-3 text-sm text-destructive">{WIZARD_MESSAGES.areaUnavailable}</p>}</> : null}
+      <div className="mt-4 grid gap-2"><Button variant="outline" className={SECONDARY} onClick={() => address && wizard.editAddress(address.localId)}>Corrigir endereço</Button>{profile.savedAddresses.length > 1 ? <Button variant="ghost" className={SECONDARY} onClick={() => wizard.setStep("choose_saved_address")}>Escolher outro endereço</Button> : null}</div>
+    </StepShell>;
   }
 
-  if (step === "confirm_pickup") {
-    return (
-      <StepShell
-        title="Você vai retirar o pedido no estabelecimento?"
-        description={`${configuration!.storeName} · preparo em ~${configuration!.defaultPreparationMinutes} min`}
-        progress={progress}
-        onBack={back}
-        footer={
-          <Button className={PRIMARY} disabled={busy} onClick={() => void wizard.confirmPickup()}>
-            {busy ? "Confirmando…" : "Sim, vou retirar"}
-          </Button>
-        }
-      >
-        {banner}
-        <Badge variant={configuration!.storeIsOpen ? "default" : "secondary"}>
-          {configuration!.storeIsOpen ? "Aberta agora" : "Fechada"}
-        </Badge>
-        {configuration!.deliveryEnabled ? (
-          <Button
-            variant="outline"
-            className="mt-5 min-h-[52px] w-full"
-            onClick={() => wizard.chooseFulfillment("entrega")}
-          >
-            Escolher entrega
-          </Button>
-        ) : null}
-      </StepShell>
-    );
-  }
+  if (step === "confirm_pickup") return <StepShell title="Retirar na loja?" description={`${configuration!.storeName} · preparo em cerca de ${configuration!.defaultPreparationMinutes} min.`} progress={progress} onBack={back} icon={<Store className="size-7" />} footer={<Button className={PRIMARY} disabled={busy} onClick={() => void wizard.confirmPickup()}>{busy ? "Confirmando…" : "Sim, entrar no cardápio"}</Button>}>
+    {notices}
+    <div className="rounded-3xl border bg-muted/30 p-5"><p className="text-lg font-extrabold">{configuration!.storeName}</p><p className="mt-2 text-sm text-muted-foreground">Você faz o pedido agora e busca no estabelecimento quando estiver pronto.</p></div>
+    {configuration!.deliveryEnabled ? <Button variant="outline" className={`mt-4 ${SECONDARY}`} onClick={() => wizard.chooseFulfillment("entrega")}>Prefiro entrega</Button> : null}
+  </StepShell>;
 
   return null;
 }
