@@ -18,6 +18,7 @@ import {
   type ProductFormValues,
 } from "@/catalog/ProductForm";
 import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
+import { SimpleOptionsBuilder } from "@/catalog/simple/SimpleOptionsBuilder";
 import { parsePriceInput } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/catalog/PageHeader";
@@ -113,7 +114,7 @@ function EditarProduto() {
     <div className="space-y-4">
       <PageHeader
         title={product.name}
-        description="Edite os dados do produto e a configuração avançada de venda."
+        description="Edite os dados do produto e monte as escolhas do cliente sem precisar entender configurações técnicas."
       />
       {product.is_archived ? (
         <Alert>
@@ -125,9 +126,10 @@ function EditarProduto() {
       ) : null}
 
       <Tabs defaultValue="dados">
-        <TabsList>
+        <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="dados">Dados e imagem</TabsTrigger>
-          <TabsTrigger value="avancado">Configuração avançada</TabsTrigger>
+          <TabsTrigger value="opcoes">Escolhas e adicionais</TabsTrigger>
+          <TabsTrigger value="avancado">Avançado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4 space-y-4">
@@ -199,7 +201,17 @@ function EditarProduto() {
           />
         </TabsContent>
 
-        <TabsContent value="avancado" className="mt-4">
+        <TabsContent value="opcoes" className="mt-4">
+          <SimpleOptionsBuilder productId={product.id} />
+        </TabsContent>
+
+        <TabsContent value="avancado" className="mt-4 space-y-3">
+          <Alert>
+            <AlertTitle>Modo avançado</AlertTitle>
+            <AlertDescription>
+              Use esta área somente quando a configuração simples não atender sua operação. Para adicionais, sabores, molhos, bebidas e acompanhamentos, prefira a aba “Escolhas e adicionais”.
+            </AlertDescription>
+          </Alert>
           <ProductBuilder productId={product.id} />
         </TabsContent>
       </Tabs>
