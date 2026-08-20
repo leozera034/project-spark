@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock3, CreditCard, Gift, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Clock3, CreditCard, Gift, ShieldCheck, WalletCards } from "lucide-react";
 
 import type { StoreBillingAccess } from "@/lib/store-billing.functions";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,11 @@ function formatDate(value: string | null | undefined) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(date);
 }
 
+function formatMoney(cents: number | null | undefined, currency = "BRL") {
+  if (cents == null) return null;
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: currency || "BRL" }).format(cents / 100);
+}
+
 function planLabel(code: string | null) {
   if (!code) return "Comandiva";
   const labels: Record<string, string> = {
@@ -50,18 +55,27 @@ function planLabel(code: string | null) {
 function copyFor(access: StoreBillingAccess): BannerCopy | null {
   switch (access.stage) {
     case "full": {
-      const periodEnd = formatDate(access.current_period_end);
+      const renewal = formatDate(access.next_charge_at ?? access.current_period_end);
       return {
-        title: `Plano ${planLabel(access.plan_code)} ativo`,
-        description: periodEnd
-          ? `Acesso liberado. Período atual até ${periodEnd}. Consulte valor, faturas e forma de pagamento na área de cobrança.`
-          : "Acesso liberado. Consulte valor, faturas e forma de pagamento na área de cobrança.",
+        title: `Plano ${planLabel(access.plan_code)} · cobrança Stripe confirmada`,
+        description: renewal
+          ? `Assinatura regular. Próxima renovação em ${renewal}.`
+          : "Assinatura regular confirmada pelo provedor de pagamento.",
         tone: "muted",
         icon: ShieldCheck,
         actionLabel: "Ver plano e cobrança",
         actionTo: "/app/loja/plano",
       };
     }
+    case "manual_access":
+      return {
+        title: `Plano ${planLabel(access.plan_code)} · acesso administrativo`,
+        description: "Os recursos estão liberados, mas não existe assinatura Stripe confirmada para esta loja. Isso não é mensalidade paga.",
+        tone: "warning",
+        icon: WalletCards,
+        actionLabel: "Configurar cobrança",
+        actionTo: "/app/loja/plano",
+      };
     case "free":
       return {
         title: "Plano Grátis",
@@ -165,34 +179,46 @@ export function BillingStatusBanner({ access }: { access: StoreBillingAccess }) 
   if (!copy) return null;
 
   const Icon = copy.icon;
+  const planPrice = formatMoney(access.plan_amount_cents, access.currency ?? "BRL");
+  const lastPaid = formatMoney(access.last_paid_amount_cents, access.currency ?? "BRL");
+  const lastPaidAt = formatDate(access.last_paid_at);
+  const nextCharge = formatDate(access.next_charge_at ?? access.current_period_end);
 
   return (
     <div className="px-3 pt-3 sm:px-6 lg:px-8">
       <div
         role={copy.tone === "danger" ? "alert" : "status"}
         className={cn(
-          "mx-auto flex w-full max-w-7xl flex-col gap-3 rounded-2xl border px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5",
+          "mx-auto w-full max-w-7xl rounded-2xl border px-4 py-3 shadow-sm sm:px-5",
           toneClass[copy.tone],
         )}
       >
-        <div className="flex min-w-0 gap-3">
-          <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-background/80 shadow-sm">
-            <Icon className="size-4.5" aria-hidden="true" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 gap-3">
+            <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-background/80 shadow-sm">
+              <Icon className="size-4.5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold leading-5">{copy.title}</p>
+              <p className="mt-0.5 text-sm leading-5 opacity-80">{copy.description}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold leading-5">{copy.title}</p>
-            <p className="mt-0.5 text-sm leading-5 opacity-80">{copy.description}</p>
-          </div>
+
+          {copy.actionLabel && copy.actionTo ? (
+            <Link
+              to={copy.actionTo as never}
+              className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-background/80 px-4 text-sm font-semibold shadow-sm transition hover:bg-background"
+            >
+              {copy.actionLabel}
+            </Link>
+          ) : null}
         </div>
 
-        {copy.actionLabel && copy.actionTo ? (
-          <Link
-            to={copy.actionTo as never}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-background/80 px-4 text-sm font-semibold shadow-sm transition hover:bg-background"
-          >
-            {copy.actionLabel}
-          </Link>
-        ) : null}
+        <div className="mt-3 grid gap-2 border-t border-current/10 pt-3 text-xs sm:grid-cols-3">
+          <span><strong>Valor do plano:</strong> {planPrice ? `${planPrice}/${access.billing_interval === "annual" ? "ano" : "mês"}` : "—"}</span>
+          <span><strong>Último pagamento:</strong> {lastPaid && lastPaidAt ? `${lastPaid} em ${lastPaidAt}` : "nenhum pagamento confirmado"}</span>
+          <span><strong>Próxima cobrança:</strong> {access.payment_verified && nextCharge ? nextCharge : "não agendada"}</span>
+        </div>
       </div>
     </div>
   );
