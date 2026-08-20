@@ -1,13 +1,11 @@
 /**
- * Fase 12 — Contratos do wizard público do cliente.
- *
- * Nada aqui reutiliza tipos administrativos: são projeções mínimas,
- * pensadas para viver no aparelho do cliente sem carregar dados do banco.
+ * Contratos públicos do assistente de pedido.
+ * Valores de preço/taxa continuam sendo apenas projeções: o servidor recalcula tudo.
  */
 
 export type FulfillmentType = "entrega" | "retirada";
+export type DeliveryPricingMode = "neighborhood" | "fixed" | "radius";
 
-/** Área de entrega publicada pela loja. Somente campos públicos. */
 export type PublicDeliveryArea = {
   id: string;
   name: string;
@@ -17,6 +15,20 @@ export type PublicDeliveryArea = {
   publicNotes: string | null;
 };
 
+export type PublicRadiusBand = {
+  id: string;
+  maxDistanceKm: number;
+  deliveryFee: number;
+  minimumOrderAmount: number;
+  estimatedMinutes: number | null;
+};
+
+export type PublicFixedDeliveryQuote = {
+  deliveryFee: number;
+  minimumOrderAmount: number;
+  estimatedMinutes: number | null;
+};
+
 export type PublicFulfillmentConfiguration = {
   configurationVersion: string;
   deliveryEnabled: boolean;
@@ -24,6 +36,10 @@ export type PublicFulfillmentConfiguration = {
   storeIsOpen: boolean;
   storeName: string;
   defaultPreparationMinutes: number;
+  deliveryPricingMode: DeliveryPricingMode;
+  storeLocationReady: boolean;
+  fixedQuote: PublicFixedDeliveryQuote | null;
+  radiusBands: PublicRadiusBand[];
   deliveryAreas: PublicDeliveryArea[];
 };
 
@@ -31,6 +47,7 @@ export type FulfillmentValidation = {
   isValid: boolean;
   configurationVersion: string;
   fulfillmentType: FulfillmentType | null;
+  deliveryPricingMode: DeliveryPricingMode;
   storeIsOpen: boolean;
   deliveryEnabled: boolean;
   pickupEnabled: boolean;
@@ -38,17 +55,21 @@ export type FulfillmentValidation = {
   deliveryFee: number | null;
   minimumOrderAmount: number | null;
   estimatedMinutes: number | null;
+  distanceKm: number | null;
   validationErrors: string[];
 };
 
 export type AddressLabel = "Casa" | "Trabalho" | "Outro";
 
-/** Endereço salvo apenas no aparelho. Nunca é enviado ao servidor nesta fase. */
+/**
+ * O bairro canônico só existe no modo por bairro. Nos modos fixo/raio,
+ * guardamos o nome digitado para orientar a entrega e deixamos o ID nulo.
+ */
 export type LocalSavedAddress = {
   localId: string;
   label: AddressLabel;
   customLabel: string | null;
-  neighborhoodId: string;
+  neighborhoodId: string | null;
   neighborhoodNameSnapshot: string;
   street: string;
   number: string | null;
@@ -62,7 +83,6 @@ export type LocalSavedAddress = {
   lastUsedAt: string | null;
 };
 
-/** Rascunho em edição; vive só no sessionStorage até ser salvo. */
 export type AddressDraft = {
   editingLocalId: string | null;
   neighborhoodId: string | null;
@@ -123,10 +143,10 @@ export type ConfirmedDeliveryContext = {
   type: "entrega";
   firstName: string;
   address: LocalSavedAddress;
-  /** Informativo: será recalculado no servidor no checkout. */
   informativeDeliveryFee: number | null;
   informativeMinimumOrder: number | null;
   informativeEstimatedMinutes: number | null;
+  informativeDistanceKm: number | null;
 };
 
 export type ConfirmedPickupContext = {
