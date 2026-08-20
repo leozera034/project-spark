@@ -15,7 +15,7 @@ import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/cust
 
 export const WIZARD_PRIMARY = "min-h-[60px] w-full rounded-2xl bg-brand text-[17px] font-extrabold text-brand-foreground shadow-lg shadow-black/[.08] transition hover:bg-brand/90 active:scale-[.985]";
 const SECONDARY = "min-h-[54px] w-full rounded-2xl text-base font-bold transition active:scale-[.985]";
-export const WIZARD_FIELD = "mt-2 min-h-[58px] rounded-2xl border-foreground/[.10] bg-card/95 px-4 text-[18px] text-card-foreground shadow-sm placeholder:text-muted-foreground/75 focus-visible:border-brand/45 focus-visible:ring-brand/25";
+export const WIZARD_FIELD = "mt-2 min-h-[58px] rounded-2xl border-input bg-card px-4 text-[18px] text-card-foreground shadow-sm placeholder:text-card-foreground/45 focus-visible:border-brand/55 focus-visible:ring-brand/25";
 const SELECT_CARD = "flex min-h-[88px] w-full items-center gap-4 rounded-3xl border border-foreground/[.08] bg-card/92 p-4 text-left text-card-foreground shadow-md shadow-black/[.05] transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-lg active:translate-y-0 active:scale-[.99] focus-visible:ring-2 focus-visible:ring-brand";
 
 export function WizardStepShell({ title, description, children, footer, progress, onBack, icon }: {
@@ -32,7 +32,7 @@ export function WizardStepShell({ title, description, children, footer, progress
 
   return (
     <main className="min-h-svh text-foreground" aria-labelledby="wizard-title">
-      <div className="mx-auto w-full max-w-xl px-5 pb-36 pt-5 sm:px-7 sm:pt-7">
+      <div className="mx-auto w-full max-w-xl px-5 pb-44 pt-5 sm:px-7 sm:pt-7">
         <div className="mb-7 flex min-h-10 items-center justify-between gap-3">
           {onBack ? (
             <Button
@@ -73,8 +73,16 @@ export function WizardStepShell({ title, description, children, footer, progress
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-9">
-        <div className="mx-auto w-full max-w-xl">{footer}</div>
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-[max(.65rem,env(safe-area-inset-bottom))] pt-9">
+        <div className="mx-auto w-full max-w-xl">
+          {footer}
+          <a
+            href="/criar-loja"
+            className="mx-auto mt-2.5 block w-fit rounded-full px-3 py-1 text-center text-[11px] font-bold text-muted-foreground transition hover:bg-card/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+          >
+            Tem uma loja? Crie seu cardápio no Comandiva →
+          </a>
+        </div>
       </div>
     </main>
   );
