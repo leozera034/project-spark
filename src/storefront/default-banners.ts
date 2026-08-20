@@ -66,20 +66,83 @@ export type StorefrontThemeVisual = {
   foreground: string;
   mutedForeground: string;
   brand: string;
+  brandForeground: string;
   background: string;
 };
 
+// Tokens em OKLCH, no mesmo formato do design system global.
+// O tema muda a personalidade, mas preserva contraste e hierarquia.
 export const STOREFRONT_THEME_VISUALS: Record<StorefrontThemeProfile, StorefrontThemeVisual> = {
-  pizzaria: { foreground: "14 47% 18%", mutedForeground: "14 23% 38%", brand: "7 61% 45%", background: "36 100% 98%" },
-  hamburgueria: { foreground: "24 49% 14%", mutedForeground: "24 23% 35%", brand: "27 63% 37%", background: "36 100% 98%" },
-  acai: { foreground: "292 49% 18%", mutedForeground: "292 20% 38%", brand: "289 50% 39%", background: "324 100% 99%" },
-  sorveteria: { foreground: "334 39% 20%", mutedForeground: "334 19% 40%", brand: "337 55% 51%", background: "345 100% 99%" },
-  restaurante: { foreground: "347 39% 18%", mutedForeground: "347 18% 38%", brand: "347 52% 36%", background: "36 100% 98%" },
-  lanchonete: { foreground: "27 45% 17%", mutedForeground: "27 20% 38%", brand: "30 62% 42%", background: "36 100% 98%" },
-  pastelaria: { foreground: "30 60% 18%", mutedForeground: "30 27% 38%", brand: "31 70% 45%", background: "37 100% 98%" },
-  adega: { foreground: "343 43% 16%", mutedForeground: "343 20% 37%", brand: "343 55% 31%", background: "36 100% 98%" },
-  mercado: { foreground: "84 33% 16%", mutedForeground: "84 18% 35%", brand: "85 43% 30%", background: "45 100% 98%" },
-  outros: { foreground: "340 13% 17%", mutedForeground: "340 8% 38%", brand: "344 18% 36%", background: "36 50% 98%" },
+  pizzaria: {
+    foreground: "oklch(0.27 0.055 28)",
+    mutedForeground: "oklch(0.46 0.035 35)",
+    brand: "oklch(0.53 0.17 31)",
+    brandForeground: "oklch(0.985 0.006 80)",
+    background: "oklch(0.975 0.018 78)",
+  },
+  hamburgueria: {
+    foreground: "oklch(0.97 0.012 75)",
+    mutedForeground: "oklch(0.82 0.024 68)",
+    brand: "oklch(0.73 0.14 62)",
+    brandForeground: "oklch(0.22 0.035 46)",
+    background: "oklch(0.235 0.038 43)",
+  },
+  acai: {
+    foreground: "oklch(0.29 0.09 318)",
+    mutedForeground: "oklch(0.48 0.055 318)",
+    brand: "oklch(0.49 0.16 316)",
+    brandForeground: "oklch(0.985 0.008 320)",
+    background: "oklch(0.978 0.017 326)",
+  },
+  sorveteria: {
+    foreground: "oklch(0.30 0.065 350)",
+    mutedForeground: "oklch(0.50 0.045 350)",
+    brand: "oklch(0.61 0.15 353)",
+    brandForeground: "oklch(0.99 0.006 80)",
+    background: "oklch(0.979 0.018 18)",
+  },
+  restaurante: {
+    foreground: "oklch(0.28 0.06 17)",
+    mutedForeground: "oklch(0.47 0.036 23)",
+    brand: "oklch(0.48 0.13 18)",
+    brandForeground: "oklch(0.985 0.008 80)",
+    background: "oklch(0.974 0.015 78)",
+  },
+  lanchonete: {
+    foreground: "oklch(0.28 0.05 54)",
+    mutedForeground: "oklch(0.48 0.035 55)",
+    brand: "oklch(0.61 0.12 59)",
+    brandForeground: "oklch(0.20 0.028 48)",
+    background: "oklch(0.975 0.017 76)",
+  },
+  pastelaria: {
+    foreground: "oklch(0.29 0.055 60)",
+    mutedForeground: "oklch(0.49 0.04 63)",
+    brand: "oklch(0.67 0.14 66)",
+    brandForeground: "oklch(0.22 0.03 50)",
+    background: "oklch(0.977 0.02 78)",
+  },
+  adega: {
+    foreground: "oklch(0.97 0.012 70)",
+    mutedForeground: "oklch(0.83 0.025 35)",
+    brand: "oklch(0.57 0.13 10)",
+    brandForeground: "oklch(0.985 0.01 72)",
+    background: "oklch(0.235 0.042 25)",
+  },
+  mercado: {
+    foreground: "oklch(0.28 0.052 126)",
+    mutedForeground: "oklch(0.47 0.04 126)",
+    brand: "oklch(0.50 0.12 125)",
+    brandForeground: "oklch(0.985 0.008 90)",
+    background: "oklch(0.977 0.018 92)",
+  },
+  outros: {
+    foreground: "oklch(0.27 0.02 25)",
+    mutedForeground: "oklch(0.48 0.018 35)",
+    brand: "oklch(0.49 0.07 20)",
+    brandForeground: "oklch(0.985 0.006 80)",
+    background: "oklch(0.974 0.012 78)",
+  },
 };
 
 const SEGMENT_TO_PROFILE: Record<string, StorefrontThemeProfile> = {
