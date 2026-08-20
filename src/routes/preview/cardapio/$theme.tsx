@@ -19,14 +19,14 @@ function StorefrontThemePreviewRoute() {
 
   return (
     <div className="relative">
-      <div className="fixed left-3 top-3 z-50 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 sm:left-4 sm:top-4">
+      <div className="fixed left-4 top-4 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-2 sm:left-6 sm:top-6">
         <Link
           to="/preview/cardapio"
-          className="rounded-full border border-white/25 bg-black/55 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-md"
+          className="rounded-2xl border border-black/5 bg-white/95 px-4 py-2.5 text-xs font-extrabold text-[#2b1813] shadow-[0_8px_24px_rgba(48,28,18,.14)] backdrop-blur-md sm:text-sm"
         >
           ← Todos os cardápios
         </Link>
-        <span className="truncate rounded-full border border-white/25 bg-black/55 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+        <span className="truncate rounded-2xl border border-black/5 bg-white/95 px-4 py-2.5 text-xs font-extrabold text-[#2b1813] shadow-[0_8px_24px_rgba(48,28,18,.14)] backdrop-blur-md sm:text-sm">
           Preview · {STOREFRONT_PREVIEW_THEME_META[theme].label}
         </span>
       </div>
