@@ -8,6 +8,7 @@ export type StoreBillingStage =
   | "complimentary"
   | "free"
   | "trial"
+  | "manual_access"
   | "full"
   | "notice"
   | "restricted_growth"
@@ -17,6 +18,8 @@ export type StoreBillingStage =
 
 export interface StoreBillingAccess {
   stage: StoreBillingStage;
+  billing_source: "unconfigured" | "free" | "complimentary" | "trial" | "stripe_trial" | "stripe_paid" | "manual_access" | "unknown";
+  payment_verified: boolean;
   plan_code: string | null;
   subscription_status: string | null;
   overdue_days: number;
@@ -24,6 +27,12 @@ export interface StoreBillingAccess {
   complimentary_until?: string | null;
   grace_until?: string | null;
   current_period_end?: string | null;
+  plan_amount_cents?: number | null;
+  currency?: string | null;
+  billing_interval?: "monthly" | "annual" | string | null;
+  last_paid_at?: string | null;
+  last_paid_amount_cents?: number | null;
+  next_charge_at?: string | null;
   can_accept_new_orders: boolean;
   can_process_existing_orders: boolean;
   can_manage_catalog: boolean;
