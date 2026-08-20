@@ -9,10 +9,8 @@ import type {
   DeliveryRouteEstimate,
 } from "./courier.types";
 
-/** Janela de presença espelhada do servidor (`private.courier_presence_window`). */
 export const PRESENCE_WINDOW_MS = 150_000;
 
-/** Presença derivada: intenção declarada mais sinal recente. */
 export function derivePresence(
   onlineIntent: boolean,
   lastSeenAt: string | null,
@@ -41,12 +39,9 @@ export function accountLabel(isActive: boolean): string {
   return isActive ? "Ativo" : "Inativo";
 }
 
-/** Disponível ≠ online. Disponível é ativo, elegível, com veículo e sem entrega ativa. */
 export function availabilityLabel(courier: CourierListItem): "Disponível" | "Ocupado" | "Indisponível" {
   if (courier.currentAssignment) return "Ocupado";
-  if (!courier.isActive || !courier.canAcceptDeliveries || courier.vehicle === "nao_informado") {
-    return "Indisponível";
-  }
+  if (!courier.isActive || !courier.canAcceptDeliveries || courier.vehicle === "nao_informado") return "Indisponível";
   return "Disponível";
 }
 
@@ -73,6 +68,8 @@ export const DELIVERY_STATUS_LABEL: Record<string, string> = {
   aceita: "Aceita",
   coletada: "Coletada",
   em_rota: "Em rota",
+  retornando_loja: "Retornando à loja",
+  devolvida_loja: "Devolvida à loja",
   concluida: "Entregue",
   cancelada: "Cancelada",
 };
@@ -81,8 +78,20 @@ export const OCCURRENCE_LABEL: Record<string, string> = {
   customer_not_found: "Cliente não encontrado",
   incorrect_address: "Endereço incorreto",
   customer_asked_to_wait: "Cliente pediu para aguardar",
+  customer_refused: "Cliente recusou o pedido",
+  payment_problem: "Problema no pagamento",
+  unsafe_location: "Local sem segurança para concluir",
   order_problem: "Problema com o pedido",
   vehicle_problem: "Problema com o veículo",
+  other: "Outro motivo",
+};
+
+export const DELIVERY_RETURN_REASON_LABEL: Record<string, string> = {
+  customer_not_found: "Cliente não encontrado",
+  incorrect_address: "Endereço incorreto",
+  customer_refused: "Cliente recusou o pedido",
+  payment_problem: "Problema no pagamento",
+  unsafe_location: "Não foi seguro concluir a entrega",
   other: "Outro motivo",
 };
 
