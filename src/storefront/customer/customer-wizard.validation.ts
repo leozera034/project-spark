@@ -1,7 +1,4 @@
-/**
- * Validação de tudo que entra e sai do aparelho.
- * Todo conteúdo local é tratado como não confiável.
- */
+/** Validação dos dados locais do assistente. Todo conteúdo local é não confiável. */
 import { z } from "zod";
 
 import { collapseSpaces } from "./address-normalization";
@@ -9,12 +6,8 @@ import type { CustomerLocalProfile, CustomerSessionContext } from "./customer-wi
 
 const MAX_ADDRESSES = 5;
 
-/** Rejeita marcação e caracteres de controle. Texto é sempre texto simples. */
 const plainText = (max: number) =>
-  z
-    .string()
-    .max(max * 2)
-    .transform((value) => collapseSpaces(value))
+  z.string().max(max * 2).transform((value) => collapseSpaces(value))
     .refine((value) => !/[<>]/.test(value), { message: "Use apenas texto simples." })
     .refine((value) => value.length <= max, { message: `Máximo de ${max} caracteres.` });
 
@@ -23,29 +16,19 @@ export const firstNameSchema = plainText(60)
   .refine((value) => !/^\d+$/.test(value), { message: "Informe um nome, não apenas números." })
   .refine((value) => /[\p{L}]/u.test(value), { message: "Informe um nome válido." });
 
-export const streetSchema = plainText(120).refine((value) => value.length >= 3, {
-  message: "Informe a rua ou avenida.",
-});
-
-export const numberSchema = plainText(20).refine((value) => value.length >= 1, {
-  message: "Informe o número ou marque “Sem número”.",
-});
-
+export const streetSchema = plainText(120).refine((value) => value.length >= 3, { message: "Informe a rua ou avenida." });
+export const numberSchema = plainText(20).refine((value) => value.length >= 1, { message: "Informe o número ou marque “Sem número”." });
 export const complementSchema = plainText(100);
 export const referenceSchema = plainText(140);
-export const customLabelSchema = plainText(30).refine((value) => value.length >= 2, {
-  message: "Informe entre 2 e 30 caracteres.",
-});
-
+export const customLabelSchema = plainText(30).refine((value) => value.length >= 2, { message: "Informe entre 2 e 30 caracteres." });
 export const labelSchema = z.enum(["Casa", "Trabalho", "Outro"]);
-
 const coordinate = z.number().finite().min(-180).max(180).nullable();
 
 export const savedAddressSchema = z.object({
   localId: z.string().uuid(),
   label: labelSchema,
   customLabel: plainText(30).nullable().catch(null),
-  neighborhoodId: z.string().uuid(),
+  neighborhoodId: z.string().uuid().nullable().catch(null),
   neighborhoodNameSnapshot: plainText(120),
   street: plainText(120),
   number: plainText(20).nullable(),
@@ -83,23 +66,9 @@ export const addressDraftSchema = z.object({
 });
 
 export const wizardStepSchema = z.enum([
-  "loading_store",
-  "identify_customer",
-  "confirm_saved_name",
-  "choose_fulfillment",
-  "choose_saved_address",
-  "address_neighborhood",
-  "address_street",
-  "address_number",
-  "address_complement",
-  "address_reference",
-  "address_label",
-  "confirm_address",
-  "confirm_pickup",
-  "validating_context",
-  "completed",
-  "read_only",
-  "error",
+  "loading_store","identify_customer","confirm_saved_name","choose_fulfillment","choose_saved_address",
+  "address_neighborhood","address_street","address_number","address_complement","address_reference","address_label",
+  "confirm_address","confirm_pickup","validating_context","completed","read_only","error",
 ]);
 
 export const sessionSchema = z.object({
@@ -117,40 +86,15 @@ export const sessionSchema = z.object({
 });
 
 export const MAX_LOCAL_ADDRESSES = MAX_ADDRESSES;
-
 export function emptyProfile(): CustomerLocalProfile {
-  return {
-    schemaVersion: 1,
-    firstName: null,
-    lastFulfillmentPreference: null,
-    savedAddresses: [],
-    updatedAt: new Date().toISOString(),
-  };
+  return { schemaVersion:1, firstName:null, lastFulfillmentPreference:null, savedAddresses:[], updatedAt:new Date().toISOString() };
 }
-
 export function emptySession(): CustomerSessionContext {
-  return {
-    schemaVersion: 1,
-    wizardStep: "identify_customer",
-    firstName: null,
-    fulfillmentType: null,
-    selectedAddressLocalId: null,
-    addressDraft: null,
-    confirmedAddressFingerprint: null,
-    fulfillmentConfigurationVersion: null,
-    safeReturnPath: null,
-    completed: false,
-    updatedAt: new Date().toISOString(),
-  };
+  return { schemaVersion:1, wizardStep:"identify_customer", firstName:null, fulfillmentType:null, selectedAddressLocalId:null, addressDraft:null, confirmedAddressFingerprint:null, fulfillmentConfigurationVersion:null, safeReturnPath:null, completed:false, updatedAt:new Date().toISOString() };
 }
-
-/** Parse tolerante: dado inválido vira estado vazio, nunca quebra o cardápio. */
 export function parseProfile(raw: unknown): CustomerLocalProfile | null {
-  const result = profileSchema.safeParse(raw);
-  return result.success ? (result.data as CustomerLocalProfile) : null;
+  const result=profileSchema.safeParse(raw); return result.success ? result.data as CustomerLocalProfile : null;
 }
-
 export function parseSession(raw: unknown): CustomerSessionContext | null {
-  const result = sessionSchema.safeParse(raw);
-  return result.success ? (result.data as CustomerSessionContext) : null;
+  const result=sessionSchema.safeParse(raw); return result.success ? result.data as CustomerSessionContext : null;
 }
