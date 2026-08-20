@@ -5,121 +5,20 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+function rpcCaller(client: { rpc: unknown }): RpcCaller { return client.rpc as RpcCaller; }
 
-function rpcCaller(client: { rpc: unknown }): RpcCaller {
-  return client.rpc as RpcCaller;
-}
+export interface PlatformHealthSummary { totalStores:number; activeStores:number; suspendedStores:number; ordersLast24h:number; activeCouriers:number; generatedAt:string; }
+export interface PlatformBillingSummary { activeSubscriptions:number; trialSubscriptions:number; manualAccessSubscriptions:number; courtesySubscriptions:number; internalTrialSubscriptions:number; delinquentSubscriptions:number; suspendedSubscriptions:number; monthlyRecurringRevenue:number; manualAccessReferenceValue:number; paidCurrentMonth:number; professionalServicesPaidCurrentMonth:number; professionalServicesOpen:number; professionalServicesInProgress:number; professionalServicesDeliveredCurrentMonth:number; ordersCurrentMonth:number; completedOrderGmvCurrentMonth:number; confirmedOnlinePaymentsCurrentMonth:number; generatedAt:string; }
+export interface PlatformErrorItem { id:string; storeId:string|null; message:string|null; route:string|null; source:string|null; boundary:string|null; createdAt:string; }
+export interface PlatformStoreItem { id:string; name:string; slug:string; status:"em_implantacao"|"ativa"|"suspensa"|"inativa"; total_orders:number; created_at:string; city:string|null; state:string|null; plan_code:string|null; plan_name:string|null; subscription_status:string|null; billing_interval:string|null; billing_provider:string|null; provider_status:string|null; current_period_end:string|null; complimentary_until:string|null; amount_cents:number|null; currency:string|null; stripe_recurring_confirmed:boolean; }
+export interface OtherProfileDemandSummaryItem { label:string; normalized_label:string; stores:number; selections:number; last_seen_at:string; status:string; }
+export interface OtherProfileDemandItem { id:string; store_id:string; store_name:string; label:string; normalized_label:string; source:string; selection_count:number; first_seen_at:string; last_seen_at:string; status:string; mapped_profile_code:string|null; admin_notes:string|null; }
+export interface OtherProfileDemand { summary:OtherProfileDemandSummaryItem[]; items:OtherProfileDemandItem[]; }
 
-export interface PlatformHealthSummary {
-  totalStores: number;
-  activeStores: number;
-  suspendedStores: number;
-  ordersLast24h: number;
-  activeCouriers: number;
-  generatedAt: string;
-}
-
-export interface PlatformBillingSummary {
-  activeSubscriptions: number;
-  trialSubscriptions: number;
-  manualAccessSubscriptions: number;
-  courtesySubscriptions: number;
-  internalTrialSubscriptions: number;
-  delinquentSubscriptions: number;
-  suspendedSubscriptions: number;
-  monthlyRecurringRevenue: number;
-  manualAccessReferenceValue: number;
-  paidCurrentMonth: number;
-  professionalServicesPaidCurrentMonth: number;
-  professionalServicesOpen: number;
-  professionalServicesInProgress: number;
-  professionalServicesDeliveredCurrentMonth: number;
-  ordersCurrentMonth: number;
-  completedOrderGmvCurrentMonth: number;
-  confirmedOnlinePaymentsCurrentMonth: number;
-  generatedAt: string;
-}
-
-export interface PlatformErrorItem {
-  id: string;
-  storeId: string | null;
-  message: string | null;
-  route: string | null;
-  source: string | null;
-  boundary: string | null;
-  createdAt: string;
-}
-
-export interface PlatformStoreItem {
-  id: string;
-  name: string;
-  slug: string;
-  status: "em_implantacao" | "ativa" | "suspensa" | "inativa";
-  total_orders: number;
-  created_at: string;
-  city: string | null;
-  state: string | null;
-  plan_code: string | null;
-  plan_name: string | null;
-  subscription_status: string | null;
-  billing_interval: string | null;
-  billing_provider: string | null;
-  provider_status: string | null;
-  current_period_end: string | null;
-  complimentary_until: string | null;
-  amount_cents: number | null;
-  currency: string | null;
-  stripe_recurring_confirmed: boolean;
-}
-
-export const getPlatformHealth = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("get_platform_health_summary");
-    if (error) throw error;
-    return data as PlatformHealthSummary;
-  });
-
-export const getPlatformBilling = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("get_platform_billing_summary");
-    if (error) throw error;
-    return data as PlatformBillingSummary;
-  });
-
-export const getPlatformRecentErrors = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(100).optional() }).parse(d))
-  .handler(async ({ data: input, context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("get_platform_recent_errors", { _limit: input.limit ?? 20 });
-    if (error) throw error;
-    return data as PlatformErrorItem[];
-  });
-
-export const listPlatformStores = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ search: z.string().max(120).optional(), status: z.string().max(40).optional(), limit: z.number().int().min(1).max(200).optional(), offset: z.number().int().min(0).optional() }).parse(d))
-  .handler(async ({ data: input, context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("list_platform_stores", { _search: input.search, _status: input.status, _limit: input.limit ?? 50, _offset: input.offset ?? 0 });
-    if (error) throw error;
-    return data as { items: PlatformStoreItem[]; total: number };
-  });
-
-export const adminSuspendStore = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid(), reason: z.string().trim().min(1).max(500) }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { error } = await rpcCaller(context.supabase)("admin_suspend_store", { _store_id: data.storeId, _reason: data.reason });
-    if (error) throw error;
-    return { success: true };
-  });
-
-export const adminReactivateStore = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { error } = await rpcCaller(context.supabase)("admin_reactivate_store", { _store_id: data.storeId });
-    if (error) throw error;
-    return { success: true };
-  });
+export const getPlatformHealth=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{const{data,error}=await rpcCaller(context.supabase)("get_platform_health_summary");if(error)throw error;return data as PlatformHealthSummary;});
+export const getPlatformBilling=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{const{data,error}=await rpcCaller(context.supabase)("get_platform_billing_summary");if(error)throw error;return data as PlatformBillingSummary;});
+export const getPlatformRecentErrors=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).inputValidator((d:unknown)=>z.object({limit:z.number().int().min(1).max(100).optional()}).parse(d)).handler(async({data:input,context})=>{const{data,error}=await rpcCaller(context.supabase)("get_platform_recent_errors",{_limit:input.limit??20});if(error)throw error;return data as PlatformErrorItem[];});
+export const listPlatformStores=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).inputValidator((d:unknown)=>z.object({search:z.string().max(120).optional(),status:z.string().max(40).optional(),limit:z.number().int().min(1).max(200).optional(),offset:z.number().int().min(0).optional()}).parse(d)).handler(async({data:input,context})=>{const{data,error}=await rpcCaller(context.supabase)("list_platform_stores",{_search:input.search,_status:input.status,_limit:input.limit??50,_offset:input.offset??0});if(error)throw error;return data as{items:PlatformStoreItem[];total:number};});
+export const getOtherProfileDemand=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{const{data,error}=await rpcCaller(context.supabase)("admin_list_other_profile_demand");if(error)throw error;return data as OtherProfileDemand;});
+export const adminSuspendStore=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator((d:unknown)=>z.object({storeId:z.string().uuid(),reason:z.string().trim().min(1).max(500)}).parse(d)).handler(async({data,context})=>{const{error}=await rpcCaller(context.supabase)("admin_suspend_store",{_store_id:data.storeId,_reason:data.reason});if(error)throw error;return{success:true};});
+export const adminReactivateStore=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator((d:unknown)=>z.object({storeId:z.string().uuid()}).parse(d)).handler(async({data,context})=>{const{error}=await rpcCaller(context.supabase)("admin_reactivate_store",{_store_id:data.storeId});if(error)throw error;return{success:true};});
