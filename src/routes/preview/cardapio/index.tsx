@@ -14,7 +14,18 @@ export const Route = createFileRoute("/preview/cardapio/")({
   component: StorefrontPreviewGallery,
 });
 
-const THEMES = Object.keys(STOREFRONT_PREVIEW_THEME_META) as StorefrontThemeProfile[];
+const THEMES: StorefrontThemeProfile[] = [
+  "pizzaria",
+  "hamburgueria",
+  "acai",
+  "sorveteria",
+  "restaurante",
+  "lanchonete",
+  "pastelaria",
+  "adega",
+  "mercado",
+  "outros",
+];
 
 function StorefrontPreviewGallery() {
   return (
