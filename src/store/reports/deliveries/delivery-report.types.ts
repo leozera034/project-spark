@@ -6,6 +6,29 @@ export interface DeliveryReportPeriod {
   end: string;
 }
 
+export interface StoreBusinessReportPaymentMethod {
+  method: string;
+  orders: number;
+  amount: number;
+}
+
+export interface StoreBusinessReportSummary {
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  openOrders: number;
+  grossCompleted: number;
+  onlinePaidCents: number;
+  deliveryFees: number;
+  averageTicket: number;
+  deliveryOrders: number;
+  pickupOrders: number;
+  paymentMethods: StoreBusinessReportPaymentMethod[];
+  period: DeliveryReportPeriod;
+  timezone: string;
+  generatedAt: string;
+}
+
 export interface DeliveryReportSummary {
   completedDeliveries: number;
   couriersWithCompletions: number;
