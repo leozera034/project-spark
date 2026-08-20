@@ -66,6 +66,16 @@ const SEGMENT_TO_PROFILE: Record<string, StorefrontThemeProfile> = {
 export function resolveStorefrontThemeProfile(segment: string | null | undefined): StorefrontThemeProfile {
   if (!segment) return "outros";
   const normalized = segment.trim().toLocaleLowerCase("pt-BR");
+
+  // O autocadastro persiste marcadores para diferenciar modelos nativos de
+  // categorias livres. Resolva o marcador antes do fallback para que lojas
+  // recém-criadas recebam o banner e o fundo do wizard corretos.
+  if (normalized.startsWith("__profile__:")) {
+    const profileCode = normalized.slice("__profile__:".length).trim();
+    return SEGMENT_TO_PROFILE[profileCode] ?? "outros";
+  }
+  if (normalized.startsWith("__other__:")) return "outros";
+
   return SEGMENT_TO_PROFILE[normalized] ?? "outros";
 }
 
