@@ -4,7 +4,22 @@ import { z } from "zod";
 /** Autocadastro de lojas. Plano pago selecionado é intenção; o banco mantém fallback grátis até webhook Stripe. */
 const slugSchema=z.string().trim().min(3).max(60).regex(/^[a-z0-9-]+$/,"Use apenas letras minúsculas, números e hífen");
 const passwordSchema=z.string().min(8).max(72).regex(/[A-Za-z]/,"A senha precisa conter ao menos uma letra").regex(/[0-9]/,"A senha precisa conter ao menos um número");
-const createSchema=z.object({storeName:z.string().trim().min(3).max(80),slug:slugSchema,segment:z.string().trim().max(60).optional(),city:z.string().trim().min(2).max(80),state:z.string().trim().length(2),phone:z.string().trim().min(8).max(20),ownerName:z.string().trim().min(3).max(100),email:z.string().trim().email().max(160),password:passwordSchema,planCode:z.enum(["gratis","essencial","profissional","avancado"]).default("gratis")});
+const profileCodeSchema=z.enum(["pizzaria","hamburgueria","acai","sorveteria","restaurante","lanchonete","pastelaria","adega","mercado","outros"]);
+const createSchema=z.object({
+  storeName:z.string().trim().min(3).max(80),
+  slug:slugSchema,
+  profileCode:profileCodeSchema,
+  otherBusinessType:z.string().trim().max(80).optional(),
+  city:z.string().trim().min(2).max(80),
+  state:z.string().trim().length(2),
+  phone:z.string().trim().min(8).max(20),
+  ownerName:z.string().trim().min(3).max(100),
+  email:z.string().trim().email().max(160),
+  password:passwordSchema,
+  planCode:z.enum(["gratis","essencial","profissional","avancado"]).default("gratis")
+}).superRefine((value,ctx)=>{
+  if(value.profileCode==="outros"&&(!value.otherBusinessType||value.otherBusinessType.trim().length<2))ctx.addIssue({code:z.ZodIssueCode.custom,path:["otherBusinessType"],message:"Informe qual é o seu tipo de negócio."});
+});
 export type CreateStoreAccountInput=z.input<typeof createSchema>;
 
 export const checkStoreSlug=createServerFn({method:"POST"}).inputValidator((data:unknown)=>z.object({slug:z.string().trim().max(80)}).parse(data)).handler(async({data})=>{const{supabaseAdmin}=await import("@/integrations/supabase/client.server");const{data:result,error}=await supabaseAdmin.rpc("check_public_store_slug",{_slug:data.slug} as never);if(error)return{slug:data.slug,available:false,reason:"indisponivel" as string|null};return result as{slug:string;available:boolean;reason:string|null}});
