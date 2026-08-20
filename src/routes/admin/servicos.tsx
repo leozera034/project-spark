@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BriefcaseBusiness, Loader2 } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Loader2, PlayCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +21,7 @@ const rpc = supabase.rpc.bind(supabase) as any;
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 type Service = { id: string; code: string; name: string; description: string | null; price_cents: number | null; currency: string; is_active: boolean; sort_order: number };
+type ServiceOrder = { id: string; store_id: string; store_name: string; service_id: string; service_code: string; service_name: string; status: string; price_cents: number | null; currency: string; notes: string | null; requested_at: string; paid_at: string | null; in_progress_at: string | null; delivered_at: string | null; cancelled_at: string | null };
 
 function ProfessionalServicesAdminPage() {
   const queryClient = useQueryClient();
@@ -33,16 +34,45 @@ function ProfessionalServicesAdminPage() {
     },
     retry: false,
   });
+  const orders = useQuery({
+    queryKey: ["admin", "professional-service-orders"],
+    queryFn: async () => {
+      const { data, error } = await rpc("admin_list_professional_service_orders", { _status: null });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as ServiceOrder[];
+    },
+    retry: false,
+    refetchInterval: 10000,
+  });
+
+  async function refreshAll() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["admin", "professional-services"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "professional-service-orders"] }),
+    ]);
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <section className="rounded-[28px] border border-white/10 bg-[#4B1D6D] p-6 text-white shadow-e2 sm:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[.12em]"><BriefcaseBusiness className="size-3.5" /> Receita avulsa</div>
         <h1 className="mt-4 font-display text-3xl font-black sm:text-4xl">Serviços profissionais</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">Defina preços de serviços executados pela equipe sem misturar com assinatura ou add-ons recorrentes.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">Defina preços, acompanhe pagamentos e controle a execução dos serviços sem misturar com assinatura ou add-ons recorrentes.</p>
       </section>
 
-      {services.isLoading ? <Card><CardContent className="p-8 text-sm text-muted-foreground">Carregando serviços…</CardContent></Card> : services.isError ? <Card><CardContent className="p-8 text-sm text-destructive">Não foi possível carregar os serviços. Verifique sua permissão de dono do SaaS.</CardContent></Card> : services.data?.map((service) => <ServiceEditor key={service.id} service={service} onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin", "professional-services"] })} />)}
+      {services.isLoading ? <Card><CardContent className="p-8 text-sm text-muted-foreground">Carregando serviços…</CardContent></Card> : services.isError ? <Card><CardContent className="p-8 text-sm text-destructive">Não foi possível carregar os serviços. Verifique sua permissão de dono do SaaS.</CardContent></Card> : services.data?.map((service) => <ServiceEditor key={service.id} service={service} onSaved={refreshAll} />)}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Fila de implantação</CardTitle>
+          <CardDescription>Pagamentos confirmados aparecem aqui para a equipe iniciar e concluir o serviço.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {orders.isLoading ? <p className="text-sm text-muted-foreground">Carregando solicitações…</p> : orders.isError ? <p className="text-sm text-destructive">Não foi possível carregar a fila.</p> : !orders.data?.length ? <p className="text-sm text-muted-foreground">Nenhuma solicitação ainda.</p> : (
+            <div className="space-y-3">{orders.data.map((order) => <ServiceOrderCard key={order.id} order={order} onSaved={refreshAll} />)}</div>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }
@@ -79,4 +109,38 @@ function ServiceEditor({ service, onSaved }: { service: Service; onSaved: () => 
       </CardContent>
     </Card>
   );
+}
+
+function ServiceOrderCard({ order, onSaved }: { order: ServiceOrder; onSaved: () => Promise<unknown> }) {
+  const update = useMutation({
+    mutationFn: async (status: "in_progress" | "delivered") => {
+      const { data, error } = await rpc("admin_update_professional_service_order_status", { _order_id: order.id, _status: status });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: async (_, status) => { toast.success(status === "in_progress" ? "Implantação iniciada." : "Serviço marcado como entregue."); await onSaved(); },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Não foi possível atualizar a solicitação."),
+  });
+
+  return (
+    <div className="rounded-2xl border p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2"><strong>{order.store_name}</strong><Badge variant="outline">{statusLabel(order.status)}</Badge></div>
+          <p className="mt-1 text-sm text-muted-foreground">{order.service_name} · {new Date(order.requested_at).toLocaleString("pt-BR")}</p>
+          {order.notes ? <p className="mt-3 max-w-3xl rounded-xl bg-muted/50 p-3 text-sm">{order.notes}</p> : null}
+        </div>
+        <div className="text-left sm:text-right"><p className="font-bold">{order.price_cents ? brl.format(order.price_cents / 100) : "—"}</p>{order.paid_at ? <p className="text-xs text-emerald-700">Pago em {new Date(order.paid_at).toLocaleString("pt-BR")}</p> : null}</div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {order.status === "paid" ? <Button size="sm" disabled={update.isPending} onClick={() => update.mutate("in_progress")}><PlayCircle className="mr-2 size-4" />Iniciar implantação</Button> : null}
+        {order.status === "in_progress" ? <Button size="sm" disabled={update.isPending} onClick={() => update.mutate("delivered")}><CheckCircle2 className="mr-2 size-4" />Marcar como entregue</Button> : null}
+      </div>
+    </div>
+  );
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = { requested: "Solicitado", awaiting_payment: "Aguardando pagamento", paid: "Pago", in_progress: "Em implantação", delivered: "Entregue", cancelled: "Cancelado", refunded: "Reembolsado" };
+  return labels[status] ?? status;
 }
