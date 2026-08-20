@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import "@/components/storefront/wizard-theme.css";
 import {
   getDefaultThemeLogo,
   getDefaultWizardDesktopBackground,
@@ -47,10 +48,10 @@ export function WizardThemeFrame({
     "--card-foreground": visual.surfaceForeground,
     "--input": visual.inputBorder,
     "--ring": visual.brand,
-    "--wizard-field-bg": visual.fieldBackground,
-    "--wizard-field-fg": visual.fieldForeground,
-    "--wizard-field-placeholder": visual.fieldPlaceholder,
-    "--wizard-field-border": visual.inputBorder,
+    "--wizard-field-bg": "#ffffff",
+    "--wizard-field-fg": "#111111",
+    "--wizard-field-placeholder": "rgba(17,17,17,.48)",
+    "--wizard-field-border": "rgba(17,17,17,.18)",
   };
 
   const scrimStyle: CSSProperties = {
@@ -60,7 +61,7 @@ export function WizardThemeFrame({
 
   return (
     <div
-      className="relative min-h-svh overflow-x-hidden bg-background text-foreground [&_main]:!bg-transparent"
+      className="wizard-theme-frame relative min-h-svh overflow-x-hidden bg-background text-foreground [&_main]:!bg-transparent"
       style={themeStyle}
     >
       <div
