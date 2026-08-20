@@ -29,6 +29,13 @@ function daysUntil(value: string | null | undefined) {
   return Math.max(0, Math.ceil((timestamp - Date.now()) / 86_400_000));
 }
 
+function formatDate(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(date);
+}
+
 function planLabel(code: string | null) {
   if (!code) return "Comandiva";
   const labels: Record<string, string> = {
@@ -42,10 +49,28 @@ function planLabel(code: string | null) {
 
 function copyFor(access: StoreBillingAccess): BannerCopy | null {
   switch (access.stage) {
-    case "full":
-      return null;
+    case "full": {
+      const renewal = formatDate(access.current_period_end);
+      return {
+        title: `Plano ${planLabel(access.plan_code)} ativo`,
+        description: renewal
+          ? `Assinatura regular. Próxima renovação em ${renewal}.`
+          : "Assinatura regular. Consulte valores, faturas e forma de pagamento na área de cobrança.",
+        tone: "muted",
+        icon: ShieldCheck,
+        actionLabel: "Ver plano e cobrança",
+        actionTo: "/app/loja/plano",
+      };
+    }
     case "free":
-      return null;
+      return {
+        title: "Plano Grátis",
+        description: "Sua loja está no plano gratuito e não possui mensalidade recorrente. Você pode comparar e contratar um plano pago quando quiser.",
+        tone: "muted",
+        icon: ShieldCheck,
+        actionLabel: "Ver planos",
+        actionTo: "/app/loja/plano",
+      };
     case "trial": {
       const days = daysUntil(access.trial_ends_at);
       return {
@@ -65,18 +90,20 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
     case "complimentary": {
       const days = daysUntil(access.complimentary_until);
       return {
-        title: "Cortesia ativa",
+        title: `Cortesia do plano ${planLabel(access.plan_code)}`,
         description:
           days === null
             ? "Sua loja está em período de cortesia concedido pela equipe Comandiva."
             : `Sua cortesia permanece ativa por mais ${days} dia${days === 1 ? "" : "s"}.`,
         tone: "brand",
         icon: Gift,
+        actionLabel: "Ver plano",
+        actionTo: "/app/loja/plano",
       };
     }
     case "notice":
       return {
-        title: "Pagamento pendente",
+        title: `Pagamento pendente · Plano ${planLabel(access.plan_code)}`,
         description: `A cobrança está em atraso há ${access.overdue_days} dia${access.overdue_days === 1 ? "" : "s"}. A operação continua normal por enquanto.`,
         tone: "warning",
         icon: CreditCard,
@@ -116,6 +143,8 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         description: "Estamos ajustando sua conta para o plano Grátis. Seu cardápio e histórico permanecem preservados.",
         tone: "muted",
         icon: Clock3,
+        actionLabel: "Ver planos",
+        actionTo: "/app/loja/plano",
       };
     case "billing_unconfigured":
       return {
