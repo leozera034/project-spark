@@ -59,6 +59,16 @@ async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|nu
   const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_webhook",event_created:eventCreated}} as never);return !error;
 }
 
+async function syncProfessionalServiceCheckout(raw:J,eventId:string){
+  const metadata=obj(raw.metadata),kind=str(metadata.comandiva_billing_kind),orderId=str(metadata.comandiva_service_order_id);
+  if(kind!=="professional_service"||!orderId)return{relevant:false,ok:true};
+  const paymentStatus=str(raw.payment_status); if(paymentStatus!=="paid")return{relevant:true,ok:true,pending:true};
+  const sessionId=str(raw.id),paymentIntentId=str(raw.payment_intent),amountTotal=int(raw.amount_total),currency=str(raw.currency)??"brl";
+  if(!sessionId||!amountTotal)return{relevant:true,ok:false,error:"professional_service_checkout_incomplete"};
+  const {data,error}=await admin().rpc("backend_complete_professional_service_payment",{_order_id:orderId,_checkout_session_id:sessionId,_payment_intent_id:paymentIntentId,_amount_total:amountTotal,_currency:currency,_event_id:eventId} as never);
+  return{relevant:true,ok:!error,error:error?.message,result:data};
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="GET")return response(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()?200:503,{ok:Boolean(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()),provider:"stripe"});
   if(req.method!=="POST")return response(405,{ok:false,error:"method_not_allowed"});
@@ -75,6 +85,8 @@ Deno.serve(async(req:Request)=>{
     if(eventType==="account.updated"){const ok=await syncConnectedAccount(resource);await finish(ok?"processed":"ignored",ok?null:"account_not_mapped");return response(200,{ok:true,processed:ok})}
     if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
     if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){
+      const service=await syncProfessionalServiceCheckout(resource,eventId);
+      if(service.relevant){if(!service.ok){await finish("failed",service.error??"professional_service_reconcile_failed");return response(409,{ok:false,error:"professional_service_reconcile_failed"})}await finish("processed");return response(200,{ok:true,processed:true,kind:"professional_service",pending:service.pending===true})}
       const subId=str(resource.subscription);if(!subId){await finish("ignored");return response(200,{ok:true,ignored:true})}
       const up=await stripeGet(`/v1/subscriptions/${encodeURIComponent(subId)}?expand[]=items.data.price`);if(!up.ok){await finish("failed",`subscription_lookup_${up.status}`);return response(502,{ok:false,error:"subscription_lookup_failed"})}
       const rec=await reconcileSubscription(up.body,eventCreated);if(!rec.ok){await finish("failed",rec.error??"subscription_reconcile_failed");return response(409,{ok:false,error:"subscription_reconcile_failed"})}await finish(rec.relevant?"processed":"ignored");return response(200,{ok:true,processed:rec.relevant,kind:rec.kind});
