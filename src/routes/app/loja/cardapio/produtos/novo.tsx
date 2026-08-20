@@ -3,8 +3,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Boxes, CheckCircle2, Plus, Scale, Shapes, Sparkles, Trash2 } from "lucide-react";
 
-import { createProduct } from "@/catalog/api";
-import { createVariant, updateSaleMode } from "@/catalog/advanced-api";
 import type { MeasurementUnit } from "@/catalog/advanced-types";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import {
@@ -13,7 +11,7 @@ import {
   type ProductFormValues,
 } from "@/catalog/ProductForm";
 import {
-  applyProductStarterTemplate,
+  createProductFromTemplate,
   FALLBACK_PRODUCT_TEMPLATES,
   getStoreCategoryProfile,
   type ProductStarterTemplate,
@@ -131,52 +129,36 @@ function NovoProduto() {
     if (cleanVariants.some((variant) => variant.name.length < 1 || variant.parsedPrice === null || variant.parsedPrice <= 0)) return;
 
     const created = await run(
-      async () => {
-        const product = await createProduct({
-          storeId,
-          categoryId: values.categoryId,
-          name: values.name.trim(),
-          description: values.description.trim(),
-          basePrice: price,
-          allowsNotes: values.allowsNotes,
-          isActive: values.isActive,
-          isFeatured: values.isFeatured,
-          isSoldOut: values.isSoldOut,
-        });
-
-        if (needsMeasure) {
-          await updateSaleMode({
-            storeId,
-            productId: product.id,
-            saleMode: "measured",
-            measurementUnit,
-            minimumQuantity: minQty,
-            quantityStep: stepQty,
-            expectedUpdatedAt: product.updated_at,
-          });
-        }
-
-        for (let index = 0; index < cleanVariants.length; index += 1) {
-          const variant = cleanVariants[index];
-          await createVariant({
-            storeId,
-            productId: product.id,
-            name: variant.name,
-            price: variant.parsedPrice as number,
-            packageQuantity: null,
-            packageUnit: null,
-            isDefault: index === 0,
-          });
-        }
-
-        await applyProductStarterTemplate({ storeId, productId: product.id, template });
-        return product;
-      },
+      async () => createProductFromTemplate({
+        storeId,
+        categoryId: values.categoryId,
+        name: values.name.trim(),
+        description: values.description.trim(),
+        basePrice: price,
+        allowsNotes: values.allowsNotes,
+        isActive: values.isActive,
+        isFeatured: values.isFeatured,
+        isSoldOut: values.isSoldOut,
+        template,
+        saleMode: needsMeasure ? "measured" : "unit",
+        measurementUnit: needsMeasure ? measurementUnit : "unit",
+        minimumQuantity: needsMeasure ? minQty : 1,
+        quantityStep: needsMeasure ? stepQty : 1,
+        variants: needsVariants
+          ? cleanVariants.map((variant, index) => ({
+              name: variant.name,
+              price: variant.parsedPrice as number,
+              package_quantity: null,
+              package_unit: null,
+              is_default: index === 0,
+            }))
+          : [],
+      }),
       "Produto criado e configurado.",
     );
 
-    if (created) {
-      void navigate({ to: "/app/loja/cardapio/produtos/$id", params: { id: created.id } });
+    if (created?.product?.id) {
+      void navigate({ to: "/app/loja/cardapio/produtos/$id", params: { id: created.product.id } });
     }
   }
 
