@@ -21,7 +21,10 @@ export function AuthShell({
   badge?: string;
 }) {
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#FCFAF8] text-[#17131C] lg:grid lg:grid-cols-[.9fr_1.1fr]">
+    <main
+      data-ui-release="comandiva-auth-redesign-2026-08-20-v2"
+      className="relative min-h-dvh overflow-hidden bg-[#FCFAF8] text-[#17131C] lg:grid lg:grid-cols-[.9fr_1.1fr]"
+    >
       <aside className="relative hidden overflow-hidden border-r border-[#EAE5ED] bg-[#F7F2F8] px-12 py-12 lg:flex lg:flex-col lg:justify-between xl:px-16">
         <div className="pointer-events-none absolute -left-24 top-24 size-80 rounded-full bg-[#55207A]/8 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 bottom-12 size-72 rounded-full bg-[#FF681F]/10 blur-3xl" />
