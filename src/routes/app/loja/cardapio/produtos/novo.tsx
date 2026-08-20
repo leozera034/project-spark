@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Boxes, CheckCircle2, Scale, Shapes, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Boxes, CheckCircle2, Plus, Scale, Shapes, Sparkles, Trash2 } from "lucide-react";
 
 import { createProduct } from "@/catalog/api";
+import { createVariant, updateSaleMode } from "@/catalog/advanced-api";
+import type { MeasurementUnit } from "@/catalog/advanced-types";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import {
   ProductForm,
@@ -21,12 +23,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/catalog/PageHeader";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/novo")({
   component: NovoProduto,
 });
+
+type VariantDraft = { id: string; name: string; price: string };
 
 function iconForTemplate(type: string) {
   if (type === "measured") return Scale;
@@ -37,7 +44,7 @@ function iconForTemplate(type: string) {
 
 function descriptionForTemplate(template: ProductStarterTemplate) {
   const caps = template.capabilities ?? {};
-  if (template.type === "measured") return "Ideal para itens vendidos por peso ou volume. Você configura a medida depois de criar.";
+  if (template.type === "measured") return "Ideal para itens vendidos por peso ou volume. A medida é configurada agora, sem editor técnico.";
   if (template.type === "combo" || template.type === "kit") return "Crie a base agora e monte as escolhas do combo na próxima tela.";
   if (template.type === "multi_flavor" || caps.multi_flavor) return "Preparado para sabores, tamanhos e montagem fracionada.";
   if (template.type === "variant" || caps.variants || caps.sizes) return "Preparado para tamanhos, volumes ou outras variações de preço.";
@@ -51,6 +58,13 @@ function NovoProduto() {
   const [values, setValues] = useState<ProductFormValues>(initialProductValues());
   const [template, setTemplate] = useState<ProductStarterTemplate | null>(null);
   const [step, setStep] = useState<"type" | "details">("type");
+  const [measurementUnit, setMeasurementUnit] = useState<MeasurementUnit>("g");
+  const [minimumQuantity, setMinimumQuantity] = useState("100");
+  const [quantityStep, setQuantityStep] = useState("100");
+  const [variants, setVariants] = useState<VariantDraft[]>([
+    { id: crypto.randomUUID(), name: "", price: "" },
+    { id: crypto.randomUUID(), name: "", price: "" },
+  ]);
 
   const profileQuery = useQuery({
     queryKey: ["catalog", "category-profile", storeId],
@@ -64,6 +78,15 @@ function NovoProduto() {
     if (Array.isArray(profileTemplates) && profileTemplates.length > 0) return profileTemplates;
     return FALLBACK_PRODUCT_TEMPLATES;
   }, [profileQuery.data]);
+
+  const needsMeasure = template?.type === "measured" || Boolean(template?.capabilities?.measured);
+  const needsVariants = Boolean(
+    template &&
+      (template.type === "variant" ||
+        template.type === "multi_flavor" ||
+        template.capabilities?.variants ||
+        template.capabilities?.sizes),
+  );
 
   if (!overview?.can.create) {
     return (
@@ -96,6 +119,17 @@ function NovoProduto() {
     const price = parsePriceInput(values.price);
     if (price === null) return;
 
+    const minQty = Number(minimumQuantity.replace(",", "."));
+    const stepQty = Number(quantityStep.replace(",", "."));
+    if (needsMeasure && (!Number.isFinite(minQty) || minQty <= 0 || !Number.isFinite(stepQty) || stepQty <= 0)) return;
+
+    const cleanVariants = variants
+      .map((variant) => ({ ...variant, name: variant.name.trim(), parsedPrice: parsePriceInput(variant.price) }))
+      .filter((variant) => variant.name.length > 0 || variant.price.trim().length > 0);
+
+    if (needsVariants && cleanVariants.length === 0) return;
+    if (cleanVariants.some((variant) => variant.name.length < 1 || variant.parsedPrice === null || variant.parsedPrice <= 0)) return;
+
     const created = await run(
       async () => {
         const product = await createProduct({
@@ -109,10 +143,36 @@ function NovoProduto() {
           isFeatured: values.isFeatured,
           isSoldOut: values.isSoldOut,
         });
+
+        if (needsMeasure) {
+          await updateSaleMode({
+            storeId,
+            productId: product.id,
+            saleMode: "measured",
+            measurementUnit,
+            minimumQuantity: minQty,
+            quantityStep: stepQty,
+            expectedUpdatedAt: product.updated_at,
+          });
+        }
+
+        for (let index = 0; index < cleanVariants.length; index += 1) {
+          const variant = cleanVariants[index];
+          await createVariant({
+            storeId,
+            productId: product.id,
+            name: variant.name,
+            price: variant.parsedPrice as number,
+            packageQuantity: null,
+            packageUnit: null,
+            isDefault: index === 0,
+          });
+        }
+
         await applyProductStarterTemplate({ storeId, productId: product.id, template });
         return product;
       },
-      "Produto criado com a estrutura certa para sua operação.",
+      "Produto criado e configurado.",
     );
 
     if (created) {
@@ -194,7 +254,7 @@ function NovoProduto() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PageHeader
           title={template?.label ?? "Novo produto"}
-          description="Agora informe somente os dados que o cliente precisa ver. Configurações avançadas ficam para depois."
+          description="Responda só o que muda a forma de venda. O restante fica escondido no motor do cardápio."
         />
         <Button variant="outline" onClick={() => setStep("type")}>
           <ArrowLeft className="mr-1 size-4" /> Trocar tipo
@@ -205,6 +265,90 @@ function NovoProduto() {
         <div className="rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3 text-sm">
           <strong>{template.label}</strong> · {descriptionForTemplate(template)}
         </div>
+      ) : null}
+
+      {needsMeasure ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Como este produto é medido?</CardTitle>
+            <CardDescription>Ex.: açaí por 100 g, carne por kg ou suco por 100 ml.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label>Unidade</Label>
+              <Select value={measurementUnit} onValueChange={(value) => setMeasurementUnit(value as MeasurementUnit)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="g">Gramas (g)</SelectItem>
+                  <SelectItem value="kg">Quilos (kg)</SelectItem>
+                  <SelectItem value="ml">Mililitros (ml)</SelectItem>
+                  <SelectItem value="l">Litros (L)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Quantidade mínima</Label>
+              <Input inputMode="decimal" value={minimumQuantity} onChange={(event) => setMinimumQuantity(event.target.value)} placeholder="100" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Cliente aumenta de quanto em quanto?</Label>
+              <Input inputMode="decimal" value={quantityStep} onChange={(event) => setQuantityStep(event.target.value)} placeholder="100" />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {needsVariants ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Quais tamanhos ou versões você vende?</CardTitle>
+            <CardDescription>Cadastre aqui os nomes que o cliente entende. A primeira opção será a padrão.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {variants.map((variant, index) => (
+              <div key={variant.id} className="grid gap-2 sm:grid-cols-[1fr_180px_auto] sm:items-end">
+                <div className="space-y-1.5">
+                  <Label>{index === 0 ? "Nome da opção padrão" : "Nome da opção"}</Label>
+                  <Input
+                    value={variant.name}
+                    onChange={(event) =>
+                      setVariants((current) => current.map((item) => item.id === variant.id ? { ...item, name: event.target.value } : item))
+                    }
+                    placeholder={index === 0 ? "Ex.: Média" : "Ex.: Grande"}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Preço</Label>
+                  <Input
+                    inputMode="decimal"
+                    value={variant.price}
+                    onChange={(event) =>
+                      setVariants((current) => current.map((item) => item.id === variant.id ? { ...item, price: event.target.value } : item))
+                    }
+                    placeholder="0,00"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Remover opção"
+                  disabled={variants.length <= 1}
+                  onClick={() => setVariants((current) => current.filter((item) => item.id !== variant.id))}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setVariants((current) => [...current, { id: crypto.randomUUID(), name: "", price: "" }])}
+            >
+              <Plus className="mr-1 size-4" /> Adicionar tamanho ou versão
+            </Button>
+          </CardContent>
+        </Card>
       ) : null}
 
       <ProductForm
