@@ -37,6 +37,11 @@ export function WizardThemeFrame({
     "--background": visual.background,
   };
 
+  const scrimStyle: CSSProperties = {
+    background:
+      "linear-gradient(to bottom, transparent 0%, transparent 11%, color-mix(in oklch, var(--background) 54%, transparent) 31%, color-mix(in oklch, var(--background) 88%, transparent) 56%, color-mix(in oklch, var(--background) 98%, transparent) 100%)",
+  };
+
   return (
     <div
       className="relative min-h-svh overflow-x-hidden bg-background text-foreground [&_main]:!bg-transparent"
@@ -53,11 +58,7 @@ export function WizardThemeFrame({
         style={{ backgroundImage: `url(${JSON.stringify(desktopBackgroundUrl)})` }}
       />
 
-      {/* Scrim funcional: preserva a fotografia, mas garante leitura em qualquer tema. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 bg-[linear-gradient(to_bottom,hsl(0_0%_100%/0)_0%,hsl(0_0%_100%/0)_12%,hsl(var(--background)/.62)_34%,hsl(var(--background)/.90)_58%,hsl(var(--background)/.98)_100%)]"
-      />
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0" style={scrimStyle} />
 
       <div className="relative z-30 mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5">
         {topSlot}
