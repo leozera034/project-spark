@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "brand:install": "node tools/install-comandiva-assets.mjs",
+    "brand:install": "node tools/install-comandiva-assets.mjs && node tools/install-storefront-theme-assets.mjs",
     "dev": "npm run brand:install && vite dev",
     "build": "npm run brand:install && vite build",
     "build:dev": "npm run brand:install && vite build --mode development",
