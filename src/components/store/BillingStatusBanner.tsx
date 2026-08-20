@@ -55,6 +55,16 @@ function planLabel(code: string | null) {
 function copyFor(access: StoreBillingAccess): BannerCopy | null {
   switch (access.stage) {
     case "full": {
+      if (access.billing_source === "manual_access") {
+        return {
+          title: `Plano ${planLabel(access.plan_code)} · acesso administrativo`,
+          description: "Os recursos estão liberados, mas não existe assinatura Stripe confirmada para esta loja. Isso não é mensalidade paga.",
+          tone: "warning",
+          icon: WalletCards,
+          actionLabel: "Configurar cobrança",
+          actionTo: "/app/loja/plano",
+        };
+      }
       const renewal = formatDate(access.next_charge_at ?? access.current_period_end);
       return {
         title: `Plano ${planLabel(access.plan_code)} · cobrança Stripe confirmada`,
@@ -67,15 +77,6 @@ function copyFor(access: StoreBillingAccess): BannerCopy | null {
         actionTo: "/app/loja/plano",
       };
     }
-    case "manual_access":
-      return {
-        title: `Plano ${planLabel(access.plan_code)} · acesso administrativo`,
-        description: "Os recursos estão liberados, mas não existe assinatura Stripe confirmada para esta loja. Isso não é mensalidade paga.",
-        tone: "warning",
-        icon: WalletCards,
-        actionLabel: "Configurar cobrança",
-        actionTo: "/app/loja/plano",
-      };
     case "free":
       return {
         title: "Plano Grátis",
