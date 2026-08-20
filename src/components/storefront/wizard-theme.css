@@ -1,0 +1,56 @@
+.wizard-theme-frame {
+  color-scheme: light;
+}
+
+/*
+ * Wizard public storefront isolation layer.
+ * The marketing site / app theme may use Comandiva plum tokens globally,
+ * but customer ordering fields must remain neutral and readable.
+ */
+.wizard-theme-frame input,
+.wizard-theme-frame textarea,
+.wizard-theme-frame select,
+.wizard-theme-frame [data-slot="input"] {
+  background: #ffffff !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  border-color: rgba(17, 17, 17, 0.18) !important;
+  caret-color: #111111 !important;
+  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.06) !important;
+}
+
+.wizard-theme-frame input::placeholder,
+.wizard-theme-frame textarea::placeholder,
+.wizard-theme-frame [data-slot="input"]::placeholder {
+  color: rgba(17, 17, 17, 0.48) !important;
+  -webkit-text-fill-color: rgba(17, 17, 17, 0.48) !important;
+  opacity: 1 !important;
+}
+
+.wizard-theme-frame input:focus,
+.wizard-theme-frame input:focus-visible,
+.wizard-theme-frame textarea:focus,
+.wizard-theme-frame textarea:focus-visible,
+.wizard-theme-frame select:focus,
+.wizard-theme-frame select:focus-visible,
+.wizard-theme-frame [data-slot="input"]:focus,
+.wizard-theme-frame [data-slot="input"]:focus-visible {
+  background: #ffffff !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  border-color: rgba(17, 17, 17, 0.38) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.10) !important;
+}
+
+/* Prevent browser/iOS autofill from bringing the global plum surface back. */
+.wizard-theme-frame input:-webkit-autofill,
+.wizard-theme-frame input:-webkit-autofill:hover,
+.wizard-theme-frame input:-webkit-autofill:focus,
+.wizard-theme-frame textarea:-webkit-autofill,
+.wizard-theme-frame select:-webkit-autofill {
+  -webkit-text-fill-color: #111111 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  caret-color: #111111 !important;
+}
