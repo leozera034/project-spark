@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { NeighborhoodDistanceBulkSelector } from "./NeighborhoodDistanceBulkSelector";
 import {
   fetchDeliveryPricingConfig,
   replaceDeliveryRadiusBands,
@@ -95,76 +96,80 @@ export function DeliveryPricingModePanel({ storeId, canEdit }: { storeId: string
   ];
 
   return (
-    <Card className="border-brand/20">
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <CardTitle>Como a taxa de entrega será calculada?</CardTitle>
-            <CardDescription>Escolha o modelo que combina com a cidade. Você não precisa cadastrar bairro por bairro se não quiser.</CardDescription>
-          </div>
-          <Badge variant="outline">Novo motor de entrega</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-3 md:grid-cols-3">
-          {choices.map((choice) => {
-            const Icon = choice.icon;
-            return (
-              <button
-                key={choice.value}
-                type="button"
-                disabled={!canEdit}
-                onClick={() => setMode(choice.value)}
-                className={`rounded-xl border p-4 text-left transition ${mode === choice.value ? "border-brand bg-brand-soft/40 ring-2 ring-brand/10" : "border-border hover:border-brand/40"}`}
-              >
-                <Icon className="mb-3 size-5 text-brand" />
-                <p className="font-semibold">{choice.title}</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">{choice.description}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        {mode === "fixed" ? (
-          <div className="grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-3">
-            <div className="space-y-1.5"><Label>Taxa fixa</Label><Input inputMode="decimal" value={fixedFee} onChange={(e) => setFixedFee(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>Pedido mínimo</Label><Input inputMode="decimal" placeholder="Sem mínimo específico" value={fixedMin} onChange={(e) => setFixedMin(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>Prazo estimado (min)</Label><Input inputMode="numeric" value={fixedEta} onChange={(e) => setFixedEta(e.target.value)} /></div>
-          </div>
-        ) : null}
-
-        {mode === "radius" ? (
-          <div className="space-y-4 rounded-xl border border-border p-4">
+    <div className="space-y-5">
+      <Card className="border-brand/20">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-semibold">Faixas por distância</p>
-              <p className="text-xs text-muted-foreground">A distância é calculada entre a localização da loja e o endereço do cliente. A primeira faixa que cobrir a distância define a taxa.</p>
+              <CardTitle>Como a taxa de entrega será calculada?</CardTitle>
+              <CardDescription>Escolha o modelo que combina com a cidade. Você não precisa cadastrar bairro por bairro se não quiser.</CardDescription>
             </div>
-            {sortedBands.map((band, index) => (
-              <div key={band.id ?? index} className="grid gap-2 rounded-lg bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end">
-                <div className="space-y-1"><Label>Até km</Label><Input inputMode="decimal" value={String(band.max_distance_km)} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, max_distance_km: Number(e.target.value.replace(",", ".")) } : row))} /></div>
-                <div className="space-y-1"><Label>Taxa</Label><Input inputMode="decimal" value={String(band.delivery_fee)} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, delivery_fee: Number(e.target.value.replace(",", ".")) } : row))} /></div>
-                <div className="space-y-1"><Label>Pedido mínimo</Label><Input inputMode="decimal" value={band.min_order_amount ?? ""} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, min_order_amount: e.target.value ? Number(e.target.value.replace(",", ".")) : null } : row))} /></div>
-                <div className="space-y-1"><Label>Prazo min</Label><Input inputMode="numeric" value={band.eta_minutes ?? ""} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, eta_minutes: e.target.value ? Number(e.target.value) : null } : row))} /></div>
-                <Button type="button" size="icon" variant="ghost" disabled={!canEdit} onClick={() => setBands((current) => current.filter((row) => row !== band))}><Trash2 className="size-4" /></Button>
+            <Badge variant="outline">Novo motor de entrega</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-3 md:grid-cols-3">
+            {choices.map((choice) => {
+              const Icon = choice.icon;
+              return (
+                <button
+                  key={choice.value}
+                  type="button"
+                  disabled={!canEdit}
+                  onClick={() => setMode(choice.value)}
+                  className={`rounded-xl border p-4 text-left transition ${mode === choice.value ? "border-brand bg-brand-soft/40 ring-2 ring-brand/10" : "border-border hover:border-brand/40"}`}
+                >
+                  <Icon className="mb-3 size-5 text-brand" />
+                  <p className="font-semibold">{choice.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{choice.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {mode === "fixed" ? (
+            <div className="grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-3">
+              <div className="space-y-1.5"><Label>Taxa fixa</Label><Input inputMode="decimal" value={fixedFee} onChange={(e) => setFixedFee(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Pedido mínimo</Label><Input inputMode="decimal" placeholder="Sem mínimo específico" value={fixedMin} onChange={(e) => setFixedMin(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Prazo estimado (min)</Label><Input inputMode="numeric" value={fixedEta} onChange={(e) => setFixedEta(e.target.value)} /></div>
+            </div>
+          ) : null}
+
+          {mode === "radius" ? (
+            <div className="space-y-4 rounded-xl border border-border p-4">
+              <div>
+                <p className="font-semibold">Faixas por distância</p>
+                <p className="text-xs text-muted-foreground">A distância é calculada entre a localização da loja e o endereço do cliente. A primeira faixa que cobrir a distância define a taxa.</p>
               </div>
-            ))}
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" disabled={!canEdit} onClick={() => setBands((current) => [...current, radiusDraft()])}><Plus className="mr-1 size-4" /> Adicionar faixa</Button>
-              <Button type="button" disabled={!canEdit || saveBands.isPending} onClick={() => saveBands.mutate()}>Salvar faixas</Button>
+              {sortedBands.map((band, index) => (
+                <div key={band.id ?? index} className="grid gap-2 rounded-lg bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end">
+                  <div className="space-y-1"><Label>Até km</Label><Input inputMode="decimal" value={String(band.max_distance_km)} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, max_distance_km: Number(e.target.value.replace(",", ".")) } : row))} /></div>
+                  <div className="space-y-1"><Label>Taxa</Label><Input inputMode="decimal" value={String(band.delivery_fee)} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, delivery_fee: Number(e.target.value.replace(",", ".")) } : row))} /></div>
+                  <div className="space-y-1"><Label>Pedido mínimo</Label><Input inputMode="decimal" value={band.min_order_amount ?? ""} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, min_order_amount: e.target.value ? Number(e.target.value.replace(",", ".")) : null } : row))} /></div>
+                  <div className="space-y-1"><Label>Prazo min</Label><Input inputMode="numeric" value={band.eta_minutes ?? ""} onChange={(e) => setBands((current) => current.map((row) => row === band ? { ...row, eta_minutes: e.target.value ? Number(e.target.value) : null } : row))} /></div>
+                  <Button type="button" size="icon" variant="ghost" disabled={!canEdit} onClick={() => setBands((current) => current.filter((row) => row !== band))}><Trash2 className="size-4" /></Button>
+                </div>
+              ))}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" disabled={!canEdit} onClick={() => setBands((current) => [...current, radiusDraft()])}><Plus className="mr-1 size-4" /> Adicionar faixa</Button>
+                <Button type="button" disabled={!canEdit || saveBands.isPending} onClick={() => saveBands.mutate()}>Salvar faixas</Button>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {mode === "neighborhood" ? (
-          <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-            Você continuará usando a lista de bairros abaixo. Em uma próxima etapa, a Comandiva poderá importar vários bairros de uma vez a partir da cidade/CEP para evitar cadastro manual repetitivo.
-          </div>
-        ) : null}
+          {mode === "neighborhood" ? (
+            <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+              Você pode cadastrar manualmente, selecionar vários bairros pela distância da loja ou aplicar a mesma taxa em lote. A quilometragem só aparece quando a localização da loja e dos bairros está disponível.
+            </div>
+          ) : null}
 
-        <div className="flex justify-end">
-          <Button disabled={!canEdit || saveConfig.isPending} onClick={() => saveConfig.mutate()}>Salvar modelo de cobrança</Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end">
+            <Button disabled={!canEdit || saveConfig.isPending} onClick={() => saveConfig.mutate()}>Salvar modelo de cobrança</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {mode === "neighborhood" ? <NeighborhoodDistanceBulkSelector storeId={storeId} canEdit={canEdit} /> : null}
+    </div>
   );
 }
