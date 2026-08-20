@@ -15,7 +15,7 @@ import type { AddressLabel, LocalSavedAddress } from "@/storefront/customer/cust
 
 export const WIZARD_PRIMARY = "min-h-[60px] w-full rounded-2xl bg-brand text-[17px] font-extrabold text-brand-foreground shadow-lg shadow-black/[.08] transition hover:bg-brand/90 active:scale-[.985]";
 const SECONDARY = "min-h-[54px] w-full rounded-2xl text-base font-bold transition active:scale-[.985]";
-export const WIZARD_FIELD = "mt-2 min-h-[58px] rounded-2xl !border-[var(--wizard-field-border)] !bg-[var(--wizard-field-bg)] px-4 text-[18px] !text-[var(--wizard-field-fg)] shadow-sm placeholder:!text-[var(--wizard-field-placeholder)] focus-visible:!border-brand focus-visible:!ring-brand/25";
+export const WIZARD_FIELD = "mt-2 min-h-[58px] rounded-2xl !border-black/15 !bg-white px-4 text-[18px] !text-black shadow-sm placeholder:!text-black/45 focus-visible:!border-black/30 focus-visible:!ring-black/10";
 const SELECT_CARD = "flex min-h-[88px] w-full items-center gap-4 rounded-3xl border border-foreground/[.08] bg-card/92 p-4 text-left text-card-foreground shadow-md shadow-black/[.05] transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-lg active:translate-y-0 active:scale-[.99] focus-visible:ring-2 focus-visible:ring-brand";
 
 export function WizardStepShell({ title, description, children, footer, progress, onBack, icon }: {
