@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 640" role="img" aria-label="Banner neutro Comandiva">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff8ef"/>
+      <stop offset="0.52" stop-color="#fffdf9"/>
+      <stop offset="1" stop-color="#f8eadb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="44%" r="58%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="56" height="56" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="8" r="1.8" fill="#efb978" opacity="0.20"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="640" fill="url(#bg)"/>
+  <rect width="1920" height="640" fill="url(#glow)"/>
+  <rect width="1920" height="640" fill="url(#dots)"/>
+  <g fill="none" stroke="#eab777" stroke-width="4" opacity="0.20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M45 210c75-95 165-120 260-74s133 143 112 244"/>
+    <path d="M75 380c92-64 187-69 282-17"/>
+    <path d="M1510 88c92 34 171 99 239 194s105 194 111 298"/>
+    <path d="M1583 105c-22 66-8 128 42 186s110 89 181 93"/>
+    <path d="M1450 508c95-40 190-36 285 12"/>
+    <path d="M295 92c19 31 46 54 81 68-35 14-62 37-81 69-18-32-45-55-80-69 35-14 62-37 80-68Z"/>
+    <path d="M1650 410c13 21 31 37 55 47-24 10-42 26-55 47-13-21-31-37-55-47 24-10 42-26 55-47Z"/>
+  </g>
+  <g opacity="0.13" fill="#d99543">
+    <circle cx="210" cy="520" r="82"/>
+    <circle cx="1740" cy="150" r="96"/>
+  </g>
+</svg>
