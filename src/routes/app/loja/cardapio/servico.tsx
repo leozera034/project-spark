@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BriefcaseBusiness, CheckCircle2, Clock3, Loader2 } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Clock3, CreditCard, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useCatalog } from "@/catalog/CatalogProvider";
 import {
+  createProfessionalServiceCheckout,
   listProfessionalServiceOrders,
   listProfessionalServices,
   requestProfessionalService,
+  type ProfessionalServiceOrder,
 } from "@/catalog/professional-services";
 import { PageHeader } from "@/components/catalog/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -35,26 +37,42 @@ function MenuImplementationServicePage() {
     enabled: Boolean(storeId),
     queryFn: () => listProfessionalServiceOrders(storeId!),
     retry: false,
+    refetchInterval: (query) => {
+      const data = query.state.data as ProfessionalServiceOrder[] | undefined;
+      return data?.some((item) => item.status === "awaiting_payment") ? 5000 : false;
+    },
   });
   const service = services.data?.find((item) => item.code === "menu_implementation") ?? null;
   const openOrder = orders.data?.find((item) => ["requested", "awaiting_payment", "paid", "in_progress"].includes(item.status)) ?? null;
 
+  const checkout = useMutation({
+    mutationFn: async (orderId: string) => {
+      if (!storeId) throw new Error("Loja não selecionada.");
+      return createProfessionalServiceCheckout(storeId, orderId);
+    },
+    onSuccess: (result) => {
+      window.location.assign(result.checkoutUrl);
+    },
+    onError: () => toast.error("Não foi possível abrir o pagamento pela Stripe."),
+  });
+
   const request = useMutation({
     mutationFn: async () => {
       if (!storeId) throw new Error("Loja não selecionada.");
-      return requestProfessionalService(storeId, "menu_implementation", notes);
+      const order = await requestProfessionalService(storeId, "menu_implementation", notes);
+      return { order, checkout: await createProfessionalServiceCheckout(storeId, order.id) };
     },
-    onSuccess: async () => {
-      toast.success("Solicitação criada. O próximo passo será o pagamento avulso pela Stripe.");
+    onSuccess: async ({ checkout: result }) => {
       setNotes("");
       await queryClient.invalidateQueries({ queryKey: ["catalog", "professional-services", storeId] });
       await queryClient.invalidateQueries({ queryKey: ["catalog", "professional-service-orders", storeId] });
+      window.location.assign(result.checkoutUrl);
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "Falha ao solicitar serviço.";
       if (message.includes("SERVICE_PRICE_NOT_CONFIGURED")) toast.error("O valor deste serviço ainda não foi configurado pelo administrador da plataforma.");
       else if (message.includes("SERVICE_ORDER_ALREADY_OPEN")) toast.error("Já existe uma solicitação deste serviço em andamento.");
-      else toast.error("Não foi possível solicitar o serviço.");
+      else toast.error("Não foi possível criar a solicitação ou iniciar o pagamento.");
     },
   });
 
@@ -78,13 +96,23 @@ function MenuImplementationServicePage() {
           <div className="rounded-xl border p-4">
             <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Valor do serviço</p>
             <p className="mt-1 text-2xl font-black">{service?.price_cents ? brl.format(service.price_cents / 100) : "Aguardando configuração"}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Cobrança única. Não é add-on recorrente e não entra na mensalidade do plano.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Cobrança única pela Stripe. Não é add-on recorrente e não entra na mensalidade do plano.</p>
           </div>
 
           {openOrder ? (
-            <div className="rounded-xl border border-brand/20 bg-brand-soft/20 p-4">
+            <div className="space-y-3 rounded-xl border border-brand/20 bg-brand-soft/20 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2"><strong>Solicitação em andamento</strong><Badge variant="brandSoft">{statusLabel(openOrder.status)}</Badge></div>
-              <p className="mt-2 text-sm text-muted-foreground">Pedido criado em {new Date(openOrder.requested_at).toLocaleString("pt-BR")}.</p>
+              <p className="text-sm text-muted-foreground">Pedido criado em {new Date(openOrder.requested_at).toLocaleString("pt-BR")}.</p>
+              {openOrder.status === "awaiting_payment" ? (
+                <Button disabled={checkout.isPending} onClick={() => checkout.mutate(openOrder.id)}>
+                  {checkout.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : <CreditCard className="mr-2 size-4" />}
+                  Continuar pagamento
+                </Button>
+              ) : openOrder.status === "paid" ? (
+                <p className="text-sm font-medium text-emerald-700">Pagamento confirmado. A solicitação já está na fila de implantação.</p>
+              ) : openOrder.status === "in_progress" ? (
+                <p className="text-sm font-medium text-brand">Seu cardápio está em implantação pela equipe.</p>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-3">
@@ -94,8 +122,8 @@ function MenuImplementationServicePage() {
               </div>
               <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={5} placeholder="Ex.: Tenho cerca de 45 produtos, 3 tamanhos de pizza e já tenho as fotos prontas..." />
               <Button disabled={!service?.price_cents || request.isPending} onClick={() => request.mutate()}>
-                {request.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                Solicitar implantação
+                {request.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : <CreditCard className="mr-2 size-4" />}
+                Solicitar e pagar
               </Button>
               {!service?.price_cents ? <p className="text-xs text-amber-700">O botão será liberado assim que o dono do SaaS definir o preço do serviço.</p> : null}
             </div>
