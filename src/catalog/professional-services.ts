@@ -41,10 +41,22 @@ export type ProfessionalServiceOrder = {
   price_cents: number | null;
   currency: string;
   notes: string | null;
+  stripe_checkout_session_id?: string | null;
+  checkout_url?: string | null;
   requested_at: string;
   paid_at: string | null;
   in_progress_at: string | null;
   delivered_at: string | null;
+  cancelled_at?: string | null;
+};
+
+export type ProfessionalServiceCheckout = {
+  ok: true;
+  reused: boolean;
+  provider: "stripe";
+  orderId: string;
+  checkoutSessionId: string;
+  checkoutUrl: string;
 };
 
 export async function listProfessionalServices(storeId: string): Promise<ProfessionalService[]> {
@@ -67,4 +79,15 @@ export async function requestProfessionalService(storeId: string, serviceCode: s
   });
   if (error) throw new Error(error.message);
   return data as { id: string; status: ProfessionalServiceOrderStatus; price_cents: number; currency: string; service_code: string; service_name: string };
+}
+
+export async function createProfessionalServiceCheckout(storeId: string, orderId: string): Promise<ProfessionalServiceCheckout> {
+  const idempotencyKey = `professional-service-${orderId}-${Date.now()}`;
+  const { data, error } = await supabase.functions.invoke("comandiva-professional-services?action=create_checkout", {
+    headers: { "x-idempotency-key": idempotencyKey },
+    body: { storeId, orderId },
+  });
+  if (error) throw new Error(error.message || "CHECKOUT_FAILED");
+  if (!data?.ok || typeof data.checkoutUrl !== "string") throw new Error("CHECKOUT_FAILED");
+  return data as ProfessionalServiceCheckout;
 }
