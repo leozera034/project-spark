@@ -5,7 +5,24 @@ import {
   DeliveryReportComparison,
   DeliveryReportHistory,
   DeliveryReportPeriodType,
+  StoreBusinessReportSummary,
 } from "./delivery-report.types";
+
+export async function getStoreBusinessReportSummary(
+  storeId: string,
+  periodType: DeliveryReportPeriodType,
+  startDate?: string,
+  endDate?: string,
+): Promise<StoreBusinessReportSummary> {
+  const { data, error } = await (supabase.rpc as any)("get_my_store_business_report_summary", {
+    _store_id: storeId,
+    _period_type: periodType,
+    _start_date: startDate,
+    _end_date: endDate,
+  });
+  if (error) throw error;
+  return data as unknown as StoreBusinessReportSummary;
+}
 
 export async function getStoreDeliveryReportSummary(
   storeId: string,
