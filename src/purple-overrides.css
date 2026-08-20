@@ -166,63 +166,112 @@ tbody tr:hover { background: rgba(139,92,246,.045); }
   box-shadow: 0 -18px 52px rgba(0,0,0,.35);
 }
 
-.storefront-global {
-  background:
-    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 24rem),
-    #08050d !important;
-}
-
+/* Legacy storefront rules kept for backwards compatibility with old markup. */
 .storefront-global .storefront-hero {
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(196,181,253,.08);
 }
 
 .storefront-global .storefront-store-card {
-  border: 1px solid rgba(196,181,253,.12);
-  background: linear-gradient(180deg,rgba(24,14,37,.92),rgba(13,8,21,.94));
-  box-shadow: 0 24px 70px -34px rgba(0,0,0,.78);
-}
-
-.storefront-global .storefront-search {
-  border-color: rgba(196,181,253,.16) !important;
-  background: rgba(20,12,31,.9) !important;
-  box-shadow: inset 0 1px rgba(255,255,255,.025), 0 12px 34px rgba(0,0,0,.2);
+  border: 1px solid rgba(82,55,43,.10);
+  background: #fff;
+  box-shadow: 0 18px 46px -30px rgba(74,43,29,.24);
 }
 
 .storefront-global .storefront-category-chip {
-  border: 1px solid rgba(196,181,253,.12);
-  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(82,55,43,.10);
+  background: rgba(255,255,255,.82);
 }
 
 .storefront-global .storefront-category-chip[data-active="true"] {
   border-color: transparent;
-  color: #fff;
-  background: linear-gradient(100deg,#6d28d9,#a855f7,#d946ef);
-  box-shadow: 0 10px 28px rgba(124,58,237,.22);
+  color: var(--brand-foreground);
+  background: var(--brand);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--brand) 18%, transparent);
 }
 
 .storefront-global .storefront-product-card {
-  border: 1px solid rgba(196,181,253,.105) !important;
-  background: linear-gradient(135deg,rgba(26,16,40,.96),rgba(13,8,21,.96)) !important;
+  border: 1px solid rgba(82,55,43,.08) !important;
+  background: #fff !important;
   border-radius: 1.35rem !important;
-  box-shadow: 0 16px 48px -30px rgba(0,0,0,.85);
+  box-shadow: 0 16px 48px -30px rgba(74,43,29,.20);
 }
 
 .storefront-global .storefront-product-card:hover {
-  border-color: rgba(168,85,247,.26) !important;
+  border-color: color-mix(in srgb, var(--brand) 24%, rgba(82,55,43,.08)) !important;
   transform: translateY(-2px);
-  box-shadow: 0 24px 54px -28px rgba(76,29,149,.38);
+  box-shadow: 0 24px 54px -28px rgba(74,43,29,.24);
 }
 
 .storefront-global .storefront-product-card img {
   border-radius: 1rem;
-  box-shadow: 0 10px 26px rgba(0,0,0,.3);
+  box-shadow: 0 10px 26px rgba(74,43,29,.14);
+}
+
+/*
+ * PUBLIC STOREFRONT ISOLATION
+ * The SaaS shell intentionally uses a dark purple global skin, but the public
+ * catalog follows its own light, category-driven visual system. Keep this block
+ * after the global overrides so purple styles can never leak into customer UI.
+ */
+.storefront-global {
+  color-scheme: light !important;
+  background: #fffaf5 !important;
+  color: #2b1813 !important;
+}
+
+.storefront-global input,
+.storefront-global textarea,
+.storefront-global select,
+.storefront-global [data-slot="input"] {
+  border-color: rgba(82,55,43,.12) !important;
+  background: #fff !important;
+  color: #111 !important;
+  box-shadow: 0 8px 24px rgba(74,43,29,.08);
+  -webkit-text-fill-color: #111 !important;
+}
+
+.storefront-global input::placeholder,
+.storefront-global textarea::placeholder {
+  color: rgba(17,17,17,.46) !important;
+  opacity: 1 !important;
+}
+
+.storefront-global input:focus,
+.storefront-global textarea:focus,
+.storefront-global select:focus {
+  border-color: color-mix(in srgb, var(--brand) 72%, #fff) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent), 0 8px 24px rgba(74,43,29,.08) !important;
+}
+
+.storefront-global [data-slot="card"],
+.storefront-global .panel {
+  border-color: rgba(82,55,43,.08) !important;
+  background: #fff !important;
+  color: #2b1813 !important;
+  box-shadow: 0 10px 28px rgba(74,43,29,.07);
+}
+
+.storefront-global .glass-bar {
+  border-color: rgba(82,55,43,.07) !important;
+  background: rgba(255,250,245,.94) !important;
+  box-shadow: 0 8px 28px rgba(74,43,29,.05);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
 }
 
 .storefront-global [role="dialog"],
 .storefront-global [data-radix-dialog-content] {
-  background: linear-gradient(180deg,#160d22,#0c0713) !important;
+  border-color: rgba(82,55,43,.10) !important;
+  background: #fffaf5 !important;
+  color: #2b1813 !important;
+}
+
+.storefront-global button[class*="bg-brand"],
+.storefront-global a[class*="bg-brand"] {
+  background-image: none !important;
+  background-color: var(--brand) !important;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--brand) 18%, transparent);
 }
 
 @media (max-width: 1023px) {
