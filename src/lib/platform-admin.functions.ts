@@ -57,6 +57,19 @@ export interface PlatformStoreItem {
   status: "em_implantacao" | "ativa" | "suspensa" | "inativa";
   total_orders: number;
   created_at: string;
+  city: string | null;
+  state: string | null;
+  plan_code: string | null;
+  plan_name: string | null;
+  subscription_status: string | null;
+  billing_interval: string | null;
+  billing_provider: string | null;
+  provider_status: string | null;
+  current_period_end: string | null;
+  complimentary_until: string | null;
+  amount_cents: number | null;
+  currency: string | null;
+  stripe_recurring_confirmed: boolean;
 }
 
 export const getPlatformHealth = createServerFn({ method: "GET" })
@@ -77,50 +90,27 @@ export const getPlatformBilling = createServerFn({ method: "GET" })
 
 export const getPlatformRecentErrors = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ limit: z.number().int().min(1).max(100).optional() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(100).optional() }).parse(d))
   .handler(async ({ data: input, context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("get_platform_recent_errors", {
-      _limit: input.limit ?? 20,
-    });
+    const { data, error } = await rpcCaller(context.supabase)("get_platform_recent_errors", { _limit: input.limit ?? 20 });
     if (error) throw error;
     return data as PlatformErrorItem[];
   });
 
 export const listPlatformStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z
-      .object({
-        search: z.string().max(120).optional(),
-        status: z.string().max(40).optional(),
-        limit: z.number().int().min(1).max(200).optional(),
-        offset: z.number().int().min(0).optional(),
-      })
-      .parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ search: z.string().max(120).optional(), status: z.string().max(40).optional(), limit: z.number().int().min(1).max(200).optional(), offset: z.number().int().min(0).optional() }).parse(d))
   .handler(async ({ data: input, context }) => {
-    const { data, error } = await rpcCaller(context.supabase)("list_platform_stores", {
-      _search: input.search,
-      _status: input.status,
-      _limit: input.limit ?? 50,
-      _offset: input.offset ?? 0,
-    });
+    const { data, error } = await rpcCaller(context.supabase)("list_platform_stores", { _search: input.search, _status: input.status, _limit: input.limit ?? 50, _offset: input.offset ?? 0 });
     if (error) throw error;
     return data as { items: PlatformStoreItem[]; total: number };
   });
 
 export const adminSuspendStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ storeId: z.string().uuid(), reason: z.string().trim().min(1).max(500) }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid(), reason: z.string().trim().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await rpcCaller(context.supabase)("admin_suspend_store", {
-      _store_id: data.storeId,
-      _reason: data.reason,
-    });
+    const { error } = await rpcCaller(context.supabase)("admin_suspend_store", { _store_id: data.storeId, _reason: data.reason });
     if (error) throw error;
     return { success: true };
   });
@@ -129,9 +119,7 @@ export const adminReactivateStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await rpcCaller(context.supabase)("admin_reactivate_store", {
-      _store_id: data.storeId,
-    });
+    const { error } = await rpcCaller(context.supabase)("admin_reactivate_store", { _store_id: data.storeId });
     if (error) throw error;
     return { success: true };
   });
