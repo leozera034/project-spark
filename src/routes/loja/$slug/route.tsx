@@ -11,6 +11,7 @@ import {
   useCustomerWizard,
 } from "@/storefront/customer/customer-wizard.context";
 import { CartProvider } from "@/storefront/cart/cart.context";
+import { getDefaultStoreBanner } from "@/storefront/default-banners";
 import { fetchStorefront } from "@/lib/storefront.functions";
 import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
 
@@ -29,6 +30,12 @@ export const Route = createFileRoute("/loja/$slug")({
         fetchStorefront({ data: { slug: params.slug } }),
         getSiteOrigin(),
       ]);
+
+      const settings = storefront.store.settings;
+      if (!settings.cover_url) {
+        settings.cover_url = getDefaultStoreBanner(storefront.store.store.segment);
+      }
+
       return { ...storefront, origin };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
