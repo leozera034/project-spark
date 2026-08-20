@@ -13,6 +13,7 @@ import {
   reorderNeighborhoods,
   upsertNeighborhood,
 } from "@/store-config/api";
+import { DeliveryPricingModePanel } from "@/store-config/DeliveryPricingModePanel";
 import { formatCurrencyInput, parseCurrencyInput } from "@/store-config/form-kit";
 import { useStoreConfig } from "@/store-config/StoreConfigProvider";
 import { resolveEta, resolveMinOrder, type StoreConfigNeighborhood } from "@/store-config/types";
@@ -105,13 +106,14 @@ function BairrosSection() {
 
   return (
     <div className="space-y-6">
+      {storeId ? <DeliveryPricingModePanel storeId={storeId} canEdit={canEdit} /> : null}
+
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3">
           <div>
             <CardTitle>Bairros atendidos</CardTitle>
             <CardDescription>
-              Taxa, pedido mínimo e prazo por bairro. O valor do bairro tem prioridade sobre o
-              padrão da loja.
+              Use esta lista quando escolher cobrança por bairro. Taxa, pedido mínimo e prazo podem variar por região.
             </CardDescription>
           </div>
           {canEdit ? (
@@ -123,7 +125,7 @@ function BairrosSection() {
         <CardContent className="space-y-3">
           {active.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              Nenhum bairro cadastrado ainda.
+              Nenhum bairro cadastrado ainda. Se sua cidade usa taxa fixa ou raio, você pode usar o modelo acima sem cadastrar bairro por bairro.
             </p>
           ) : (
             active.map((item, index) => (
@@ -146,50 +148,10 @@ function BairrosSection() {
                     {!item.is_active ? <Badge variant="secondary">Pausado</Badge> : null}
                     {canEdit ? (
                       <>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="min-h-11 min-w-11"
-                          aria-label={`Mover ${item.name} para cima`}
-                          disabled={index === 0 || isSaving}
-                          onClick={() => move(index, -1)}
-                        >
-                          ↑
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="min-h-11 min-w-11"
-                          aria-label={`Mover ${item.name} para baixo`}
-                          disabled={index === active.length - 1 || isSaving}
-                          onClick={() => move(index, 1)}
-                        >
-                          ↓
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="min-h-11"
-                          onClick={() => setDraft(toDraft(item))}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="min-h-11"
-                          onClick={() =>
-                            storeId &&
-                            void save(
-                              () => archiveNeighborhood(storeId, item.id, true),
-                              "Bairro arquivado.",
-                            )
-                          }
-                        >
-                          Arquivar
-                        </Button>
+                        <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Mover ${item.name} para cima`} disabled={index === 0 || isSaving} onClick={() => move(index, -1)}>↑</Button>
+                        <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Mover ${item.name} para baixo`} disabled={index === active.length - 1 || isSaving} onClick={() => move(index, 1)}>↓</Button>
+                        <Button type="button" variant="outline" className="min-h-11" onClick={() => setDraft(toDraft(item))}>Editar</Button>
+                        <Button type="button" variant="ghost" className="min-h-11" onClick={() => storeId && void save(() => archiveNeighborhood(storeId, item.id, true), "Bairro arquivado.")}>Arquivar</Button>
                       </>
                     ) : null}
                   </div>
@@ -204,92 +166,38 @@ function BairrosSection() {
         <Card>
           <CardHeader>
             <CardTitle>{draft.id ? "Editar bairro" : "Novo bairro"}</CardTitle>
-            <CardDescription>
-              Deixe o pedido mínimo em branco para usar o padrão da loja.
-            </CardDescription>
+            <CardDescription>Deixe o pedido mínimo em branco para usar o padrão da loja.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="nb-name">Nome do bairro</Label>
-              <Input
-                id="nb-name"
-                value={draft.name}
-                maxLength={80}
-                className="h-12 text-base"
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              />
+              <Input id="nb-name" value={draft.name} maxLength={80} className="h-12 text-base" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="nb-fee">Taxa de entrega</Label>
-                <Input
-                  id="nb-fee"
-                  inputMode="decimal"
-                  value={draft.fee}
-                  className="h-12 text-base"
-                  onChange={(e) => setDraft({ ...draft, fee: e.target.value })}
-                />
+                <Input id="nb-fee" inputMode="decimal" value={draft.fee} className="h-12 text-base" onChange={(e) => setDraft({ ...draft, fee: e.target.value })} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="nb-min">Pedido mínimo</Label>
-                <Input
-                  id="nb-min"
-                  inputMode="decimal"
-                  placeholder="Padrão da loja"
-                  value={draft.minOrder}
-                  className="h-12 text-base"
-                  onChange={(e) => setDraft({ ...draft, minOrder: e.target.value })}
-                />
+                <Input id="nb-min" inputMode="decimal" placeholder="Padrão da loja" value={draft.minOrder} className="h-12 text-base" onChange={(e) => setDraft({ ...draft, minOrder: e.target.value })} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="nb-eta">Prazo (min)</Label>
-                <Input
-                  id="nb-eta"
-                  inputMode="numeric"
-                  value={draft.eta}
-                  className="h-12 text-base"
-                  onChange={(e) => setDraft({ ...draft, eta: e.target.value })}
-                />
+                <Input id="nb-eta" inputMode="numeric" value={draft.eta} className="h-12 text-base" onChange={(e) => setDraft({ ...draft, eta: e.target.value })} />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="nb-notes">Observações internas</Label>
-              <Textarea
-                id="nb-notes"
-                value={draft.notes}
-                maxLength={200}
-                className="text-base"
-                onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
-              />
+              <Textarea id="nb-notes" value={draft.notes} maxLength={200} className="text-base" onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <Label htmlFor="nb-active" className="text-sm font-medium">
-                Disponível para pedidos
-              </Label>
-              <Switch
-                id="nb-active"
-                checked={draft.isActive}
-                onCheckedChange={(v) => setDraft({ ...draft, isActive: v })}
-              />
+              <Label htmlFor="nb-active" className="text-sm font-medium">Disponível para pedidos</Label>
+              <Switch id="nb-active" checked={draft.isActive} onCheckedChange={(v) => setDraft({ ...draft, isActive: v })} />
             </div>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                className="min-h-13"
-                onClick={() => setDraft(null)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                className="min-h-13"
-                loading={isSaving}
-                loadingLabel="Salvando"
-                onClick={submit}
-              >
-                {isSaving ? "Salvando…" : "Salvar bairro"}
-              </Button>
+              <Button type="button" variant="ghost" className="min-h-13" onClick={() => setDraft(null)}>Cancelar</Button>
+              <Button type="button" className="min-h-13" loading={isSaving} loadingLabel="Salvando" onClick={submit}>{isSaving ? "Salvando…" : "Salvar bairro"}</Button>
             </div>
           </CardContent>
         </Card>
@@ -299,41 +207,16 @@ function BairrosSection() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Bairros arquivados ({archived.length})</CardTitle>
-            <CardDescription>
-              Arquivados não aparecem para o cliente, mas o histórico de pedidos é preservado.
-            </CardDescription>
+            <CardDescription>Arquivados não aparecem para o cliente, mas o histórico de pedidos é preservado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              onClick={() => setShowArchived((v) => !v)}
-            >
-              {showArchived ? "Ocultar" : "Mostrar"}
-            </Button>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setShowArchived((v) => !v)}>{showArchived ? "Ocultar" : "Mostrar"}</Button>
             {showArchived
               ? archived.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-lg border border-border p-4"
-                  >
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-border p-4">
                     <span className="text-sm text-muted-foreground">{item.name}</span>
                     {canEdit ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="min-h-11"
-                        onClick={() =>
-                          storeId &&
-                          void save(
-                            () => archiveNeighborhood(storeId, item.id, false),
-                            "Bairro restaurado.",
-                          )
-                        }
-                      >
-                        Restaurar
-                      </Button>
+                      <Button type="button" variant="outline" className="min-h-11" onClick={() => storeId && void save(() => archiveNeighborhood(storeId, item.id, false), "Bairro restaurado.")}>Restaurar</Button>
                     ) : null}
                   </div>
                 ))
