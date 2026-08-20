@@ -182,7 +182,7 @@ function CardapioOverview() {
           </CardHeader>
           <CardContent className="space-y-2">
             <Button asChild variant="outline" className="w-full">
-              <Link to="/app/loja/plano">Consultar serviço de implantação</Link>
+              <Link to="/app/loja/cardapio/servico">Ver serviço de implantação</Link>
             </Button>
             <p className="text-xs text-muted-foreground">Cobrança avulsa, separada da mensalidade do plano.</p>
           </CardContent>
