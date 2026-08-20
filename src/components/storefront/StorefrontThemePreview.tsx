@@ -7,8 +7,8 @@ import {
   MapPin,
   Pizza,
   Search,
-  ShoppingBasket,
   ShoppingBag,
+  ShoppingBasket,
   Store,
   UtensilsCrossed,
   Wine,
@@ -97,6 +97,8 @@ type ThemeStyle = CSSProperties & {
   "--brand": string;
   "--brand-foreground": string;
   "--background": string;
+  "--card": string;
+  "--border": string;
 };
 
 export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
@@ -106,62 +108,74 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
   const banner = getDefaultStoreBanner(theme);
   const Icon = meta.Icon;
   const style: ThemeStyle = {
-    "--foreground": visual.foreground,
-    "--muted-foreground": visual.mutedForeground,
+    "--foreground": "#2b1813",
+    "--muted-foreground": "#705d56",
     "--brand": visual.brand,
     "--brand-foreground": visual.brandForeground,
-    "--background": visual.background,
+    "--background": "#fffaf5",
+    "--card": "#ffffff",
+    "--border": "rgba(82,55,43,.14)",
   };
 
   return (
     <main className="storefront-global min-h-svh bg-background pb-16 text-foreground" style={style}>
-      <div className="border-b bg-foreground px-4 py-2.5 text-center text-xs font-bold text-background">
+      <div className="border-b border-black/5 bg-foreground px-4 py-2.5 text-center text-xs font-bold text-white">
         Preview interno · nenhuma loja real é alterada
       </div>
 
-      <header className="storefront-hero relative">
-        <img src={banner} alt="" className="h-40 w-full object-cover sm:h-60" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-transparent to-background/85" />
+      <header className="relative overflow-hidden">
+        <div className="relative h-[236px] sm:h-[300px]">
+          <img src={banner} alt="" className="size-full object-cover" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/12" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-px left-1/2 h-10 w-[130%] -translate-x-1/2 bg-background sm:h-14"
+            style={{ borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }}
+          />
+        </div>
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="-mt-12 flex min-w-0 items-end gap-3 sm:gap-4">
+          <div className="-mt-[54px] flex min-w-0 items-end gap-4 sm:-mt-[62px] sm:gap-5">
             <StorefrontIdentityMark segment={theme} storeName={meta.storeName} />
-            <div className="min-w-0 pb-1.5">
-              <h1 className="line-clamp-2 text-[clamp(1.45rem,5.4vw,2.1rem)] font-semibold leading-tight tracking-tight">
+            <div className="min-w-0 pb-2.5 sm:pb-3">
+              <h1 className="line-clamp-2 text-[clamp(1.65rem,6vw,2.35rem)] font-black leading-[1.02] tracking-[-0.035em]">
                 {meta.storeName}
               </h1>
-              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              <p className="mt-1 truncate text-sm font-medium text-muted-foreground sm:text-base">
                 {meta.category} · {meta.city}
               </p>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-xs font-semibold text-success">
-              <span className="size-1.5 rounded-full bg-success" /> Aberta agora
+          <div className="mt-7 flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-emerald-600/20 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
+              <span className="size-2 rounded-full bg-emerald-500" /> Aberta agora
             </span>
-            <span className="rounded-full border px-3 py-1 text-xs font-semibold">Entrega</span>
-            <span className="rounded-full border px-3 py-1 text-xs font-semibold">Retirada</span>
-            <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"><Clock className="mr-1 size-3" />~35 min</span>
+            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Entrega</span>
+            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Retirada</span>
+            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm"><Clock className="mr-1 size-3.5" />~35 min</span>
           </div>
 
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-5 text-[15px] font-medium leading-relaxed text-foreground/82 sm:text-base">
             Bem-vindo! Escolha seus favoritos e monte o pedido do seu jeito.
           </p>
         </div>
       </header>
 
-      <div className="sticky top-0 z-20 mt-6 border-b border-border/70 bg-background/92 backdrop-blur-xl">
-        <div className="mx-auto max-w-3xl space-y-3 px-4 py-3 sm:px-6">
+      <div className="sticky top-0 z-20 mt-5 border-b border-black/5 bg-background/94 backdrop-blur-xl">
+        <div className="mx-auto max-w-3xl space-y-3.5 px-4 py-3.5 sm:px-6">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <div className="flex h-12 items-center rounded-full border bg-background pl-10 pr-4 text-sm text-muted-foreground shadow-sm">
+            <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-foreground/65" />
+            <div className="flex h-14 items-center rounded-2xl border border-black/8 bg-white pl-12 pr-4 text-[15px] font-medium text-black/45 shadow-[0_8px_24px_rgba(74,43,29,.08)]">
               Buscar no cardápio
             </div>
           </div>
-          <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
+          <nav className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
             {["Destaques", "Mais pedidos", "Combos"].map((category, index) => (
-              <span key={category} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium ${index === 0 ? "border-brand bg-brand/10 text-brand" : "bg-background"}`}>
+              <span
+                key={category}
+                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold ${index === 0 ? "border-brand bg-brand text-brand-foreground shadow-sm" : "border-black/7 bg-white/70 text-foreground"}`}
+              >
                 {category}
               </span>
             ))}
@@ -170,25 +184,26 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <section className="py-7">
-          <div className="flex items-baseline gap-3">
-            <h2 className="min-w-0 text-lg font-semibold tracking-tight">Destaques</h2>
-            <span className="h-px min-w-4 flex-1 bg-border" />
-            <span className="shrink-0 text-xs font-medium text-muted-foreground">3 itens</span>
+        <section className="py-8">
+          <div className="flex items-end gap-3">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl font-black tracking-[-0.025em] sm:text-2xl">Destaques</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Uma amostra visual do modelo {meta.label.toLowerCase()}.</p>
+            </div>
+            <span className="shrink-0 pb-0.5 text-xs font-semibold text-muted-foreground">3 itens</span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Uma amostra visual do modelo {meta.label.toLowerCase()}.</p>
 
           <ul className="mt-4 space-y-3">
-            {SAMPLE_PRODUCTS[theme].map((product, index) => (
+            {SAMPLE_PRODUCTS[theme].map((product) => (
               <li key={product.name}>
-                <button type="button" className="panel flex w-full items-center gap-3 p-3 text-left shadow-sm sm:gap-4 sm:p-3.5">
+                <button type="button" className="group flex w-full items-center gap-3 rounded-2xl border border-black/[0.055] bg-white p-3.5 text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition-all duration-200 hover:-translate-y-0.5 sm:gap-4 sm:p-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-start gap-2">
-                      <p className="line-clamp-2 min-w-0 flex-1 font-semibold leading-snug">{product.name}</p>
-                      {product.featured ? <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">Destaque</span> : null}
+                      <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug sm:text-base">{product.name}</p>
+                      {product.featured ? <span className="shrink-0 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
                     </div>
                     <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.desc}</p>
-                    <p className="mt-2 text-sm font-semibold tabular-nums text-brand">{product.price}</p>
+                    <p className="mt-2 text-sm font-extrabold tabular-nums text-brand">{product.price}</p>
                   </div>
                   <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand sm:size-24">
                     <Icon className="size-8 sm:size-9" strokeWidth={1.8} />
@@ -199,11 +214,11 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
           </ul>
         </section>
 
-        <section className="rounded-3xl border bg-muted/25 p-4 sm:p-5">
+        <section className="rounded-3xl border border-black/8 bg-white/70 p-4 shadow-sm sm:p-5">
           <div className="flex items-start gap-3">
             <ShoppingBag className="mt-0.5 size-5 shrink-0 text-brand" />
             <div>
-              <p className="font-semibold">Identidade da loja preservada</p>
+              <p className="font-bold">Identidade da loja preservada</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 Se a loja não enviar logo, o Comandiva usa apenas um ícone neutro da categoria. Nunca inventamos uma marca para o lojista. Quando ele cadastrar a própria logo, ela substitui automaticamente este ícone.
               </p>
@@ -213,7 +228,10 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
 
         <footer className="space-y-3 py-8 text-sm text-muted-foreground">
           <p className="flex items-start gap-2"><MapPin className="mt-0.5 size-4 shrink-0" /> Endereço demonstrativo · {meta.city}</p>
-          <p className="text-xs">Cardápio digital com Comandiva.</p>
+          <div className="flex flex-col gap-2 border-t border-black/5 pt-5 text-xs sm:flex-row sm:items-center sm:justify-between">
+            <p>Cardápio digital com Comandiva.</p>
+            <a href="/criar-loja" className="font-bold text-brand">Tem uma loja? Crie seu cardápio no Comandiva →</a>
+          </div>
         </footer>
       </div>
     </main>
