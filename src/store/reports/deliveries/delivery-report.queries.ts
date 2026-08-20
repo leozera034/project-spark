@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 import {
+  getStoreBusinessReportSummary,
   getStoreDeliveryReportSummary,
   getStoreDeliveryReportSeries,
   listStoreDeliveryReportByCourier,
@@ -12,6 +13,8 @@ import { DeliveryReportPeriodType } from "./delivery-report.types";
 
 export const reportKeys = {
   all: ["delivery-reports"] as const,
+  business: (storeId: string | null, period: DeliveryReportPeriodType, start?: string, end?: string) =>
+    [...reportKeys.all, "business", { storeId, period, start, end }] as const,
   summaries: () => [...reportKeys.all, "summary"] as const,
   summary: (storeId: string | null, period: DeliveryReportPeriodType, start?: string, end?: string) =>
     [...reportKeys.summaries(), { storeId, period, start, end }] as const,
@@ -28,6 +31,15 @@ export const reportKeys = {
     page = 0,
   ) => [...reportKeys.all, "history", { storeId, period, start, end, courierId, page }] as const,
 };
+
+export function useStoreBusinessReportSummary(period: DeliveryReportPeriodType, start?: string, end?: string) {
+  const { storeId } = useStoreScope();
+  return useQuery({
+    queryKey: reportKeys.business(storeId, period, start, end),
+    queryFn: () => getStoreBusinessReportSummary(storeId as string, period, start, end),
+    enabled: Boolean(storeId),
+  });
+}
 
 export function useStoreDeliveryReportSummary(period: DeliveryReportPeriodType, start?: string, end?: string) {
   const { storeId } = useStoreScope();
