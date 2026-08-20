@@ -2,47 +2,42 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BarChart3,
-  Bell,
   Bike,
-  Bot,
   Check,
   ChefHat,
   ClipboardList,
-  CreditCard,
-  LayoutDashboard,
-  Mail,
-  MapPinned,
-  Megaphone,
   Menu,
   MessageCircle,
-  ReceiptText,
-  ShieldCheck,
-  Sparkles,
-  Star,
+  PackageCheck,
+  ShoppingBag,
   Store,
-  Workflow,
+  TrendingUp,
+  Users,
   X,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { Reveal } from "@/components/motion/Reveal";
 import { listPublicPlans } from "@/lib/marketing.functions";
+import { cn } from "@/lib/utils";
 
 const description =
-  "Cardápio, pedidos, cozinha, entregas, CRM e automações em uma plataforma feita para o comércio local.";
+  "Venda pelo seu cardápio e organize pedidos, cozinha, entregas e clientes em um só lugar com a Comandiva.";
 
 export const Route = createFileRoute("/")({
   loader: () => listPublicPlans(),
   component: Home,
   head: () => ({
     meta: [
-      { title: "Comandiva — operação, CRM e automação para o comércio local" },
+      { title: "Comandiva — cardápio, pedidos, cozinha e entregas em um só lugar" },
       { name: "description", content: description },
-      { property: "og:title", content: "Comandiva — operação, CRM e automação para o comércio local" },
+      {
+        property: "og:title",
+        content: "Comandiva — cardápio, pedidos, cozinha e entregas em um só lugar",
+      },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/brand/og-image-1200x630.png" },
@@ -52,174 +47,201 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Feature = { icon: LucideIcon; title: string; text: string };
-type ModuleStatus = "base" | "homologacao" | "implantacao";
-type AutomationModule = {
+type Feature = {
   icon: LucideIcon;
-  name: string;
-  eyebrow: string;
-  benefit: string;
-  status: ModuleStatus;
+  title: string;
+  text: string;
 };
 
-const features: Feature[] = [
+type ProductDemo = {
+  eyebrow: string;
+  title: string;
+  text: string;
+  bullets: string[];
+  imageTitle: string;
+  imageNote: string;
+};
+
+const painPoints: Feature[] = [
   {
-    icon: Store,
-    title: "Cardápio digital",
-    text: "Catálogo mobile-first com categorias, adicionais, variações, identidade visual e operação por loja.",
-  },
-  {
-    icon: ClipboardList,
-    title: "Pedidos organizados",
-    text: "Receba e acompanhe cada pedido em um fluxo único, sem depender de mensagens soltas ou planilhas paralelas.",
+    icon: MessageCircle,
+    title: "Pedidos espalhados",
+    text: "WhatsApp, papel e conversa solta fazem pedido se perder e obrigam a equipe a conferir tudo duas vezes.",
   },
   {
     icon: ChefHat,
-    title: "Cozinha operacional",
-    text: "Fila de produção objetiva, prioridade visual e ações claras para reduzir atraso e ruído na equipe.",
+    title: "Produção sem visão",
+    text: "A cozinha precisa saber o que entrou, o que está atrasado e o que já pode sair sem depender de gritos ou recados.",
   },
   {
     icon: Bike,
-    title: "Entregas próprias",
-    text: "Cadastre entregadores, distribua corridas e acompanhe coleta, saída, ocorrências e conclusão.",
-  },
-  {
-    icon: BarChart3,
-    title: "CRM e crescimento",
-    text: "Clientes, recorrência, segmentos e sinais de recompra conectados ao histórico real da operação.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "SaaS multi-loja",
-    text: "Papéis, permissões, isolamento de dados, auditoria e administração central fazem parte da fundação.",
+    title: "Entrega sem controle",
+    text: "Quando pedido, entregador e status ficam separados, a loja perde tempo tentando descobrir o que aconteceu.",
   },
 ];
 
-const highlights: Feature[] = [
-  { icon: LayoutDashboard, title: "Operação integrada", text: "Uma visão única do negócio" },
-  { icon: MessageCircle, title: "CRM + WhatsApp", text: "Relacionamento conectado à operação" },
-  { icon: Workflow, title: "Automações modulares", text: "Ative recursos conforme crescer" },
-  { icon: CreditCard, title: "Sem comissão por pedido", text: "Modelo SaaS previsível" },
-];
-
-const automationModules: AutomationModule[] = [
+const coreFeatures: Feature[] = [
   {
-    icon: MessageCircle,
-    name: "WhatsApp Automático",
-    eyebrow: "Atendimento e avisos",
-    benefit: "Confirmações, status do pedido, campanhas e reativação com consentimento, templates e limites de uso.",
-    status: "homologacao",
+    icon: Store,
+    title: "Cardápio digital",
+    text: "Organize categorias, produtos, preços, variações e adicionais e tenha seu próprio link de pedidos.",
   },
   {
-    icon: Bot,
-    name: "Atendente IA",
-    eyebrow: "Automação inteligente",
-    benefit: "Apoio em dúvidas, vendas, triagem e respostas com contexto da loja, mantendo escalonamento para pessoas.",
-    status: "implantacao",
+    icon: ClipboardList,
+    title: "Pedidos e cozinha",
+    text: "Acompanhe o que entrou, o que está em produção e o que já ficou pronto em um fluxo único.",
   },
   {
-    icon: BarChart3,
-    name: "Growth Pro",
-    eyebrow: "CRM e recompra",
-    benefit: "Segmentos automáticos, clientes VIP, recorrentes e inativos para transformar histórico em próxima ação.",
-    status: "base",
+    icon: Bike,
+    title: "Entregadores",
+    text: "Cadastre sua equipe de entrega e conecte o andamento de cada pedido à operação da loja.",
   },
   {
-    icon: MapPinned,
-    name: "Entrega Inteligente",
-    eyebrow: "Logística",
-    benefit: "Distância, ETA, roteirização e decisões de entrega conectadas a provedores de mapas sem prender o sistema a um único fornecedor.",
-    status: "implantacao",
-  },
-  {
-    icon: Star,
-    name: "Reputação",
-    eyebrow: "Relacionamento",
-    benefit: "Pedir avaliações no momento certo, identificar clientes insatisfeitos e criar fluxos de recuperação.",
-    status: "implantacao",
-  },
-  {
-    icon: ReceiptText,
-    name: "Fiscal",
-    eyebrow: "Backoffice",
-    benefit: "Camada preparada para emissão e acompanhamento fiscal por provedor homologado, sem misturar credenciais entre lojas.",
-    status: "implantacao",
-  },
-  {
-    icon: CreditCard,
-    name: "Pagamentos",
-    eyebrow: "Cobrança e recorrência",
-    benefit: "Assinaturas, conciliação e automações financeiras com validação de provider, idempotência e webhooks.",
-    status: "homologacao",
-  },
-  {
-    icon: Megaphone,
-    name: "Marketing Pro",
-    eyebrow: "Campanhas",
-    benefit: "Campanhas segmentadas, calendário e automações de relacionamento com consentimento e histórico por cliente.",
-    status: "implantacao",
-  },
-  {
-    icon: Sparkles,
-    name: "Ads",
-    eyebrow: "Aquisição",
-    benefit: "Planejamento e acompanhamento de mídia paga conectado aos dados reais da operação e crescimento.",
-    status: "implantacao",
+    icon: TrendingUp,
+    title: "Clientes e resultados",
+    text: "Veja quem compra, quem volta, quem ficou inativo e como a operação está performando.",
   },
 ];
 
 const flow = [
-  ["01", "Crie a loja", "Configure os dados essenciais da operação."],
-  ["02", "Monte o cardápio", "Organize produtos, categorias, preços e adicionais."],
-  ["03", "Receba pedidos", "O pedido entra organizado para atendimento e cozinha."],
-  ["04", "Automatize o crescimento", "CRM, comunicação e módulos entram conforme a operação evolui."],
+  ["01", "Cliente faz o pedido", "O pedido nasce no cardápio da própria loja."],
+  ["02", "Loja recebe organizado", "Informações entram em um único fluxo operacional."],
+  ["03", "Cozinha acompanha", "A equipe vê o que preparar e o que já está pronto."],
+  ["04", "Entrega segue o fluxo", "Pedido e entregador continuam conectados à operação."],
+  ["05", "Histórico vira informação", "Os dados ajudam a entender clientes e resultados."],
 ] as const;
 
-const segments = ["Restaurantes", "Lanchonetes", "Pizzarias", "Bares", "Mercados", "Conveniências"];
-
-const integrationSignals = [
-  { icon: ClipboardList, label: "CEP e CNPJ", detail: "cadastro mais rápido" },
-  { icon: MessageCircle, label: "WhatsApp", detail: "assistido + automático" },
-  { icon: CreditCard, label: "Pagamentos", detail: "recorrência e conciliação" },
-  { icon: Bell, label: "Push", detail: "alertas operacionais" },
-  { icon: Mail, label: "E-mail", detail: "transacional e lifecycle" },
-  { icon: Bot, label: "IA", detail: "atendimento e automação" },
-  { icon: MapPinned, label: "Mapas", detail: "rota, distância e ETA" },
-  { icon: ReceiptText, label: "Fiscal", detail: "provedor desacoplado" },
+const productDemos: ProductDemo[] = [
+  {
+    eyebrow: "Visão da operação",
+    title: "Entenda o que está acontecendo sem montar planilha.",
+    text: "A visão geral deve mostrar somente os números que ajudam o lojista a agir: pedidos, faturamento, ticket e andamento da operação.",
+    bullets: ["Pedidos e faturamento", "Status da operação", "Indicadores fáceis de ler"],
+    imageTitle: "IMAGEM A INSERIR — VISÃO GERAL DO PAINEL",
+    imageNote:
+      "Usar print real do Comandiva em desktop, com faturamento, pedidos, ticket médio e pedidos em andamento legíveis.",
+  },
+  {
+    eyebrow: "Pedidos e produção",
+    title: "Do pedido recebido à cozinha, sem informação duplicada.",
+    text: "O pedido deve avançar por etapas claras para que atendimento e produção enxerguem a mesma informação.",
+    bullets: ["Fila de pedidos", "Status claros", "Tela de cozinha em destaque"],
+    imageTitle: "IMAGEM A INSERIR — PEDIDOS + COZINHA",
+    imageNote:
+      "Usar composição com dois prints reais: gestão de pedidos e tela de cozinha. Nada de mockup minúsculo.",
+  },
+  {
+    eyebrow: "Cardápio e entrega",
+    title: "Venda no seu próprio cardápio e mantenha a entrega conectada.",
+    text: "O cliente compra em uma experiência da loja, enquanto a equipe gerencia produtos, adicionais, pedidos e entregadores no mesmo sistema.",
+    bullets: ["Cardápio mobile", "Adicionais e variações", "Entregadores próprios"],
+    imageTitle: "IMAGEM A INSERIR — CARDÁPIO MOBILE + ENTREGAS",
+    imageNote:
+      "Usar print real do cardápio no celular ao lado de uma tela real de entregas/entregadores. Sem banco de imagens.",
+  },
 ];
 
-function moduleStatus(status: ModuleStatus) {
-  if (status === "base") return { label: "Já na base", className: "bg-[#E8F7EF] text-[#17663A]" };
-  if (status === "homologacao") return { label: "Em homologação", className: "bg-[#FFF0DB] text-[#8A4A00]" };
-  return { label: "Em implantação", className: "bg-[#F0EAF5] text-[#5C2A79]" };
+const faqs = [
+  {
+    question: "Posso começar sem pagar?",
+    answer:
+      "Sim. O Comandiva possui plano gratuito com limites próprios. Você pode criar a loja e começar sem contratar um plano pago imediatamente.",
+  },
+  {
+    question: "Preciso saber mexer com tecnologia?",
+    answer:
+      "Não. A experiência é pensada para quem administra uma loja. Termos técnicos e configurações de infraestrutura ficam fora do caminho da operação do dia a dia.",
+  },
+  {
+    question: "Posso usar meus próprios entregadores?",
+    answer:
+      "Sim. O Comandiva possui estrutura para cadastrar entregadores e conectar a operação de entrega aos pedidos da loja.",
+  },
+  {
+    question: "Como funcionam os planos?",
+    answer:
+      "Cada plano define limites de pedidos, equipe, entregadores e recursos. Os valores e limites exibidos nesta página vêm do catálogo comercial atual do Comandiva.",
+  },
+  {
+    question: "O WhatsApp automático já está liberado?",
+    answer:
+      "Ainda não como recurso geral de produção. A automação de WhatsApp está em homologação e só deve ser anunciada como disponível depois da validação operacional.",
+  },
+  {
+    question: "O que já está disponível hoje?",
+    answer:
+      "A base atual inclui cardápio, pedidos, cozinha, operação com entregadores, relatórios, planos e recursos de clientes e crescimento. Recursos futuros aparecem separados por status.",
+  },
+] as const;
+
+function ImagePlaceholder({
+  title,
+  note,
+  className,
+}: {
+  title: string;
+  note: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-h-72 w-full items-center justify-center rounded-[28px] border-2 border-dashed border-[#55207A]/20 bg-white p-6 text-center sm:min-h-80 sm:p-10",
+        className,
+      )}
+    >
+      <div className="max-w-xl">
+        <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Placeholder de imagem</p>
+        <p className="mt-3 font-display text-xl font-extrabold tracking-[-.025em] text-[#1B0D2C] sm:text-2xl">
+          {title}
+        </p>
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#69626E]">{note}</p>
+      </div>
+    </div>
+  );
 }
 
 function Home() {
   const plans = Route.useLoaderData();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showMobileCta, setShowMobileCta] = useState(false);
+  const heroRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowMobileCta(!entry.isIntersecting),
+      { threshold: 0.12 },
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
 
   const navItems = [
-    ["#recursos", "Recursos"],
-    ["#automacoes", "Automações"],
+    ["#produto", "Produto"],
     ["#como-funciona", "Como funciona"],
-    ["#negocios", "Para negócios"],
+    ["#recursos", "Recursos"],
     ["#planos", "Planos"],
+    ["#duvidas", "Dúvidas"],
   ] as const;
 
   return (
-    <div className="min-h-dvh bg-[#FFF6F1] text-[#1C1C1E] selection:bg-[#FF6A4D]/25">
-      <header className="sticky top-0 z-50 border-b border-[#4B1D6D]/10 bg-[#FFF6F1]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-[82px] max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-dvh bg-[#FCFAF8] pb-[calc(4.75rem+env(safe-area-inset-bottom))] text-[#17131C] selection:bg-[#FF681F]/20 sm:pb-0">
+      <header className="sticky top-0 z-50 border-b border-[#1B0D2C]/8 bg-[#FCFAF8]/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-[72px] max-w-[1240px] items-center gap-3 px-4 sm:px-6 lg:px-8">
           <Link to="/" aria-label="Comandiva — início" className="shrink-0">
-            <BrandLogo lockup="horizontal" className="h-11 w-auto sm:h-12" />
+            <BrandLogo lockup="horizontal" className="h-9 w-auto sm:h-10" />
           </Link>
 
-          <nav className="ml-8 hidden flex-1 items-center gap-1 lg:flex" aria-label="Navegação principal">
+          <nav className="ml-8 hidden flex-1 items-center justify-center gap-1 lg:flex" aria-label="Navegação principal">
             {navItems.map(([href, label]) => (
               <a
                 key={href}
                 href={href}
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#5F5563] transition hover:bg-white hover:text-[#4B1D6D]"
+                className="rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#69626E] transition hover:bg-white hover:text-[#55207A]"
               >
                 {label}
               </a>
@@ -230,21 +252,21 @@ function Home() {
             <Link
               to="/entrar/loja"
               search={{ retorno: undefined }}
-              className="hidden min-h-11 items-center rounded-xl px-4 text-sm font-bold text-[#4B1D6D] transition hover:bg-[#4B1D6D]/[.06] sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-xl px-4 text-sm font-bold text-[#55207A] transition hover:bg-[#55207A]/[.06] sm:inline-flex"
             >
               Entrar
             </Link>
             <Link
               to="/criar-loja"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#FF6A4D] px-4 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(255,106,77,.22)] transition hover:-translate-y-0.5 hover:bg-[#F15C40]"
+              className="hidden min-h-11 items-center gap-2 rounded-[14px] bg-[#FF681F] px-5 text-sm font-extrabold text-white shadow-[0_10px_28px_rgba(255,104,31,.20)] transition hover:-translate-y-0.5 hover:bg-[#E95612] sm:inline-flex"
             >
-              Começar agora <ArrowRight className="size-4" />
+              Criar minha loja grátis <ArrowRight className="size-4" />
             </Link>
             <button
               type="button"
               aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={menuOpen}
-              className="inline-flex size-11 items-center justify-center rounded-xl border border-[#4B1D6D]/15 bg-white text-[#4B1D6D] lg:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-xl border border-[#55207A]/15 bg-white text-[#55207A] lg:hidden"
               onClick={() => setMenuOpen((value) => !value)}
             >
               {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -253,353 +275,374 @@ function Home() {
         </div>
 
         {menuOpen ? (
-          <nav className="border-t border-[#4B1D6D]/10 bg-[#FFF6F1] px-4 pb-5 pt-3 lg:hidden" aria-label="Navegação mobile">
-            <div className="mx-auto grid max-w-7xl gap-1">
+          <nav className="border-t border-[#1B0D2C]/8 bg-[#FCFAF8] px-4 pb-5 pt-3 lg:hidden" aria-label="Navegação mobile">
+            <div className="mx-auto grid max-w-[1240px] gap-1">
               {navItems.map(([href, label]) => (
                 <a
                   key={href}
                   href={href}
-                  className="flex min-h-12 items-center rounded-xl px-4 font-semibold text-[#4B1D6D] hover:bg-white"
+                  className="flex min-h-12 items-center rounded-xl px-4 font-semibold text-[#55207A] hover:bg-white"
                   onClick={() => setMenuOpen(false)}
                 >
                   {label}
                 </a>
               ))}
+              <Link
+                to="/entrar/loja"
+                search={{ retorno: undefined }}
+                className="flex min-h-12 items-center rounded-xl px-4 font-semibold text-[#55207A] hover:bg-white sm:hidden"
+                onClick={() => setMenuOpen(false)}
+              >
+                Entrar
+              </Link>
+              <Link
+                to="/criar-loja"
+                className="mt-2 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#FF681F] px-5 text-sm font-extrabold text-white sm:hidden"
+                onClick={() => setMenuOpen(false)}
+              >
+                Criar minha loja grátis
+              </Link>
             </div>
           </nav>
         ) : null}
       </header>
 
       <main>
-        <section className="relative isolate overflow-hidden">
-          <div className="pointer-events-none absolute -left-32 top-20 size-80 rounded-full bg-[#FF6A4D]/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 top-0 size-[34rem] rounded-full bg-[#8A7CA8]/15 blur-3xl" />
-          <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:url('/brand/comandiva-pattern.svg')] [background-size:480px_auto]" />
-
-          <div className="relative mx-auto grid min-h-[680px] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-24">
+        <section ref={heroRef} id="produto" className="relative overflow-hidden border-b border-[#1B0D2C]/6">
+          <div className="mx-auto grid max-w-[1240px] items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[.92fr_1.08fr] lg:gap-14 lg:px-8 lg:py-24">
             <div className="max-w-2xl">
               <Reveal>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#4B1D6D]/10 bg-white/80 px-3.5 py-2 text-xs font-extrabold text-[#4B1D6D] shadow-sm">
-                  <span className="size-2 rounded-full bg-[#FF6A4D]" /> Operação + CRM + automação
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#55207A]/10 bg-white px-3.5 py-2 text-xs font-extrabold text-[#55207A] shadow-sm">
+                  <Store className="size-3.5" /> Para restaurantes e comércio local
                 </span>
               </Reveal>
 
               <Reveal delay={60}>
-                <h1 className="mt-7 text-balance font-display text-[clamp(3rem,7vw,6rem)] font-extrabold leading-[.94] tracking-[-.055em] text-[#1C1C1E]">
-                  Venda mais.<br />Opere melhor.<br />
-                  <span className="text-[#4B1D6D]">Automatize o crescimento.</span>
+                <h1 className="mt-6 text-balance font-display text-[clamp(2.5rem,6vw,4.25rem)] font-extrabold leading-[.99] tracking-[-.055em] text-[#17131C]">
+                  Venda pelo seu cardápio e organize pedidos, cozinha e entregas em um só lugar.
                 </h1>
               </Reveal>
 
               <Reveal delay={120}>
-                <p className="mt-7 max-w-xl text-pretty text-base leading-7 text-[#625966] sm:text-lg">
-                  Cardápio, pedidos, cozinha, entregas, CRM, WhatsApp e módulos inteligentes em uma plataforma única para o comércio local.
+                <p className="mt-6 max-w-xl text-pretty text-base leading-7 text-[#69626E] sm:text-lg sm:leading-8">
+                  Comandiva reúne a operação da sua loja em um único sistema — do pedido do cliente ao acompanhamento da entrega, com dados para você vender novamente.
                 </p>
               </Reveal>
 
-              <Reveal delay={180} className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Reveal delay={180} className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/criar-loja"
-                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-7 text-sm font-black text-white shadow-[0_18px_42px_rgba(255,106,77,.24)] transition hover:-translate-y-0.5 hover:bg-[#F15C40]"
+                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-[14px] bg-[#FF681F] px-7 text-sm font-black text-white shadow-[0_16px_36px_rgba(255,104,31,.22)] transition hover:-translate-y-0.5 hover:bg-[#E95612]"
                 >
-                  Criar minha loja <ArrowRight className="size-4" />
+                  Criar minha loja grátis <ArrowRight className="size-4" />
                 </Link>
                 <a
-                  href="#automacoes"
-                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-[#4B1D6D]/15 bg-white px-7 text-sm font-bold text-[#4B1D6D] shadow-sm transition hover:border-[#4B1D6D]/25 hover:bg-[#F7F0F8]"
+                  href="#demonstracao"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[14px] border border-[#55207A]/15 bg-white px-7 text-sm font-bold text-[#55207A] transition hover:border-[#55207A]/30 hover:bg-[#F6F1F8]"
                 >
-                  Ver automações <Workflow className="size-4" />
+                  Ver o sistema funcionando
                 </a>
               </Reveal>
 
-              <Reveal delay={230} className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-[#6E6472]">
-                <span className="inline-flex items-center gap-2"><Check className="size-4 text-[#FF6A4D]" /> Sem comissão por pedido</span>
-                <span className="inline-flex items-center gap-2"><Check className="size-4 text-[#FF6A4D]" /> CRM conectado</span>
-                <span className="inline-flex items-center gap-2"><Check className="size-4 text-[#FF6A4D]" /> Módulos sob demanda</span>
+              <Reveal delay={220} className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#69626E]">
+                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-[#188653]" /> Comece grátis</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-[#188653]" /> Sem cartão no plano gratuito</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-[#188653]" /> Feito para comércio local</span>
               </Reveal>
             </div>
 
-            <Reveal delay={100} className="relative mx-auto w-full max-w-[760px]">
-              <div className="absolute -inset-8 rounded-[48px] bg-[#4B1D6D]/8 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[34px] border border-[#4B1D6D]/10 bg-white/70 p-3 shadow-[0_30px_80px_rgba(75,29,109,.14)] backdrop-blur-sm sm:p-4">
-                <img
-                  src="/brand/comandiva-hero-operations.webp"
-                  alt="Comandiva conectando painel de gestão, operação e automações"
-                  className="h-auto w-full rounded-[26px] object-cover"
-                  loading="eager"
-                />
-              </div>
+            <Reveal delay={120}>
+              <ImagePlaceholder
+                className="min-h-[390px] lg:min-h-[500px]"
+                title="IMAGEM A INSERIR — HERO DO PRODUTO"
+                note="Criar uma composição de alta fidelidade com dashboard real do Comandiva em desktop + cardápio real no celular. Interfaces grandes, legíveis e sem recortes ruins."
+              />
             </Reveal>
-          </div>
-
-          <div className="relative border-y border-[#4B1D6D]/10 bg-white/65 backdrop-blur-sm">
-            <div className="mx-auto grid max-w-7xl px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
-              {highlights.map(({ icon: Icon, title, text }) => (
-                <div key={title} className="flex gap-4 border-[#4B1D6D]/10 px-5 py-7 lg:border-r lg:last:border-r-0">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#F1EAF4] text-[#4B1D6D]">
-                    <Icon className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-extrabold text-[#2A2030]">{title}</p>
-                    <p className="mt-1 text-xs text-[#7B707F]">{text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
-        <section id="recursos" className="relative overflow-hidden bg-white py-24 sm:py-28">
-          <div className="pointer-events-none absolute -right-40 -top-40 size-[32rem] rounded-full bg-[#8A7CA8]/12 blur-3xl" />
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="bg-white py-20 sm:py-24">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
             <Reveal className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-black uppercase tracking-[.22em] text-[#FF6A4D]">Tudo conectado</p>
-              <h2 className="mt-4 text-balance font-display text-4xl font-extrabold tracking-[-.04em] text-[#271D2C] sm:text-5xl lg:text-6xl">
-                O operacional primeiro. A inteligência por cima.
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">O problema é simples</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                Sua loja não precisa de cinco ferramentas para atender um pedido.
               </h2>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#706675]">
-                O Comandiva organiza o trabalho diário e usa os mesmos dados para alimentar CRM, automações e novos módulos sem criar ilhas no sistema.
-              </p>
             </Reveal>
 
-            <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {features.map(({ icon: Icon, title, text }, index) => (
-                <Reveal
-                  as="article"
-                  key={title}
-                  delay={index * 45}
-                  className="group rounded-[28px] border border-[#4B1D6D]/10 bg-[#FFF9F6] p-7 shadow-[0_12px_38px_rgba(75,29,109,.06)] transition duration-300 hover:-translate-y-1 hover:border-[#4B1D6D]/20 hover:shadow-[0_22px_55px_rgba(75,29,109,.10)]"
-                >
-                  <span className="flex size-12 items-center justify-center rounded-2xl bg-[#F0E8F3] text-[#4B1D6D] transition group-hover:bg-[#FFE6DF] group-hover:text-[#D94F37]">
-                    <Icon className="size-5" />
-                  </span>
-                  <h3 className="mt-6 text-lg font-extrabold text-[#2A2030]">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#746A78]">{text}</p>
-                  <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-extrabold text-[#4B1D6D]">
-                    Base operacional <ArrowRight className="size-3.5 transition group-hover:translate-x-1" />
-                  </span>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="automacoes" className="relative overflow-hidden bg-[#281238] py-24 text-white sm:py-28">
-          <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:url('/brand/comandiva-pattern.svg')] [background-size:440px_auto]" />
-          <div className="pointer-events-none absolute -left-28 top-24 size-[30rem] rounded-full bg-[#FF6A4D]/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 top-0 size-[32rem] rounded-full bg-[#8A7CA8]/20 blur-3xl" />
-
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Reveal className="max-w-4xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.06] px-3.5 py-2 text-xs font-extrabold text-[#FFC2B4]">
-                <Workflow className="size-3.5" /> Ecossistema Comandiva
-              </span>
-              <h2 className="mt-5 text-balance font-display text-4xl font-extrabold tracking-[-.04em] sm:text-5xl lg:text-6xl">
-                Automações e módulos que fazem o trabalho pesado.
-              </h2>
-              <p className="mt-5 max-w-3xl text-base leading-7 text-white/66">
-                A plataforma cresce por módulos: você mantém uma operação simples e adiciona automação, inteligência e integrações conforme o negócio precisa.
-              </p>
-            </Reveal>
-
-            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {automationModules.map((module, index) => {
-                const status = moduleStatus(module.status);
-                const Icon = module.icon;
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {painPoints.map((item, index) => {
+                const Icon = item.icon;
                 return (
-                  <Reveal
-                    as="article"
-                    key={module.name}
-                    delay={index * 35}
-                    className="group rounded-[28px] border border-white/10 bg-white/[.065] p-6 backdrop-blur-sm transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[.09]"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-[#FFC0B0]">
+                  <Reveal key={item.title} delay={index * 60}>
+                    <article className="h-full rounded-[20px] border border-[#EAE5ED] bg-[#FCFAF8] p-6 sm:p-7">
+                      <div className="flex size-11 items-center justify-center rounded-[14px] bg-[#F6F1F8] text-[#55207A]">
                         <Icon className="size-5" />
-                      </span>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${status.className}`}>
-                        {status.label}
-                      </span>
-                    </div>
-                    <p className="mt-6 text-[11px] font-black uppercase tracking-[.14em] text-white/40">{module.eyebrow}</p>
-                    <h3 className="mt-2 text-xl font-extrabold">{module.name}</h3>
-                    <p className="mt-3 text-sm leading-6 text-white/62">{module.benefit}</p>
+                      </div>
+                      <h3 className="mt-5 font-display text-xl font-extrabold tracking-[-.025em] text-[#17131C]">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-[#69626E]">{item.text}</p>
+                    </article>
                   </Reveal>
                 );
               })}
             </div>
-
-            <Reveal className="mt-10 overflow-hidden rounded-[30px] border border-white/10 bg-white/[.055] p-6 sm:p-8">
-              <div className="grid gap-8 lg:grid-cols-[.7fr_1.3fr] lg:items-center">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF9C86]">Integrações por trás</p>
-                  <h3 className="mt-3 font-display text-3xl font-extrabold tracking-[-.035em]">
-                    Um conector pode mudar. Sua operação não precisa mudar junto.
-                  </h3>
-                  <p className="mt-4 text-sm leading-6 text-white/60">
-                    Cada integração entra com isolamento por loja, logs, timeout, retry, limites de uso e bloqueio de segurança. O Comandiva evita amarrar o produto a uma única API.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {integrationSignals.map(({ icon: Icon, label, detail }) => (
-                    <div key={label} className="rounded-2xl border border-white/10 bg-black/10 p-4">
-                      <Icon className="size-4 text-[#FFB09E]" />
-                      <p className="mt-3 text-sm font-extrabold">{label}</p>
-                      <p className="mt-1 text-xs text-white/45">{detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal className="mt-6 rounded-2xl border border-[#FFB09E]/15 bg-[#FF6A4D]/[.08] px-5 py-4 text-xs leading-5 text-white/58">
-              <strong className="text-white">Status transparente:</strong> “Já na base” significa que a fundação funcional já existe; “Em homologação” indica integração sendo validada em ambiente de teste; “Em implantação” mostra módulos planejados no roadmap e ainda não vendidos como recurso pronto.
-            </Reveal>
           </div>
         </section>
 
-        <section id="como-funciona" className="relative overflow-hidden bg-[#4B1D6D] py-24 text-white sm:py-28">
-          <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:url('/brand/comandiva-pattern.svg')] [background-size:430px_auto]" />
-          <div className="pointer-events-none absolute -right-20 top-0 size-[28rem] rounded-full bg-[#FF6A4D]/12 blur-3xl" />
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section id="como-funciona" className="border-y border-[#1B0D2C]/6 bg-[#1B0D2C] py-20 text-white sm:py-24">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
             <Reveal className="max-w-3xl">
-              <p className="text-xs font-black uppercase tracking-[.22em] text-[#FFB09E]">Como funciona</p>
-              <h2 className="mt-4 text-balance font-display text-4xl font-extrabold tracking-[-.04em] sm:text-5xl">
-                Do primeiro produto cadastrado à operação que trabalha com você.
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF9A68]">Tudo conectado</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] sm:text-4xl lg:text-5xl">
+                O pedido entra uma vez. A equipe inteira acompanha.
               </h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white/68">
+                O Comandiva conecta as etapas da operação sem obrigar o lojista a entender a tecnologia que existe por trás.
+              </p>
             </Reveal>
 
-            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-10 grid gap-3 lg:grid-cols-5">
               {flow.map(([number, title, text], index) => (
-                <Reveal
-                  key={number}
-                  delay={index * 60}
-                  className="rounded-[26px] border border-white/12 bg-white/[.07] p-6 backdrop-blur-sm"
-                >
-                  <span className="text-sm font-black text-[#FF8068]">{number}</span>
-                  <h3 className="mt-8 text-lg font-extrabold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-white/65">{text}</p>
+                <Reveal key={number} delay={index * 45}>
+                  <article className="h-full rounded-[18px] border border-white/10 bg-white/[.055] p-5">
+                    <span className="font-display text-sm font-black text-[#FF9A68]">{number}</span>
+                    <h3 className="mt-4 font-display text-lg font-extrabold">{title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/62">{text}</p>
+                  </article>
                 </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="negocios" className="bg-[#FFF6F1] py-24 sm:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
-              <Reveal>
-                <p className="text-xs font-black uppercase tracking-[.22em] text-[#FF6A4D]">Flexível para sua rotina</p>
-                <h2 className="mt-4 text-balance font-display text-4xl font-extrabold tracking-[-.04em] text-[#291F2E] sm:text-5xl">
-                  Um motor, diferentes tipos de negócio.
-                </h2>
-                <p className="mt-5 max-w-lg leading-7 text-[#706675]">
-                  A operação se adapta ao comércio local sem transformar cada segmento em um sistema separado — e os módulos aproveitam os mesmos dados.
-                </p>
-              </Reveal>
+        <section id="recursos" className="bg-[#FCFAF8] py-20 sm:py-24">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <Reveal className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Recursos principais</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                O essencial para operar melhor todos os dias.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#69626E]">
+                Menos lista de funcionalidades. Mais clareza sobre o que cada parte do sistema resolve na rotina da loja.
+              </p>
+            </Reveal>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {segments.map((segment, index) => (
-                  <Reveal
-                    key={segment}
-                    delay={index * 45}
-                    className="rounded-2xl border border-[#4B1D6D]/10 bg-white p-5 shadow-[0_10px_28px_rgba(75,29,109,.05)]"
-                  >
-                    <Store className="size-5 text-[#4B1D6D]" />
-                    <h3 className="mt-4 font-extrabold text-[#2B2130]">{segment}</h3>
-                    <p className="mt-1.5 text-xs leading-5 text-[#776D7B]">Catálogo, pedidos, CRM e operação em um único ambiente.</p>
+            <div className="mt-10 grid gap-4 md:grid-cols-2">
+              {coreFeatures.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <Reveal key={item.title} delay={index * 55}>
+                    <article className="flex h-full gap-4 rounded-[22px] border border-[#EAE5ED] bg-white p-6 shadow-[0_10px_30px_rgba(27,13,44,.035)] sm:p-7">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-[14px] bg-[#F6F1F8] text-[#55207A]">
+                        <Icon className="size-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-xl font-extrabold tracking-[-.025em] text-[#17131C]">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-[#69626E]">{item.text}</p>
+                      </div>
+                    </article>
                   </Reveal>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        <section id="saas" className="bg-white py-24 sm:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid items-center gap-12 overflow-hidden rounded-[36px] border border-[#4B1D6D]/10 bg-[#F8F0F5] p-6 shadow-[0_28px_75px_rgba(75,29,109,.09)] sm:p-10 lg:grid-cols-[1.08fr_.92fr] lg:p-12">
-              <Reveal>
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#4B1D6D] px-3.5 py-2 text-xs font-extrabold text-white">
-                  <ShieldCheck className="size-3.5" /> Plataforma preparada para crescer
-                </span>
-                <h2 className="mt-6 text-balance font-display text-4xl font-extrabold tracking-[-.04em] text-[#281E2D] sm:text-5xl">
-                  Simples para a loja. Estruturado por baixo.
+        <section id="demonstracao" className="bg-white py-20 sm:py-24">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <Reveal className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Demonstração real</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                Veja o Comandiva funcionando, não apenas uma lista de recursos.
+              </h2>
+            </Reveal>
+
+            <div className="mt-12 space-y-16 sm:mt-16 sm:space-y-20">
+              {productDemos.map((demo, index) => (
+                <div
+                  key={demo.title}
+                  className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14"
+                >
+                  <Reveal className={cn(index % 2 === 1 && "lg:order-2")}>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[.18em] text-[#55207A]">{demo.eyebrow}</p>
+                      <h3 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#17131C] sm:text-4xl">
+                        {demo.title}
+                      </h3>
+                      <p className="mt-4 text-base leading-7 text-[#69626E]">{demo.text}</p>
+                      <ul className="mt-6 space-y-3">
+                        {demo.bullets.map((bullet) => (
+                          <li key={bullet} className="flex items-center gap-2.5 text-sm font-semibold text-[#342D39]">
+                            <span className="flex size-6 items-center justify-center rounded-full bg-[#EAF6EF] text-[#188653]">
+                              <Check className="size-3.5" />
+                            </span>
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Reveal>
+                  <Reveal delay={70} className={cn(index % 2 === 1 && "lg:order-1")}>
+                    <ImagePlaceholder title={demo.imageTitle} note={demo.imageNote} />
+                  </Reveal>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#1B0D2C]/6 bg-[#F6F1F8] py-20 sm:py-24">
+          <div className="mx-auto grid max-w-[1240px] items-center gap-8 px-4 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-14 lg:px-8">
+            <Reveal>
+              <div>
+                <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Clientes e recompra</p>
+                <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                  Não deixe o relacionamento acabar depois da entrega.
                 </h2>
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#6F6573] sm:text-base">
-                  Multi-loja, permissões, auditoria, medição de uso, filas de automação e administração central sustentam os módulos sem transformar a rotina em uma tela técnica.
+                <p className="mt-5 text-base leading-7 text-[#69626E]">
+                  O histórico dos pedidos ajuda a identificar clientes recorrentes, VIP e inativos sem exigir que o lojista monte uma planilha de clientes.
                 </p>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {["Multi-tenant", "RLS", "Permissões", "Auditoria", "Usage limits", "Automation jobs", "Provider health"].map((item) => (
-                    <span key={item} className="rounded-full border border-[#4B1D6D]/10 bg-white px-3 py-2 text-xs font-bold text-[#4B1D6D]">
-                      {item}
-                    </span>
+                <div className="mt-7 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  {["Recorrentes", "Clientes VIP", "Clientes inativos"].map((label) => (
+                    <div key={label} className="rounded-[16px] border border-[#55207A]/10 bg-white px-4 py-4 text-sm font-bold text-[#55207A]">
+                      {label}
+                    </div>
                   ))}
                 </div>
-              </Reveal>
+              </div>
+            </Reveal>
+            <Reveal delay={70}>
+              <ImagePlaceholder
+                title="IMAGEM A INSERIR — CLIENTES E RECOMPRA"
+                note="Usar print real da área de crescimento/clientes mostrando segmentos como novos, recorrentes, VIP e inativos. Evitar qualquer número inventado."
+              />
+            </Reveal>
+          </div>
+        </section>
 
-              <Reveal delay={90} className="relative">
-                <img
-                  src="/brand/comandiva-dashboard-preview.webp"
-                  alt="Painel de gestão Comandiva"
-                  className="w-full rounded-[24px] border border-[#4B1D6D]/10 bg-white shadow-[0_20px_50px_rgba(75,29,109,.13)]"
-                  loading="lazy"
-                />
-              </Reveal>
+        <section id="automacoes" className="bg-white py-20 sm:py-24">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <Reveal className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Automações com status claro</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                O que já existe fica separado do que ainda está sendo validado.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#69626E]">
+                Recursos futuros não são apresentados como se já estivessem disponíveis para todos.
+              </p>
+            </Reveal>
+
+            <div className="mt-10 grid gap-4 lg:grid-cols-3">
+              <article className="rounded-[22px] border border-[#188653]/15 bg-[#F4FBF7] p-6 sm:p-7">
+                <span className="inline-flex rounded-full bg-[#DFF3E8] px-3 py-1.5 text-xs font-black uppercase tracking-[.1em] text-[#17663A]">Disponível agora</span>
+                <h3 className="mt-5 font-display text-xl font-extrabold text-[#17131C]">Clientes e sinais de recompra</h3>
+                <p className="mt-2 text-sm leading-6 text-[#69626E]">Segmentação por histórico de pedidos, clientes recorrentes, VIP e inativos conectados aos dados reais da loja.</p>
+              </article>
+
+              <article className="rounded-[22px] border border-[#B96A09]/15 bg-[#FFF9EF] p-6 sm:p-7">
+                <span className="inline-flex rounded-full bg-[#FCEBCB] px-3 py-1.5 text-xs font-black uppercase tracking-[.1em] text-[#8A4A00]">Em homologação</span>
+                <h3 className="mt-5 font-display text-xl font-extrabold text-[#17131C]">WhatsApp automático</h3>
+                <p className="mt-2 text-sm leading-6 text-[#69626E]">A infraestrutura está sendo validada antes de o recurso ser anunciado como disponível para uso geral.</p>
+              </article>
+
+              <article className="rounded-[22px] border border-[#55207A]/12 bg-[#F8F5FA] p-6 sm:p-7">
+                <span className="inline-flex rounded-full bg-[#ECE4F1] px-3 py-1.5 text-xs font-black uppercase tracking-[.1em] text-[#55207A]">Em implementação</span>
+                <h3 className="mt-5 font-display text-xl font-extrabold text-[#17131C]">Novos módulos</h3>
+                <p className="mt-2 text-sm leading-6 text-[#69626E]">Atendente com IA, entrega inteligente, reputação, fiscal e novas automações continuam fora da promessa principal até validação.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#1B0D2C]/6 bg-[#FCFAF8] py-10">
+          <div className="mx-auto max-w-[1240px] px-4 text-center sm:px-6 lg:px-8">
+            <p className="text-sm font-bold text-[#69626E]">Feito para</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {["Restaurantes", "Pizzarias", "Lanchonetes", "Bares", "Mercados", "Conveniências"].map((segment) => (
+                <span key={segment} className="rounded-full border border-[#EAE5ED] bg-white px-4 py-2 text-sm font-semibold text-[#55207A]">
+                  {segment}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
         <PricingSection plans={plans} />
 
-        <section className="bg-[#FFF6F1] px-4 py-20 sm:px-6 lg:px-8">
-          <Reveal className="mx-auto max-w-5xl overflow-hidden rounded-[36px] bg-[#4B1D6D] px-6 py-12 text-center text-white shadow-[0_28px_70px_rgba(75,29,109,.20)] sm:px-10 sm:py-16">
-            <p className="text-xs font-black uppercase tracking-[.22em] text-[#FFB09E]">Comandiva</p>
-            <h2 className="mx-auto mt-4 max-w-3xl font-display text-4xl font-extrabold tracking-[-.04em] sm:text-5xl">
-              Comece pela operação. Ative inteligência conforme crescer.
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/66 sm:text-base">
-              Uma plataforma para organizar a loja hoje e incorporar CRM, automações e integrações sem trocar de sistema amanhã.
-            </p>
-            <Link
-              to="/criar-loja"
-              className="mt-8 inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#FF6A4D] px-7 text-sm font-black text-white shadow-[0_16px_36px_rgba(255,106,77,.25)] transition hover:-translate-y-0.5 hover:bg-[#F15C40]"
-            >
-              Criar minha loja <ArrowRight className="size-4" />
-            </Link>
-          </Reveal>
+        <section id="duvidas" className="bg-white py-20 sm:py-24">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="text-center">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-[#FF681F]">Dúvidas frequentes</p>
+              <h2 className="mt-4 text-balance font-display text-3xl font-extrabold tracking-[-.04em] text-[#1B0D2C] sm:text-4xl lg:text-5xl">
+                Antes de criar sua loja.
+              </h2>
+            </Reveal>
+
+            <div className="mt-10 divide-y divide-[#EAE5ED] overflow-hidden rounded-[22px] border border-[#EAE5ED] bg-[#FCFAF8]">
+              {faqs.map((faq) => (
+                <details key={faq.question} className="group bg-white px-5 py-1 sm:px-6">
+                  <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 font-display text-base font-extrabold text-[#17131C] marker:hidden sm:text-lg">
+                    {faq.question}
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#F6F1F8] text-lg font-bold text-[#55207A] transition group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="max-w-2xl pb-5 pr-10 text-sm leading-6 text-[#69626E]">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#1B0D2C] py-16 text-white sm:py-20">
+          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <Reveal className="mx-auto max-w-3xl text-center">
+              <PackageCheck className="mx-auto size-10 text-[#FF8C52]" />
+              <h2 className="mt-5 text-balance font-display text-3xl font-extrabold tracking-[-.04em] sm:text-4xl lg:text-5xl">
+                Comece com o que sua loja precisa hoje.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/68">
+                Crie sua loja, configure o cardápio e centralize seus pedidos no Comandiva.
+              </p>
+              <Link
+                to="/criar-loja"
+                className="mt-8 inline-flex min-h-14 items-center justify-center gap-2 rounded-[14px] bg-[#FF681F] px-7 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#E95612]"
+              >
+                Criar minha loja grátis <ArrowRight className="size-4" />
+              </Link>
+              <p className="mt-3 text-xs text-white/50">Sem compromisso no plano gratuito.</p>
+            </Reveal>
+          </div>
         </section>
       </main>
 
-      <footer className="border-t border-white/10 bg-[#321447] py-12 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-[1.35fr_.65fr_.65fr] lg:px-8">
+      <footer className="bg-[#12091D] text-white/70">
+        <div className="mx-auto flex max-w-[1240px] flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
-            <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
-            <p className="mt-4 max-w-sm text-sm leading-6 text-white/60">
-              Tecnologia operacional, CRM e automação para negócios locais venderem e trabalharem com mais organização.
-            </p>
+            <BrandLogo lockup="horizontal" tone="white" className="h-9 w-auto" />
+            <p className="mt-3 max-w-md text-sm leading-6 text-white/50">Cardápio, pedidos, cozinha, entregas e clientes em um só lugar.</p>
           </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-[.15em] text-white/45">Produto</p>
-            <div className="mt-4 grid gap-2.5 text-sm text-white/68">
-              <a href="#recursos" className="hover:text-white">Recursos</a>
-              <a href="#automacoes" className="hover:text-white">Automações</a>
-              <a href="#como-funciona" className="hover:text-white">Como funciona</a>
-              <a href="#planos" className="hover:text-white">Planos</a>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-[.15em] text-white/45">Acessos</p>
-            <div className="mt-4 grid gap-2.5 text-sm text-white/68">
-              <Link to="/entrar/loja" search={{ retorno: undefined }} className="hover:text-white">Loja</Link>
-              <Link to="/entrar/entregador" search={{ retorno: undefined }} className="hover:text-white">Entregador</Link>
-              <Link to="/entrar/admin" search={{ retorno: undefined }} className="hover:text-white">Administração</Link>
-            </div>
-          </div>
-        </div>
-        <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 px-4 pt-6 text-xs text-white/45 sm:px-6 lg:px-8">
-          © {new Date().getFullYear()} Comandiva. Todos os direitos reservados.
+          <nav className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold" aria-label="Rodapé">
+            <a href="#produto" className="hover:text-white">Produto</a>
+            <a href="#recursos" className="hover:text-white">Recursos</a>
+            <a href="#planos" className="hover:text-white">Planos</a>
+            <a href="#duvidas" className="hover:text-white">Dúvidas</a>
+            <Link to="/entrar/loja" search={{ retorno: undefined }} className="hover:text-white">Entrar</Link>
+          </nav>
         </div>
       </footer>
+
+      {showMobileCta ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1B0D2C]/10 bg-white/95 p-3 backdrop-blur-xl sm:hidden"
+          style={{ paddingBottom: "calc(.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <Link
+            to="/criar-loja"
+            className="mx-auto flex min-h-12 max-w-lg items-center justify-center gap-2 rounded-[14px] bg-[#FF681F] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(255,104,31,.24)]"
+          >
+            Criar minha loja grátis <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }
