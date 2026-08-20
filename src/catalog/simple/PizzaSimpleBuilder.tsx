@@ -38,6 +38,7 @@ type PizzaGroup = {
 };
 
 type PizzaBuilderPayload = {
+  isPizza: boolean;
   variants: PizzaVariant[];
   groups: PizzaGroup[];
 };
@@ -55,13 +56,23 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
     enabled: Boolean(storeId),
     retry: false,
     queryFn: async () => {
-      const [{ data: variants, error: variantsError }, { data: builder, error: builderError }] = await Promise.all([
+      const [
+        { data: profile, error: profileError },
+        { data: variants, error: variantsError },
+        { data: builder, error: builderError },
+      ] = await Promise.all([
+        rpc("get_product_engine_profile", { _store_id: storeId, _product_id: productId }),
         rpc("list_product_variants", { _store_id: storeId, _product_id: productId }),
         rpc("get_product_advanced_builder", { _store_id: storeId, _product_id: productId }),
       ]);
+      if (profileError) throw new Error(profileError.message);
       if (variantsError) throw new Error(variantsError.message);
       if (builderError) throw new Error(builderError.message);
+      const productType = String(profile?.product_type ?? "");
+      const capabilities = (profile?.capabilities ?? {}) as Record<string, unknown>;
+      const isPizza = productType === "multi_flavor" || capabilities.multi_flavor === true;
       return {
+        isPizza,
         variants: ((variants ?? []) as PizzaVariant[]).filter((variant) => !variant.is_archived),
         groups: ((builder?.groups ?? []) as PizzaGroup[]).filter((group) => group.role === "flavor" || group.name.toLowerCase().includes("sabor")),
       } satisfies PizzaBuilderPayload;
@@ -71,7 +82,7 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
   const flavorGroup = query.data?.groups[0] ?? null;
 
   useEffect(() => {
-    if (!query.data) return;
+    if (!query.data?.isPizza) return;
     const next: Record<string, number> = {};
     for (const variant of query.data.variants) next[variant.id] = Math.max(1, Math.min(4, Number(variant.max_flavors ?? 1)));
     setLimits(next);
@@ -87,7 +98,7 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
   const save = useMutation({
     mutationFn: async () => {
       if (!storeId) throw new Error("Loja não selecionada.");
-      if (!query.data) throw new Error("Configuração da pizza ainda não foi carregada.");
+      if (!query.data?.isPizza) throw new Error("Este produto não está configurado como pizza.");
       if (query.data.variants.length === 0) throw new Error("Cadastre pelo menos um tamanho para a pizza.");
 
       for (const variant of query.data.variants) {
@@ -151,91 +162,89 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Não foi possível salvar as regras da pizza."),
   });
 
-  if (query.isLoading) return <p className="text-sm text-muted-foreground">Carregando configuração da pizza…</p>;
+  if (query.isLoading || !query.data?.isPizza) return null;
   if (query.isError) return <p className="text-sm text-destructive">Não foi possível carregar a configuração da pizza.</p>;
 
   return (
-    <div className="space-y-4">
-      <Card className="border-brand/20">
-        <CardHeader>
-          <div className="mb-1 grid size-10 place-items-center rounded-xl bg-brand-soft text-brand">
-            <Pizza className="size-5" />
-          </div>
-          <CardTitle className="text-lg">Regras da pizza</CardTitle>
-          <CardDescription>
-            Configure tamanhos e quantidade de sabores em linguagem simples. A Comandiva mantém as regras técnicas por trás.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {query.data?.variants.length ? (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {query.data.variants.map((variant) => (
-                <div key={variant.id} className="rounded-xl border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <strong>{variant.name}</strong>
-                      <p className="text-xs text-muted-foreground">Preço base: R$ {Number(variant.price).toFixed(2).replace(".", ",")}</p>
-                    </div>
-                    <div className="w-24">
-                      <Label htmlFor={`pizza-flavors-${variant.id}`} className="text-xs">Sabores</Label>
-                      <Input
-                        id={`pizza-flavors-${variant.id}`}
-                        type="number"
-                        min={1}
-                        max={4}
-                        value={limits[variant.id] ?? 1}
-                        onChange={(event) => setLimits((current) => ({ ...current, [variant.id]: Number(event.target.value) }))}
-                      />
-                    </div>
+    <Card className="border-brand/20">
+      <CardHeader>
+        <div className="mb-1 grid size-10 place-items-center rounded-xl bg-brand-soft text-brand">
+          <Pizza className="size-5" />
+        </div>
+        <CardTitle className="text-lg">Configuração rápida de pizza</CardTitle>
+        <CardDescription>
+          Defina quantos sabores cada tamanho aceita e como o preço é calculado. Sem frações técnicas ou regras escondidas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {query.data.variants.length ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {query.data.variants.map((variant) => (
+              <div key={variant.id} className="rounded-xl border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <strong>{variant.name}</strong>
+                    <p className="text-xs text-muted-foreground">Preço base: R$ {Number(variant.price).toFixed(2).replace(".", ",")}</p>
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    O cliente poderá escolher até {limits[variant.id] ?? 1} {(limits[variant.id] ?? 1) === 1 ? "sabor" : "sabores"} neste tamanho.
-                  </p>
+                  <div className="w-24">
+                    <Label htmlFor={`pizza-flavors-${variant.id}`} className="text-xs">Até quantos sabores?</Label>
+                    <Input
+                      id={`pizza-flavors-${variant.id}`}
+                      type="number"
+                      min={1}
+                      max={4}
+                      value={limits[variant.id] ?? 1}
+                      onChange={(event) => setLimits((current) => ({ ...current, [variant.id]: Number(event.target.value) }))}
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-              Esta pizza ainda não tem tamanhos. Volte aos dados do produto e cadastre as variações de tamanho primeiro.
-            </p>
-          )}
-
-          <div className="space-y-2">
-            <Label>Quando houver mais de um sabor, qual preço cobrar?</Label>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant={pricingMode === "highest_price" ? "default" : "outline"}
-                className="h-auto justify-start px-4 py-3 text-left"
-                onClick={() => setPricingMode("highest_price")}
-              >
-                <span><strong>Cobrar o sabor mais caro</strong><br /><span className="text-xs opacity-80">Mais comum em pizzarias.</span></span>
-              </Button>
-              <Button
-                type="button"
-                variant={pricingMode === "average_price" ? "default" : "outline"}
-                className="h-auto justify-start px-4 py-3 text-left"
-                onClick={() => setPricingMode("average_price")}
-              >
-                <span><strong>Fazer a média dos sabores</strong><br /><span className="text-xs opacity-80">Usa a média dos preços selecionados.</span></span>
-              </Button>
-            </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {variant.name}: até {limits[variant.id] ?? 1} {(limits[variant.id] ?? 1) === 1 ? "sabor" : "sabores"}.
+                </p>
+              </div>
+            ))}
           </div>
+        ) : (
+          <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+            Esta pizza ainda não tem tamanhos. Cadastre as variações de tamanho para liberar esta configuração.
+          </p>
+        )}
 
-          {!flavorGroup ? (
-            <div className="rounded-xl border border-dashed border-brand/30 bg-brand-soft/20 p-4 text-sm">
-              <strong>Falta cadastrar os sabores.</strong>
-              <p className="mt-1 text-muted-foreground">
-                Use a aba “Escolhas e adicionais” e crie o grupo “Sabores”. Depois volte aqui para aplicar estas regras por tamanho.
-              </p>
-            </div>
-          ) : null}
+        <div className="space-y-2">
+          <Label>Quando o cliente escolher mais de um sabor:</Label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant={pricingMode === "highest_price" ? "default" : "outline"}
+              className="h-auto justify-start px-4 py-3 text-left"
+              onClick={() => setPricingMode("highest_price")}
+            >
+              <span><strong>Cobrar o sabor mais caro</strong><br /><span className="text-xs opacity-80">Regra mais comum em pizzarias.</span></span>
+            </Button>
+            <Button
+              type="button"
+              variant={pricingMode === "average_price" ? "default" : "outline"}
+              className="h-auto justify-start px-4 py-3 text-left"
+              onClick={() => setPricingMode("average_price")}
+            >
+              <span><strong>Fazer a média dos sabores</strong><br /><span className="text-xs opacity-80">Calcula a média dos preços escolhidos.</span></span>
+            </Button>
+          </div>
+        </div>
 
-          <Button loading={save.isPending} disabled={!query.data?.variants.length} onClick={() => save.mutate()}>
-            <Save className="mr-1 size-4" /> Salvar regras da pizza
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+        {!flavorGroup ? (
+          <div className="rounded-xl border border-dashed border-brand/30 bg-brand-soft/20 p-4 text-sm">
+            <strong>Cadastre os sabores para concluir.</strong>
+            <p className="mt-1 text-muted-foreground">
+              Logo abaixo, em “Escolhas e adicionais”, crie o grupo Sabores. Esta tela cuidará dos limites por tamanho e da regra de preço.
+            </p>
+          </div>
+        ) : null}
+
+        <Button loading={save.isPending} disabled={!query.data.variants.length} onClick={() => save.mutate()}>
+          <Save className="mr-1 size-4" /> Salvar regras da pizza
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
