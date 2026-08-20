@@ -23,6 +23,14 @@ type PizzaVariant = {
   is_active?: boolean;
 };
 
+type PizzaItem = {
+  id: string;
+  name: string;
+  additional_price: number;
+  is_archived?: boolean;
+  is_active?: boolean;
+};
+
 type PizzaGroup = {
   id: string;
   name: string;
@@ -35,21 +43,44 @@ type PizzaGroup = {
   pricing_strategy: "sum" | "highest_price" | "average_price";
   price_effect: "additive" | "replace_base";
   updated_at: string;
+  items?: PizzaItem[];
+};
+
+type VariantOptionPrice = {
+  variant_id: string;
+  item_id: string;
+  price: number;
 };
 
 type PizzaBuilderPayload = {
   isPizza: boolean;
   variants: PizzaVariant[];
   groups: PizzaGroup[];
+  variantOptionPrices: VariantOptionPrice[];
 };
 
 type PricingMode = "highest_price" | "average_price";
+
+function priceKey(variantId: string, itemId: string) {
+  return `${variantId}:${itemId}`;
+}
+
+function parseMoney(value: string): number | null {
+  const normalized = value.trim().replace(/\./g, "").replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function formatMoneyInput(value: number) {
+  return Number(value).toFixed(2).replace(".", ",");
+}
 
 export function PizzaSimpleBuilder({ productId }: { productId: string }) {
   const { storeId } = useCatalog();
   const queryClient = useQueryClient();
   const [limits, setLimits] = useState<Record<string, number>>({});
   const [pricingMode, setPricingMode] = useState<PricingMode>("highest_price");
+  const [priceMatrix, setPriceMatrix] = useState<Record<string, string>>({});
 
   const query = useQuery({
     queryKey: ["catalog", "pizza-simple", storeId, productId],
@@ -75,11 +106,16 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
         isPizza,
         variants: ((variants ?? []) as PizzaVariant[]).filter((variant) => !variant.is_archived),
         groups: ((builder?.groups ?? []) as PizzaGroup[]).filter((group) => group.role === "flavor" || group.name.toLowerCase().includes("sabor")),
+        variantOptionPrices: (builder?.variant_option_prices ?? []) as VariantOptionPrice[],
       } satisfies PizzaBuilderPayload;
     },
   });
 
   const flavorGroup = query.data?.groups[0] ?? null;
+  const flavorItems = useMemo(
+    () => (flavorGroup?.items ?? []).filter((item) => !item.is_archived && item.is_active !== false),
+    [flavorGroup?.items],
+  );
 
   useEffect(() => {
     if (!query.data?.isPizza) return;
@@ -88,6 +124,12 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
     setLimits(next);
     if (flavorGroup?.pricing_strategy === "average_price") setPricingMode("average_price");
     else setPricingMode("highest_price");
+
+    const prices: Record<string, string> = {};
+    for (const row of query.data.variantOptionPrices) {
+      prices[priceKey(row.variant_id, row.item_id)] = formatMoneyInput(Number(row.price));
+    }
+    setPriceMatrix(prices);
   }, [query.data, flavorGroup?.pricing_strategy]);
 
   const maxConfigured = useMemo(() => {
@@ -162,6 +204,40 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Não foi possível salvar as regras da pizza."),
   });
 
+  const savePrices = useMutation({
+    mutationFn: async () => {
+      if (!storeId) throw new Error("Loja não selecionada.");
+      if (!flavorGroup) throw new Error("Cadastre o grupo de sabores antes de definir os preços.");
+      if (!query.data?.variants.length) throw new Error("Cadastre pelo menos um tamanho para a pizza.");
+      if (!flavorItems.length) throw new Error("Cadastre pelo menos um sabor antes de definir os preços.");
+
+      const prices: VariantOptionPrice[] = [];
+      for (const variant of query.data.variants) {
+        for (const item of flavorItems) {
+          const key = priceKey(variant.id, item.id);
+          const price = parseMoney(priceMatrix[key] ?? "");
+          if (price === null) {
+            throw new Error(`Informe um preço válido para ${item.name} no tamanho ${variant.name}.`);
+          }
+          prices.push({ variant_id: variant.id, item_id: item.id, price });
+        }
+      }
+
+      const { error } = await rpc("replace_variant_option_prices", {
+        _store_id: storeId,
+        _product_id: productId,
+        _prices: prices,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: async () => {
+      toast.success("Preços por sabor e tamanho salvos.");
+      await queryClient.invalidateQueries({ queryKey: ["catalog", "pizza-simple", storeId, productId] });
+      await queryClient.invalidateQueries({ queryKey: ["catalog", "advanced", storeId, productId] });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Não foi possível salvar os preços da pizza."),
+  });
+
   if (query.isLoading || !query.data?.isPizza) return null;
   if (query.isError) return <p className="text-sm text-destructive">Não foi possível carregar a configuração da pizza.</p>;
 
@@ -173,10 +249,10 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
         </div>
         <CardTitle className="text-lg">Configuração rápida de pizza</CardTitle>
         <CardDescription>
-          Defina quantos sabores cada tamanho aceita e como o preço é calculado. Sem frações técnicas ou regras escondidas.
+          Defina quantos sabores cada tamanho aceita, como cobrar pizzas mistas e o preço de cada sabor em cada tamanho.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-6">
         {query.data.variants.length ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {query.data.variants.map((variant) => (
@@ -232,6 +308,10 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
           </div>
         </div>
 
+        <Button loading={save.isPending} disabled={!query.data.variants.length} onClick={() => save.mutate()}>
+          <Save className="mr-1 size-4" /> Salvar regras da pizza
+        </Button>
+
         {!flavorGroup ? (
           <div className="rounded-xl border border-dashed border-brand/30 bg-brand-soft/20 p-4 text-sm">
             <strong>Cadastre os sabores para concluir.</strong>
@@ -239,11 +319,66 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
               Logo abaixo, em “Escolhas e adicionais”, crie o grupo Sabores. Esta tela cuidará dos limites por tamanho e da regra de preço.
             </p>
           </div>
-        ) : null}
+        ) : flavorItems.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-brand/30 bg-brand-soft/20 p-4 text-sm">
+            <strong>Adicione sabores ao grupo.</strong>
+            <p className="mt-1 text-muted-foreground">Depois disso a tabela de preços por tamanho aparecerá aqui automaticamente.</p>
+          </div>
+        ) : query.data.variants.length ? (
+          <div className="space-y-3 border-t pt-5">
+            <div>
+              <Label className="text-base">Preço de cada sabor por tamanho</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Informe o preço final da pizza para cada combinação. Ex.: Portuguesa Média R$ 47,00 e Portuguesa Grande R$ 62,00.
+              </p>
+            </div>
 
-        <Button loading={save.isPending} disabled={!query.data.variants.length} onClick={() => save.mutate()}>
-          <Save className="mr-1 size-4" /> Salvar regras da pizza
-        </Button>
+            <div className="overflow-x-auto rounded-xl border">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead className="bg-muted/40">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">Sabor</th>
+                    {query.data.variants.map((variant) => (
+                      <th key={variant.id} className="px-3 py-3 text-left font-medium">{variant.name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {flavorItems.map((item) => (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-4 py-3 font-medium">{item.name}</td>
+                      {query.data.variants.map((variant) => {
+                        const key = priceKey(variant.id, item.id);
+                        return (
+                          <td key={variant.id} className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">R$</span>
+                              <Input
+                                className="min-w-28"
+                                inputMode="decimal"
+                                value={priceMatrix[key] ?? ""}
+                                placeholder={formatMoneyInput(Number(variant.price))}
+                                onChange={(event) => setPriceMatrix((current) => ({ ...current, [key]: event.target.value }))}
+                              />
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              A Comandiva usa esses valores como preços completos do sabor naquele tamanho. Nenhuma soma escondida é aplicada ao preço base.
+            </p>
+
+            <Button loading={savePrices.isPending} onClick={() => savePrices.mutate()}>
+              <Save className="mr-1 size-4" /> Salvar preços dos sabores
+            </Button>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
