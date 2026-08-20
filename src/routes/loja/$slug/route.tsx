@@ -3,7 +3,7 @@ import { createFileRoute, notFound, Outlet, useRouter, useRouterState } from "@t
 import { Store } from "lucide-react";
 import { z } from "zod";
 
-import { CustomerWizard } from "@/components/storefront/CustomerWizard";
+import { ThemedCustomerWizard } from "@/components/storefront/ThemedCustomerWizard";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { StorefrontSkeleton } from "@/components/feedback/Skeletons";
 import {
@@ -159,11 +159,12 @@ function StorefrontLayout() {
 
 function StorefrontGate() {
   const { orderingContext } = useCustomerWizard();
+  const { store } = Route.useLoaderData();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   // O acompanhamento é aberto por link, muitas vezes em outro aparelho:
   // nunca pode exigir a jornada de identificação.
   if (pathname.endsWith("/acompanhar")) return <Outlet />;
-  if (!orderingContext) return <CustomerWizard />;
+  if (!orderingContext) return <ThemedCustomerWizard segment={store.store.segment} />;
   return <Outlet />;
 }
 
