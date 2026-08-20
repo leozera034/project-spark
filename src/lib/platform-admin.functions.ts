@@ -30,6 +30,13 @@ export interface PlatformBillingSummary {
   monthlyRecurringRevenue: number;
   manualAccessReferenceValue: number;
   paidCurrentMonth: number;
+  professionalServicesPaidCurrentMonth: number;
+  professionalServicesOpen: number;
+  professionalServicesInProgress: number;
+  professionalServicesDeliveredCurrentMonth: number;
+  ordersCurrentMonth: number;
+  completedOrderGmvCurrentMonth: number;
+  confirmedOnlinePaymentsCurrentMonth: number;
   generatedAt: string;
 }
 
