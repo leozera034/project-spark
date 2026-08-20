@@ -8,7 +8,6 @@ export type StoreBillingStage =
   | "complimentary"
   | "free"
   | "trial"
-  | "manual_access"
   | "full"
   | "notice"
   | "restricted_growth"
