@@ -1,0 +1,2 @@
+alter table public.delivery_occurrences drop constraint if exists delivery_occurrences_code_check;
+alter table public.delivery_occurrences add constraint delivery_occurrences_code_check check (code = any (array['customer_not_found'::text,'incorrect_address'::text,'customer_asked_to_wait'::text,'customer_refused'::text,'payment_problem'::text,'unsafe_location'::text,'order_problem'::text,'vehicle_problem'::text,'other'::text]));
