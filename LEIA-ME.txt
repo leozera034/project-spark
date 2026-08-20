@@ -1,0 +1,17 @@
+COMANDIVA — PACOTE COMPLETO DE ASSETS TEMÁTICOS
+
+Conteúdo:
+- wizard/mobile/<tema>.png   → fundos mobile do wizard do cliente
+- wizard/desktop/<tema>.png  → fundos desktop do wizard do cliente
+- logos/<tema>.png           → logo recomendada para cada tema
+- manifest.json              → mapeamento oficial tema → assets
+- PROMPT-INTEGRACAO.txt      → prompt pronto para vincular tudo sem erro visual
+
+Temas padronizados:
+pizzaria, hamburgueria, acai, sorveteria, restaurante,
+lanchonete, pastelaria, adega, mercado, outros
+
+Observação importante:
+- lanchonete no mobile usa temporariamente o mesmo fundo de "outros"
+  para evitar associação errada enquanto não existir um fundo mobile
+  exclusivo de lanchonete.

@@ -1,0 +1,69 @@
+{
+  "folders": {
+    "mobile": "wizard/mobile/<tema>.png",
+    "desktop": "wizard/desktop/<tema>.png",
+    "logos": "logos/<tema>.png"
+  },
+  "themes": {
+    "pizzaria": {
+      "mobile": "wizard/mobile/pizzaria.png",
+      "desktop": "wizard/desktop/pizzaria.png",
+      "logo": "logos/pizzaria.png",
+      "note": "paleta vermelho/tomate com toque verde; combina com pizza e manjericão"
+    },
+    "hamburgueria": {
+      "mobile": "wizard/mobile/hamburgueria.png",
+      "desktop": "wizard/desktop/hamburgueria.png",
+      "logo": "logos/hamburgueria.png",
+      "note": "paleta marrom/âmbar; boa leitura em fundo claro com hambúrgueres"
+    },
+    "acai": {
+      "mobile": "wizard/mobile/acai.png",
+      "desktop": "wizard/desktop/acai.png",
+      "logo": "logos/acai.png",
+      "note": "paleta roxa inspirada no açaí; contraste seguro"
+    },
+    "sorveteria": {
+      "mobile": "wizard/mobile/sorveteria.png",
+      "desktop": "wizard/desktop/sorveteria.png",
+      "logo": "logos/sorveteria.png",
+      "note": "paleta rosa/dourado; funciona com sobremesas claras"
+    },
+    "restaurante": {
+      "mobile": "wizard/mobile/restaurante.png",
+      "desktop": "wizard/desktop/restaurante.png",
+      "logo": "logos/restaurante.png",
+      "note": "paleta vinho/dourado; mais próxima da identidade premium original"
+    },
+    "lanchonete": {
+      "mobile": "wizard/mobile/lanchonete.png",
+      "desktop": "wizard/desktop/lanchonete.png",
+      "logo": "logos/lanchonete.png",
+      "note": "no mobile usa fundo neutro temporário para evitar tema incorreto; desktop e logo são próprios"
+    },
+    "pastelaria": {
+      "mobile": "wizard/mobile/pastelaria.png",
+      "desktop": "wizard/desktop/pastelaria.png",
+      "logo": "logos/pastelaria.png",
+      "note": "paleta dourada/laranja; alta aderência ao produto"
+    },
+    "adega": {
+      "mobile": "wizard/mobile/adega.png",
+      "desktop": "wizard/desktop/adega.png",
+      "logo": "logos/adega.png",
+      "note": "paleta vinho/champagne; leitura elegante"
+    },
+    "mercado": {
+      "mobile": "wizard/mobile/mercado.png",
+      "desktop": "wizard/desktop/mercado.png",
+      "logo": "logos/mercado.png",
+      "note": "paleta verde/dourado; comunica frescor e mercado"
+    },
+    "outros": {
+      "mobile": "wizard/mobile/outros.png",
+      "desktop": "wizard/desktop/outros.png",
+      "logo": "logos/outros.png",
+      "note": "fallback neutro; usar quando o tipo não estiver mapeado"
+    }
+  }
+}

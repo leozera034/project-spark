@@ -1,0 +1,137 @@
+PROMPT DE INTEGRAÇÃO — COMANDIVA
+
+Você vai atuar no repositório do Comandiva e deve apenas organizar e vincular os assets temáticos do wizard de pedido do cliente, sem alterar desnecessariamente o layout.
+
+OBJETIVO
+Garantir que cada tipo de loja use automaticamente:
+1) fundo mobile correto no wizard do cliente;
+2) fundo desktop correto no wizard do cliente;
+3) logo correta para o mesmo tema;
+4) fallback neutro para "outros" e para tipos não reconhecidos.
+
+PASTAS DOS ARQUIVOS
+Use esta estrutura como fonte de verdade:
+- wizard/mobile/<tema>.png
+- wizard/desktop/<tema>.png
+- logos/<tema>.png
+
+TEMAS E MAPEAMENTO OFICIAL
+- pizzaria
+  mobile: wizard/mobile/pizzaria.png
+  desktop: wizard/desktop/pizzaria.png
+  logo: logos/pizzaria.png
+
+- hamburgueria
+  mobile: wizard/mobile/hamburgueria.png
+  desktop: wizard/desktop/hamburgueria.png
+  logo: logos/hamburgueria.png
+
+- acai
+  mobile: wizard/mobile/acai.png
+  desktop: wizard/desktop/acai.png
+  logo: logos/acai.png
+
+- sorveteria
+  mobile: wizard/mobile/sorveteria.png
+  desktop: wizard/desktop/sorveteria.png
+  logo: logos/sorveteria.png
+
+- restaurante
+  mobile: wizard/mobile/restaurante.png
+  desktop: wizard/desktop/restaurante.png
+  logo: logos/restaurante.png
+
+- lanchonete
+  mobile: wizard/mobile/lanchonete.png
+  desktop: wizard/desktop/lanchonete.png
+  logo: logos/lanchonete.png
+  observação: o mobile de lanchonete é neutro temporário para não causar erro visual.
+
+- pastelaria
+  mobile: wizard/mobile/pastelaria.png
+  desktop: wizard/desktop/pastelaria.png
+  logo: logos/pastelaria.png
+
+- adega
+  mobile: wizard/mobile/adega.png
+  desktop: wizard/desktop/adega.png
+  logo: logos/adega.png
+
+- mercado
+  mobile: wizard/mobile/mercado.png
+  desktop: wizard/desktop/mercado.png
+  logo: logos/mercado.png
+
+- outros
+  mobile: wizard/mobile/outros.png
+  desktop: wizard/desktop/outros.png
+  logo: logos/outros.png
+
+REGRAS DE INTEGRAÇÃO
+1. Preserve os códigos de tema já usados no projeto:
+   pizzaria, hamburgueria, acai, sorveteria, restaurante, lanchonete, pastelaria, adega, mercado, outros
+
+2. Crie ou ajuste um resolvedor central para retornar:
+   - getWizardMobileBackground(segment)
+   - getWizardDesktopBackground(segment)
+   - getThemeLogo(segment)
+
+3. O resolvedor deve aceitar aliases e normalizar para os códigos acima:
+   - açaí → acai
+   - hamburguer / hamburgeria → hamburgueria
+   - marmitaria → restaurante
+   - bebidas → adega
+   - padaria / conveniência / conveniencia → mercado
+   - outro → outros
+
+4. Se o segmento vier no formato interno do onboarding, também normalize:
+   - __profile__:pizzaria → pizzaria
+   - __profile__:hamburgueria → hamburgueria
+   - __profile__:acai → acai
+   - __profile__:sorveteria → sorveteria
+   - __profile__:restaurante → restaurante
+   - __profile__:lanchonete → lanchonete
+   - __profile__:pastelaria → pastelaria
+   - __profile__:adega → adega
+   - __profile__:mercado → mercado
+   - __other__:qualquer-coisa → outros
+
+5. No componente do wizard do cliente:
+   - em telas mobile, use o fundo mobile;
+   - em telas desktop, use o fundo desktop;
+   - use a logo do mesmo tema;
+   - garanta boa legibilidade do texto por cima do fundo claro;
+   - não aplique sobreposição pesada que apague a arte.
+
+6. Se o tema não existir, use:
+   - fundo mobile: wizard/mobile/outros.png
+   - fundo desktop: wizard/desktop/outros.png
+   - logo: logos/outros.png
+
+IMPLEMENTAÇÃO ESPERADA
+- Centralizar o mapeamento em um único arquivo.
+- Evitar strings soltas espalhadas.
+- Manter consistência entre onboarding, loja e link público do cliente.
+- Não alterar temas corretos já existentes.
+- Não usar fundo de comida errada em categoria errada.
+
+EXEMPLO DE ESTRUTURA DE CONSTANTES
+const THEME_ASSETS = {
+  pizzaria: {
+    mobile: "/storefront/wizard/mobile/pizzaria.png",
+    desktop: "/storefront/wizard/desktop/pizzaria.png",
+    logo: "/brand/themes/pizzaria.png",
+  },
+  ...
+  outros: {
+    mobile: "/storefront/wizard/mobile/outros.png",
+    desktop: "/storefront/wizard/desktop/outros.png",
+    logo: "/brand/themes/outros.png",
+  },
+};
+
+RESULTADO FINAL ESPERADO
+- Cada loja abre o wizard com o fundo correto no mobile e no desktop.
+- A logo exibida combina com o mesmo tema.
+- "Outros" funciona como fallback universal.
+- Lanchonete no mobile permanece neutro temporário, sem erro visual.
