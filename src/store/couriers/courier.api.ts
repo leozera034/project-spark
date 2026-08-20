@@ -103,6 +103,44 @@ export async function reassignCourier(input: { storeId: string | null; orderId: 
   }));
 }
 
+export async function retryReturnedDelivery(input: {
+  storeId: string | null;
+  orderId: string;
+  expectedOrderVersion: number;
+  expectedDeliveryVersion: number;
+  address?: { street: string; number: string; neighborhoodName: string; complement?: string | null; reference?: string | null } | null;
+  internalNote?: string | null;
+}) {
+  return unwrap<{ ok: boolean; orderVersion: number; deliveryVersion: number }>(await rpc("retry_returned_delivery", {
+    _store_id: input.storeId,
+    _order_id: input.orderId,
+    _expected_order_version: input.expectedOrderVersion,
+    _expected_delivery_version: input.expectedDeliveryVersion,
+    _address: input.address ?? null,
+    _internal_note: input.internalNote ?? null,
+  }));
+}
+
+export async function cancelReturnedDelivery(input: {
+  storeId: string | null;
+  orderId: string;
+  expectedOrderVersion: number;
+  expectedDeliveryVersion: number;
+  reasonCode: string;
+  internalNote?: string | null;
+  customerMessage?: string | null;
+}) {
+  return unwrap<{ ok: boolean; orderVersion: number; deliveryVersion: number }>(await rpc("cancel_returned_delivery", {
+    _store_id: input.storeId,
+    _order_id: input.orderId,
+    _expected_order_version: input.expectedOrderVersion,
+    _expected_delivery_version: input.expectedDeliveryVersion,
+    _reason_code: input.reasonCode,
+    _internal_note: input.internalNote ?? null,
+    _customer_message: input.customerMessage ?? null,
+  }));
+}
+
 export async function fetchDeliveryOccurrences(storeId: string | null, orderId: string): Promise<StoreDeliveryOccurrence[]> {
   const payload = unwrap<{ occurrences: StoreDeliveryOccurrence[] }>(await rpc("list_store_delivery_occurrences", { _store_id: storeId, _order_id: orderId }));
   return payload.occurrences ?? [];
@@ -120,67 +158,15 @@ export async function resolveDeliveryOccurrence(input: { storeId: string | null;
 export async function fetchMyCourierOperationalContext(): Promise<CourierOperationalContext> {
   return unwrap<CourierOperationalContext>(await rpc("get_my_courier_operational_context", {}));
 }
-
-export async function setMyCourierOnline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_online", {}));
-}
-
-export async function setMyCourierOffline(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(await rpc("set_my_courier_offline", {}));
-}
-
-export async function heartbeatMyCourierPresence(): Promise<CourierPresenceResult> {
-  return unwrap<CourierPresenceResult>(await rpc("heartbeat_my_courier_presence", {}));
-}
-
-export async function acceptMyDeliveryAssignment(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("accept_my_delivery_assignment", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function declineMyDeliveryAssignment(input: { deliveryId: string; expectedVersion: number; reasonCode: string; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("decline_my_delivery_assignment", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _reason_code: input.reasonCode, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function confirmMyArrivalAtStore(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("confirm_my_arrival_at_store", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function confirmMyOrderPickup(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("confirm_my_order_pickup", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function startMyDelivery(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("start_my_delivery", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function completeMyDelivery(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("complete_my_delivery", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey }));
-}
-
-export async function startMyDeliveryReturn(input: { deliveryId: string; expectedVersion: number; reasonCode: DeliveryReturnReason; note?: string; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("start_my_delivery_return", {
-    _delivery_id: input.deliveryId,
-    _expected_version: input.expectedVersion,
-    _reason_code: input.reasonCode,
-    _note: input.note ?? null,
-    _idempotency_key: input.idempotencyKey,
-  }));
-}
-
-export async function completeMyDeliveryReturn(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("complete_my_delivery_return", {
-    _delivery_id: input.deliveryId,
-    _expected_version: input.expectedVersion,
-    _idempotency_key: input.idempotencyKey,
-  }));
-}
-
-export async function reportMyDeliveryOccurrence(input: { deliveryId: string; code: string; note?: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> {
-  return unwrap<DeliveryActionResult>(await rpc("report_my_delivery_occurrence", {
-    _delivery_id: input.deliveryId,
-    _code: input.code,
-    _note: input.note ?? null,
-    _expected_version: input.expectedVersion,
-    _idempotency_key: input.idempotencyKey,
-  }));
-}
+export async function setMyCourierOnline(): Promise<CourierPresenceResult> { return unwrap<CourierPresenceResult>(await rpc("set_my_courier_online", {})); }
+export async function setMyCourierOffline(): Promise<CourierPresenceResult> { return unwrap<CourierPresenceResult>(await rpc("set_my_courier_offline", {})); }
+export async function heartbeatMyCourierPresence(): Promise<CourierPresenceResult> { return unwrap<CourierPresenceResult>(await rpc("heartbeat_my_courier_presence", {})); }
+export async function acceptMyDeliveryAssignment(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("accept_my_delivery_assignment", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function declineMyDeliveryAssignment(input: { deliveryId: string; expectedVersion: number; reasonCode: string; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("decline_my_delivery_assignment", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _reason_code: input.reasonCode, _idempotency_key: input.idempotencyKey })); }
+export async function confirmMyArrivalAtStore(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("confirm_my_arrival_at_store", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function confirmMyOrderPickup(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("confirm_my_order_pickup", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function startMyDelivery(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("start_my_delivery", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function completeMyDelivery(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("complete_my_delivery", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function startMyDeliveryReturn(input: { deliveryId: string; expectedVersion: number; reasonCode: DeliveryReturnReason; note?: string; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("start_my_delivery_return", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _reason_code: input.reasonCode, _note: input.note ?? null, _idempotency_key: input.idempotencyKey })); }
+export async function completeMyDeliveryReturn(input: { deliveryId: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("complete_my_delivery_return", { _delivery_id: input.deliveryId, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
+export async function reportMyDeliveryOccurrence(input: { deliveryId: string; code: string; note?: string; expectedVersion: number; idempotencyKey: string }): Promise<DeliveryActionResult> { return unwrap<DeliveryActionResult>(await rpc("report_my_delivery_occurrence", { _delivery_id: input.deliveryId, _code: input.code, _note: input.note ?? null, _expected_version: input.expectedVersion, _idempotency_key: input.idempotencyKey })); }
