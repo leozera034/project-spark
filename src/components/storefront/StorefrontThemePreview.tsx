@@ -1,14 +1,18 @@
 import type { CSSProperties, LucideIcon } from "react";
 import {
   Beef,
+  Bike,
   Clock,
   Coffee,
+  Flame,
+  Gift,
   IceCreamBowl,
   MapPin,
   Pizza,
   Search,
   ShoppingBag,
   ShoppingBasket,
+  Star,
   Store,
   UtensilsCrossed,
   Wine,
@@ -119,10 +123,6 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
 
   return (
     <main className="storefront-global min-h-svh bg-background pb-16 text-foreground" style={style}>
-      <div className="border-b border-black/5 bg-foreground px-4 py-2.5 text-center text-xs font-bold text-white">
-        Preview interno · nenhuma loja real é alterada
-      </div>
-
       <header className="relative overflow-hidden">
         <div className="relative h-[236px] sm:h-[300px]">
           <img src={banner} alt="" className="size-full object-cover" />
@@ -151,8 +151,8 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
             <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-emerald-600/20 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
               <span className="size-2 rounded-full bg-emerald-500" /> Aberta agora
             </span>
-            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Entrega</span>
-            <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm">Retirada</span>
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm"><Bike className="size-3.5 text-brand" />Entrega</span>
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm"><ShoppingBag className="size-3.5 text-brand" />Retirada</span>
             <span className="inline-flex min-h-9 items-center rounded-full border border-black/8 bg-white/75 px-3.5 py-1.5 text-xs font-bold shadow-sm"><Clock className="mr-1 size-3.5" />~35 min</span>
           </div>
 
@@ -171,12 +171,17 @@ export function StorefrontThemePreview({ theme: rawTheme }: { theme: string }) {
             </div>
           </div>
           <nav className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
-            {["Destaques", "Mais pedidos", "Combos"].map((category, index) => (
+            {[
+              { label: "Destaques", Icon: Star },
+              { label: "Mais pedidos", Icon: Flame },
+              { label: "Combos", Icon: Gift },
+            ].map(({ label, Icon: CategoryIcon }, index) => (
               <span
-                key={category}
-                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold ${index === 0 ? "border-brand bg-brand text-brand-foreground shadow-sm" : "border-black/7 bg-white/70 text-foreground"}`}
+                key={label}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold ${index === 0 ? "border-brand bg-brand text-brand-foreground shadow-sm" : "border-black/7 bg-white/70 text-foreground"}`}
               >
-                {category}
+                <CategoryIcon className="size-4" />
+                {label}
               </span>
             ))}
           </nav>
