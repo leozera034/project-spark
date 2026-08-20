@@ -65,6 +65,22 @@ const bundles = [
       ["comandiva_assets_completos/wizard/desktop/", "public/storefront/wizard/desktop/"],
     ],
   },
+  {
+    file: "comandiva_banners_individuais.zip",
+    flatTarget: "public/storefront/banners/",
+    allowed: new Set([
+      "pizzaria.png",
+      "hamburgueria.png",
+      "acai.png",
+      "sorveteria.png",
+      "restaurante.png",
+      "lanchonete.png",
+      "pastelaria.png",
+      "adega.png",
+      "mercado.png",
+      "outros.png",
+    ]),
+  },
 ];
 
 let installed = 0;
@@ -76,6 +92,19 @@ for (const bundle of bundles) {
   }
 
   const entries = readZipEntries(fs.readFileSync(zipPath));
+
+  if (bundle.flatTarget) {
+    for (const [entryName, data] of entries) {
+      const baseName = path.posix.basename(entryName);
+      if (!bundle.allowed?.has(baseName)) continue;
+      const target = path.join(root, bundle.flatTarget, baseName);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, data);
+      installed += 1;
+    }
+    continue;
+  }
+
   for (const [sourcePrefix, targetPrefix] of bundle.copies) {
     for (const [entryName, data] of entries) {
       if (!entryName.startsWith(sourcePrefix)) continue;
@@ -89,4 +118,4 @@ for (const bundle of bundles) {
   }
 }
 
-console.log(`[storefront-theme] Installed ${installed} themed wizard/logo assets.`);
+console.log(`[storefront-theme] Installed ${installed} storefront theme assets.`);
