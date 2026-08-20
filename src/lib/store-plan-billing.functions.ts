@@ -32,13 +32,23 @@ export type StorePlanBillingDetail = {
     status: string;
     provider_status: string | null;
     billing_provider: string | null;
+    billing_source: "free" | "complimentary" | "trial" | "stripe_trial" | "stripe_paid" | "manual_access";
+    payment_verified: boolean;
     current_period_end: string | null;
+    current_period_end_at: string | null;
     trial_ends_at: string | null;
     grace_until: string | null;
     cancel_at_period_end: boolean;
     last_invoice_id: string | null;
     last_invoice_status: string | null;
     last_payment_failure_at: string | null;
+    last_paid: null | {
+      id: string;
+      amount_cents: number;
+      currency: string;
+      paid_at: string | null;
+      provider_invoice_id: string | null;
+    };
   };
   pending_change: null | {
     plan_code: string;
