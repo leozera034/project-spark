@@ -50,12 +50,12 @@ function planLabel(code: string | null) {
 function copyFor(access: StoreBillingAccess): BannerCopy | null {
   switch (access.stage) {
     case "full": {
-      const renewal = formatDate(access.current_period_end);
+      const periodEnd = formatDate(access.current_period_end);
       return {
         title: `Plano ${planLabel(access.plan_code)} ativo`,
-        description: renewal
-          ? `Assinatura regular. Próxima renovação em ${renewal}.`
-          : "Assinatura regular. Consulte valores, faturas e forma de pagamento na área de cobrança.",
+        description: periodEnd
+          ? `Acesso liberado. Período atual até ${periodEnd}. Consulte valor, faturas e forma de pagamento na área de cobrança.`
+          : "Acesso liberado. Consulte valor, faturas e forma de pagamento na área de cobrança.",
         tone: "muted",
         icon: ShieldCheck,
         actionLabel: "Ver plano e cobrança",
