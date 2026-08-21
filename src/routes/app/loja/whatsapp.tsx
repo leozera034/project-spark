@@ -1,28 +1,17 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Clock3,
-  MessageCircle,
-  Pencil,
-  RefreshCw,
-  Send,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Clock3, MessageCircle, Pencil, RefreshCw, Send, Users } from "lucide-react";
 
 import { WhatsAppEvolutionConnectionCard } from "@/components/store/WhatsAppEvolutionConnectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { StoreMessageTemplate } from "@/lib/store-whatsapp.functions";
 import {
   useStoreWhatsAppConsentSummary,
-  useStoreWhatsAppConsents,
   useStoreWhatsAppMessageHistory,
   useStoreWhatsAppUsage,
 } from "@/store/growth/store-whatsapp-center.queries";
@@ -57,16 +46,7 @@ function templateStatusVariant(status: StoreMessageTemplate["provider_status"]) 
 function providerLabel(provider: string | null | undefined) {
   if (provider === "evolution_api") return "Evolution API";
   if (provider === "meta_whatsapp") return "Meta WhatsApp";
-  if (provider === "360dialog_whatsapp") return "360dialog";
-  if (provider === "twilio_whatsapp") return "Twilio";
-  return "Não conectado";
-}
-
-function providerCategoryLabel(category: StoreMessageTemplate["provider_category"]) {
-  if (category === "UTILITY") return "Utilidade";
-  if (category === "MARKETING") return "Marketing";
-  if (category === "AUTHENTICATION") return "Autenticação";
-  return null;
+  return "WhatsApp";
 }
 
 function formatDate(value: string | null | undefined) {
@@ -82,24 +62,11 @@ function formatDate(value: string | null | undefined) {
 
 function templateOperationError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
-  if (message.includes("TEMPLATE_VARIABLES_INVALID")) {
-    return "Use variáveis sequenciais no formato {{1}}, {{2}}, sem pular números.";
-  }
-  if (message.includes("TEMPLATE_INACTIVE")) return "Ative o template antes de enviá-lo para a Meta.";
-  if (message.includes("FORBIDDEN")) return "Sua conta não tem permissão para gerenciar os templates desta loja.";
-  if (message.startsWith("META_TEMPLATE_SUBMISSION_FAILED:")) {
-    return message.slice("META_TEMPLATE_SUBMISSION_FAILED:".length).trim() || "A Meta recusou a submissão do template.";
-  }
-  if (message.startsWith("META_TEMPLATE_SYNC_FAILED:")) {
-    return message.slice("META_TEMPLATE_SYNC_FAILED:".length).trim() || "A Meta recusou a sincronização dos templates.";
-  }
-  if (message.includes("META_TEMPLATE_SUBMISSION_UNAVAILABLE")) {
-    return "O template foi salvo, mas a integração Meta ainda não está disponível para enviá-lo.";
-  }
-  if (message.includes("META_TEMPLATE_SYNC_UNAVAILABLE")) {
-    return "Não foi possível sincronizar os templates agora.";
-  }
-  return "Não foi possível concluir a operação do template com a Meta.";
+  if (message.includes("TEMPLATE_VARIABLES_INVALID")) return "Use variáveis sequenciais: {{1}}, {{2}}, {{3}}.";
+  if (message.includes("FORBIDDEN")) return "Sua conta não tem permissão para alterar templates desta loja.";
+  if (message.startsWith("META_TEMPLATE_SUBMISSION_FAILED:")) return "A Meta recusou o envio do template.";
+  if (message.startsWith("META_TEMPLATE_SYNC_FAILED:")) return "Não foi possível sincronizar os templates com a Meta.";
+  return "Não foi possível concluir a operação do template.";
 }
 
 function WhatsAppCenter() {
@@ -107,9 +74,8 @@ function WhatsAppCenter() {
   const readiness = useStoreWhatsAppReadiness(storeId);
   const templates = useStoreMessageTemplates(storeId);
   const consentSummary = useStoreWhatsAppConsentSummary(storeId);
-  const consents = useStoreWhatsAppConsents(storeId, 12);
   const usage = useStoreWhatsAppUsage(storeId);
-  const history = useStoreWhatsAppMessageHistory(storeId, 20);
+  const history = useStoreWhatsAppMessageHistory(storeId, 8);
   const actions = useStoreWhatsAppActions();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,11 +88,7 @@ function WhatsAppCenter() {
   const [templateError, setTemplateError] = useState<string | null>(null);
 
   if (!storeId) {
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">
-        Nenhuma loja vinculada a esta conta.
-      </div>
-    );
+    return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
   }
 
   const isEvolution = readiness.data?.provider === "evolution_api";
@@ -136,6 +98,7 @@ function WhatsAppCenter() {
       && readiness.data?.provider === "meta_whatsapp",
   );
   const templateBusy = actions.saveTemplate.isPending || actions.submitTemplate.isPending;
+  const usedMessages = (usage.data?.items ?? []).reduce((sum, item) => sum + Number(item.quantity ?? 0), 0);
 
   const resetForm = () => {
     setEditingId(null);
@@ -162,13 +125,7 @@ function WhatsAppCenter() {
     setTemplateError(null);
     try {
       const result = await actions.submitTemplate.mutateAsync({ storeId, templateId });
-      setTemplateNotice(
-        result.status === "approved"
-          ? "Template sincronizado e aprovado pela Meta."
-          : result.status === "rejected"
-            ? "A Meta retornou o template como rejeitado. Veja o motivo no card."
-            : "Template enviado à Meta e aguardando aprovação.",
-      );
+      setTemplateNotice(result.status === "approved" ? "Template aprovado." : "Template enviado para aprovação.");
     } catch (error) {
       setTemplateError(templateOperationError(error));
     }
@@ -192,27 +149,21 @@ function WhatsAppCenter() {
       resetForm();
 
       if (isEvolution) {
-        setTemplateNotice("Template local salvo e pronto para uso pela Evolution API. Nenhuma aprovação da Meta é necessária nesse provider.");
+        setTemplateNotice("Template salvo.");
         return;
       }
-
       if (!canUseMetaTemplates) {
-        setTemplateNotice("Template salvo como rascunho local. Conecte um provedor compatível para habilitar o envio automático.");
+        setTemplateNotice("Template salvo como rascunho.");
         return;
       }
-
       try {
-        const submitted = await actions.submitTemplate.mutateAsync({ storeId, templateId: saved.id });
-        setTemplateNotice(
-          submitted.status === "approved"
-            ? "Template salvo e confirmado como aprovado pela Meta."
-            : "Template salvo e enviado à Meta para aprovação.",
-        );
+        await actions.submitTemplate.mutateAsync({ storeId, templateId: saved.id });
+        setTemplateNotice("Template salvo e enviado à Meta.");
       } catch (error) {
-        setTemplateError(`O template foi salvo no Comandiva. ${templateOperationError(error)}`);
+        setTemplateError(`Template salvo. ${templateOperationError(error)}`);
       }
     } catch {
-      setTemplateError("Não foi possível salvar o template no Comandiva.");
+      setTemplateError("Não foi possível salvar o template.");
     }
   };
 
@@ -221,407 +172,186 @@ function WhatsAppCenter() {
     setTemplateNotice(null);
     setTemplateError(null);
     try {
-      const result = await actions.syncTemplates.mutateAsync({ storeId });
-      setTemplateNotice(
-        `Sincronização concluída: ${result.remoteCount.toLocaleString("pt-BR")} template(s) na Meta e ${result.matchedCount.toLocaleString("pt-BR")} vínculo(s) atualizado(s) no Comandiva.`,
-      );
+      await actions.syncTemplates.mutateAsync({ storeId });
+      setTemplateNotice("Templates sincronizados.");
     } catch (error) {
       setTemplateError(templateOperationError(error));
     }
   };
 
-  const usedMessages = (usage.data?.items ?? []).reduce(
-    (sum, item) => sum + Number(item.quantity ?? 0),
-    0,
-  );
-  const firstHardLimit = (usage.data?.items ?? []).find((item) => item.hard_limit_units != null)?.hard_limit_units ?? null;
-
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <div>
-        <Link
-          to="/app/loja/modulos"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Voltar para módulos
-        </Link>
-      </div>
+    <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5 sm:px-6 lg:px-8">
+      <Link to="/app/loja/modulos" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" /> Voltar para módulos
+      </Link>
 
-      <header className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#4B1D6D] p-6 text-white shadow-e2 sm:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#25D366]/20 blur-3xl" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <header className="rounded-[24px] bg-[#4B1D6D] p-5 text-white shadow-e2 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">
-              <MessageCircle className="size-3.5" /> Central WhatsApp
+            <div className="mb-2 inline-flex items-center gap-2 text-xs font-bold text-white/70">
+              <MessageCircle className="size-3.5" /> WhatsApp
             </div>
-            <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">WhatsApp no Comandiva</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-              Templates, consentimento, consumo e histórico em uma única central. O modo assistido segue gratuito e o automático só libera depois da homologação do provider conectado.
-            </p>
+            <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">WhatsApp da loja</h1>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-white/70">Conecte o número, teste o envio e configure automações quando precisar.</p>
           </div>
-          <Badge className="w-fit border-white/20 bg-white/10 text-white hover:bg-white/10">
-            {readiness.data?.ready_for_automatic ? "Infra pronta" : "Automático bloqueado"}
+          <Badge className="shrink-0 border-white/15 bg-white/10 text-white hover:bg-white/10">
+            {readiness.data?.provider_connected ? "Conectado" : "Configurar"}
           </Badge>
         </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatusCard
-          icon={CheckCircle2}
-          label="Modo assistido"
-          value="Ativo"
-          detail="Sem consumo de API paga"
-        />
-        <StatusCard
-          icon={ShieldCheck}
-          label="Add-on automático"
-          value={readiness.data?.automatic_entitled ? "Ativo" : "Não contratado"}
-          detail={providerLabel(readiness.data?.provider)}
-        />
-        <StatusCard
-          icon={Send}
-          label={isEvolution ? "Templates prontos" : "Templates aprovados"}
-          value={String(isEvolution ? readiness.data?.templates_ready ?? 0 : readiness.data?.templates_approved ?? 0)}
-          detail={`${readiness.data?.templates_total ?? 0} cadastrados`}
-        />
-        <StatusCard
-          icon={Users}
-          label="Opt-ins marketing"
-          value={String(consentSummary.data?.opted_in ?? 0)}
-          detail={`${consentSummary.data?.not_recorded ?? 0} sem registro`}
-        />
-      </section>
-
       <WhatsAppEvolutionConnectionCard storeId={storeId} />
 
-      {templateNotice ? (
-        <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-700 dark:text-emerald-300">
-          {templateNotice}
-        </p>
-      ) : null}
-      {templateError ? (
-        <p className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-          {templateError}
-        </p>
-      ) : null}
-
-      <section className="grid gap-6 xl:grid-cols-[1fr_1.15fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? "Editar template" : "Novo template"}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {isEvolution
-                ? "Você controla o conteúdo localmente; o backend valida variáveis e monta a mensagem no momento do envio."
-                : "Você edita o conteúdo. Nome técnico, ID remoto, categoria e aprovação são controlados pelo backend e pelo provedor."}
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Código interno</Label>
-              <Input
-                value={code}
-                onChange={(event) => setCode(event.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ""))}
-                placeholder="pedido_confirmado"
-                maxLength={80}
-              />
-            </div>
-            <div>
-              <Label>Nome</Label>
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Pedido confirmado"
-                maxLength={120}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Finalidade</Label>
-                <select
-                  className="mt-2 h-11 w-full rounded-xl border border-input bg-surface px-3 text-sm text-foreground"
-                  value={purpose}
-                  onChange={(event) => setPurpose(event.target.value as "transactional" | "marketing")}
-                >
-                  <option value="transactional">Transacional</option>
-                  <option value="marketing">Marketing</option>
-                </select>
-              </div>
-              <div>
-                <Label>Idioma</Label>
-                <Input value={language} onChange={(event) => setLanguage(event.target.value)} maxLength={20} />
-              </div>
-            </div>
-            <div>
-              <Label>Mensagem</Label>
-              <Textarea
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                placeholder="Olá {{1}}, seu pedido {{2}} foi confirmado."
-                rows={7}
-                maxLength={4096}
-              />
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                {isEvolution
-                  ? <>Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Elas são resolvidas pelo backend no momento do envio.</>
-                  : <>Variáveis devem ser sequenciais: {"{{1}}"}, {"{{2}}"}, {"{{3}}"}. Ao alterar mensagem, finalidade ou idioma de um template homologado, ele volta para rascunho e pode exigir nova aprovação.</>}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => void saveTemplate()}
-                disabled={templateBusy || !code.trim() || !name.trim() || !body.trim()}
-              >
-                {templateBusy
-                  ? "Processando..."
-                  : isEvolution
-                    ? editingId ? "Salvar template local" : "Criar template local"
-                    : canUseMetaTemplates
-                      ? editingId ? "Salvar e reenviar à Meta" : "Salvar e enviar à Meta"
-                      : editingId ? "Salvar alterações" : "Criar rascunho"}
-              </Button>
-              {editingId ? (
-                <Button type="button" variant="outline" onClick={resetForm} disabled={templateBusy}>
-                  Cancelar edição
-                </Button>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>Templates da loja</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {isEvolution
-                    ? "Na Evolution API, templates ativos são locais e podem entrar nas automações sem aprovação prévia da Meta."
-                    : "Quando o provider exige homologação remota, o Comandiva sincroniza o status e só libera automações após a aprovação."}
-                </p>
-              </div>
-              {canUseMetaTemplates ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void syncTemplates()}
-                  disabled={actions.syncTemplates.isPending || templateBusy}
-                >
-                  <RefreshCw className={`size-3.5 ${actions.syncTemplates.isPending ? "animate-spin" : ""}`} />
-                  {actions.syncTemplates.isPending ? "Sincronizando..." : "Sincronizar Meta"}
-                </Button>
-              ) : null}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(templates.data ?? []).map((template) => {
-              const category = providerCategoryLabel(template.provider_category);
-              const canSubmit = canUseMetaTemplates && (template.provider_status === "draft" || template.provider_status === "rejected");
-              return (
-                <div key={template.id} className="rounded-2xl border border-border p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-semibold">{template.name}</p>
-                        <Badge variant={isEvolution ? "secondary" : templateStatusVariant(template.provider_status)}>
-                          {isEvolution ? "Local" : templateStatusLabel(template.provider_status)}
-                        </Badge>
-                        <Badge variant="outline">{template.purpose === "marketing" ? "Marketing" : "Transacional"}</Badge>
-                        {!isEvolution && category ? <Badge variant="outline">Meta: {category}</Badge> : null}
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">{template.code} · {template.provider_language}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {canSubmit ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => void submitTemplate(template.id)}
-                          disabled={actions.submitTemplate.isPending || actions.syncTemplates.isPending}
-                        >
-                          <Send className="size-3.5" />
-                          {template.provider_status === "rejected" ? "Reenviar à Meta" : "Enviar à Meta"}
-                        </Button>
-                      ) : null}
-                      <Button type="button" size="sm" variant="outline" onClick={() => editTemplate(template)} disabled={templateBusy}>
-                        <Pencil className="size-3.5" /> Editar
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
-
-                  {isEvolution ? (
-                    <p className="mt-2 text-xs text-muted-foreground">Template local disponível para o worker da Evolution API quando a automação estiver habilitada.</p>
-                  ) : template.provider_template_name ? (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Meta: {template.provider_template_name}
-                      {template.provider_template_id ? ` · ID ${template.provider_template_id}` : ""}
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-xs text-muted-foreground">Ainda não enviado ao provedor remoto.</p>
-                  )}
-
-                  {!isEvolution && template.provider_rejection_reason ? (
-                    <p className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs leading-5 text-destructive">
-                      Motivo retornado pela Meta: {template.provider_rejection_reason}
-                    </p>
-                  ) : null}
-                  {!isEvolution && template.provider_submission_error ? (
-                    <p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-amber-700 dark:text-amber-300">
-                      Falha na última tentativa de envio: {template.provider_submission_error}
-                    </p>
-                  ) : null}
-
-                  {!isEvolution && (template.provider_status_updated_at || template.provider_synced_at) ? (
-                    <p className="mt-3 text-[11px] text-muted-foreground">
-                      Status atualizado: {formatDate(template.provider_status_updated_at ?? template.provider_synced_at)}
-                    </p>
-                  ) : null}
-                </div>
-              );
-            })}
-            {!templates.isLoading && (templates.data?.length ?? 0) === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                Nenhum template cadastrado ainda.
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Consentimento de marketing</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              O Comandiva separa mensagem transacional de marketing e mantém histórico de opt-in/opt-out por cliente.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              <MiniMetric label="Autorizados" value={consentSummary.data?.opted_in ?? 0} />
-              <MiniMetric label="Revogados" value={consentSummary.data?.opted_out ?? 0} />
-              <MiniMetric label="Sem registro" value={consentSummary.data?.not_recorded ?? 0} />
-            </div>
-            <div className="space-y-2">
-              {(consents.data ?? []).map((entry) => (
-                <div key={entry.customer_id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{entry.customer_name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{entry.phone} · origem: {entry.source}</p>
-                  </div>
-                  <Badge variant={entry.opted_in ? "default" : "secondary"}>
-                    {entry.opted_in ? "Opt-in" : "Opt-out"}
-                  </Badge>
-                </div>
-              ))}
-              {!consents.isLoading && (consents.data?.length ?? 0) === 0 ? (
-                <p className="rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">
-                  Ainda não existem registros de consentimento para WhatsApp marketing.
-                </p>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Consumo do mês</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              O medidor só registra uso real. Enquanto o provider não estiver ativo, o consumo deve permanecer zerado.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <MiniMetric label="Unidades usadas" value={usedMessages} />
-              <MiniMetric label="Hard limit" value={firstHardLimit == null ? "—" : Number(firstHardLimit)} />
-            </div>
-            {(usage.data?.items ?? []).map((item) => (
-              <div key={`${item.provider}-${item.metric_code}`} className="rounded-xl border border-border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{providerLabel(item.provider)}</p>
-                  <Badge variant="outline">{item.metric_code}</Badge>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {Number(item.quantity).toLocaleString("pt-BR")} usadas
-                  {item.included_units != null ? ` · ${Number(item.included_units).toLocaleString("pt-BR")} incluídas` : ""}
-                </p>
-              </div>
-            ))}
-            {!usage.isLoading && (usage.data?.items.length ?? 0) === 0 ? (
-              <p className="rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">Nenhum consumo de WhatsApp registrado neste mês.</p>
-            ) : null}
-          </CardContent>
-        </Card>
-      </section>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Clock3 className="size-5" /> Histórico de mensagens</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            A fila registra envio, entrega, leitura e falha sem expor credenciais do provider.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {(history.data ?? []).map((message) => (
-            <div key={message.id} className="grid gap-2 rounded-xl border border-border p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{message.customer_name || message.recipient_e164}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {message.purpose === "marketing" ? "Marketing" : "Transacional"} · {providerLabel(message.provider)} · {formatDate(message.queued_at)}
-                </p>
-                {message.error_message ? <p className="mt-1 text-xs text-destructive">{message.error_message}</p> : null}
-              </div>
-              <Badge variant={message.status === "failed" ? "destructive" : message.status === "read" || message.status === "delivered" ? "default" : "secondary"}>
-                {message.status}
-              </Badge>
-            </div>
-          ))}
-          {!history.isLoading && (history.data?.length ?? 0) === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              Nenhuma mensagem automática foi enviada. Isso é esperado enquanto o provider não estiver homologado.
-            </div>
-          ) : null}
+        <CardContent className="p-4 sm:p-5">
+          <div className="grid grid-cols-3 gap-2">
+            <MiniMetric label="Templates" value={templates.data?.length ?? 0} />
+            <MiniMetric label="Opt-ins" value={consentSummary.data?.opted_in ?? 0} />
+            <MiniMetric label="Mensagens" value={usedMessages} />
+          </div>
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-function StatusCard({
-  icon: Icon,
-  label,
-  value,
-  detail,
-}: {
-  icon: typeof MessageCircle;
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">{label}</p>
-            <p className="mt-2 text-xl font-black text-foreground">{value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-          </div>
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-            <Icon className="size-5" />
+      {templateNotice ? <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">{templateNotice}</p> : null}
+      {templateError ? <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{templateError}</p> : null}
+
+      <details className="overflow-hidden rounded-2xl border border-border bg-card">
+        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">Templates e automações</summary>
+        <div className="space-y-5 border-t border-border p-5">
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold">{editingId ? "Editar template" : "Novo template"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Crie mensagens que podem ser reutilizadas nas automações.</p>
+              </div>
+              <div>
+                <Label>Código interno</Label>
+                <Input value={code} onChange={(event) => setCode(event.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ""))} placeholder="pedido_confirmado" maxLength={80} />
+              </div>
+              <div>
+                <Label>Nome</Label>
+                <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Pedido confirmado" maxLength={120} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>Finalidade</Label>
+                  <select className="mt-2 h-11 w-full rounded-xl border border-input bg-surface px-3 text-sm" value={purpose} onChange={(event) => setPurpose(event.target.value as "transactional" | "marketing")}>
+                    <option value="transactional">Transacional</option>
+                    <option value="marketing">Marketing</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Idioma</Label>
+                  <Input value={language} onChange={(event) => setLanguage(event.target.value)} maxLength={20} />
+                </div>
+              </div>
+              <div>
+                <Label>Mensagem</Label>
+                <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Olá {{1}}, seu pedido {{2}} foi confirmado." rows={5} maxLength={4096} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => void saveTemplate()} disabled={templateBusy || !code.trim() || !name.trim() || !body.trim()}>
+                  {templateBusy ? "Salvando..." : editingId ? "Salvar" : "Criar template"}
+                </Button>
+                {editingId ? <Button variant="outline" onClick={resetForm} disabled={templateBusy}>Cancelar</Button> : null}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Templates salvos</p>
+                  <p className="text-sm text-muted-foreground">{templates.data?.length ?? 0} cadastrado(s)</p>
+                </div>
+                {canUseMetaTemplates ? (
+                  <Button size="sm" variant="outline" onClick={() => void syncTemplates()} disabled={actions.syncTemplates.isPending || templateBusy}>
+                    <RefreshCw className={`size-3.5 ${actions.syncTemplates.isPending ? "animate-spin" : ""}`} /> Sincronizar
+                  </Button>
+                ) : null}
+              </div>
+
+              {(templates.data ?? []).map((template) => {
+                const canSubmit = canUseMetaTemplates && (template.provider_status === "draft" || template.provider_status === "rejected");
+                return (
+                  <div key={template.id} className="rounded-xl border border-border p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold">{template.name}</p>
+                          <Badge variant={isEvolution ? "secondary" : templateStatusVariant(template.provider_status)}>
+                            {isEvolution ? "Local" : templateStatusLabel(template.provider_status)}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">{template.code}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {canSubmit ? (
+                          <Button size="sm" onClick={() => void submitTemplate(template.id)} disabled={actions.submitTemplate.isPending}>
+                            <Send className="size-3.5" /> Enviar
+                          </Button>
+                        ) : null}
+                        <Button size="sm" variant="outline" onClick={() => editTemplate(template)} disabled={templateBusy}>
+                          <Pencil className="size-3.5" /> Editar
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
+                  </div>
+                );
+              })}
+
+              {!templates.isLoading && (templates.data?.length ?? 0) === 0 ? (
+                <p className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">Nenhum template ainda.</p>
+              ) : null}
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </details>
+
+      <details className="overflow-hidden rounded-2xl border border-border bg-card">
+        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">Atividade e histórico</summary>
+        <div className="space-y-5 border-t border-border p-5">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <CompactInfo icon={Users} label="Opt-ins de marketing" value={String(consentSummary.data?.opted_in ?? 0)} />
+            <CompactInfo icon={Send} label="Uso no mês" value={String(usedMessages)} />
+            <CompactInfo icon={Clock3} label="Mensagens recentes" value={String(history.data?.length ?? 0)} />
+          </div>
+
+          <div className="space-y-2">
+            {(history.data ?? []).slice(0, 5).map((message) => (
+              <div key={message.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{message.customer_name || message.recipient_e164}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{providerLabel(message.provider)} · {formatDate(message.queued_at)}</p>
+                </div>
+                <Badge variant={message.status === "failed" ? "destructive" : message.status === "read" || message.status === "delivered" ? "default" : "secondary"}>{message.status}</Badge>
+              </div>
+            ))}
+            {!history.isLoading && (history.data?.length ?? 0) === 0 ? <p className="text-sm text-muted-foreground">Nenhuma mensagem enviada ainda.</p> : null}
+          </div>
+        </div>
+      </details>
+    </div>
   );
 }
 
 function MiniMetric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl bg-muted/50 p-3 text-center">
-      <p className="text-lg font-black text-foreground">{typeof value === "number" ? value.toLocaleString("pt-BR") : value}</p>
+    <div className="rounded-xl bg-muted/45 px-3 py-3 text-center">
+      <p className="text-lg font-black">{typeof value === "number" ? value.toLocaleString("pt-BR") : value}</p>
       <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function CompactInfo({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border p-3">
+      <div className="flex size-9 items-center justify-center rounded-xl bg-muted"><Icon className="size-4" /></div>
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="font-semibold">{value}</p>
+      </div>
     </div>
   );
 }
