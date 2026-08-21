@@ -51,8 +51,8 @@ echo "[Comandiva] Iniciando Evolution API QA..."
 docker compose -f "$COMPOSE_FILE" up -d
 
 for attempt in $(seq 1 60); do
-  if curl --silent --fail --max-time 2 http://127.0.0.1:8080/server/ok >/dev/null 2>&1; then
-    echo "[Comandiva] Evolution API respondeu em /server/ok."
+  if curl --silent --fail --max-time 2 http://127.0.0.1:8080/ >/dev/null 2>&1; then
+    echo "[Comandiva] Evolution API respondeu no endpoint raiz /."
     echo "[Comandiva] URL prevista: $EVOLUTION_PUBLIC_URL"
     echo "[Comandiva] No painel PORTS do Codespaces, torne a porta 8080 PUBLIC antes de usar essa URL no Supabase."
     echo "[Comandiva] Para ver URL e chave de QA: bash infra/evolution/codespace/show-config.sh"
