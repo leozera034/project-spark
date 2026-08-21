@@ -10,7 +10,6 @@
   }
 
   handle {
-    header Content-Type application/json
-    respond `{"status":401,"error":"Unauthorized"}` 401
+    respond "Unauthorized" 401
   }
 }
