@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle2,
   Loader2,
@@ -57,11 +57,15 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   const connection = useStoreEvolutionWhatsAppConnection(storeId);
   const addons = useStoreAddons(storeId);
   const actions = useStoreEvolutionWhatsAppActions();
+  const statusMutateAsyncRef = useRef(actions.status.mutateAsync);
+  const reconciledStoreRef = useRef<string | null>(null);
   const [qr, setQr] = useState<QrState>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [uiError, setUiError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+
+  statusMutateAsyncRef.current = actions.status.mutateAsync;
 
   const whatsappAddon = useMemo(
     () => addons.data?.items.find((addon) => addon.code === "whatsapp_automation") ?? null,
@@ -73,6 +77,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     (addonStatus === "active" || addonStatus === "complimentary")
       && whatsappAddon?.features.includes("whatsapp_automation"),
   );
+  const resolving = !connection.data && (connection.isLoading || connection.isFetching);
   const connected = Boolean(connection.data?.connected);
   const canProvision = Boolean(connection.data?.can_provision || addonAllowsProvision);
   const pending = connection.data?.status === "pending" || Boolean(qr);
@@ -82,14 +87,18 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     || actions.status.isPending;
 
   useEffect(() => {
+    if (!connection.isSuccess || reconciledStoreRef.current === storeId) return;
+    reconciledStoreRef.current = storeId;
+    void statusMutateAsyncRef.current(storeId).catch(() => undefined);
+  }, [connection.isSuccess, storeId]);
+
+  useEffect(() => {
     if (!pending || connected) return;
-    const check = () => {
-      void actions.status.mutateAsync(storeId).catch(() => undefined);
-    };
-    check();
-    const timer = window.setInterval(check, 4_000);
+    const timer = window.setInterval(() => {
+      void statusMutateAsyncRef.current(storeId).catch(() => undefined);
+    }, 4_000);
     return () => window.clearInterval(timer);
-  }, [connected, pending, storeId, actions.status]);
+  }, [connected, pending, storeId]);
 
   useEffect(() => {
     if (!connected) return;
@@ -141,6 +150,21 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     }
   }
 
+  async function reconnect() {
+    if (busy) return;
+    setUiError(null);
+    setNotice("Preparando um novo QR Code...");
+    try {
+      await actions.disconnect.mutateAsync(storeId);
+      const result = await actions.start.mutateAsync(storeId);
+      setQr(result.connected ? null : result);
+      setNotice(result.connected ? "WhatsApp conectado." : "Escaneie o novo QR Code para concluir a reconexão.");
+    } catch (error) {
+      setNotice(null);
+      setUiError(connectionError(error));
+    }
+  }
+
   async function sendManual() {
     if (!phone.trim() || !message.trim() || actions.sendManual.isPending) return;
     setUiError(null);
@@ -168,11 +192,17 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             </div>
           </div>
           <Badge variant={connected ? "default" : "secondary"} className="shrink-0">
-            {connected ? "Conectado" : pending ? "Aguardando" : "Desconectado"}
+            {resolving ? "Verificando…" : connected ? "Conectado" : pending ? "Aguardando" : "Desconectado"}
           </Badge>
         </div>
 
-        {!connected && !canProvision ? (
+        {resolving ? (
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" /> Confirmando a conexão atual…
+          </div>
+        ) : null}
+
+        {!resolving && !connected && !canProvision ? (
           <div className="space-y-3">
             <p className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
               O WhatsApp automático ainda não está liberado para esta loja.
@@ -187,7 +217,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
           </div>
         ) : null}
 
-        {canProvision && !connected && !qr ? (
+        {!resolving && canProvision && !connected && !qr ? (
           <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-[#25D366]/40 bg-[#25D366]/5 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-semibold">Pronto para conectar</p>
@@ -224,7 +254,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
                 <Button variant="outline" onClick={() => void refreshQr()} disabled={busy}>
                   <RefreshCw className="size-4" /> Novo QR
                 </Button>
-                <Button variant="ghost" onClick={() => void actions.status.mutateAsync(storeId)} disabled={actions.status.isPending}>
+                <Button variant="ghost" onClick={() => void statusMutateAsyncRef.current(storeId)} disabled={actions.status.isPending}>
                   {actions.status.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
                   Verificar
                 </Button>
@@ -239,6 +269,13 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
               <ConnectionMetric label="Status" value="Conectado" />
               <ConnectionMetric label="Número" value={connection.data?.display_phone_number || "WhatsApp vinculado"} />
               <ConnectionMetric label="Desde" value={formatDate(connection.data?.connected_at)} />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => void reconnect()} disabled={busy || actions.sendManual.isPending}>
+                {actions.disconnect.isPending || actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+                Reconectar / novo QR
+              </Button>
             </div>
 
             <details className="rounded-2xl border border-border">
