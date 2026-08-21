@@ -79,9 +79,9 @@ function createSupabaseClient() {
     );
   }
 
-  const supabaseUrl = useRuntimeConfig ? runtimeUrl : FALLBACK_SUPABASE_URL;
+  const supabaseUrl = useRuntimeConfig ? runtimeUrl! : FALLBACK_SUPABASE_URL;
   const supabasePublishableKey = useRuntimeConfig
-    ? runtimePublishableKey
+    ? runtimePublishableKey!
     : FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   return createClient<Database>(supabaseUrl, supabasePublishableKey, {
