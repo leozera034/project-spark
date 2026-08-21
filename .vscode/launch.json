@@ -7,6 +7,13 @@
       "name": "Evolution: mostrar URL e chave",
       "command": "bash infra/evolution/codespace/show-config.sh",
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Evolution: atualizar e reiniciar QA",
+      "command": "git pull --ff-only && bash infra/evolution/codespace/start.sh",
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

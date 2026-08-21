@@ -73,6 +73,8 @@ services:
         value: Chrome
       - key: QRCODE_LIMIT
         value: "30"
+      - key: AUTHENTICATION_TYPE
+        value: apikey
       - key: AUTHENTICATION_API_KEY
         generateValue: true
       - key: AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES
