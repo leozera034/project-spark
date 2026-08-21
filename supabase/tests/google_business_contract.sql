@@ -11,6 +11,7 @@ DECLARE
   _disconnect regprocedure := 'public.disconnect_store_google_business(uuid)'::regprocedure;
   _rls_enabled boolean;
   _rls_forced boolean;
+  _expiry_default text;
 BEGIN
   IF to_regclass('private.google_business_onboarding_sessions') IS NULL THEN
     RAISE EXCEPTION 'Google Business onboarding table is missing';
@@ -26,6 +27,20 @@ BEGIN
     RAISE EXCEPTION 'Google Business onboarding storage must enforce RLS';
   END IF;
 
+  SELECT pg_get_expr(d.adbin, d.adrelid)
+  INTO _expiry_default
+  FROM pg_attribute a
+  JOIN pg_class c ON c.oid = a.attrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
+  WHERE n.nspname='private'
+    AND c.relname='google_business_onboarding_sessions'
+    AND a.attname='expires_at';
+
+  IF coalesce(_expiry_default,'') NOT ILIKE '%15 minutes%' THEN
+    RAISE EXCEPTION 'Google Business OAuth sessions must expire after 15 minutes by default';
+  END IF;
+
   IF has_table_privilege('anon','private.google_business_onboarding_sessions','SELECT')
      OR has_table_privilege('authenticated','private.google_business_onboarding_sessions','SELECT')
      OR has_table_privilege('authenticated','private.google_business_onboarding_sessions','INSERT')
@@ -37,16 +52,15 @@ BEGIN
   IF has_function_privilege('anon',_begin,'EXECUTE')
      OR NOT has_function_privilege('authenticated',_begin,'EXECUTE')
      OR pg_get_functiondef(_begin) NOT ILIKE '%is_store_manager%'
-     OR pg_get_functiondef(_begin) NOT ILIKE '%state_hash%'
-     OR pg_get_functiondef(_begin) NOT ILIKE '%15 minutes%' THEN
-    RAISE EXCEPTION 'Google Business onboarding start must be authenticated, store-scoped and expiring';
+     OR pg_get_functiondef(_begin) NOT ILIKE '%state_hash%' THEN
+    RAISE EXCEPTION 'Google Business onboarding start must be authenticated and store-scoped';
   END IF;
 
   IF has_function_privilege('anon',_status,'EXECUTE')
      OR NOT has_function_privilege('authenticated',_status,'EXECUTE')
      OR pg_get_functiondef(_status) NOT ILIKE '%require_growth_access%'
-     OR pg_get_functiondef(_status) ILIKE '%credential_ref%credential%' THEN
-    RAISE EXCEPTION 'Google Business status must be authenticated, scoped and must not expose credentials';
+     OR pg_get_functiondef(_status) ILIKE '%credential_ref%' THEN
+    RAISE EXCEPTION 'Google Business status must be authenticated, scoped and must not expose credential references';
   END IF;
 
   IF has_function_privilege('anon',_disconnect,'EXECUTE')
