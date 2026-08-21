@@ -50,7 +50,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
           <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-            <Link to="/entrar/loja">Entrar</Link>
+            <Link to="/entrar/loja" search={{ retorno: undefined }}>Entrar</Link>
           </Button>
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link to="/criar-loja">Começar agora</Link>
@@ -96,7 +96,7 @@ export function SiteHeader() {
               <Link to="/criar-loja">Criar minha loja</Link>
             </Button>
             <Button asChild variant="outline" size="touch" onClick={() => setOpen(false)}>
-              <Link to="/entrar/loja">Entrar como loja</Link>
+              <Link to="/entrar/loja" search={{ retorno: undefined }}>Entrar como loja</Link>
             </Button>
             <Button asChild variant="ghost" size="touch" onClick={() => setOpen(false)}>
               <Link to="/entrar/entregador">Sou entregador</Link>

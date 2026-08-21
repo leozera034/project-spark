@@ -20,7 +20,7 @@ export type PublicPlan = {
   max_orders_month: number | null;
   max_team_members: number | null;
   max_couriers: number | null;
-  features: Record<string, unknown>;
+  features: Record<string, boolean | string | number | null>;
   prices: PublicPlanPrice[];
 };
 
@@ -32,7 +32,7 @@ type PublicPlanRow = {
   max_orders_month: number | null;
   max_team_members: number | null;
   max_couriers: number | null;
-  features?: Record<string, unknown> | null;
+  features?: Record<string, boolean | string | number | null> | null;
   prices?: Array<{
     billing_interval: "monthly" | "annual";
     amount_cents: number | string;

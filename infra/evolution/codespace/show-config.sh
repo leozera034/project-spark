@@ -28,7 +28,7 @@ EVOLUTION_API_BASE_URL=$EVOLUTION_PUBLIC_URL
 EVOLUTION_API_KEY=$EVOLUTION_API_KEY
 
 1. Confirme que a porta 8080 está PUBLIC no painel PORTS do Codespaces.
-2. Abra $EVOLUTION_PUBLIC_URL/server/ok e confirme resposta.
+2. Abra $EVOLUTION_PUBLIC_URL/ e confirme resposta.
 3. Cadastre os dois valores acima nos Edge Function secrets do Supabase.
 4. Não envie a EVOLUTION_API_KEY por chat e não salve em arquivo do repositório.
 

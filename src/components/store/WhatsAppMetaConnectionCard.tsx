@@ -46,7 +46,7 @@ function loadFacebookSdk(): Promise<FacebookSdk> {
   if (window.FB) return Promise.resolve(window.FB);
   if (facebookSdkPromise) return facebookSdkPromise;
 
-  facebookSdkPromise = new Promise((resolve, reject) => {
+  facebookSdkPromise = new Promise<FacebookSdk>((resolve, reject) => {
     const existing = document.getElementById("facebook-jssdk") as HTMLScriptElement | null;
     const finish = () => {
       if (window.FB) resolve(window.FB);
@@ -74,7 +74,7 @@ function loadFacebookSdk(): Promise<FacebookSdk> {
     throw error;
   });
 
-  return facebookSdkPromise;
+  return facebookSdkPromise!;
 }
 
 function safeObject(value: unknown): Record<string, unknown> {

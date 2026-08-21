@@ -322,6 +322,7 @@ function CreateStorePage() {
           </Link>
           <Link
             to="/entrar/loja"
+            search={{ retorno: undefined }}
             className="hidden text-sm font-bold text-[#55207A] hover:underline sm:inline-flex"
           >
             Já possui conta? Entrar
@@ -693,7 +694,7 @@ function CreateStorePage() {
               </div>
               <p className="mt-3 text-center text-xs text-[#807684] sm:hidden">
                 Já possui conta?{" "}
-                <Link to="/entrar/loja" className="font-bold text-[#55207A]">
+                <Link to="/entrar/loja" search={{ retorno: undefined }} className="font-bold text-[#55207A]">
                   Entrar
                 </Link>
               </p>
