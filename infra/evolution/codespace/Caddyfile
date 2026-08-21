@@ -1,0 +1,16 @@
+:8080 {
+  @health path /
+  handle @health {
+    reverse_proxy evolution:8080
+  }
+
+  @authorized header apikey {$EVOLUTION_API_KEY}
+  handle @authorized {
+    reverse_proxy evolution:8080
+  }
+
+  handle {
+    header Content-Type application/json
+    respond `{"status":401,"error":"Unauthorized"}` 401
+  }
+}
