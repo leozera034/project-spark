@@ -47,20 +47,40 @@ fi
 export EVOLUTION_API_KEY
 export POSTGRES_PASSWORD
 
-echo "[Comandiva] Iniciando Evolution API QA..."
-docker compose -f "$COMPOSE_FILE" up -d
+echo "[Comandiva] Recriando Evolution API QA com gateway autenticado..."
+# Remove containers/orphans from older compose definitions, but preserves named volumes and DB data.
+docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
+docker compose -f "$COMPOSE_FILE" up -d --force-recreate
 
 for attempt in $(seq 1 60); do
   if curl --silent --fail --max-time 2 http://127.0.0.1:8080/ >/dev/null 2>&1; then
+    VALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H "apikey: $EVOLUTION_API_KEY" http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
+    INVALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H 'apikey: definitely-wrong-key' http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
+
+    if [[ "$INVALID_STATUS" != "401" ]]; then
+      echo "[Comandiva] ERRO: gateway não rejeitou chave inválida (HTTP $INVALID_STATUS)."
+      docker compose -f "$COMPOSE_FILE" ps || true
+      docker compose -f "$COMPOSE_FILE" logs --tail=120 gateway evolution || true
+      exit 1
+    fi
+    if [[ "$VALID_STATUS" == "401" || "$VALID_STATUS" == "000" || -z "$VALID_STATUS" ]]; then
+      echo "[Comandiva] ERRO: gateway rejeitou a chave válida (HTTP $VALID_STATUS)."
+      docker compose -f "$COMPOSE_FILE" ps || true
+      docker compose -f "$COMPOSE_FILE" logs --tail=120 gateway evolution || true
+      exit 1
+    fi
+
     echo "[Comandiva] Evolution API respondeu no endpoint raiz /."
+    echo "[Comandiva] Gateway seguro validado: chave inválida -> HTTP 401; chave válida -> HTTP $VALID_STATUS."
     echo "[Comandiva] URL prevista: $EVOLUTION_PUBLIC_URL"
-    echo "[Comandiva] No painel PORTS do Codespaces, torne a porta 8080 PUBLIC antes de usar essa URL no Supabase."
+    echo "[Comandiva] No painel PORTS do Codespaces, mantenha a porta 8080 PUBLIC."
     echo "[Comandiva] Para ver URL e chave de QA: bash infra/evolution/codespace/show-config.sh"
     exit 0
   fi
   sleep 2
 done
 
-echo "[Comandiva] A Evolution ainda não respondeu. Últimos logs:"
-docker compose -f "$COMPOSE_FILE" logs --tail=120 evolution || true
+echo "[Comandiva] A stack ainda não respondeu. Últimos logs:"
+docker compose -f "$COMPOSE_FILE" ps || true
+docker compose -f "$COMPOSE_FILE" logs --tail=120 gateway evolution || true
 exit 1
