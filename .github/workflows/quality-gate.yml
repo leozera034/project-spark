@@ -85,6 +85,9 @@ jobs:
       - name: Run WhatsApp provisioning contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/whatsapp_provisioning_contract.sql
+      - name: Run Google Business OAuth contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/google_business_contract.sql
       - name: Run operational invariants
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/data_invariants.sql
