@@ -1,4 +1,5 @@
 export type WhatsAppProviderCode =
+  | "evolution_api"
   | "meta_whatsapp"
   | "360dialog_whatsapp"
   | "twilio_whatsapp";
