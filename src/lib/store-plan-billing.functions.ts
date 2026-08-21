@@ -16,7 +16,7 @@ export type StorePlanBillingDetail = {
     id: string;
     code: string;
     name: string;
-    features: Record<string, unknown>;
+    features: Record<string, boolean | string | number | null>;
     max_orders_month: number | null;
     max_team_members: number | null;
     max_couriers: number | null;

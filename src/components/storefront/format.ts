@@ -1,7 +1,9 @@
-export const brl = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    Number.isFinite(value) ? value : 0,
+export const brl = (value: number | null | undefined) => {
+  const n = Number(value);
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    Number.isFinite(n) ? n : 0,
   );
+};
 
 export const WEEKDAY_LABELS = [
   "Domingo",

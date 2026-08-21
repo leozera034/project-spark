@@ -23,7 +23,8 @@ export async function loadPublicFulfillment(rawSlug:string):Promise<PublicFulfil
 
 export async function validatePublicFulfillment(input:{slug:string;fulfillmentType:"entrega"|"retirada";deliveryAreaId?:string|null;configurationVersion?:string|null;latitude?:number|null;longitude?:number|null;}):Promise<FulfillmentValidation>{
   const slug=slugSchema.parse(input.slug),db=await admin();
-  const{data,error}=await db.rpc("storefront_validate_fulfillment_v2",{_slug:slug,_fulfillment_type:input.fulfillmentType,_delivery_area_id:input.deliveryAreaId??undefined,_configuration_version:input.configurationVersion??undefined,_latitude:input.latitude??undefined,_longitude:input.longitude??undefined});
+  const rpc = db.rpc as unknown as (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+  const{data,error}=await rpc("storefront_validate_fulfillment_v2",{_slug:slug,_fulfillment_type:input.fulfillmentType,_delivery_area_id:input.deliveryAreaId??undefined,_configuration_version:input.configurationVersion??undefined,_latitude:input.latitude??undefined,_longitude:input.longitude??undefined});
   if(error){console.error("[storefront] fulfillment validate rpc failed",error.message);throw new StorefrontError("unavailable");}
   if(!data)throw new StorefrontError("not_found");
   const p=data as Record<string,unknown>,area=p.deliveryArea?mapArea(p.deliveryArea as Record<string,unknown>):null;

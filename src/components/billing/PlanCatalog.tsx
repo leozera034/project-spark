@@ -101,7 +101,7 @@ function trialDays(plan: PublicPlan) {
 }
 
 function allFeatures(plan: PublicPlan) {
-  const rows = FEATURE_LABELS.map(([key, label]) => ({
+  const rows: { label: string; enabled: boolean }[] = FEATURE_LABELS.map(([key, label]) => ({
     label,
     enabled: plan.features[key] === true,
   }));

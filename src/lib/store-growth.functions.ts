@@ -80,13 +80,19 @@ export interface MarketingCampaign {
   updated_at: string;
 }
 
+export interface AutomationRuleConfig {
+  mode?: string;
+  template_id?: string;
+  variable_bindings?: Record<string, string>;
+}
+
 export interface AutomationRule {
   id: string;
   event_code: AutomationEventCode;
   action_code: "sugerir_whatsapp" | "criar_tarefa" | "send_whatsapp_template";
   name: string;
   is_enabled: boolean;
-  config: Record<string, unknown>;
+  config: AutomationRuleConfig;
   created_at: string;
   updated_at: string;
 }

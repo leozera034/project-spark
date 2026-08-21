@@ -1,4 +1,5 @@
-import type { CSSProperties, LucideIcon } from "react";
+import type { CSSProperties } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
   Beef,
   Bike,
