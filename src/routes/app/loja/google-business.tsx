@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Unplug,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -215,7 +216,7 @@ function StatusItem({ label, value, ready }: { label: string; value: string; rea
   );
 }
 
-function ProtectionItem({ children }: { children: React.ReactNode }) {
+function ProtectionItem({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-start gap-2">
       <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
