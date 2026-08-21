@@ -1,0 +1,15 @@
+{
+  "name": "Comandiva · Evolution QA",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Evolution API QA",
+      "onAutoForward": "notify"
+    }
+  },
+  "postStartCommand": "bash infra/evolution/codespace/start.sh"
+}
