@@ -69,7 +69,7 @@ export function WhatsAppEvolutionConnectionCard({
   const [message, setMessage] = useState("");
 
   const whatsappAddon = useMemo(
-    () => addons.data?.addons.find((addon) => addon.code === "whatsapp_automation") ?? null,
+    () => addons.data?.items.find((addon) => addon.code === "whatsapp_automation") ?? null,
     [addons.data],
   );
 
