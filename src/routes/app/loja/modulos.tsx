@@ -2,6 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   Bell,
   Bot,
+  Building2,
   CheckCircle2,
   CreditCard,
   Mail,
@@ -22,6 +23,7 @@ import type { StoreAddon } from "@/lib/store-addons.functions";
 import { useStoreAddons } from "@/store/addons/store-addons.queries";
 import { useStoreWhatsAppReadiness } from "@/store/growth/store-whatsapp.queries";
 import { useStoreEmailReadiness } from "@/store/integrations/store-email.queries";
+import { useStoreGoogleBusinessConnection } from "@/store/integrations/store-google-business.queries";
 import { useStorePushReadiness } from "@/store/integrations/store-push.queries";
 import { useStoreSmartDeliveryReadiness } from "@/store/integrations/store-smart-delivery.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
@@ -75,10 +77,17 @@ function subscriptionLabel(status: NonNullable<StoreAddon["subscription"]>["stat
 }
 
 function providerLabel(provider: string | null | undefined) {
+  if (provider === "evolution_api") return "Evolution API";
   if (provider === "meta_whatsapp") return "Meta WhatsApp";
   if (provider === "360dialog_whatsapp") return "360dialog";
   if (provider === "twilio_whatsapp") return "Twilio";
   return "Nenhum conectado";
+}
+
+function smartDeliveryProviderLabel(provider: string | null | undefined) {
+  if (provider === "openrouteservice") return "OpenRouteService";
+  if (provider === "google_maps") return "Google Maps (legado)";
+  return "Não configurado";
 }
 
 function StoreModulesPage() {
@@ -88,6 +97,7 @@ function StoreModulesPage() {
   const email = useStoreEmailReadiness(storeId);
   const push = useStorePushReadiness(storeId);
   const smartDelivery = useStoreSmartDeliveryReadiness(storeId);
+  const googleBusiness = useStoreGoogleBusinessConnection(storeId);
   const canViewBilling = addons.data?.can_view_billing ?? false;
 
   if (!storeId) {
@@ -240,21 +250,59 @@ function StoreModulesPage() {
           <ReadinessItem label="Coordenada da loja" value={smartDelivery.data?.store_coordinates_set ? "Definida" : "Pendente"} ready={Boolean(smartDelivery.data?.store_coordinates_set)} />
           <ReadinessItem label="Aproximação local" value={smartDelivery.data?.local_approximation_ready ? "Disponível" : "Aguardando localização"} ready={Boolean(smartDelivery.data?.local_approximation_ready)} />
           <ReadinessItem label="Add-on Smart Delivery" value={smartDelivery.data?.smart_delivery_entitled ? "Ativo" : "Não contratado"} ready={Boolean(smartDelivery.data?.smart_delivery_entitled)} />
-          <ReadinessItem label="Google Routes" value={smartDelivery.data?.provider_ready ? "Homologado" : "Bloqueado"} ready={Boolean(smartDelivery.data?.provider_ready)} />
+          <ReadinessItem label="Provider de rotas" value={smartDelivery.data?.provider_ready ? smartDeliveryProviderLabel(smartDelivery.data?.provider) : "Bloqueado"} ready={Boolean(smartDelivery.data?.provider_ready)} />
           <div className="sm:col-span-2 lg:col-span-5 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <span>
               {smartDelivery.isError
-                ? "Não foi possível consultar o núcleo de rotas. O ETA por bairro continua funcionando e nenhuma API paga é chamada."
+                ? "Não foi possível consultar o núcleo de rotas. O ETA por bairro continua funcionando e nenhuma API externa é chamada."
                 : smartDelivery.data?.ready_for_smart_routes
-                  ? "Loja, entitlement e provider estão prontos para rotas inteligentes. Chamadas do Google são medidas e limitadas; respostas Google não são persistidas em cache pelo Comandiva."
+                  ? `Loja, entitlement e ${smartDeliveryProviderLabel(smartDelivery.data?.provider)} estão prontos para rotas inteligentes. As chamadas são medidas e limitadas pelo backend.`
                   : smartDelivery.data?.local_approximation_ready
-                    ? "A loja já pode usar distância e tempo aproximados sem custo de API. Google Routes permanece desligado até preço, billing e credencial serem homologados."
+                    ? `A loja já pode usar distância e tempo aproximados sem custo de API. ${smartDeliveryProviderLabel(smartDelivery.data?.provider)} permanece bloqueado até entitlement, credencial e limites estarem homologados.`
                     : "O checkout continua usando ETA e taxa por bairro. Capture a localização da loja para habilitar a camada gratuita de aproximação sem alterar a cobrança do pedido."}
             </span>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Button asChild variant="outline"><Link to="/app/loja/smart-delivery">Abrir central</Link></Button>
               <Button asChild variant="ghost"><Link to="/app/loja/configuracoes/endereco">Localização</Link></Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2"><Building2 className="size-5 text-primary" /> Google Business Sync</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">OAuth seguro, diagnóstico de acesso à Business Profile API e preparação para selecionar a unidade correta antes de qualquer sincronização.</p>
+            </div>
+            <Badge variant={googleBusiness.data?.api_healthy ? "default" : "outline"}>
+              {googleBusiness.data?.api_healthy ? "API pronta" : googleBusiness.data?.configured ? "Conexão pendente" : "Não conectado"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+          <ReadinessItem
+            label="OAuth Google"
+            value={googleBusiness.data?.status === "connected" || googleBusiness.data?.status === "degraded" ? "Autorizado" : "Pendente"}
+            ready={googleBusiness.data?.status === "connected" || googleBusiness.data?.status === "degraded"}
+          />
+          <ReadinessItem label="Business Profile API" value={googleBusiness.data?.api_healthy ? "Disponível" : "Não validada"} ready={Boolean(googleBusiness.data?.api_healthy)} />
+          <ReadinessItem label="Contas acessíveis" value={String(googleBusiness.data?.account_count ?? 0)} ready={(googleBusiness.data?.account_count ?? 0) > 0} />
+          <ReadinessItem label="Unidade Google" value={googleBusiness.data?.selected_location_title ?? "Não selecionada"} ready={Boolean(googleBusiness.data?.selected_location_name)} />
+          <div className="sm:col-span-2 lg:col-span-4 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {googleBusiness.isError
+                ? "Não foi possível consultar o Google Business agora. Nenhuma sincronização é executada sem validação do backend."
+                : googleBusiness.data?.api_healthy
+                  ? "OAuth e Business Profile API estão disponíveis. A próxima etapa é selecionar a unidade e comparar dados antes de permitir escrita no Google."
+                  : googleBusiness.data?.status === "degraded"
+                    ? "A conta Google autorizou o Comandiva, mas a Business Profile API ainda não está operacional. A integração permanece em modo degradado e sem escrita."
+                    : "Conecte a conta Google da loja. O Comandiva não sobrescreve horários, cardápio ou dados do perfil nesta fase."}
+            </span>
+            <Button asChild variant="outline" className="shrink-0">
+              <Link to="/app/loja/google-business">Abrir Google Sync</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -23,3 +23,9 @@ verify_jwt = true
 
 [functions.comandiva-whatsapp-templates]
 verify_jwt = true
+
+# Google redirects directly to this function without a Supabase JWT.
+# POST /start still authenticates the user's bearer token inside the function;
+# GET /callback is protected by a single-use, hashed, expiring OAuth state.
+[functions.comandiva-google-business]
+verify_jwt = false
