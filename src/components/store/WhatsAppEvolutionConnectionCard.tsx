@@ -37,9 +37,20 @@ function formatDate(value: string | null | undefined) {
   }).format(date);
 }
 
+function formatPrice(amountCents: number | null | undefined, fallback: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format((amountCents ?? fallback) / 100);
+}
+
+function subscriptionActive(status: string | null | undefined) {
+  return status === "active" || status === "trial" || status === "grace_period" || status === "complimentary";
+}
+
 function connectionError(error: unknown) {
   const code = error instanceof Error ? error.message : "";
-  if (code === "WHATSAPP_PAYMENT_REQUIRED") return "O módulo ainda não está liberado para esta loja.";
+  if (code === "WHATSAPP_PAYMENT_REQUIRED") return "Escolha um modo de WhatsApp para conectar este número.";
   if (code === "EVOLUTION_RUNTIME_NOT_CONFIGURED") return "A conexão do WhatsApp está temporariamente indisponível.";
   if (code === "EVOLUTION_INSTANCE_CREATE_FAILED") return "Não foi possível preparar a conexão agora.";
   if (code === "EVOLUTION_QR_FAILED") return "Não foi possível gerar o QR Code. Tente novamente.";
@@ -67,16 +78,27 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
 
   statusMutateAsyncRef.current = actions.status.mutateAsync;
 
-  const whatsappAddon = useMemo(
+  const manualAddon = useMemo(
+    () => addons.data?.items.find((addon) => addon.code === "whatsapp_manual") ?? null,
+    [addons.data],
+  );
+  const automaticAddon = useMemo(
     () => addons.data?.items.find((addon) => addon.code === "whatsapp_automation") ?? null,
     [addons.data],
   );
 
-  const addonStatus = whatsappAddon?.subscription?.status;
-  const addonAllowsProvision = Boolean(
-    (addonStatus === "active" || addonStatus === "complimentary")
-      && whatsappAddon?.features.includes("whatsapp_automation"),
+  const automaticActive = Boolean(
+    automaticAddon
+      && subscriptionActive(automaticAddon.subscription?.status)
+      && automaticAddon.features.includes("whatsapp_automation"),
   );
+  const manualDirectActive = Boolean(
+    manualAddon
+      && subscriptionActive(manualAddon.subscription?.status)
+      && manualAddon.features.includes("whatsapp_manual"),
+  );
+  const manualActive = manualDirectActive || automaticActive;
+  const addonAllowsProvision = manualActive || automaticActive;
   const resolving = !connection.data && (connection.isLoading || connection.isFetching);
   const connected = Boolean(connection.data?.connected);
   const canProvision = Boolean(connection.data?.can_provision || addonAllowsProvision);
@@ -188,12 +210,30 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             </div>
             <div>
               <h2 className="font-display text-xl font-black tracking-tight">Seu WhatsApp</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Conecte o número da loja e use tudo pelo Comandiva.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Escolha o nível de automação e use o número da loja pelo Comandiva.</p>
             </div>
           </div>
           <Badge variant={connected ? "default" : "secondary"} className="shrink-0">
             {resolving ? "Verificando…" : connected ? "Conectado" : pending ? "Aguardando" : "Desconectado"}
           </Badge>
+        </div>
+
+        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          <ModeCard
+            title="Manual"
+            price={`${formatPrice(manualAddon?.monthly_price?.amount_cents, 1490)}/mês`}
+            description="Conecte o número e envie mensagens manualmente pelo painel."
+            active={manualActive}
+            status={automaticActive && !manualDirectActive ? "Incluído no Automático" : manualAddon?.subscription?.status}
+          />
+          <ModeCard
+            title="Automático"
+            price={`${formatPrice(automaticAddon?.monthly_price?.amount_cents, 3990)}/mês`}
+            description="Inclui o Manual e dispara atualizações conforme o pedido avança."
+            active={automaticActive}
+            status={automaticAddon?.subscription?.status}
+            highlighted
+          />
         </div>
 
         {resolving ? (
@@ -205,14 +245,27 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         {!resolving && !connected && !canProvision ? (
           <div className="space-y-3">
             <p className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              O WhatsApp automático ainda não está liberado para esta loja.
+              Escolha o modo Manual ou Automático para liberar a conexão desta loja.
             </p>
-            {whatsappAddon ? (
-              <AddonPurchaseReadiness
-                storeId={storeId}
-                addon={whatsappAddon}
-                canViewBilling={Boolean(addons.data?.can_view_billing)}
-              />
+            {manualAddon ? (
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Manual</p>
+                <AddonPurchaseReadiness
+                  storeId={storeId}
+                  addon={manualAddon}
+                  canViewBilling={Boolean(addons.data?.can_view_billing)}
+                />
+              </div>
+            ) : null}
+            {automaticAddon ? (
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Automático</p>
+                <AddonPurchaseReadiness
+                  storeId={storeId}
+                  addon={automaticAddon}
+                  canViewBilling={Boolean(addons.data?.can_view_billing)}
+                />
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -268,8 +321,21 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             <div className="grid gap-3 sm:grid-cols-3">
               <ConnectionMetric label="Status" value="Conectado" />
               <ConnectionMetric label="Número" value={connection.data?.display_phone_number || "WhatsApp vinculado"} />
-              <ConnectionMetric label="Desde" value={formatDate(connection.data?.connected_at)} />
+              <ConnectionMetric label="Modo" value={automaticActive ? "Automático" : "Manual"} />
             </div>
+            <p className="text-xs text-muted-foreground">Conectado desde {formatDate(connection.data?.connected_at)}.</p>
+
+            {automaticActive ? (
+              <div className="rounded-2xl border border-[#25D366]/25 bg-[#25D366]/5 p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#128C7E]" />
+                  <div>
+                    <p className="font-semibold">Atualizações automáticas ativas</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Pedidos da loja podem disparar mensagens conforme mudam de status.</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => void reconnect()} disabled={busy || actions.sendManual.isPending}>
@@ -279,7 +345,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             </div>
 
             <details className="rounded-2xl border border-border">
-              <summary className="cursor-pointer list-none px-4 py-3 font-semibold">Enviar mensagem de teste</summary>
+              <summary className="cursor-pointer list-none px-4 py-3 font-semibold">Enviar mensagem manual</summary>
               <div className="border-t border-border p-4">
                 <div className="grid gap-4 md:grid-cols-[220px_1fr]">
                   <div>
@@ -313,6 +379,36 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         {uiError ? <p className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{uiError}</p> : null}
       </CardContent>
     </Card>
+  );
+}
+
+function ModeCard({
+  title,
+  price,
+  description,
+  active,
+  status,
+  highlighted = false,
+}: {
+  title: string;
+  price: string;
+  description: string;
+  active: boolean;
+  status?: string | null;
+  highlighted?: boolean;
+}) {
+  return (
+    <div className={`rounded-2xl border p-4 ${highlighted ? "border-[#25D366]/35 bg-[#25D366]/5" : "border-border bg-muted/20"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-semibold">{title}</p>
+          <p className="mt-1 text-lg font-black">{price}</p>
+        </div>
+        <Badge variant={active ? "default" : "outline"}>{active ? (status === "complimentary" ? "Cortesia" : "Ativo") : "Opcional"}</Badge>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">{description}</p>
+      {status === "Incluído no Automático" ? <p className="mt-2 text-xs font-semibold text-[#128C7E]">Incluído no Automático</p> : null}
+    </div>
   );
 }
 
