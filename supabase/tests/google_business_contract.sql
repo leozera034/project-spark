@@ -37,7 +37,7 @@ BEGIN
     AND c.relname='google_business_onboarding_sessions'
     AND a.attname='expires_at';
 
-  IF coalesce(_expiry_default,'') NOT ILIKE '%15 minutes%' THEN
+  IF coalesce(_expiry_default,'') NOT ILIKE '%00:15:00%' THEN
     RAISE EXCEPTION 'Google Business OAuth sessions must expire after 15 minutes by default';
   END IF;
 
