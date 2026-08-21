@@ -6,7 +6,7 @@ services:
     region: virginia
     dockerfilePath: ./infra/evolution/Dockerfile
     dockerContext: .
-    healthCheckPath: /server/ok
+    healthCheckPath: /
     autoDeployTrigger: off
     envVars:
       - key: SERVER_NAME
