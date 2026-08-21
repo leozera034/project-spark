@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { WhatsAppMetaConnectionCard } from "@/components/store/WhatsAppMetaConnectionCard";
+import { WhatsAppEvolutionConnectionCard } from "@/components/store/WhatsAppEvolutionConnectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -292,21 +292,7 @@ function WhatsAppCenter() {
         />
       </section>
 
-      {isEvolution ? (
-        <Card className="border-emerald-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><CheckCircle2 className="size-5 text-emerald-600" /> Evolution API conectada</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              O Comandiva usa templates locais para automações neste provider. Credenciais e transporte ficam somente no backend.
-            </p>
-          </CardHeader>
-        </Card>
-      ) : (
-        <WhatsAppMetaConnectionCard
-          storeId={storeId}
-          automaticEntitled={Boolean(readiness.data?.automatic_entitled)}
-        />
-      )}
+      <WhatsAppEvolutionConnectionCard storeId={storeId} />
 
       {templateNotice ? (
         <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-700 dark:text-emerald-300">
