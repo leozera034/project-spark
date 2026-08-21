@@ -4,10 +4,14 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-  "forwardPorts": [8080],
+  "forwardPorts": [8080, 8081],
   "portsAttributes": {
     "8080": {
       "label": "Evolution API QA",
+      "onAutoForward": "notify"
+    },
+    "8081": {
+      "label": "Evolution QA config · PRIVATE",
       "onAutoForward": "notify"
     }
   },
