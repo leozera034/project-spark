@@ -14,10 +14,25 @@ BEGIN
     JOIN pg_namespace n ON n.oid = p.pronamespace
    WHERE n.nspname = 'public'
      AND p.prosecdef
-     AND has_function_privilege('anon', p.oid, 'EXECUTE');
+     AND has_function_privilege('anon', p.oid, 'EXECUTE')
+     AND p.oid <> ALL (ARRAY[
+       'public.storefront_delivery_quote(text,numeric,numeric,uuid)'::regprocedure::oid,
+       'public.storefront_validate_fulfillment_v2(text,text,uuid,text,numeric,numeric)'::regprocedure::oid
+     ]);
 
   IF exposed IS NOT NULL THEN
     RAISE EXCEPTION 'Unexpected anon SECURITY DEFINER exposure: %', exposed;
+  END IF;
+
+  IF NOT has_function_privilege(
+      'anon',
+      'public.storefront_delivery_quote(text,numeric,numeric,uuid)'::regprocedure,
+      'EXECUTE')
+     OR NOT has_function_privilege(
+      'anon',
+      'public.storefront_validate_fulfillment_v2(text,text,uuid,text,numeric,numeric)'::regprocedure,
+      'EXECUTE') THEN
+    RAISE EXCEPTION 'Public storefront fulfillment RPC allowlist is incomplete';
   END IF;
 
   IF has_function_privilege(
