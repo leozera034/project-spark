@@ -20,8 +20,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8080:8080"
     environment:
       SERVER_NAME: comandiva-evolution-qa
       SERVER_TYPE: http
@@ -59,6 +57,19 @@ services:
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
       AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "false"
       LANGUAGE: pt-BR
+
+  gateway:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      evolution:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
 
 volumes:
   evolution_qa_postgres:
