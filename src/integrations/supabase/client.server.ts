@@ -7,6 +7,7 @@ const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
 const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 const BACKEND_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-backend-api`;
 const STORE_SIGNUP_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/comandiva-store-signup`;
+const EDGE_REQUEST_TIMEOUT_MS = 15_000;
 
 const EDGE_RPC_ALLOWLIST = new Set([
   'check_public_store_slug','storefront_store','storefront_catalog','storefront_product','storefront_price',
@@ -22,7 +23,20 @@ type BackendActionOptions={accessToken?:string};
 async function invokeEdgeEnvelope<T>(url:string,payload:Record<string,unknown>,options:BackendActionOptions={}):Promise<T>{
   const headers=new Headers({'content-type':'application/json',apikey:EXTERNAL_SUPABASE_PUBLISHABLE_KEY});
   if(options.accessToken)headers.set('authorization',`Bearer ${options.accessToken}`);
-  const response=await fetch(url,{method:'POST',headers,body:JSON.stringify(payload)});let parsed:EdgeEnvelope<T>|null=null;
+
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),EDGE_REQUEST_TIMEOUT_MS);
+  let response:Response;
+  try{
+    response=await fetch(url,{method:'POST',headers,body:JSON.stringify(payload),signal:controller.signal});
+  }catch(error){
+    if(error instanceof Error&&error.name==='AbortError')throw new PediuBackendApiError('backend_timeout',504);
+    throw new PediuBackendApiError('backend_unavailable',503);
+  }finally{
+    clearTimeout(timeout);
+  }
+
+  let parsed:EdgeEnvelope<T>|null=null;
   try{parsed=await response.json() as EdgeEnvelope<T>}catch{throw new PediuBackendApiError('backend_invalid_response',response.status||502)}
   if(!response.ok||!parsed||parsed.ok!==true){const code=parsed&&parsed.ok===false?parsed.error??'backend_unavailable':'backend_unavailable';throw new PediuBackendApiError(code,response.status||502)}
   return parsed.data;
