@@ -14,6 +14,13 @@
       "name": "Evolution: atualizar e reiniciar QA",
       "command": "git pull --ff-only && bash infra/evolution/codespace/start.sh",
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Evolution: abrir chave para copiar",
+      "command": "bash -lc 'set -a; source \"$HOME/.comandiva-evolution-qa/runtime.env\"; set +a; printf \"%s\" \"$EVOLUTION_API_KEY\" > /tmp/comandiva-evolution-api-key.txt; code /tmp/comandiva-evolution-api-key.txt'",
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
