@@ -9,8 +9,20 @@ const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
 const FALLBACK_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 
-function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+function isOpaquePublishableKey(value: string): boolean {
+  return value.startsWith('sb_publishable_');
+}
+
+function isLegacyAnonJwt(value: string): boolean {
+  const parts = value.split('.');
+  return parts.length === 3 && parts.every(Boolean) && value.startsWith('eyJ');
+}
+
+function isBrowserSafeSupabaseKey(value: string | undefined): value is string {
+  if (!value) return false;
+  const normalized = value.trim();
+  if (!normalized || normalized.startsWith('sb_secret_')) return false;
+  return isOpaquePublishableKey(normalized) || isLegacyAnonJwt(normalized);
 }
 
 function isExpectedSupabaseUrl(value: string | undefined): value is string {
@@ -33,8 +45,12 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
-    // New Supabase API keys are opaque strings, not bearer JWTs.
-    if (isNewSupabaseApiKey(supabaseKey) && headers.get('Authorization') === `Bearer ${supabaseKey}`) {
+    // Opaque publishable keys are API keys, not bearer JWTs. Access-token
+    // Authorization headers generated after sign-in must be preserved.
+    if (
+      isOpaquePublishableKey(supabaseKey) &&
+      headers.get('Authorization') === `Bearer ${supabaseKey}`
+    ) {
       headers.delete('Authorization');
     }
 
@@ -48,7 +64,8 @@ function createSupabaseClient() {
   const runtimePublishableKey =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
-  const useRuntimeConfig = isExpectedSupabaseUrl(runtimeUrl) && Boolean(runtimePublishableKey);
+  const useRuntimeConfig =
+    isExpectedSupabaseUrl(runtimeUrl) && isBrowserSafeSupabaseKey(runtimePublishableKey);
 
   if (runtimeUrl && !isExpectedSupabaseUrl(runtimeUrl)) {
     console.error(
@@ -56,9 +73,15 @@ function createSupabaseClient() {
     );
   }
 
+  if (runtimePublishableKey && !isBrowserSafeSupabaseKey(runtimePublishableKey)) {
+    console.error(
+      '[Supabase] Ignoring unsafe or invalid browser key. Only publishable or legacy anon keys are accepted.',
+    );
+  }
+
   const supabaseUrl = useRuntimeConfig ? runtimeUrl : FALLBACK_SUPABASE_URL;
   const supabasePublishableKey = useRuntimeConfig
-    ? runtimePublishableKey!
+    ? runtimePublishableKey
     : FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   return createClient<Database>(supabaseUrl, supabasePublishableKey, {
