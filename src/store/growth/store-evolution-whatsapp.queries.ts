@@ -16,7 +16,9 @@ export function useStoreEvolutionWhatsAppConnection(storeId: string | null) {
     queryKey: ["store-growth", storeId, "evolution-whatsapp-connection"],
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
-    staleTime: 5_000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       return status === "pending" ? 4_000 : 20_000;
