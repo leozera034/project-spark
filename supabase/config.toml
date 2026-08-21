@@ -18,5 +18,8 @@ verify_jwt = false
 [functions.comandiva-whatsapp-onboarding]
 verify_jwt = true
 
+[functions.comandiva-evolution-onboarding]
+verify_jwt = true
+
 [functions.comandiva-whatsapp-templates]
 verify_jwt = true
