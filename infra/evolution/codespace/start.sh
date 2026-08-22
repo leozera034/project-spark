@@ -49,6 +49,30 @@ fi
 export EVOLUTION_API_KEY
 export POSTGRES_PASSWORD
 
+ensure_codespace_port_visibility() {
+  if [[ -z "${CODESPACE_NAME:-}" ]]; then
+    return 0
+  fi
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "[Comandiva] AVISO: GitHub CLI indisponível; ajuste 8080 para PUBLIC manualmente."
+    return 0
+  fi
+
+  # GitHub Codespaces volta portas públicas para private após reinício. Reaplicamos
+  # automaticamente a política necessária ao QA: Evolution pública e config privada.
+  for attempt in $(seq 1 12); do
+    if gh codespace ports visibility 8080:public 8081:private -c "$CODESPACE_NAME" >/dev/null 2>&1; then
+      echo "[Comandiva] Portas do Codespace ajustadas: 8080 PUBLIC, 8081 PRIVATE."
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "[Comandiva] AVISO: não consegui ajustar a visibilidade automaticamente."
+  echo "[Comandiva] No painel PORTAS, defina 8080 PUBLIC e 8081 PRIVATE."
+  return 0
+}
+
 if [[ -f "$CONFIG_PID_FILE" ]]; then
   OLD_CONFIG_PID="$(cat "$CONFIG_PID_FILE" 2>/dev/null || true)"
   if [[ -n "$OLD_CONFIG_PID" ]]; then
@@ -82,11 +106,11 @@ for attempt in $(seq 1 60); do
       exit 1
     fi
 
+    ensure_codespace_port_visibility
     echo "[Comandiva] Evolution API respondeu no endpoint raiz /."
     echo "[Comandiva] Gateway seguro validado: chave inválida -> HTTP 401; chave válida -> HTTP $VALID_STATUS."
     echo "[Comandiva] URL prevista: $EVOLUTION_PUBLIC_URL"
-    echo "[Comandiva] No painel PORTS, mantenha 8080 PUBLIC e 8081 PRIVATE."
-    echo "[Comandiva] A porta 8081 mostra URL/chave em uma página privada do Codespaces."
+    echo "[Comandiva] Porta esperada: 8080 PUBLIC; configuração: 8081 PRIVATE."
     exit 0
   fi
   sleep 2
