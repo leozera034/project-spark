@@ -31,7 +31,6 @@ export function messageForCheckoutError(code: string): string {
     case "fulfillment_invalid":
       return CHECKOUT_MESSAGES.fulfillmentInvalid;
     case "payment_method_invalid":
-    case "payment_method_unavailable":
       return CHECKOUT_MESSAGES.paymentInvalid;
     case "change_invalid":
       return CHECKOUT_MESSAGES.changeInvalid;
