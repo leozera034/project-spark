@@ -86,7 +86,8 @@ docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
 docker compose -f "$COMPOSE_FILE" up -d --build --force-recreate
 
 for attempt in $(seq 1 90); do
-  if curl --silent --fail --max-time 2 http://127.0.0.1:8080/ >/dev/null 2>&1; then
+  GATEWAY_VERSION="$(curl --silent --max-time 2 http://127.0.0.1:8080/__comandiva_gateway 2>/dev/null || true)"
+  if [[ "$GATEWAY_VERSION" == "basic-v2" ]]; then
     VALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H "apikey: $EVOLUTION_API_KEY" http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
     INVALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H 'apikey: definitely-wrong-key' http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
 
@@ -112,9 +113,10 @@ for attempt in $(seq 1 90); do
       gh codespace ports visibility 8080:public 8081:private -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
     fi
 
+    echo "[Comandiva] OK: gateway $GATEWAY_VERSION carregado."
     echo "[Comandiva] OK: Evolution ativa."
     echo "[Comandiva] OK: Baileys $BAILEYS_VERSION."
-    echo "[Comandiva] OK: gateway autenticado."
+    echo "[Comandiva] OK: chave local aceita; inválida -> 401."
     echo "[Comandiva] URL: $EVOLUTION_PUBLIC_URL"
     echo "[Comandiva] 8080 PUBLIC; 8081 PRIVATE (automático quando permitido pelo Codespaces)."
     exit 0
@@ -122,7 +124,7 @@ for attempt in $(seq 1 90); do
   sleep 2
 done
 
-echo "[Comandiva] ERRO: Evolution não respondeu na porta 8080."
+echo "[Comandiva] ERRO: gateway basic-v2 não respondeu na porta 8080."
 docker compose -f "$COMPOSE_FILE" ps || true
 docker compose -f "$COMPOSE_FILE" logs --tail=120 gateway evolution || true
 exit 1
