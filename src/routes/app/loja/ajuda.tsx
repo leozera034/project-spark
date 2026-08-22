@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CircleHelp, Headphones, MessageCircleMore, Plus, RefreshCw, Send, XCircle } from "lucide-react";
 
-import { useAuth } from "@/auth/useAuth";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { SupportCategory, SupportStatus } from "@/lib/store-support.functions";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 import { useStoreSupportActions, useStoreSupportCenter, useStoreSupportTicket } from "@/store/support/store-support.queries";
 
 export const Route = createFileRoute("/app/loja/ajuda")({
@@ -27,8 +27,12 @@ const CATEGORIES: Array<{ value: SupportCategory; label: string }> = [
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
 function StoreHelpPage() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId } = useStoreScope();
+  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Escolha uma loja para acessar o suporte.</div>;
+  return <StoreHelpForStore key={storeId} storeId={storeId} />;
+}
+
+function StoreHelpForStore({ storeId }: { storeId: string }) {
   const center = useStoreSupportCenter(storeId);
   const actions = useStoreSupportActions();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -38,8 +42,6 @@ function StoreHelpPage() {
   const [message, setMessage] = useState("");
   const [reply, setReply] = useState("");
   const detail = useStoreSupportTicket(storeId, selectedId);
-
-  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
 
   function openTicket() {
     if (!subject.trim() || !message.trim() || actions.open.isPending) return;
@@ -59,7 +61,7 @@ function StoreHelpPage() {
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Central de suporte</p><h1 className="mt-1 font-display text-3xl font-black tracking-tight">Ajuda</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Abra chamados, acompanhe respostas da equipe COMANDIVA e mantenha o histórico do problema na própria loja.</p></div>
-        <div className="flex gap-2"><Button variant="outline" onClick={() => void center.refetch()}><RefreshCw className={`size-4 ${center.isFetching ? "animate-spin" : ""}`} /> Atualizar</Button><Button onClick={() => { setCreating(true); setSelectedId(null); }}><Plus className="size-4" /> Novo chamado</Button></div>
+        <div className="flex gap-2"><Button variant="outline" onClick={() => void center.refetch()} disabled={center.isFetching}><RefreshCw className={`size-4 ${center.isFetching ? "animate-spin" : ""}`} /> Atualizar</Button><Button onClick={() => { setCreating(true); setSelectedId(null); }}><Plus className="size-4" /> Novo chamado</Button></div>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
