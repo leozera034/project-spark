@@ -40,6 +40,7 @@ export interface StoreConfigSettings {
   default_prep_minutes: number;
   sound_alert_enabled: boolean;
   auto_open_by_hours: boolean;
+  manual_override_open: boolean | null;
   updated_at: string;
 }
 
@@ -101,6 +102,9 @@ export interface StoreOperationalPreview {
   next_open_day: string | null;
   delivery_enabled: boolean;
   pickup_enabled: boolean;
+  mode: "schedule" | "manual";
+  manual_override_open: boolean | null;
+  settings_updated_at: string | null;
   reason: string | null;
 }
 
