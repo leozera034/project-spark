@@ -1,10 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bike, MapPin, PackageCheck, RotateCcw, Settings2, Truck, Users } from "lucide-react";
+import { ArrowRight, Bike, MapPin, PackageCheck, RotateCcw, Settings2, Truck, Users } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/auth/useAuth";
 import { useCourierCounts } from "@/store/couriers/hooks/useCouriers";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/entregas")({
   head: () => ({
@@ -16,19 +17,53 @@ export const Route = createFileRoute("/app/loja/entregas")({
   component: DeliveriesHub,
 });
 
+const DELIVERY_AREAS = [
+  {
+    icon: Users,
+    title: "Entregadores",
+    description: "Disponibilidade, veículo, acesso e entrega atual de cada entregador.",
+    action: "Gerenciar equipe",
+    to: "/app/loja/entregadores",
+  },
+  {
+    icon: PackageCheck,
+    title: "Pedidos para sair",
+    description: "Abra os pedidos prontos e atribua um entregador quando necessário.",
+    action: "Abrir pedidos",
+    to: "/app/loja/pedidos",
+  },
+  {
+    icon: RotateCcw,
+    title: "Devoluções",
+    description: "Resolva pedidos que voltaram com nova tentativa, correção ou cancelamento.",
+    action: "Resolver devoluções",
+    to: "/app/loja/devolucoes",
+  },
+  {
+    icon: Settings2,
+    title: "Taxas e cobertura",
+    description: "Escolha taxa fixa, por distância ou por bairro e configure prazo e pedido mínimo.",
+    action: "Configurar entrega",
+    to: "/app/loja/configuracoes/bairros",
+  },
+] as const;
+
 function DeliveriesHub() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId, selectedStore } = useStoreScope();
   const counts = useCourierCounts(storeId);
+  const unassigned = counts.data?.unassignedDeliveries ?? 0;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Operação de entrega</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Operação</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">Entregas</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Acompanhe sua equipe, pedidos aguardando entregador, devoluções e regras de entrega em um único lugar.
+            Equipe, pedidos aguardando saída, devoluções e regras de entrega reunidos em uma única central.
           </p>
         </div>
         <Button asChild>
@@ -36,42 +71,36 @@ function DeliveriesHub() {
         </Button>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {unassigned > 0 ? (
+        <section className="flex flex-col gap-3 rounded-2xl border border-warning/35 bg-warning-soft/55 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-warning"><Truck className="size-5" /></span>
+            <div>
+              <p className="font-bold">{unassigned} entrega(s) aguardando entregador</p>
+              <p className="mt-1 text-sm text-muted-foreground">Atribua alguém para evitar que pedidos prontos fiquem parados na loja.</p>
+            </div>
+          </div>
+          <Button asChild variant="outline" className="shrink-0 bg-background"><Link to="/app/loja/pedidos">Abrir fila <ArrowRight className="size-4" /></Link></Button>
+        </section>
+      ) : null}
+
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Resumo das entregas">
         <Metric label="Entregadores ativos" value={counts.data?.active ?? 0} icon={Users} />
         <Metric label="Online agora" value={counts.data?.online ?? 0} icon={Bike} />
         <Metric label="Em entrega" value={counts.data?.busy ?? 0} icon={Truck} />
-        <Metric label="Aguardando entregador" value={counts.data?.unassignedDeliveries ?? 0} icon={PackageCheck} attention={(counts.data?.unassignedDeliveries ?? 0) > 0} />
+        <Metric label="Aguardando entregador" value={unassigned} icon={PackageCheck} attention={unassigned > 0} />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <ActionCard
-          icon={Users}
-          title="Equipe de entregadores"
-          description="Disponibilidade, veículo, acesso e entrega atual de cada entregador."
-          action="Gerenciar equipe"
-          to="/app/loja/entregadores"
-        />
-        <ActionCard
-          icon={PackageCheck}
-          title="Pedidos aguardando saída"
-          description="Abra a fila de pedidos prontos e atribua um entregador quando necessário."
-          action="Ver pedidos"
-          to="/app/loja/pedidos"
-        />
-        <ActionCard
-          icon={RotateCcw}
-          title="Pedidos que voltaram"
-          description="Resolva devoluções com nova tentativa, correção de endereço ou cancelamento."
-          action="Resolver devoluções"
-          to="/app/loja/devolucoes"
-        />
-        <ActionCard
-          icon={Settings2}
-          title="Como cobrar a entrega"
-          description="Escolha taxa fixa, por distância ou por bairro e configure prazo e pedido mínimo."
-          action="Configurar entrega"
-          to="/app/loja/configuracoes/bairros"
-        />
+      <section aria-labelledby="delivery-management-title">
+        <div className="mb-3">
+          <h2 id="delivery-management-title" className="font-display text-xl font-black">Gerenciar entregas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Escolha a parte da operação que precisa de atenção.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {DELIVERY_AREAS.map((area) => (
+            <ActionCard key={area.to} {...area} />
+          ))}
+        </div>
       </section>
 
       <Card className="border-brand/15 bg-brand-soft/25">
@@ -79,8 +108,8 @@ function DeliveriesHub() {
           <div className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-brand"><MapPin className="size-5" /></span>
             <div>
-              <p className="font-bold">Localização da loja</p>
-              <p className="mt-1 text-sm text-muted-foreground">Uma localização confirmada melhora estimativas por distância sem alterar o fluxo de pedidos.</p>
+              <p className="font-bold">Origem das rotas</p>
+              <p className="mt-1 text-sm text-muted-foreground">Mantenha o endereço da loja correto para melhorar distância, taxa e previsão de entrega.</p>
             </div>
           </div>
           <Button asChild variant="outline"><Link to="/app/loja/configuracoes/endereco">Conferir endereço</Link></Button>
@@ -106,13 +135,18 @@ function Metric({ label, value, icon: Icon, attention = false }: { label: string
 
 function ActionCard({ icon: Icon, title, description, action, to }: { icon: typeof Users; title: string; description: string; action: string; to: string }) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <span className="mb-2 grid size-10 place-items-center rounded-xl bg-brand-soft text-brand"><Icon className="size-5" /></span>
-        <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent><Button asChild variant="outline"><Link to={to as never}>{action}</Link></Button></CardContent>
-    </Card>
+    <Link to={to as never} className="group block">
+      <Card className="h-full transition hover:border-brand/25 hover:bg-brand-soft/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <span className="grid size-10 place-items-center rounded-xl bg-brand-soft text-brand"><Icon className="size-5" /></span>
+            <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-brand" />
+          </div>
+          <CardTitle className="text-lg">{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0 text-sm font-bold text-brand">{action}</CardContent>
+      </Card>
+    </Link>
   );
 }
