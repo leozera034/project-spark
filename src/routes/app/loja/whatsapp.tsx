@@ -73,7 +73,7 @@ function templateOperationError(error: unknown) {
 }
 
 function WhatsAppCenter() {
-  const { storeId } = useStoreScope();
+  const { storeId, selectedStore } = useStoreScope();
   const readiness = useStoreWhatsAppReadiness(storeId);
   const templates = useStoreMessageTemplates(storeId);
   const consentSummary = useStoreWhatsAppConsentSummary(storeId);
@@ -90,7 +90,7 @@ function WhatsAppCenter() {
   const [templateNotice, setTemplateNotice] = useState<string | null>(null);
   const [templateError, setTemplateError] = useState<string | null>(null);
 
-  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
+  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Selecione uma loja para gerenciar o WhatsApp.</div>;
 
   const isLocalConnection = readiness.data?.provider === "evolution_api";
   const automaticEntitled = Boolean(readiness.data?.automatic_entitled);
@@ -182,7 +182,10 @@ function WhatsAppCenter() {
     <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Comunicação</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Gestão</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">WhatsApp</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Conecte o número da loja, ajuste avisos automáticos e acompanhe as mensagens enviadas.</p>
         </div>
