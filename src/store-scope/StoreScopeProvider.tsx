@@ -1,4 +1,4 @@
-import { Building2, RefreshCw } from "lucide-react";
+import { ArrowRight, Building2, RefreshCw } from "lucide-react";
 import {
   createContext,
   useCallback,
@@ -48,7 +48,7 @@ function persistStore(userId: string | null | undefined, storeId: string | null)
     if (storeId) window.sessionStorage.setItem(storageKey(userId), storeId);
     else window.sessionStorage.removeItem(storageKey(userId));
   } catch {
-    // Seleção de sessão é conveniência de UX; falha de storage nunca altera autorização.
+    // A seleção melhora a experiência, mas nunca participa da autorização.
   }
 }
 
@@ -150,9 +150,9 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
 
   if (storesQuery.isLoading || scopeHydrating) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4" role="status">
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4" role="status" aria-live="polite">
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <RefreshCw className="size-4 animate-spin" /> Carregando sua loja…
+          <RefreshCw className="size-4 animate-spin" /> Preparando sua operação…
         </div>
       </div>
     );
@@ -161,12 +161,12 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
   if (storesQuery.error) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-        <div className="panel w-full max-w-md p-6 text-center">
-          <Building2 className="mx-auto size-8 text-brand" />
-          <h1 className="mt-4 font-display text-xl font-bold">Não foi possível carregar suas lojas</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Nenhuma operação foi alterada. Tente carregar novamente.</p>
+        <div className="panel w-full max-w-md rounded-3xl p-6 text-center sm:p-8" role="alert">
+          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-danger-soft text-danger"><Building2 className="size-6" /></span>
+          <h1 className="mt-4 font-display text-xl font-black">Não foi possível carregar suas lojas</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Sua operação não foi alterada. Tente carregar novamente.</p>
           <Button className="mt-5" variant="outline" onClick={() => void storesQuery.refetch()}>
-            Tentar novamente
+            <RefreshCw className="size-4" /> Tentar novamente
           </Button>
         </div>
       </div>
@@ -176,10 +176,10 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
   if (stores.length === 0) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-        <div className="panel w-full max-w-md p-6 text-center">
-          <Building2 className="mx-auto size-8 text-brand" />
-          <h1 className="mt-4 font-display text-xl font-bold">Nenhuma loja vinculada</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sua conta não possui uma loja ativa disponível para operar.</p>
+        <div className="panel w-full max-w-md rounded-3xl p-6 text-center sm:p-8">
+          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-soft text-brand"><Building2 className="size-6" /></span>
+          <h1 className="mt-4 font-display text-xl font-black">Nenhuma loja disponível</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Sua conta ainda não possui uma loja ativa disponível para operar.</p>
         </div>
       </div>
     );
@@ -189,34 +189,39 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
     return (
       <StoreScopeContext.Provider value={value}>
         <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
-          <div className="panel w-full max-w-xl p-6 sm:p-8">
-            <div className="flex items-center gap-3">
-              <span className="grid size-11 place-items-center rounded-xl bg-brand-soft text-brand-soft-foreground">
+          <div className="panel w-full max-w-2xl rounded-3xl p-5 sm:p-8">
+            <div className="flex items-start gap-3">
+              <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
                 <Building2 className="size-5" />
               </span>
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Escolha a operação</p>
-                <h1 className="font-display text-2xl font-black">Qual loja você quer gerenciar?</h1>
+              <div className="min-w-0">
+                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Suas lojas</p>
+                <h1 className="mt-1 font-display text-2xl font-black tracking-tight">Qual operação você quer abrir?</h1>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Você tem acesso a {stores.length} lojas. A unidade escolhida passa a valer para pedidos, cozinha, cardápio, entregas, clientes e relatórios.
+                </p>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Selecione uma loja para manter pedidos, cardápio, entregas e relatórios no mesmo contexto durante toda a sessão.
-            </p>
-            <div className="mt-6 grid gap-2">
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
               {stores.map((store) => (
-                <Button
+                <button
                   key={store.id}
-                  variant="outline"
-                  className="h-auto justify-start px-4 py-4 text-left"
+                  type="button"
+                  className="group flex min-h-24 w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-brand/30 hover:bg-brand-soft/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   onClick={() => void selectStore(store.id)}
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate font-bold">{store.name}</span>
-                    <span className="block truncate text-xs font-normal text-muted-foreground">/{store.slug}</span>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Building2 className="size-4.5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-bold text-foreground">{store.name}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Abrir esta operação</span>
                   </span>
-                </Button>
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-brand" />
+                </button>
               ))}
             </div>
+
+            <p className="mt-5 text-center text-xs text-muted-foreground">Você poderá trocar de loja a qualquer momento pelo seletor no topo do painel.</p>
           </div>
         </div>
       </StoreScopeContext.Provider>
