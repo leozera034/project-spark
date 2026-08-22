@@ -158,6 +158,7 @@ begin
          and oi.product_id is not null
          and o.created_at >= now() - interval '30 days'
          and o.status not in ('recusado','cancelado')
+         and private.order_payment_operational_ready(o.payment_method_kind,o.payment_status)
        group by oi.product_id
        order by sold_quantity desc, oi.product_id
        limit 5
