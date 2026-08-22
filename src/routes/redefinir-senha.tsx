@@ -14,9 +14,9 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/redefinir-senha")({
   head: () => ({
     meta: [
-      { title: "Redefinir senha | Pediu Aqui" },
-      { name: "description", content: "Defina uma nova senha para a sua conta Pediu Aqui." },
-      { property: "og:title", content: "Redefinir senha | Pediu Aqui" },
+      { title: "Redefinir senha | Comandiva" },
+      { name: "description", content: "Defina uma nova senha para a sua conta Comandiva." },
+      { property: "og:title", content: "Redefinir senha | Comandiva" },
       { property: "og:description", content: "Defina uma nova senha para a sua conta." },
       { name: "robots", content: "noindex" },
     ],
