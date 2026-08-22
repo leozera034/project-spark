@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_BATCH = 10;
 const PROVIDER_TIMEOUT_MS = 12_000;
+const QA_BASE_URL = "https://orange-capybara-9v54pg457j7hxqv6-8080.app.github.dev";
 
 type JsonRecord = Record<string, unknown>;
 type SupportedProvider = "meta_whatsapp" | "evolution_api";
@@ -58,15 +59,22 @@ function keyAwareFetch(apiKey: string): typeof fetch {
     return fetch(input, { ...init, headers });
   };
 }
+function serviceSecret(): string {
+  const modern = parseKeys(Deno.env.get("SUPABASE_SECRET_KEYS"));
+  return modern.default ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? "";
+}
 function adminClient() {
   const url = Deno.env.get("SUPABASE_URL")?.trim() ?? "";
-  const modern = parseKeys(Deno.env.get("SUPABASE_SECRET_KEYS"));
-  const key = modern.default ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? "";
+  const key = serviceSecret();
   if (!url || !key) throw new Error("backend_configuration_missing");
   return createClient(url, key, {
     global: { fetch: keyAwareFetch(key) },
     auth: { persistSession: false, autoRefreshToken: false },
   });
+}
+function gatewayAuthorization(): string {
+  const key = serviceSecret();
+  return key ? `Basic ${btoa(`comandiva:${key}`)}` : "";
 }
 function response(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -119,20 +127,10 @@ function renderEvolutionText(dispatch: PreparedDispatch): string {
   if (/\{\{[^{}]+\}\}/.test(rendered)) throw new Error("evolution_template_placeholder_unresolved");
   return rendered;
 }
-function evolutionConfig(): { baseUrl: string; apiKey: string } | null {
-  const rawBase = Deno.env.get("EVOLUTION_API_BASE_URL")?.trim() ?? "";
-  const apiKey = Deno.env.get("EVOLUTION_API_KEY")?.trim() ?? "";
-  if (!rawBase || !apiKey) return null;
-  try {
-    const url = new URL(rawBase);
-    if (url.protocol !== "https:") return null;
-    url.pathname = url.pathname.replace(/\/$/, "");
-    url.search = "";
-    url.hash = "";
-    return { baseUrl: url.toString().replace(/\/$/, ""), apiKey };
-  } catch {
-    return null;
-  }
+function evolutionConfig(): { baseUrl: string; authorization: string } | null {
+  const authorization = gatewayAuthorization();
+  if (!authorization) return null;
+  return { baseUrl: QA_BASE_URL, authorization };
 }
 function safeProviderError(raw: unknown, status: number, prefix: string): { code: string; message: string } {
   const root = objectValue(raw);
@@ -249,7 +247,8 @@ function evolutionMessageId(raw: unknown): string {
 }
 function evolutionWantsTopLevelText(raw: unknown): boolean {
   const text = JSON.stringify(raw).toLowerCase();
-  return text.includes("requires property") && (text.includes('property \\"text\\"') || text.includes("property 'text'") || text.includes("property text"));
+  return text.includes("requires property")
+    && (text.includes('property \\"text\\"') || text.includes("property 'text'") || text.includes("property text"));
 }
 async function processEvolution(admin: AdminClient, job: ClaimedJob, dispatch: PreparedDispatch) {
   const config = evolutionConfig();
@@ -266,7 +265,12 @@ async function processEvolution(admin: AdminClient, job: ClaimedJob, dispatch: P
     return { jobId: job.id, status: "failed", stage: "payload" };
   }
   const url = `${config.baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`;
-  const headers = { apikey: config.apiKey, "Content-Type": "application/json", Accept: "application/json" };
+  const headers = {
+    Authorization: config.authorization,
+    "X-Comandiva-Store-Id": dispatch.store_id,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
   try {
     let result = await providerFetch(url, {
       method: "POST",
@@ -328,6 +332,7 @@ Deno.serve(async (req: Request) => {
       service: "comandiva-whatsapp-worker",
       workerConfigured,
       providers: { meta_whatsapp: true, evolution_api: evolutionConfigured },
+      evolutionGateway: evolutionConfigured ? "basic-v1" : "not_configured",
     });
   }
   if (req.method !== "POST") return response(405, { ok: false, error: "method_not_allowed" });
