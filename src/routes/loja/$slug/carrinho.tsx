@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { CART_MESSAGES, messageForLineStatus } from "@/storefront/cart/cart.errors";
 import { useCart } from "@/storefront/cart/cart.context";
+import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import type { PublicStorePayload } from "@/lib/storefront.server";
 
 const parentRoute = getRouteApi("/loja/$slug");
@@ -52,6 +53,8 @@ function CartPage() {
   const { store } = parentRoute.useLoaderData() as { store: PublicStorePayload };
   const navigate = useNavigate();
   const cart = useCart();
+  const wizard = useCustomerWizard();
+  const isDelivery = wizard.orderingContext?.type === "entrega";
   const [confirmEmpty, setConfirmEmpty] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
 
@@ -316,10 +319,14 @@ function CartPage() {
               </div>
               <div className="flex min-w-0 justify-between gap-4">
                 <dt className="min-w-0 text-muted-foreground">
-                  {cart.deliveryFee === null ? "Retirada na loja" : "Taxa de entrega"}
+                  {isDelivery ? "Taxa de entrega" : "Retirada na loja"}
                 </dt>
                 <dd className="shrink-0 tabular-nums">
-                  {cart.deliveryFee === null ? "Sem taxa" : brl(cart.deliveryFee)}
+                  {isDelivery
+                    ? cart.quoteState === "ready" && cart.deliveryFee !== null
+                      ? brl(cart.deliveryFee)
+                      : "A calcular"
+                    : "Sem taxa"}
                 </dd>
               </div>
               <div className="flex min-w-0 justify-between gap-4 border-t pt-2 text-lg font-semibold">
