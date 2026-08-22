@@ -1,94 +1,93 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
-  Bell,
-  Bot,
+  ArrowRight,
+  BadgeDollarSign,
   CheckCircle2,
-  CreditCard,
-  Mail,
-  MapPin,
-  Megaphone,
+  Clock3,
+  ExternalLink,
+  Link2,
+  Loader2,
   MessageCircle,
-  ReceiptText,
+  Percent,
   Sparkles,
   Star,
-  TrendingUp,
+  Truck,
+  UtensilsCrossed,
+  Zap,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { AddonPurchaseReadiness } from "@/components/store/AddonPurchaseReadiness";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import type { StoreAddon } from "@/lib/store-addons.functions";
-import { useStoreAddons } from "@/store/addons/store-addons.queries";
-import { useStoreWhatsAppReadiness } from "@/store/growth/store-whatsapp.queries";
-import { useStoreEmailReadiness } from "@/store/integrations/store-email.queries";
-import { useStorePushReadiness } from "@/store/integrations/store-push.queries";
-import { useStoreSmartDeliveryReadiness } from "@/store/integrations/store-smart-delivery.queries";
+import {
+  useAddonCheckout,
+  useAddonPurchasePreflight,
+  useStoreAddons,
+} from "@/store/addons/store-addons.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/modulos")({
   head: () => ({
     meta: [
-      { title: "Módulos | Comandiva" },
+      { title: "Módulos e automações | Comandiva" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
   component: StoreModulesPage,
 });
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const brl = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
-const ICONS = {
-  whatsapp_automation: MessageCircle,
-  ai_assistant: Bot,
-  growth_pro: TrendingUp,
-  smart_delivery: MapPin,
-  reputation: Star,
-  fiscal: ReceiptText,
-  payments: CreditCard,
-  marketing_pro: Megaphone,
-  ads: Sparkles,
-} as const;
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
+  "active",
+  "trial",
+  "grace_period",
+  "complimentary",
+]);
 
-function statusLabel(status: StoreAddon["availability_status"]) {
-  if (status === "available") return "Disponível";
-  if (status === "beta") return "Beta";
-  if (status === "retired") return "Encerrado";
-  return "Planejado";
+function isAddonEnabled(addon: StoreAddon | undefined) {
+  return Boolean(addon?.subscription && ACTIVE_SUBSCRIPTION_STATUSES.has(addon.subscription.status));
 }
 
-function billingLabel(model: StoreAddon["billing_model"]) {
-  if (model === "metered") return "Por uso";
-  if (model === "hybrid") return "Mensalidade + uso";
-  return "Mensalidade fixa";
-}
-
-function subscriptionLabel(status: NonNullable<StoreAddon["subscription"]>["status"]) {
-  if (status === "active") return "Ativo";
-  if (status === "trial") return "Em teste";
-  if (status === "past_due") return "Pagamento pendente";
-  if (status === "grace_period") return "Em carência";
-  if (status === "suspended") return "Suspenso";
-  if (status === "cancelled") return "Cancelado";
-  if (status === "complimentary") return "Cortesia";
-  return "Pendente";
-}
-
-function providerLabel(provider: string | null | undefined) {
-  if (provider === "meta_whatsapp") return "Meta WhatsApp";
-  if (provider === "360dialog_whatsapp") return "360dialog";
-  if (provider === "twilio_whatsapp") return "Twilio";
-  return "Nenhum conectado";
+function checkoutErrorMessage(error: unknown) {
+  const code = error instanceof Error ? error.message : "";
+  if (code === "ADDON_PURCHASE_NOT_READY") return "A contratação ainda não está liberada para esta loja.";
+  if (code === "PROVIDER_PRICE_REQUIRES_RESYNC") return "O preço precisa ser sincronizado novamente com a Stripe.";
+  if (code === "STRIPE_NOT_CONFIGURED") return "A Stripe ainda não está pronta para esta contratação.";
+  if (code === "ACCOUNT_EMAIL_REQUIRED") return "Sua conta precisa ter um e-mail válido antes da compra.";
+  if (code === "CHECKOUT_IN_PROGRESS") return "Já existe um checkout sendo preparado. Tente novamente em instantes.";
+  if (code === "STRIPE_UNREACHABLE") return "A Stripe não respondeu agora. Nenhuma cobrança foi criada.";
+  if (code === "STRIPE_CHECKOUT_REJECTED") return "A Stripe recusou a criação do checkout.";
+  if (code === "RATE_LIMITED") return "Muitas tentativas em pouco tempo. Aguarde alguns instantes.";
+  return "Não foi possível abrir o checkout agora.";
 }
 
 function StoreModulesPage() {
   const { storeId } = useStoreScope();
   const addons = useStoreAddons(storeId);
-  const whatsapp = useStoreWhatsAppReadiness(storeId);
-  const email = useStoreEmailReadiness(storeId);
-  const push = useStorePushReadiness(storeId);
-  const smartDelivery = useStoreSmartDeliveryReadiness(storeId);
+  const checkout = useAddonCheckout();
   const canViewBilling = addons.data?.can_view_billing ?? false;
+  const automaticAddon = addons.data?.items.find((item) => item.code === "whatsapp_automation");
+  const automaticEnabled = isAddonEnabled(automaticAddon);
+  const shouldCheckPurchase = Boolean(
+    storeId
+      && canViewBilling
+      && automaticAddon
+      && !automaticEnabled
+      && automaticAddon.availability_status === "available"
+      && automaticAddon.monthly_price,
+  );
+  const preflight = useAddonPurchasePreflight(
+    storeId,
+    "whatsapp_automation",
+    "monthly",
+    shouldCheckPurchase,
+  );
 
   if (!storeId) {
     return (
@@ -98,216 +97,415 @@ function StoreModulesPage() {
     );
   }
 
+  const monthlyPrice = automaticAddon?.monthly_price
+    ? brl.format(automaticAddon.monthly_price.amount_cents / 100)
+    : "R$ 39,90";
+  const blocker = preflight.data?.blockers?.[0]?.message ?? null;
+  const canCheckout = Boolean(preflight.data?.ready && !checkout.isPending);
+
+  async function startAutomaticCheckout() {
+    if (!storeId || !automaticAddon || automaticEnabled || !canCheckout) return;
+    try {
+      const result = await checkout.mutateAsync({
+        storeId,
+        addonCode: "whatsapp_automation",
+        billingInterval: "monthly",
+        idempotencyKey: crypto.randomUUID(),
+      });
+      window.location.assign(result.checkoutUrl);
+    } catch (error) {
+      toast.error(checkoutErrorMessage(error));
+    }
+  }
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-      <header className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#4B1D6D] p-6 text-white shadow-e2 sm:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#FF6A4D]/20 blur-3xl" />
-        <div className="relative max-w-3xl">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">
-            <Sparkles className="size-3.5 text-[#FFB4A2]" /> Comandiva Modules
+    <div className="mx-auto w-full max-w-6xl space-y-5 px-3 pb-28 pt-4 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8">
+      <section className="relative overflow-hidden rounded-[28px] bg-[#32105C] px-5 py-7 text-white shadow-e2 sm:px-8 sm:py-9">
+        <div className="pointer-events-none absolute -right-14 -top-16 size-64 rounded-full bg-[#7C3AED]/35 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 right-24 size-48 rounded-full bg-[#FF6A4D]/20 blur-3xl" />
+        <div className="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/85">
+              <Sparkles className="size-3.5 text-[#FFC286]" /> Módulos e automações
+            </div>
+            <h1 className="font-display text-3xl font-black leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">
+              Ative só o que vale a pena agora
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
+              Uma página mais simples: o que já funciona, o que pode ser contratado hoje e o que realmente entra nas próximas fases do Comandiva.
+            </p>
           </div>
-          <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">Módulos e automações</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-            Recursos adicionais são ativados por loja. Integrações com custo variável terão franquia, medição e limite para evitar cobranças inesperadas.
-          </p>
-        </div>
-      </header>
 
-      <Card className="border-dashed">
-        <CardContent className="p-5 text-sm text-muted-foreground">
-          {addons.data && !canViewBilling
-            ? "Você pode conhecer os módulos disponíveis, mas valores e estado de cobrança ficam visíveis apenas ao proprietário da loja."
-            : "Nenhuma integração paga foi ativada. O catálogo abaixo já está ligado ao motor de add-ons; a contratação só será liberada quando preço e provedor de cobrança estiverem homologados."}
+          <div className="grid grid-cols-3 gap-2 lg:w-[390px]">
+            <HeroMetric icon={Star} label="5 módulos" detail="priorizados" />
+            <HeroMetric icon={BadgeDollarSign} label="Baixo custo" detail="primeiro" />
+            <HeroMetric icon={Link2} label="Evolution" detail="integrado" />
+          </div>
+        </div>
+      </section>
+
+      <Card className="overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-50/90 via-white to-white shadow-sm dark:from-emerald-950/20 dark:via-card dark:to-card">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="size-6" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700/80 dark:text-emerald-300/80">
+                  Plano recomendado
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <h2 className="font-display text-2xl font-black tracking-tight">Automático</h2>
+                  {automaticEnabled ? (
+                    <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                      {automaticAddon?.subscription?.status === "complimentary" ? "Cortesia ativa" : "Ativo"}
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="mt-1 max-w-md text-sm leading-5 text-muted-foreground">
+                  Centraliza WhatsApp, avisos de pedido e templates automáticos. O envio manual já vem incluído.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 sm:text-right">
+              {canViewBilling ? (
+                <>
+                  <p className="font-display text-3xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">
+                    {monthlyPrice}
+                    <span className="ml-1 text-sm font-bold text-emerald-700/70 dark:text-emerald-300/70">/mês</span>
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">Manual incluído, sem cobrança duplicada.</p>
+                </>
+              ) : (
+                <p className="text-sm font-semibold text-muted-foreground">Valores visíveis ao proprietário.</p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-success/20">
-        <CardHeader className="border-b border-border bg-success-soft/40">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="size-5 text-success" /> WhatsApp no Comandiva
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                O modo assistido continua gratuito. O automático só entra quando add-on, provider e template estiverem prontos.
-              </p>
-            </div>
-            <Badge variant="outline" className="border-success/30 bg-background/80 text-success">
-              <CheckCircle2 className="mr-1 size-3.5" /> Assistido ativo
-            </Badge>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3 px-1">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary/70">Prioridade agora</p>
+            <h2 className="mt-1 font-display text-2xl font-black tracking-tight">O que realmente vamos usar</h2>
           </div>
-        </CardHeader>
-        <CardContent className="grid gap-3 p-5 sm:grid-cols-3">
-          <ReadinessItem
-            label="Add-on automático"
-            value={whatsapp.data?.automatic_entitled ? "Ativo" : "Não contratado"}
-            ready={Boolean(whatsapp.data?.automatic_entitled)}
-          />
-          <ReadinessItem
-            label="Provider"
-            value={providerLabel(whatsapp.data?.provider)}
-            ready={Boolean(whatsapp.data?.provider_connected)}
-          />
-          <ReadinessItem
-            label="Templates aprovados"
-            value={String(whatsapp.data?.templates_approved ?? 0)}
-            ready={(whatsapp.data?.templates_approved ?? 0) > 0}
-          />
-          <div className="sm:col-span-3 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              {whatsapp.isError
-                ? "Não foi possível consultar o estado do WhatsApp agora. Nenhum envio automático é liberado sem validação do backend."
-                : whatsapp.data?.ready_for_automatic
-                  ? "Infraestrutura pronta para envio automático. O worker do provider ainda precisa estar homologado antes de liberar disparos reais."
-                  : "Envio automático permanece bloqueado. O Comandiva não consome API paga enquanto os pré-requisitos acima não estiverem completos."}
-            </span>
-            <Button asChild variant="outline" className="shrink-0">
-              <Link to="/app/loja/whatsapp">Abrir central</Link>
+          <Badge variant="outline" className="hidden sm:inline-flex">Foco enxuto</Badge>
+        </div>
+
+        <PriorityModuleCard
+          number="1"
+          icon={MessageCircle}
+          accent="emerald"
+          title="WhatsApp da loja"
+          description="Canal principal para contato e atualizações automáticas dos pedidos."
+          label="Via Evolution API"
+          status={automaticEnabled ? "Ativo" : "Pronto"}
+          bullets={[
+            "Conexão por QR Code",
+            "Mensagens automáticas por status",
+            "Templates editáveis",
+            "Status de conexão ao vivo",
+          ]}
+          action={
+            automaticEnabled ? (
+              <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                <Link to="/app/loja/whatsapp">Gerenciar</Link>
+              </Button>
+            ) : canViewBilling ? (
+              <Button
+                type="button"
+                size="sm"
+                className="w-full bg-[#FF6A3D] text-white hover:bg-[#EE5A2D] sm:w-auto"
+                onClick={() => void startAutomaticCheckout()}
+                disabled={!canCheckout}
+              >
+                {checkout.isPending ? (
+                  <><Loader2 className="size-4 animate-spin" /> Abrindo…</>
+                ) : preflight.isLoading ? (
+                  <><Loader2 className="size-4 animate-spin" /> Validando…</>
+                ) : preflight.data?.ready ? (
+                  <><ExternalLink className="size-4" /> Contratar</>
+                ) : (
+                  "Indisponível"
+                )}
+              </Button>
+            ) : (
+              <Badge variant="outline">Somente proprietário</Badge>
+            )
+          }
+          note={!automaticEnabled && blocker ? blocker : undefined}
+        />
+
+        <PriorityModuleCard
+          number="2"
+          icon={Truck}
+          accent="green"
+          title="Entrega inteligente"
+          description="Organiza retirada, entrega, bairros e regras operacionais sem depender de API paga."
+          status="Pronto"
+          bullets={[
+            "Bairros e taxas",
+            "Entrega e retirada",
+            "Pedido mínimo",
+            "Previsão de entrega",
+          ]}
+          action={
+            <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+              <Link to="/app/loja/configuracoes/atendimento">Configurar</Link>
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          }
+        />
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border bg-muted/30">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="size-5 text-primary" /> E-mail transacional
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Outbox, idempotência e suppression já fazem parte do core. O envio real só entra com domínio próprio do Comandiva e provider validado.
-              </p>
-            </div>
-            <Badge variant={email.data?.ready_for_send ? "default" : "outline"}>
-              {email.data?.ready_for_send ? "Provider pronto" : "Envio bloqueado"}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-3 p-5 sm:grid-cols-4">
-          <ReadinessItem label="Core transacional" value={email.data?.transactional_core_ready ? "Pronto" : "Indisponível"} ready={Boolean(email.data?.transactional_core_ready)} />
-          <ReadinessItem label="API key" value={email.data?.api_key_configured ? "Configurada" : "Pendente"} ready={Boolean(email.data?.api_key_configured)} />
-          <ReadinessItem label="Domínio Comandiva" value={email.data?.domain_verified ? (email.data.sending_domain ?? "Verificado") : "Não configurado"} ready={Boolean(email.data?.domain_verified)} />
-          <ReadinessItem label="Webhook" value={email.data?.webhook_secret_configured ? "Configurado" : "Pendente"} ready={Boolean(email.data?.webhook_secret_configured)} />
-          <div className="sm:col-span-4 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground">
-            {email.isError
-              ? "Não foi possível consultar a infraestrutura de e-mail. O worker permanece bloqueado por segurança."
-              : email.data?.ready_for_send
-                ? "A infraestrutura do provider está pronta para o worker transacional."
-                : "Nenhum e-mail real será enviado enquanto o domínio próprio, a chave do provider e o webhook não estiverem validados. Domínios de outros projetos não são reutilizados."}
-          </div>
-        </CardContent>
-      </Card>
+        <PriorityModuleCard
+          number="3"
+          icon={UtensilsCrossed}
+          accent="purple"
+          title="Cardápio inteligente"
+          description="Melhora apresentação, disponibilidade e organização dos produtos."
+          status="Pronto"
+          bullets={[
+            "Categorias e combos",
+            "Adicionais e variações",
+            "Controle de disponibilidade",
+            "Destaques do cardápio",
+          ]}
+          action={
+            <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+              <Link to="/app/loja/cardapio">Abrir</Link>
+            </Button>
+          }
+        />
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border bg-muted/30">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2"><Bell className="size-5 text-primary" /> Push operacional · FCM</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">O backend de push já possui outbox, deduplicação, retry, invalidação de token e worker agendado. Nenhuma notificação é enviada sem o Firebase homologado.</p>
-            </div>
-            <Badge variant={push.data?.ready_for_send ? "default" : "outline"}>{push.data?.ready_for_send ? "Backend FCM pronto" : "FCM bloqueado"}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
-          <ReadinessItem label="Core Push" value={push.data?.push_core_ready ? "Pronto" : "Indisponível"} ready={Boolean(push.data?.push_core_ready)} />
-          <ReadinessItem label="Credencial Firebase" value={push.data?.credentials_configured ? "Configurada" : "Pendente"} ready={Boolean(push.data?.credentials_configured)} />
-          <ReadinessItem label="FCM HTTP v1" value={push.data?.cloud_messaging_api_enabled ? "Habilitada" : "Não validada"} ready={Boolean(push.data?.cloud_messaging_api_enabled)} />
-          <ReadinessItem label="Validate-only" value={push.data?.validate_only_verified ? "Validado" : "Pendente"} ready={Boolean(push.data?.validate_only_verified)} />
-          <ReadinessItem label="Tokens frescos" value={`${push.data?.fresh_tokens ?? 0} de ${push.data?.active_tokens ?? 0}`} ready={(push.data?.fresh_tokens ?? 0) > 0} />
-          <div className="sm:col-span-2 lg:col-span-5 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground">
-            {push.isError
-              ? "Não foi possível consultar o Firebase agora. O worker permanece fail-closed."
-              : push.data?.ready_for_send
-                ? "O backend FCM está homologado. A entrega no aparelho ainda depende do app nativo do entregador registrar um token real e tratar foreground/background/toque."
-                : "O worker e o gatilho de nova entrega já existem, mas permanecem sem envio real até configurar FIREBASE_PROJECT_ID e a conta de serviço correta. O shell Android do entregador também continua sendo um gate separado."}
-          </div>
-        </CardContent>
-      </Card>
+        <PriorityModuleCard
+          number="4"
+          icon={Percent}
+          accent="orange"
+          title="Cupons e campanhas"
+          description="Aumenta conversão com ações simples antes de partir para ferramentas caras."
+          status="Próxima fase"
+          bullets={[
+            "Cupom de desconto",
+            "Upsell no pedido",
+            "Combos promocionais",
+            "Campanhas por link",
+          ]}
+          action={<Button size="sm" variant="outline" disabled className="w-full sm:w-auto">Planejado</Button>}
+        />
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border bg-muted/30">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2"><MapPin className="size-5 text-primary" /> Entrega inteligente · ETA e rotas</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">Bairro continua como fallback gratuito. Coordenadas permitem estimativa local sem API; rotas reais entram somente com add-on e provider homologado.</p>
-            </div>
-            <Badge variant={smartDelivery.data?.ready_for_smart_routes ? "default" : "outline"}>{smartDelivery.data?.ready_for_smart_routes ? "Smart Delivery pronto" : "Fallback protegido"}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
-          <ReadinessItem label="ETA por bairro" value={`${smartDelivery.data?.static_neighborhood_count ?? 0} áreas`} ready={Boolean(smartDelivery.data?.static_neighborhood_eta_available)} />
-          <ReadinessItem label="Coordenada da loja" value={smartDelivery.data?.store_coordinates_set ? "Definida" : "Pendente"} ready={Boolean(smartDelivery.data?.store_coordinates_set)} />
-          <ReadinessItem label="Aproximação local" value={smartDelivery.data?.local_approximation_ready ? "Disponível" : "Aguardando localização"} ready={Boolean(smartDelivery.data?.local_approximation_ready)} />
-          <ReadinessItem label="Add-on Smart Delivery" value={smartDelivery.data?.smart_delivery_entitled ? "Ativo" : "Não contratado"} ready={Boolean(smartDelivery.data?.smart_delivery_entitled)} />
-          <ReadinessItem label="Google Routes" value={smartDelivery.data?.provider_ready ? "Homologado" : "Bloqueado"} ready={Boolean(smartDelivery.data?.provider_ready)} />
-          <div className="sm:col-span-2 lg:col-span-5 flex flex-col gap-3 rounded-2xl bg-muted/50 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              {smartDelivery.isError
-                ? "Não foi possível consultar o núcleo de rotas. O ETA por bairro continua funcionando e nenhuma API paga é chamada."
-                : smartDelivery.data?.ready_for_smart_routes
-                  ? "Loja, entitlement e provider estão prontos para rotas inteligentes. Chamadas do Google são medidas e limitadas; respostas Google não são persistidas em cache pelo Comandiva."
-                  : smartDelivery.data?.local_approximation_ready
-                    ? "A loja já pode usar distância e tempo aproximados sem custo de API. Google Routes permanece desligado até preço, billing e credencial serem homologados."
-                    : "O checkout continua usando ETA e taxa por bairro. Capture a localização da loja para habilitar a camada gratuita de aproximação sem alterar a cobrança do pedido."}
-            </span>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <Button asChild variant="outline"><Link to="/app/loja/smart-delivery">Abrir central</Link></Button>
-              <Button asChild variant="ghost"><Link to="/app/loja/configuracoes/endereco">Localização</Link></Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <PriorityModuleCard
+          number="5"
+          icon={Star}
+          accent="gold"
+          title="Fidelização e avaliações"
+          description="Trabalha pós-venda, reputação e recorrência sem complicar a operação."
+          status="Próxima fase"
+          bullets={[
+            "Pedir avaliação",
+            "Recuperar clientes",
+            "Pós-venda no WhatsApp",
+            "Base de clientes",
+          ]}
+          action={<Button size="sm" variant="outline" disabled className="w-full sm:w-auto">Planejado</Button>}
+        />
+      </section>
 
-      {addons.isLoading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">Carregando módulos...</div>
-      ) : addons.isError ? (
-        <Card><CardContent className="p-6 text-sm text-destructive">Não foi possível carregar os módulos agora.</CardContent></Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {(addons.data?.items ?? []).map((addon) => {
-            const Icon = ICONS[addon.code as keyof typeof ICONS] ?? Sparkles;
-            return (
-              <Card key={addon.code} className="overflow-hidden">
-                <CardHeader className="space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Icon className="size-5" /></div>
-                    <Badge variant={addon.availability_status === "available" ? "default" : "secondary"}>{statusLabel(addon.availability_status)}</Badge>
-                  </div>
-                  <div><CardTitle className="text-lg">{addon.name}</CardTitle><p className="mt-2 text-sm leading-6 text-muted-foreground">{addon.description}</p></div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">{billingLabel(addon.billing_model)}</Badge>
-                    {addon.subscription ? <Badge variant="outline">{subscriptionLabel(addon.subscription.status)}</Badge> : null}
-                  </div>
-                  <div className="rounded-2xl bg-muted/50 p-4">
-                    {addon.monthly_price ? (
-                      <>
-                        <p className="text-2xl font-black">{brl.format(addon.monthly_price.amount_cents / 100)}<span className="text-sm font-medium text-muted-foreground">/mês</span></p>
-                        {addon.monthly_price.included_units !== null ? <p className="mt-1 text-xs text-muted-foreground">Inclui {addon.monthly_price.included_units.toLocaleString("pt-BR")} unidades de uso.</p> : null}
-                      </>
-                    ) : <p className="text-sm font-semibold text-muted-foreground">{canViewBilling ? "Preço ainda não publicado" : "Informação comercial restrita ao proprietário"}</p>}
-                  </div>
-                  <AddonPurchaseReadiness storeId={storeId} addon={addon} canViewBilling={canViewBilling} />
-                </CardContent>
-              </Card>
-            );
-          })}
+      <section className="space-y-3">
+        <div className="px-1">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Fora do foco inicial</p>
+          <h2 className="mt-1 font-display text-xl font-black tracking-tight">O que saiu desta página</h2>
         </div>
-      )}
+        <Card className="border-dashed shadow-none">
+          <CardContent className="space-y-3 p-4 sm:p-5">
+            <div className="flex flex-wrap gap-2">
+              {[
+                "E-mail transacional complexo",
+                "Ads",
+                "Marketing Pro",
+                "Fiscal automatizado",
+                "IA paga sem limite",
+              ].map((item) => (
+                <Badge key={item} variant="outline" className="bg-muted/30 font-medium text-muted-foreground">
+                  × {item}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-sm leading-5 text-muted-foreground">
+              Esses itens não somem do roadmap. Eles apenas deixam de competir por atenção enquanto o núcleo que já gera valor ainda está sendo consolidado.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 shadow-[0_-10px_30px_rgba(43,20,58,0.08)] backdrop-blur sm:static sm:rounded-2xl sm:border sm:p-4 sm:shadow-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-xs font-semibold text-muted-foreground">
+              {automaticEnabled ? "Automático já habilitado" : "Plano recomendado: Automático"}
+            </p>
+            {canViewBilling ? (
+              <p className="font-display text-xl font-black tracking-tight">
+                {monthlyPrice}<span className="ml-1 text-xs font-semibold text-muted-foreground">/mês</span>
+              </p>
+            ) : null}
+          </div>
+
+          {automaticEnabled ? (
+            <Button asChild className="shrink-0 bg-[#FF6A3D] text-white hover:bg-[#EE5A2D]">
+              <Link to="/app/loja/whatsapp"><MessageCircle className="size-4" /> Abrir WhatsApp</Link>
+            </Button>
+          ) : canViewBilling ? (
+            <Button
+              type="button"
+              className="shrink-0 bg-[#FF6A3D] text-white hover:bg-[#EE5A2D]"
+              disabled={!canCheckout}
+              onClick={() => void startAutomaticCheckout()}
+            >
+              {checkout.isPending ? (
+                <><Loader2 className="size-4 animate-spin" /> Abrindo…</>
+              ) : preflight.isLoading ? (
+                <><Loader2 className="size-4 animate-spin" /> Validando…</>
+              ) : preflight.data?.ready ? (
+                <><Zap className="size-4" /> Ativar automações</>
+              ) : (
+                "Compra indisponível"
+              )}
+            </Button>
+          ) : (
+            <Button type="button" disabled className="shrink-0">Somente proprietário</Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function ReadinessItem({ label, value, ready }: { label: string; value: string; ready: boolean }) {
+function HeroMetric({
+  icon: Icon,
+  label,
+  detail,
+}: {
+  icon: typeof Star;
+  label: string;
+  detail: string;
+}) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
-      <p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">{label}</p>
-      <div className="mt-2 flex items-center gap-2">
-        <span className={`size-2.5 rounded-full ${ready ? "bg-success" : "bg-muted-foreground/40"}`} />
-        <p className="font-semibold text-foreground">{value}</p>
-      </div>
+    <div className="rounded-2xl border border-white/15 bg-white/[0.08] px-3 py-3 text-center backdrop-blur-sm">
+      <Icon className="mx-auto size-5 text-[#FFC286]" />
+      <p className="mt-2 text-xs font-black leading-4 text-white">{label}</p>
+      <p className="text-[10px] font-semibold text-white/55">{detail}</p>
     </div>
+  );
+}
+
+type Accent = "emerald" | "green" | "purple" | "orange" | "gold";
+
+const accentStyles: Record<Accent, { border: string; icon: string; dot: string }> = {
+  emerald: {
+    border: "border-l-emerald-500",
+    icon: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    dot: "bg-emerald-500",
+  },
+  green: {
+    border: "border-l-green-500",
+    icon: "bg-green-500/10 text-green-700 dark:text-green-300",
+    dot: "bg-green-500",
+  },
+  purple: {
+    border: "border-l-violet-500",
+    icon: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    dot: "bg-violet-500",
+  },
+  orange: {
+    border: "border-l-orange-500",
+    icon: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
+    dot: "bg-orange-500",
+  },
+  gold: {
+    border: "border-l-amber-500",
+    icon: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    dot: "bg-amber-500",
+  },
+};
+
+function PriorityModuleCard({
+  number,
+  icon: Icon,
+  accent,
+  title,
+  description,
+  label,
+  status,
+  bullets,
+  action,
+  note,
+}: {
+  number: string;
+  icon: typeof MessageCircle;
+  accent: Accent;
+  title: string;
+  description: string;
+  label?: string;
+  status: "Pronto" | "Ativo" | "Próxima fase";
+  bullets: string[];
+  action: React.ReactNode;
+  note?: string;
+}) {
+  const styles = accentStyles[accent];
+  const ready = status === "Pronto" || status === "Ativo";
+
+  return (
+    <Card className={`overflow-hidden border-l-4 ${styles.border} shadow-sm`}>
+      <CardContent className="p-4 sm:p-5">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(250px,0.9fr)_auto] lg:items-center">
+          <div className="flex min-w-0 gap-3 sm:gap-4">
+            <div className="flex shrink-0 flex-col items-center gap-2">
+              <span className="grid size-7 place-items-center rounded-full bg-muted text-xs font-black text-muted-foreground">{number}</span>
+              <div className={`grid size-11 place-items-center rounded-2xl ${styles.icon}`}>
+                <Icon className="size-5" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-display text-lg font-black tracking-tight">{title}</h3>
+                {label ? <Badge variant="outline" className="text-[10px]">{label}</Badge> : null}
+              </div>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+              {note ? (
+                <p className="mt-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-xs leading-4 text-amber-800 dark:text-amber-300">
+                  {note}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <ul className="grid gap-1.5 pl-10 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-1 lg:pl-0">
+            {bullets.map((bullet) => (
+              <li key={bullet} className="flex items-start gap-2">
+                <span className={`mt-2 size-1.5 shrink-0 rounded-full ${styles.dot}`} />
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-col gap-2 pl-10 sm:flex-row sm:items-center sm:justify-between lg:pl-0 lg:flex-col lg:items-end">
+            <Badge
+              variant="outline"
+              className={
+                ready
+                  ? "border-emerald-500/25 bg-emerald-500/[0.08] text-emerald-700 dark:text-emerald-300"
+                  : "border-orange-500/25 bg-orange-500/[0.08] text-orange-700 dark:text-orange-300"
+              }
+            >
+              {ready ? <CheckCircle2 className="mr-1 size-3.5" /> : <Clock3 className="mr-1 size-3.5" />}
+              {status}
+            </Badge>
+            {action}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
