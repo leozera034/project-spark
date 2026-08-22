@@ -14,6 +14,8 @@ export function useStoreWhatsAppConsentSummary(storeId: string | null) {
     queryKey: ["store-growth", storeId, "whatsapp-consent-summary"],
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -32,7 +34,10 @@ export function useStoreWhatsAppMessageHistory(storeId: string | null, limit = 5
     queryKey: ["store-growth", storeId, "whatsapp-history", limit],
     queryFn: () => fn({ data: { storeId: storeId!, limit } }),
     enabled: Boolean(storeId),
-    refetchInterval: 30_000,
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 }
 
@@ -43,5 +48,6 @@ export function useStoreWhatsAppUsage(storeId: string | null) {
     queryFn: () => fn({ data: { storeId: storeId! } }),
     enabled: Boolean(storeId),
     refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 }
