@@ -178,26 +178,24 @@ function StorefrontPage() {
         </div>
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="-mt-[54px] flex min-w-0 items-end gap-4 sm:-mt-[62px] sm:gap-5">
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <StorefrontIdentityMark
-                segment={profile}
-                storeName={store.name}
-                logoUrl={settings.logo_url}
-              />
-            </div>
-            <div className="min-w-0 pb-2.5 sm:pb-3">
-              <h1 className="line-clamp-2 text-[clamp(1.65rem,6vw,2.35rem)] font-black leading-[1.02] tracking-[-0.035em] text-foreground">
-                {store.name}
-              </h1>
-              <p className="mt-1 truncate text-sm font-medium text-muted-foreground sm:text-base">
-                {store.segment ? `${store.segment} · ` : ""}
-                {store.city}/{store.state}
-              </p>
-            </div>
+          <div className="-mt-[54px] w-fit shrink-0 animate-in fade-in slide-in-from-bottom-2 duration-300 sm:-mt-[62px]">
+            <StorefrontIdentityMark
+              segment={profile}
+              storeName={store.name}
+              logoUrl={settings.logo_url}
+            />
+          </div>
+          <div className="mt-3 min-w-0">
+            <h1 className="line-clamp-2 text-[clamp(1.65rem,6vw,2.35rem)] font-black leading-[1.02] tracking-[-0.035em] text-foreground">
+              {store.name}
+            </h1>
+            <p className="mt-1 truncate text-sm font-medium text-muted-foreground sm:text-base">
+              {store.segment ? `${store.segment} · ` : ""}
+              {store.city}/{store.state}
+            </p>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center gap-2.5">
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
             <span
               className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold shadow-[0_5px_14px_rgba(40,24,15,.04)] ${
                 isOpen
