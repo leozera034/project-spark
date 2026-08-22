@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, MapPin, Phone, Store } from "lucide-react";
+import { ArrowLeft, Banknote, Check, CreditCard, MapPin, Phone, Store } from "lucide-react";
 
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { brl } from "@/components/storefront/format";
@@ -72,6 +72,8 @@ function CheckoutPage() {
   }, [slug, fulfillmentType]);
 
   const selectedMethod = useMemo(() => methods?.find((method) => method.id === methodId) ?? null, [methods, methodId]);
+  const onlineMethods = useMemo(() => methods?.filter((method) => method.processingMode === "online") ?? [], [methods]);
+  const manualMethods = useMemo(() => methods?.filter((method) => method.processingMode !== "online") ?? [], [methods]);
   const phoneFilled = phone.trim().length > 0;
   const phoneValid = !phoneFilled || normalizePhone(phone) !== null;
   const changeValue = changeFor.trim() ? Number(changeFor.replace(",", ".")) : null;
@@ -160,6 +162,8 @@ function CheckoutPage() {
         fulfillmentType: context.type,
         paymentLabel: selectedMethod.displayName,
         paymentInstructions: selectedMethod.publicInstructions,
+        paymentKind: selectedMethod.kind,
+        paymentProcessingMode: selectedMethod.processingMode,
         createdAt,
       });
       saveReorderDraft(slug, {
@@ -193,6 +197,12 @@ function CheckoutPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function selectMethod(method: PublicPaymentMethod) {
+    setMethodId(method.id);
+    setNeedsChange(false);
+    setChangeFor("");
   }
 
   return (
@@ -260,20 +270,43 @@ function CheckoutPage() {
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
           <h2 className="text-lg font-extrabold">Como você quer pagar?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Escolha a forma de pagamento disponível para este pedido.</p>
-          <div className="mt-4 space-y-3">
-            {methods === null ? <><Skeleton className="h-16 rounded-2xl" /><Skeleton className="h-16 rounded-2xl" /></> : methods.length === 0 ? (
-              <p className="rounded-2xl bg-muted p-4 text-sm">A loja ainda não publicou formas de pagamento para esta modalidade.</p>
-            ) : methods.map((method) => {
-              const selected = method.id === methodId;
-              return (
-                <button key={method.id} type="button" aria-pressed={selected} onClick={() => { setMethodId(method.id); setNeedsChange(false); setChangeFor(""); }} className={`flex min-h-[64px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition active:scale-[.99] ${selected ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "bg-background hover:bg-muted/40"}`}>
-                  <div className="min-w-0"><p className="font-bold">{method.displayName}</p>{method.publicInstructions ? <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{method.publicInstructions}</p> : null}</div>
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${selected ? "border-brand bg-brand text-white" : ""}`}>{selected ? <Check className="size-4" /> : null}</span>
-                </button>
-              );
-            })}
-          </div>
+          <p className="mt-1 text-sm text-muted-foreground">Escolha entre pagamento online, quando a loja oferece, ou pagamento direto à loja.</p>
+
+          {methods === null ? (
+            <div className="mt-4 space-y-3"><Skeleton className="h-20 rounded-2xl" /><Skeleton className="h-20 rounded-2xl" /></div>
+          ) : methods.length === 0 ? (
+            <p className="mt-4 rounded-2xl bg-muted p-4 text-sm">A loja ainda não publicou formas de pagamento para esta modalidade.</p>
+          ) : (
+            <div className="mt-5 space-y-6">
+              {onlineMethods.length > 0 ? (
+                <div>
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="grid size-8 place-items-center rounded-xl bg-brand-soft text-brand"><CreditCard className="size-4" /></span>
+                    <h3 className="font-extrabold">Pague agora</h3>
+                    <Badge variant="success">Confirmação automática</Badge>
+                  </div>
+                  <p className="mb-3 text-xs leading-relaxed text-muted-foreground">Depois de enviar o pedido, você será direcionado ao ambiente seguro da Stripe para concluir o pagamento.</p>
+                  <div className="space-y-3">
+                    {onlineMethods.map((method) => <PaymentOption key={method.id} method={method} selected={method.id === methodId} onSelect={() => selectMethod(method)} />)}
+                  </div>
+                </div>
+              ) : null}
+
+              {manualMethods.length > 0 ? (
+                <div>
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="grid size-8 place-items-center rounded-xl bg-muted text-foreground"><Banknote className="size-4" /></span>
+                    <h3 className="font-extrabold">Pague direto à loja</h3>
+                    <Badge variant="outline">Loja confirma</Badge>
+                  </div>
+                  <p className="mb-3 text-xs leading-relaxed text-muted-foreground">Pix direto, dinheiro e maquininha não são confirmados pela Comandiva. A própria loja verifica o recebimento.</p>
+                  <div className="space-y-3">
+                    {manualMethods.map((method) => <PaymentOption key={method.id} method={method} selected={method.id === methodId} onSelect={() => selectMethod(method)} />)}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
 
           {selectedMethod?.requiresChange ? (
             <div className="mt-4 rounded-2xl bg-muted/40 p-4">
@@ -282,7 +315,7 @@ function CheckoutPage() {
                 <Button type="button" variant={!needsChange ? "default" : "outline"} className="min-h-12 rounded-xl" onClick={() => { setNeedsChange(false); setChangeFor(""); }}>Não</Button>
                 <Button type="button" variant={needsChange ? "default" : "outline"} className="min-h-12 rounded-xl" onClick={() => setNeedsChange(true)}>Sim</Button>
               </div>
-              {needsChange ? <div className="mt-3"><Label htmlFor="troco">Troco para quanto?</Label><Input id="troco" inputMode="decimal" placeholder={`Ex.: ${Math.ceil(cart.total / 10) * 10}`} value={changeFor} onChange={(e) => setChangeFor(e.target.value)} className="mt-2 min-h-14 rounded-xl text-lg" />{!changeValid ? <p role="alert" className="mt-2 text-sm text-destructive">O valor precisa ser igual ou maior que {brl(cart.total)}.</p> : null}</div> : null}
+              {needsChange ? <div className="mt-3"><Label htmlFor="troco">Troco para quanto?</Label><Input id="troco" inputMode="decimal" placeholder={`Ex.: ${Math.ceil(cart.total / 10) * 10}`} value={changeFor} onChange={(event) => setChangeFor(event.target.value)} className="mt-2 min-h-14 rounded-xl text-lg" />{!changeValid ? <p role="alert" className="mt-2 text-sm text-destructive">O valor precisa ser igual ou maior que {brl(cart.total)}.</p> : null}</div> : null}
             </div>
           ) : null}
         </section>
@@ -305,11 +338,28 @@ function CheckoutPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-14px_34px_rgba(58,35,24,.08)] backdrop-blur-xl">
         <div className="mx-auto max-w-2xl">
           <Button className={`w-full ${BIG_BUTTON}`} disabled={!canSubmit} loading={submitting} loadingLabel="Enviando pedido" onClick={() => void submit()}>
-            {submitting ? "Enviando pedido…" : `Enviar pedido · ${brl(cart.total)}`}
+            {submitting ? "Enviando pedido…" : selectedMethod?.processingMode === "online" ? `Continuar para pagamento · ${brl(cart.total)}` : `Enviar pedido · ${brl(cart.total)}`}
           </Button>
-          {submitHint ? <p className="mt-2 text-center text-xs font-medium text-muted-foreground" aria-live="polite">{submitHint}</p> : <p className="mt-2 text-center text-[11px] text-muted-foreground">Ao enviar, a loja recebe o pedido imediatamente para confirmação.</p>}
+          {submitHint ? <p className="mt-2 text-center text-xs font-medium text-muted-foreground" aria-live="polite">{submitHint}</p> : selectedMethod?.processingMode === "online" ? <p className="mt-2 text-center text-[11px] text-muted-foreground">O pedido será criado e o pagamento continuará no ambiente seguro da Stripe.</p> : <p className="mt-2 text-center text-[11px] text-muted-foreground">A loja recebe o pedido e fica responsável por confirmar o pagamento direto.</p>}
         </div>
       </div>
     </main>
+  );
+}
+
+function PaymentOption({ method, selected, onSelect }: { method: PublicPaymentMethod; selected: boolean; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={`flex min-h-[72px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition active:scale-[.99] ${selected ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "bg-background hover:bg-muted/40"}`}
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2"><p className="font-bold">{method.displayName}</p>{method.processingMode === "online" ? <Badge variant="brandSoft">Online</Badge> : null}</div>
+        {method.publicInstructions ? <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{method.publicInstructions}</p> : null}
+      </div>
+      <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${selected ? "border-brand bg-brand text-white" : ""}`}>{selected ? <Check className="size-4" /> : null}</span>
+    </button>
   );
 }
