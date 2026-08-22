@@ -1,5 +1,5 @@
 :8080 {
-  header X-Comandiva-Gateway "jwt-v1"
+  header X-Comandiva-Gateway "basic-v1"
 
   @health path /
   handle @health {
@@ -16,11 +16,8 @@
   }
 
   handle {
-    forward_auth https://ypgteuxzgqmkkkpvibhi.supabase.co {
-      uri /functions/v1/comandiva-evolution-gateway-auth
-      header_up Authorization {http.request.header.Authorization}
-      header_up X-Comandiva-Store-Id {http.request.header.X-Comandiva-Store-Id}
-      header_up X-Legacy-Evolution-Key {http.request.header.apikey}
+    basic_auth {
+      comandiva $2a$10$Pny573sPRZLovayRs9qUB.2c6p/TJMx3776mkNWatum4LDKWnq/ty
     }
 
     reverse_proxy evolution:8080 {
