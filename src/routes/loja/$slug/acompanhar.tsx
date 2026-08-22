@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Check, Clock, MapPin, RefreshCw, Store } from "lucide-react";
 
+import { OrderReviewCard } from "@/components/storefront/OrderReviewCard";
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -148,6 +149,7 @@ function TrackingPage() {
       </section>
 
       <OrderSummary data={data} />
+      {data.status.isSuccessful ? <OrderReviewCard token={token} fulfillment={data.fulfillment.type} /> : null}
 
       {data.store.publicWhatsapp || data.store.publicPhone ? <p className="mt-4 break-words text-xs text-muted-foreground">Precisa falar com a loja? {data.store.publicWhatsapp ?? data.store.publicPhone}</p> : null}
 
