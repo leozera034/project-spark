@@ -127,6 +127,9 @@ jobs:
       - name: Run store support contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_support_contract.sql
+      - name: Run admin RPC negative access contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/admin_new_rpc_access_contract.sql
       - name: Run operational invariants
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/data_invariants.sql
