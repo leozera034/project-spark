@@ -81,10 +81,17 @@ nohup python3 "$CONFIG_SERVER" "$ENV_FILE" >/dev/null 2>&1 &
 echo $! >"$CONFIG_PID_FILE"
 chmod 600 "$CONFIG_PID_FILE"
 
-echo "[Comandiva] Reiniciando Evolution API QA (Baileys rc13)..."
-docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
-if ! docker compose -f "$COMPOSE_FILE" up -d --build --force-recreate; then
-  echo "[Comandiva] ERRO: falha ao construir/iniciar a Evolution QA."
+echo "[Comandiva] Preparando Evolution API QA (Baileys rc13)..."
+# Build first. Do not tear down a working stack before we know the patched image builds.
+if ! docker compose -f "$COMPOSE_FILE" build evolution; then
+  echo "[Comandiva] ERRO: falha ao construir a imagem da Evolution QA."
+  echo "[Comandiva] A versão publicada correta é Baileys 7.0.0-rc13."
+  docker compose -f "$COMPOSE_FILE" ps || true
+  exit 1
+fi
+
+if ! docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans; then
+  echo "[Comandiva] ERRO: falha ao iniciar a Evolution QA."
   docker compose -f "$COMPOSE_FILE" ps || true
   exit 1
 fi
@@ -108,8 +115,8 @@ for attempt in $(seq 1 90); do
     fi
 
     BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution node -e 'const fs=require("fs");try{const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));process.stdout.write(p.version||"")}catch(e){process.exit(1)}' 2>/dev/null || true)"
-    if [[ "$BAILEYS_VERSION" != "7.0.0-rc.13" ]]; then
-      echo "[Comandiva] ERRO: Baileys esperado rc.13, encontrado '${BAILEYS_VERSION:-desconhecido}'."
+    if [[ "$BAILEYS_VERSION" != "7.0.0-rc13" ]]; then
+      echo "[Comandiva] ERRO: Baileys esperado 7.0.0-rc13, encontrado '${BAILEYS_VERSION:-desconhecido}'."
       exit 1
     fi
 
