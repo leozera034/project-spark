@@ -1,5 +1,12 @@
 export type AnalyticsConsent = "accepted" | "rejected" | "unset";
 
+type MetaPixelFn = ((...args: unknown[]) => void) & {
+  callMethod?: (...args: unknown[]) => void;
+  queue?: unknown[];
+  loaded?: boolean;
+  version?: string;
+};
+
 export const ANALYTICS_CONSENT_KEY = "comandiva.analytics-consent.v1";
 
 const gaMeasurementId = (import.meta.env.VITE_GA_MEASUREMENT_ID ?? "").trim();
@@ -11,8 +18,8 @@ declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
-    fbq?: ((...args: unknown[]) => void) & { callMethod?: (...args: unknown[]) => void; queue?: unknown[]; loaded?: boolean; version?: string };
-    _fbq?: Window["fbq"];
+    fbq?: MetaPixelFn;
+    _fbq?: MetaPixelFn;
   }
 }
 
@@ -25,6 +32,13 @@ export function readAnalyticsConsent(): AnalyticsConsent {
 export function writeAnalyticsConsent(value: Exclude<AnalyticsConsent, "unset">) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(ANALYTICS_CONSENT_KEY, value);
+}
+
+export function reopenAnalyticsPreferences() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(ANALYTICS_CONSENT_KEY);
+  // Reload removes third-party scripts from memory when someone revokes a previous acceptance.
+  window.location.reload();
 }
 
 function injectScript(id: string, src: string) {
@@ -51,11 +65,10 @@ function initGa4() {
 
 function initMetaPixel() {
   if (!metaPixelId || window.fbq) return;
-  const fbq = ((...args: unknown[]) => {
+  const fbq: MetaPixelFn = (...args: unknown[]) => {
     if (fbq.callMethod) fbq.callMethod(...args);
     else fbq.queue?.push(args);
-  }) as Window["fbq"];
-  if (!fbq) return;
+  };
   fbq.queue = [];
   fbq.loaded = true;
   fbq.version = "2.0";
