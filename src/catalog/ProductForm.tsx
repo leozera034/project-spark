@@ -151,11 +151,12 @@ export function ProductForm({
                 onChange={(e) => set("name", e.target.value)}
                 placeholder="Ex.: Refrigerante lata 350ml"
               />
-              {touched && nameInvalid ? (
-                <p role="alert" className="text-xs text-destructive">
-                  Use entre 2 e 80 caracteres.
-                </p>
-              ) : null}
+              <div className="flex items-start justify-between gap-3 text-xs">
+                <span className={touched && nameInvalid ? "text-destructive" : "text-muted-foreground"}>
+                  {touched && nameInvalid ? "Use entre 2 e 80 caracteres." : "Use um nome curto e fácil de reconhecer."}
+                </span>
+                <span className="shrink-0 tabular-nums text-muted-foreground">{values.name.length}/80</span>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -166,7 +167,9 @@ export function ProductForm({
                 maxLength={500}
                 rows={4}
                 onChange={(e) => set("description", e.target.value)}
+                placeholder="Destaque ingredientes, tamanho, acompanhamentos ou o que torna este item especial."
               />
+              <p className="text-right text-xs tabular-nums text-muted-foreground">{values.description.length}/500</p>
             </div>
 
             <div className="flex items-center gap-2 pt-1">
@@ -179,7 +182,7 @@ export function ProductForm({
             </div>
           </FormSection>
 
-          <FormSection title="Preço" description="Valor cobrado por unidade do produto.">
+          <FormSection title="Preço" description="Valor principal usado para apresentar e calcular o produto.">
             <div className="space-y-1.5">
               <Label htmlFor="prod-preco">
                 Preço
@@ -196,8 +199,8 @@ export function ProductForm({
               />
               <p className="text-xs text-muted-foreground">
                 {price !== null && price > 0
-                  ? `O cliente verá ${formatPriceBRL(price)}`
-                  : "Informe o valor cobrado por unidade."}
+                  ? `O cliente verá ${formatPriceBRL(price)} como preço base.`
+                  : "Informe um valor válido maior que zero."}
               </p>
               {touched && priceInvalid ? (
                 <p role="alert" className="text-xs text-destructive">
@@ -212,29 +215,17 @@ export function ProductForm({
               title="Disponibilidade"
               description="Controle se o produto aparece e como aparece para o cliente."
             >
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="prod-ativo"
-                  checked={values.isActive}
-                  onCheckedChange={(v) => set("isActive", Boolean(v))}
-                />
-                <Label htmlFor="prod-ativo">Publicar no cardápio</Label>
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
+                <div><Label htmlFor="prod-ativo">Publicar no cardápio</Label><p className="mt-0.5 text-xs text-muted-foreground">Desative para esconder o item sem apagar o histórico.</p></div>
+                <Switch id="prod-ativo" checked={values.isActive} onCheckedChange={(v) => set("isActive", Boolean(v))} />
               </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="prod-destaque"
-                  checked={values.isFeatured}
-                  onCheckedChange={(v) => set("isFeatured", Boolean(v))}
-                />
-                <Label htmlFor="prod-destaque">Marcar como destaque</Label>
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
+                <div><Label htmlFor="prod-destaque">Marcar como destaque</Label><p className="mt-0.5 text-xs text-muted-foreground">Ajuda o cliente a identificar itens importantes.</p></div>
+                <Switch id="prod-destaque" checked={values.isFeatured} onCheckedChange={(v) => set("isFeatured", Boolean(v))} />
               </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="prod-esgotado"
-                  checked={values.isSoldOut}
-                  onCheckedChange={(v) => set("isSoldOut", Boolean(v))}
-                />
-                <Label htmlFor="prod-esgotado">Já iniciar como esgotado</Label>
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
+                <div><Label htmlFor="prod-esgotado">Iniciar como esgotado</Label><p className="mt-0.5 text-xs text-muted-foreground">O item continua visível, mas não pode ser adicionado ao pedido.</p></div>
+                <Switch id="prod-esgotado" checked={values.isSoldOut} onCheckedChange={(v) => set("isSoldOut", Boolean(v))} />
               </div>
             </FormSection>
           ) : null}
@@ -252,29 +243,28 @@ export function ProductForm({
         <Card className="h-fit lg:sticky lg:top-6">
           <CardHeader>
             <CardTitle className="text-base">Prévia no cardápio</CardTitle>
-            <CardDescription>Como o item aparece para o cliente.</CardDescription>
+            <CardDescription>Uma aproximação de como o item será entendido pelo cliente.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border border-border bg-surface p-4">
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
               <div className="flex flex-wrap items-center gap-1.5">
-                {categoryName ? (
-                  <span className="text-xs font-medium text-muted-foreground">{categoryName}</span>
-                ) : null}
-                {values.isFeatured ? <Badge>Destaque</Badge> : null}
+                {categoryName ? <span className="text-xs font-medium text-muted-foreground">{categoryName}</span> : null}
+                {!values.isActive ? <Badge variant="secondary">Oculto</Badge> : null}
+                {values.isFeatured ? <Badge variant="brand">Destaque</Badge> : null}
                 {values.isSoldOut ? <Badge variant="destructive">Esgotado</Badge> : null}
               </div>
-              <p className="mt-2 font-display font-medium text-foreground">
+              <p className="mt-2 font-display font-bold text-foreground">
                 {values.name.trim() || "Nome do produto"}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {values.description.trim() || "A descrição aparece aqui para o cliente."}
+              <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                {values.description.trim() || "A descrição aparece aqui para ajudar o cliente a decidir."}
               </p>
-              <p className="mt-3 text-lg font-semibold text-foreground">
+              <p className="mt-3 text-lg font-black text-brand">
                 {price !== null && price > 0 ? formatPriceBRL(price) : "R$ 0,00"}
               </p>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Esta prévia é apenas interna. A vitrine pública do cliente chega em fase posterior.
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">
+              Depois de salvar, use “Ver como cliente” na área do Cardápio para conferir a publicação real, inclusive foto, opções e disponibilidade.
             </p>
           </CardContent>
         </Card>
@@ -290,12 +280,7 @@ export function ProductForm({
           >
             {submitting ? "Salvando…" : submitLabel}
           </Button>
-          <Button
-            variant="ghost"
-            className="min-h-11"
-            onClick={onCancel}
-            disabled={submitting}
-          >
+          <Button variant="ghost" className="min-h-11" onClick={onCancel} disabled={submitting}>
             Cancelar
           </Button>
         </div>
