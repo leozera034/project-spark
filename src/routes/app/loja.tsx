@@ -29,13 +29,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BrandLogo, BrandSymbol } from "@/components/brand/BrandLogo";
 import { BillingStatusBanner } from "@/components/store/BillingStatusBanner";
+import { NewOrderAlertControl } from "@/components/store/NewOrderAlertControl";
 import { AUTH_ROUTES } from "@/auth/auth.routes";
 import { RequireAuth, RequireEnvironment, RequirePasswordChangeCompleted } from "@/auth/guards";
 import { useAuth } from "@/auth/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useStoreBillingAccess } from "@/store/billing/store-billing.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
-import { useOrderCounts } from "@/store-orders/useStoreOrders";
+import { useOrderCounts, useOrderRealtime } from "@/store-orders/useStoreOrders";
 import { fetchOperationalPreview } from "@/store-config/api";
 import { cn } from "@/lib/utils";
 
@@ -102,6 +103,7 @@ function StoreAppLayout() {
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const billingQuery = useStoreBillingAccess(scope.storeId);
   const countsQuery = useOrderCounts(scope.storeId, Boolean(scope.storeId));
+  useOrderRealtime(scope.storeId, "shell");
   const operationalQuery = useQuery({
     queryKey: ["store-shell", "operational", scope.storeId],
     queryFn: () => fetchOperationalPreview(scope.storeId as string),
@@ -133,6 +135,11 @@ function StoreAppLayout() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [mobileMoreOpen, mobileNavOpen]);
+
+  useEffect(() => {
+    const base = `${currentItem.label} | Comandiva`;
+    document.title = newOrders > 0 ? `(${newOrders}) ${base}` : base;
+  }, [currentItem.label, newOrders]);
 
   const handleSignOut = () => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.storeSignIn as never }));
 
@@ -250,6 +257,7 @@ function StoreAppLayout() {
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
             {operationalQuery.data ? <Badge variant={operationalQuery.data.is_open ? "success" : "secondary"} className="hidden lg:inline-flex" aria-live="polite">{operationalQuery.data.is_open ? "Loja aberta" : "Loja fechada"}</Badge> : null}
             <StoreSwitcher />
+            <NewOrderAlertControl count={newOrders} />
             <ThemeToggle />
             <div className="hidden min-w-0 border-l border-border pl-3 xl:block"><p className="max-w-36 truncate text-xs font-bold text-foreground">{authContext?.full_name ?? "Equipe"}</p><p className="text-[10px] text-muted-foreground">Equipe da loja</p></div>
             <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sair" className="shrink-0 text-muted-foreground hover:text-foreground"><LogOut className="size-4" /></Button>
