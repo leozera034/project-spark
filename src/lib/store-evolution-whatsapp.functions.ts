@@ -37,6 +37,9 @@ export interface EvolutionWhatsAppActionResult {
   qrCode?: string | null;
   sent?: boolean;
   providerMessageId?: string;
+  recovered?: boolean;
+  repairRequired?: boolean;
+  reasonCode?: number | null;
 }
 
 const storeSchema = z.object({ storeId: z.string().uuid() });
@@ -100,6 +103,9 @@ async function invokeEvolution(
     qrCode: z.string().max(20_000).nullable().optional(),
     sent: z.boolean().optional(),
     providerMessageId: z.string().max(512).optional(),
+    recovered: z.boolean().optional(),
+    repairRequired: z.boolean().optional(),
+    reasonCode: z.number().nullable().optional(),
   }).safeParse(result.data);
   if (!parsed.success) throw new Error("EVOLUTION_OPERATION_FAILED");
   return parsed.data;
