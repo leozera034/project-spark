@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Clock3, MessageCircle, Pencil, RefreshCw, Send, Users } from "lucide-react";
+import { ArrowLeft, Clock3, MessageCircle, Pencil, RefreshCw, Send, Sparkles, Users } from "lucide-react";
 
+import { WhatsAppAutomationControlCard } from "@/components/store/WhatsAppAutomationControlCard";
 import { WhatsAppEvolutionConnectionCard } from "@/components/store/WhatsAppEvolutionConnectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,18 @@ function providerLabel(provider: string | null | undefined) {
   return "WhatsApp";
 }
 
+function messageStatusLabel(status: string) {
+  if (status === "queued") return "Na fila";
+  if (status === "sending") return "Enviando";
+  if (status === "sent") return "Enviada";
+  if (status === "delivered") return "Entregue";
+  if (status === "read") return "Lida";
+  if (status === "failed") return "Falhou";
+  if (status === "cancelled") return "Cancelada";
+  if (status === "blocked") return "Bloqueada";
+  return status;
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
@@ -75,7 +88,7 @@ function WhatsAppCenter() {
   const templates = useStoreMessageTemplates(storeId);
   const consentSummary = useStoreWhatsAppConsentSummary(storeId);
   const usage = useStoreWhatsAppUsage(storeId);
-  const history = useStoreWhatsAppMessageHistory(storeId, 8);
+  const history = useStoreWhatsAppMessageHistory(storeId, 12);
   const actions = useStoreWhatsAppActions();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,6 +105,7 @@ function WhatsAppCenter() {
   }
 
   const isEvolution = readiness.data?.provider === "evolution_api";
+  const automaticEntitled = Boolean(readiness.data?.automatic_entitled);
   const canUseMetaTemplates = Boolean(
     readiness.data?.automatic_entitled
       && readiness.data?.provider_connected
@@ -99,6 +113,7 @@ function WhatsAppCenter() {
   );
   const templateBusy = actions.saveTemplate.isPending || actions.submitTemplate.isPending;
   const usedMessages = (usage.data?.items ?? []).reduce((sum, item) => sum + Number(item.quantity ?? 0), 0);
+  const recentFailed = (history.data ?? []).filter((item) => item.status === "failed").length;
 
   const resetForm = () => {
     setEditingId(null);
@@ -149,7 +164,7 @@ function WhatsAppCenter() {
       resetForm();
 
       if (isEvolution) {
-        setTemplateNotice("Template salvo.");
+        setTemplateNotice("Template salvo. Ele já pode ser usado nas automações locais.");
         return;
       }
       if (!canUseMetaTemplates) {
@@ -180,34 +195,39 @@ function WhatsAppCenter() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5 sm:px-6 lg:px-8">
-      <Link to="/app/loja/modulos" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+    <div className="mx-auto w-full max-w-5xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-6 sm:py-5 lg:px-8">
+      <Link to="/app/loja/modulos" className="inline-flex items-center gap-2 px-1 text-sm font-semibold text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Voltar para módulos
       </Link>
 
-      <header className="rounded-[24px] bg-[#4B1D6D] p-5 text-white shadow-e2 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <header className="overflow-hidden rounded-[22px] bg-[#4B1D6D] p-4 text-white shadow-e2 sm:rounded-[24px] sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <div className="mb-2 inline-flex items-center gap-2 text-xs font-bold text-white/70">
-              <MessageCircle className="size-3.5" /> WhatsApp
+              <MessageCircle className="size-3.5" /> Central de comunicação
             </div>
             <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">WhatsApp da loja</h1>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-white/70">Conecte o número, teste o envio e configure automações quando precisar.</p>
+            <p className="mt-1 max-w-xl text-sm leading-5 text-white/75 sm:leading-6">
+              Acompanhe a conexão, controle os avisos automáticos, edite mensagens e confira o histórico em um só lugar.
+            </p>
           </div>
-          <Badge className="shrink-0 border-white/15 bg-white/10 text-white hover:bg-white/10">
-            {readiness.data?.provider_connected ? "Conectado" : "Configurar"}
+          <Badge className="w-fit shrink-0 border-white/15 bg-white/10 text-white hover:bg-white/10">
+            {automaticEntitled ? "Automático liberado" : "Modo manual"}
           </Badge>
         </div>
       </header>
 
       <WhatsAppEvolutionConnectionCard storeId={storeId} />
 
-      <Card>
-        <CardContent className="p-4 sm:p-5">
-          <div className="grid grid-cols-3 gap-2">
+      <WhatsAppAutomationControlCard storeId={storeId} automaticEntitled={automaticEntitled} />
+
+      <Card className="shadow-sm">
+        <CardContent className="p-3 sm:p-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <MiniMetric label="Templates" value={templates.data?.length ?? 0} />
+            <MiniMetric label="Mensagens no mês" value={usedMessages} />
             <MiniMetric label="Opt-ins" value={consentSummary.data?.opted_in ?? 0} />
-            <MiniMetric label="Mensagens" value={usedMessages} />
+            <MiniMetric label="Falhas recentes" value={recentFailed} attention={recentFailed > 0} />
           </div>
         </CardContent>
       </Card>
@@ -215,14 +235,26 @@ function WhatsAppCenter() {
       {templateNotice ? <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">{templateNotice}</p> : null}
       {templateError ? <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{templateError}</p> : null}
 
-      <details className="overflow-hidden rounded-2xl border border-border bg-card">
-        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">Templates e automações</summary>
-        <div className="space-y-5 border-t border-border p-5">
+      <details className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <summary className="cursor-pointer list-none px-4 py-4 sm:px-5">
+          <div className="flex items-center gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-700 dark:text-violet-300">
+              <Sparkles className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold">Templates de mensagem</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Personalize textos transacionais e de marketing.</p>
+            </div>
+          </div>
+        </summary>
+        <div className="space-y-5 border-t border-border p-4 sm:p-5">
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="space-y-4">
               <div>
                 <p className="font-semibold">{editingId ? "Editar template" : "Novo template"}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Crie mensagens que podem ser reutilizadas nas automações.</p>
+                <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                  Use emojis e textos claros. As variáveis {{"{{1}}"}}, {{"{{2}}"}}… são preenchidas automaticamente pelas regras de automação.
+                </p>
               </div>
               <div>
                 <Label>Código interno</Label>
@@ -247,11 +279,11 @@ function WhatsAppCenter() {
               </div>
               <div>
                 <Label>Mensagem</Label>
-                <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Olá {{1}}, seu pedido {{2}} foi confirmado." rows={5} maxLength={4096} />
+                <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="✅ Olá {{1}}, seu pedido #{{2}} foi confirmado." rows={8} maxLength={4096} className="text-sm leading-6" />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button onClick={() => void saveTemplate()} disabled={templateBusy || !code.trim() || !name.trim() || !body.trim()}>
-                  {templateBusy ? "Salvando..." : editingId ? "Salvar" : "Criar template"}
+                  {templateBusy ? "Salvando..." : editingId ? "Salvar alterações" : "Criar template"}
                 </Button>
                 {editingId ? <Button variant="outline" onClick={resetForm} disabled={templateBusy}>Cancelar</Button> : null}
               </div>
@@ -273,7 +305,7 @@ function WhatsAppCenter() {
               {(templates.data ?? []).map((template) => {
                 const canSubmit = canUseMetaTemplates && (template.provider_status === "draft" || template.provider_status === "rejected");
                 return (
-                  <div key={template.id} className="rounded-xl border border-border p-4">
+                  <div key={template.id} className="rounded-xl border border-border p-3.5 sm:p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -295,7 +327,7 @@ function WhatsAppCenter() {
                         </Button>
                       </div>
                     </div>
-                    <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{template.body}</p>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-5 text-muted-foreground">{template.body}</p>
                   </div>
                 );
               })}
@@ -308,9 +340,9 @@ function WhatsAppCenter() {
         </div>
       </details>
 
-      <details className="overflow-hidden rounded-2xl border border-border bg-card">
-        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">Atividade e histórico</summary>
-        <div className="space-y-5 border-t border-border p-5">
+      <details className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm" open={recentFailed > 0}>
+        <summary className="cursor-pointer list-none px-4 py-4 font-bold sm:px-5">Atividade e histórico</summary>
+        <div className="space-y-5 border-t border-border p-4 sm:p-5">
           <div className="grid gap-3 sm:grid-cols-3">
             <CompactInfo icon={Users} label="Opt-ins de marketing" value={String(consentSummary.data?.opted_in ?? 0)} />
             <CompactInfo icon={Send} label="Uso no mês" value={String(usedMessages)} />
@@ -318,13 +350,20 @@ function WhatsAppCenter() {
           </div>
 
           <div className="space-y-2">
-            {(history.data ?? []).slice(0, 5).map((message) => (
+            {(history.data ?? []).slice(0, 8).map((message) => (
               <div key={message.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{message.customer_name || message.recipient_e164}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{providerLabel(message.provider)} · {formatDate(message.queued_at)}</p>
+                  {message.status === "failed" && message.error_code ? (
+                    <p className="mt-1 truncate text-xs font-medium text-destructive" title={message.error_message ?? message.error_code}>
+                      Falha: {message.error_code}
+                    </p>
+                  ) : null}
                 </div>
-                <Badge variant={message.status === "failed" ? "destructive" : message.status === "read" || message.status === "delivered" ? "default" : "secondary"}>{message.status}</Badge>
+                <Badge variant={message.status === "failed" ? "destructive" : message.status === "read" || message.status === "delivered" ? "default" : "secondary"}>
+                  {messageStatusLabel(message.status)}
+                </Badge>
               </div>
             ))}
             {!history.isLoading && (history.data?.length ?? 0) === 0 ? <p className="text-sm text-muted-foreground">Nenhuma mensagem enviada ainda.</p> : null}
@@ -335,11 +374,11 @@ function WhatsAppCenter() {
   );
 }
 
-function MiniMetric({ label, value }: { label: string; value: string | number }) {
+function MiniMetric({ label, value, attention = false }: { label: string; value: string | number; attention?: boolean }) {
   return (
-    <div className="rounded-xl bg-muted/45 px-3 py-3 text-center">
-      <p className="text-lg font-black">{typeof value === "number" ? value.toLocaleString("pt-BR") : value}</p>
-      <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+    <div className={`rounded-xl px-3 py-3 text-center ${attention ? "bg-destructive/8 text-destructive" : "bg-muted/45"}`}>
+      <p className="text-lg font-black tabular-nums">{typeof value === "number" ? value.toLocaleString("pt-BR") : value}</p>
+      <p className={`mt-1 text-[10px] font-semibold uppercase tracking-wide sm:text-[11px] ${attention ? "text-destructive" : "text-muted-foreground"}`}>{label}</p>
     </div>
   );
 }
