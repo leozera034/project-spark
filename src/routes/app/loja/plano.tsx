@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, CreditCard, FileText, RefreshCw, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useAuth } from "@/auth/useAuth";
 import { PlanCatalog, type BillingInterval } from "@/components/billing/PlanCatalog";
 import { StripeConnectStatus } from "@/components/billing/StripeConnectStatus";
 import { WhatsAppAddonStatus } from "@/components/billing/WhatsAppAddonStatus";
@@ -25,6 +24,7 @@ import type { StoreBillingAccess, StoreBillingStage } from "@/lib/store-billing.
 import { useStoreBillingAccess } from "@/store/billing/store-billing.queries";
 import { useStripeConnectStatus, useStripeRuntimeReadiness } from "@/store/billing/stripe-connect.queries";
 import { useWhatsAppAddonProvisioning } from "@/store/billing/whatsapp-addon.queries";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 // @ts-ignore -- TanStack route tree is regenerated during build.
 export const Route = createFileRoute("/app/loja/plano")({
@@ -122,8 +122,7 @@ function planName(access: StoreBillingAccess, plans: Awaited<ReturnType<typeof l
 
 function StorePlanPage() {
   const plans = Route.useLoaderData();
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId, selectedStore } = useStoreScope();
   const billingQuery = useStoreBillingAccess(storeId);
   const whatsappQuery = useWhatsAppAddonProvisioning(storeId);
   const stripeStatusQuery = useStripeConnectStatus(storeId);
@@ -269,7 +268,7 @@ function StorePlanPage() {
     }
   }, [storeId, detail, query.payment, query.purchase, loadDetail, billingQuery, selectPlan]);
 
-  if (!storeId) return <div className="mx-auto max-w-4xl px-4 py-8"><ErrorState kind="unexpected" title="Nenhuma loja vinculada" description="Sua conta precisa estar vinculada a uma loja antes de consultar o plano." /></div>;
+  if (!storeId) return <div className="mx-auto max-w-4xl px-4 py-8"><ErrorState kind="unexpected" title="Escolha uma loja" description="Selecione a loja para consultar o plano e as cobranças." /></div>;
   if (billingQuery.isLoading && !detail) return <div className="mx-auto max-w-7xl px-4 py-8"><div className="h-52 animate-pulse rounded-[28px] border bg-muted/55" /></div>;
   if (billingQuery.error || !billingQuery.data) return <div className="mx-auto max-w-4xl px-4 py-8"><ErrorState kind="network" title="Não foi possível consultar sua assinatura" description="Tente novamente em instantes." onRetry={() => void refreshAll()} /></div>;
 
@@ -284,7 +283,10 @@ function StorePlanPage() {
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Conta e plano</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Conta e plano</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">{planName(access, plans)}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Veja sua assinatura, próximas cobranças, histórico e opções de plano.</p>
         </div>
