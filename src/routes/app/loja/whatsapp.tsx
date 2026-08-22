@@ -253,7 +253,7 @@ function WhatsAppCenter() {
               <div>
                 <p className="font-semibold">{editingId ? "Editar template" : "Novo template"}</p>
                 <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                  Use emojis e textos claros. As variáveis {{"{{1}}"}}, {{"{{2}}"}}… são preenchidas automaticamente pelas regras de automação.
+                  Use emojis e textos claros. As variáveis {"{{1}}"}, {"{{2}}"}… são preenchidas automaticamente pelas regras de automação.
                 </p>
               </div>
               <div>
