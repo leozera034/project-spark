@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -28,6 +28,7 @@ import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context
 import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
 
 const parentRoute = getRouteApi("/loja/$slug");
+type RecommendationSource = "copurchase" | "bestseller_fallback" | "local_fallback";
 
 export const Route = createFileRoute("/loja/$slug/carrinho")({
   head: () => ({
@@ -53,6 +54,8 @@ function CartPage() {
   const isDelivery = wizard.orderingContext?.type === "entrega";
   const [confirmEmpty, setConfirmEmpty] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
+  const [recommendationSource, setRecommendationSource] = useState<RecommendationSource>("local_fallback");
 
   const loading = cart.quoteState === "loading";
   const offline = cart.quoteState === "offline";
@@ -63,13 +66,74 @@ function CartPage() {
     [cart.views],
   );
 
+  const cartProductIds = useMemo(
+    () => Array.from(new Set(cart.lines.map((line) => line.productId))).sort(),
+    [cart.lines],
+  );
+  const cartProductKey = cartProductIds.join(",");
+
+  useEffect(() => {
+    if (!cart.hydrated || cartProductIds.length === 0) {
+      setRecommendedIds([]);
+      setRecommendationSource("local_fallback");
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+
+    void fetch(`/api/public/storefront/${encodeURIComponent(slug)}/recomendacoes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ productIds: cartProductIds }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("recommendations_unavailable");
+        return response.json() as Promise<{ productIds?: unknown; source?: unknown }>;
+      })
+      .then((result) => {
+        if (!active) return;
+        const ids = Array.isArray(result.productIds)
+          ? result.productIds.filter((id): id is string => typeof id === "string").slice(0, 6)
+          : [];
+        setRecommendedIds(ids);
+        setRecommendationSource(result.source === "copurchase" ? "copurchase" : "bestseller_fallback");
+      })
+      .catch((error) => {
+        if (!active || error instanceof DOMException && error.name === "AbortError") return;
+        setRecommendedIds([]);
+        setRecommendationSource("local_fallback");
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+    // `cartProductKey` representa de forma determinística o conjunto de produtos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.hydrated, cartProductKey, slug]);
+
   const suggestions = useMemo(() => {
-    const inCart = new Set(cart.lines.map((line) => line.productId));
+    const inCart = new Set(cartProductIds);
+    const byId = new Map(catalog.products.map((product) => [product.id, product] as const));
+    const fromServer = recommendedIds
+      .map((id) => byId.get(id))
+      .filter((product): product is PublicCatalog["products"][number] => Boolean(product) && !product.is_sold_out && !inCart.has(product.id));
+
+    if (fromServer.length > 0) return fromServer.slice(0, 6);
+
     const eligible = catalog.products.filter((product) => !product.is_sold_out && !inCart.has(product.id));
     const priority = eligible.filter((product) => product.is_best_seller || product.is_featured);
     const fallback = eligible.filter((product) => !product.is_best_seller && !product.is_featured);
     return [...priority, ...fallback].slice(0, 6);
-  }, [catalog.products, cart.lines]);
+  }, [catalog.products, cartProductIds, recommendedIds]);
+
+  const recommendationDescription = recommendationSource === "copurchase"
+    ? "Escolhas que costumam aparecer junto com produtos como os do seu carrinho."
+    : recommendationSource === "bestseller_fallback"
+      ? "A loja ainda não tem combinações suficientes; mostramos os mais pedidos disponíveis."
+      : "Priorizamos destaques e itens populares que ainda não estão no carrinho.";
 
   const editLine = (lineId: string, productId: string) =>
     navigate({
@@ -221,7 +285,7 @@ function CartPage() {
                 <div className="px-4">
                   <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[.12em] text-brand"><Sparkles className="size-4" /> Complete seu pedido</p>
                   <h2 id="cart-suggestions-title" className="mt-1 text-lg font-black">Peça também</h2>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Priorizamos destaques e itens populares que ainda não estão no carrinho.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{recommendationDescription}</p>
                 </div>
                 <div className="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
                   {suggestions.map((product) => (
