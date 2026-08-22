@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, BriefcaseBusiness, CheckCircle2, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, BriefcaseBusiness, CheckCircle2, ExternalLink, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { useCatalog } from "@/catalog/CatalogProvider";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/catalog/PageHeader";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/cardapio/")({ component: CardapioOverview });
 
@@ -32,12 +33,20 @@ function Metric({ label, value, hint }: { label: string; value: number; hint?: s
 
 function CardapioOverview() {
   const navigate = useNavigate();
+  const scope = useStoreScope();
   const { overview, categories, storeId, run, pendingKey, setPendingKey, isBusy } = useCatalog();
   const [otherBusinessType, setOtherBusinessType] = useState("");
   if (!overview) return null;
 
   const { counts, can } = overview;
   const emptyCatalog = counts.categories_total === 0 && counts.products_total === 0;
+  const publicMenuHref = scope.selectedStore?.slug ? `/loja/${scope.selectedStore.slug}` : null;
+  const actionItems = [
+    counts.categories_active === 0 ? { label: "Ative pelo menos uma categoria", to: "/app/loja/cardapio/categorias" as const } : null,
+    counts.products_active === 0 ? { label: "Publique pelo menos um produto", to: "/app/loja/cardapio/produtos" as const } : null,
+    counts.products_sold_out > 0 ? { label: `Revise ${counts.products_sold_out} produto${counts.products_sold_out === 1 ? "" : "s"} esgotado${counts.products_sold_out === 1 ? "" : "s"}`, to: "/app/loja/cardapio/produtos" as const } : null,
+    counts.products_active > 0 && counts.products_featured === 0 ? { label: "Escolha produtos para destacar", to: "/app/loja/cardapio/produtos" as const } : null,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   async function useModel(model: MenuModel) {
     if (!storeId || !can.create || isBusy) return;
@@ -56,15 +65,39 @@ function CardapioOverview() {
       <div className="space-y-6">
         <PageHeader
           title="Cardápio"
-          description="Gerencie o que o cliente vê: produtos, categorias, disponibilidade e adicionais."
-          action={can.create && categories.some((category) => !category.is_archived) ? <Button asChild><Link to="/app/loja/cardapio/produtos/novo"><Plus className="mr-1 size-4" /> Novo produto</Link></Button> : null}
+          description="Gerencie o que o cliente vê e confira o resultado publicado sem sair da Comandiva."
+          action={
+            <>
+              {publicMenuHref ? <Button asChild variant="outline"><a href={publicMenuHref} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /> Ver como cliente</a></Button> : null}
+              {can.create && categories.some((category) => !category.is_archived) ? <Button asChild><Link to="/app/loja/cardapio/produtos/novo"><Plus className="size-4" /> Novo produto</Link></Button> : null}
+            </>
+          }
         />
+
+        <section className={`rounded-2xl border p-4 sm:p-5 ${actionItems.length > 0 ? "border-warning/30 bg-warning-soft/35" : "border-success/25 bg-success-soft/35"}`} aria-label="Saúde do cardápio">
+          <div className="flex items-start gap-3">
+            <span className={`grid size-10 shrink-0 place-items-center rounded-xl bg-background ${actionItems.length > 0 ? "text-warning" : "text-success"}`}>
+              {actionItems.length > 0 ? <AlertTriangle className="size-5" /> : <CheckCircle2 className="size-5" />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-base font-black">{actionItems.length > 0 ? "Ajustes que podem melhorar o cardápio" : "Estrutura do cardápio em dia"}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {actionItems.length > 0 ? "Priorize os pontos abaixo para deixar a experiência do cliente mais clara e completa." : "Há categorias e produtos ativos, sem pendências básicas de estrutura."}
+              </p>
+              {actionItems.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {actionItems.map((item) => <Button key={item.label} asChild variant="outline" size="sm" className="bg-background"><Link to={item.to}>{item.label}<ArrowRight className="size-3.5" /></Link></Button>)}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Metric label="Categorias ativas" value={counts.categories_active} hint={`${counts.categories_total} no total`} />
           <Metric label="Produtos ativos" value={counts.products_active} hint={`${counts.products_total} no total`} />
           <Metric label="Esgotados" value={counts.products_sold_out} hint="Não disponíveis para compra" />
-          <Metric label="Destaques" value={counts.products_featured} hint="Ganham prioridade no cardápio" />
+          <Metric label="Destaques" value={counts.products_featured} hint="Chamam atenção no cardápio" />
         </div>
 
         <section className="grid gap-4 md:grid-cols-2">
