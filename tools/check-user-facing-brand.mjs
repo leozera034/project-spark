@@ -4,6 +4,7 @@ import { extname, join, relative } from "node:path";
 const root = process.cwd();
 const roots = [
   join(root, "src/routes"),
+  join(root, "src/catalog"),
   join(root, "src/components/auth"),
   join(root, "src/components/brand"),
   join(root, "src/components/feedback"),
