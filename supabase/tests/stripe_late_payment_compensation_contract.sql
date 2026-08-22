@@ -1,4 +1,4 @@
--- Stripe late-payment compensation and refund accounting contract.
+-- Stripe late-payment compensation, exception queue and refund accounting contract.
 -- Run with:
 --   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/stripe_late_payment_compensation_contract.sql
 
@@ -17,6 +17,8 @@ declare
   _refunded integer;
   _audit_count integer;
   _refund_components text[];
+  _exception_count integer;
+  _exception_status text;
 begin
   select * into _o
   from public.orders
@@ -68,6 +70,13 @@ begin
   if _order_status is distinct from _o.status then raise exception 'TERMINAL_ORDER_WAS_RESURRECTED'; end if;
   if _payment_status <> 'paid' then raise exception 'LATE_PAYMENT_NOT_RECORDED_AS_PAID: %',_payment_status; end if;
 
+  select count(*),max(status) into _exception_count,_exception_status
+  from private.payment_exception_tasks
+  where provider='stripe' and kind='late_terminal_payment' and provider_payment_id=_pi;
+  if _exception_count <> 1 or _exception_status <> 'open' then
+    raise exception 'LATE_PAYMENT_EXCEPTION_NOT_OPEN: count=%, status=%',_exception_count,_exception_status;
+  end if;
+
   _refund := public.backend_record_stripe_order_refund(
     _pi,null,'ch_late_contract',_amount,'brl','evt_late_refund_contract',extract(epoch from now())::bigint,
     jsonb_build_object('source','late_payment_contract','automatic',true)
@@ -78,6 +87,11 @@ begin
   from public.orders where id=_o.id;
   if _order_status is distinct from _o.status then raise exception 'REFUND_CHANGED_TERMINAL_ORDER_STATUS'; end if;
   if _payment_status <> 'refunded' or _refunded <> _amount then raise exception 'ORDER_REFUND_PROJECTION_INVALID'; end if;
+
+  select status into _exception_status
+  from private.payment_exception_tasks
+  where provider='stripe' and kind='late_terminal_payment' and provider_payment_id=_pi;
+  if _exception_status <> 'resolved' then raise exception 'LATE_PAYMENT_EXCEPTION_NOT_AUTO_RESOLVED: %',_exception_status; end if;
 
   select count(*) into _audit_count
   from public.audit_logs
