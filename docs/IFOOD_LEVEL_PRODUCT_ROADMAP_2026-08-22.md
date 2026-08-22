@@ -18,6 +18,8 @@
 - [x] Produtos com disponibilidade por horário/dia, estoque, limite por pedido e estoque baixo.
 - [x] Ranking `Mais pedidos` baseado em vendas reais recentes.
 - [x] Recompra local segura (`Pedir novamente`) com nova recotação antes do checkout.
+- [x] Favoritos locais por loja, sem login e sem armazenar preço/dados pessoais.
+- [x] `Vistos recentemente` persistido somente no aparelho e filtrado pelo catálogo atual.
 - [x] Otimização de imagens no aparelho antes do upload.
 - [x] RPCs públicos sensíveis de fulfillment movidos para rota Edge autenticada por chave pública conhecida e service-role interno.
 - [x] Índices de cobertura adicionados nos caminhos quentes de catálogo, pedido e entrega.
@@ -34,8 +36,8 @@
 
 ## P1 — Experiência do cliente
 
-- [ ] Favoritos locais por loja, sem exigir login.
-- [ ] `Vistos recentemente` e descoberta personalizada apenas com dados locais quando não houver conta.
+- [x] Favoritos locais por loja, sem exigir login.
+- [x] `Vistos recentemente` e descoberta personalizada apenas com dados locais quando não houver conta.
 - [ ] Recomendações `Peça também` baseadas em coocorrência de itens de pedidos pagos/concluídos.
 - [ ] Promoções e cupons server-side: valor fixo, percentual, frete grátis, pedido mínimo, janela de horário e limite de uso.
 - [ ] Histórico de pedidos do cliente com mecanismo seguro de vínculo/recuperação.
@@ -111,9 +113,8 @@ Uma feature só pode ser marcada como concluída quando tiver:
 ## Próxima sequência recomendada
 
 1. Fechar P0 de produção e WhatsApp E2E.
-2. Favoritos + vistos recentemente.
-3. Recomendações `Peça também`.
-4. Cupons/promoções server-authoritative.
-5. Avaliações e histórico do cliente.
-6. Funil e inteligência operacional do lojista.
-7. ETA dinâmico e otimizações de entrega.
+2. Recomendações `Peça também`.
+3. Cupons/promoções server-authoritative.
+4. Avaliações e histórico do cliente.
+5. Funil e inteligência operacional do lojista.
+6. ETA dinâmico e otimizações de entrega.
