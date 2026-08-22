@@ -14,8 +14,9 @@
     "typecheck": "tsc --noEmit",
     "test:hygiene": "node tools/check-repository-hygiene.mjs",
     "test:db-static": "node tools/check-migration-safety.mjs",
+    "test:merchant-ux": "node tools/check-merchant-ux.mjs",
     "test:smoke": "node tools/smoke-routes.mjs",
-    "check": "npm run test:hygiene && npm run test:db-static && npm run lint:ci && npm run typecheck && npm run build && npm run test:smoke",
+    "check": "npm run test:hygiene && npm run test:db-static && npm run test:merchant-ux && npm run lint:ci && npm run typecheck && npm run build && npm run test:smoke",
     "format": "prettier --write .",
     "brand:generate": "node tools/generate-brand-assets.mjs"
   },
