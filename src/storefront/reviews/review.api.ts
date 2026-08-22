@@ -2,7 +2,7 @@ import type {
   PublicOrderReviewState,
   SubmitOrderReviewInput,
   SubmitOrderReviewResult,
-} from "@/lib/store-reviews.server";
+} from "@/lib/store-reviews.contracts";
 
 const TIMEOUT_MS = 15_000;
 
