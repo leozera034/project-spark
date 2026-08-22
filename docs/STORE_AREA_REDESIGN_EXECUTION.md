@@ -32,6 +32,7 @@ No mobile, a navegação fixa fica em: Início, Pedidos, Cozinha, Cardápio e Ma
 - Pedidos, cozinha, entregas, clientes, relatórios, cardápio e conta usam o mesmo contexto.
 - Em contas com várias lojas, a seleção é mantida durante a sessão.
 - Trocar a loja invalida consultas ativas para impedir mistura visual de dados entre operações.
+- O shell exibe a situação aberta/fechada da loja e destaca novos pedidos na navegação.
 
 ## Regras aplicadas
 1. Linguagem de negócio acima de linguagem técnica.
@@ -44,17 +45,21 @@ No mobile, a navegação fixa fica em: Início, Pedidos, Cozinha, Cardápio e Ma
 8. Toda a interface usa a marca Comandiva.
 9. O fluxo operacional principal é Pedidos → Cozinha → Entregas.
 10. Páginas filhas não criam seletores de loja paralelos quando o shell já definiu o contexto.
+11. Controles de rotas inteligentes ficam dentro de Entregas; a página técnica antiga deixa de ser uma superfície do lojista.
 
 ## Implementação concluída
 - [x] Auditoria funcional e visual
 - [x] Navegação global simplificada
 - [x] Escopo global de loja
+- [x] Status global da loja e alerta de novos pedidos no shell
 - [x] Página Início orientada à operação
 - [x] Pedidos e detalhe mobile-first
 - [x] Cozinha integrada ao mesmo contexto operacional
 - [x] Cardápio simplificado
 - [x] Entregas consolidadas
 - [x] Entregadores e devoluções integrados à central de Entregas
+- [x] Rotas inteligentes incorporadas à central de Entregas
+- [x] Deep link técnico antigo redirecionado para a experiência consolidada
 - [x] Clientes renomeado a partir de Crescimento
 - [x] WhatsApp simplificado
 - [x] Relatórios executivos
@@ -68,4 +73,3 @@ No mobile, a navegação fixa fica em: Início, Pedidos, Cozinha, Cardápio e Ma
 - [ ] Revisar visualmente desktop, tablet e mobile com dados reais
 - [ ] Revisar navegação por teclado, foco, leitores de tela e contraste
 - [ ] Fazer smoke de troca entre duas lojas para confirmar isolamento visual imediato
-- [ ] Confirmar que deep links técnicos antigos não precisam permanecer expostos ao lojista
