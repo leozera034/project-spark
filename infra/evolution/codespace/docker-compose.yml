@@ -15,10 +15,7 @@ services:
       - evolution_qa_postgres:/var/lib/postgresql/data
 
   evolution:
-    build:
-      context: .
-      dockerfile: Dockerfile.evolution-rc13
-    image: comandiva/evolution-api:v2.3.7-baileys-rc13
+    image: evoapicloud/evolution-api:v2.3.7
     restart: unless-stopped
     depends_on:
       postgres:
