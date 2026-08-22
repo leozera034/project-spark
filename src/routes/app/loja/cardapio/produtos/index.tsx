@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, MoreHorizontal, PackageSearch, Plus, Search, X } from "lucide-react";
+import { CalendarClock, ExternalLink, MoreHorizontal, PackageSearch, Plus, Search, X } from "lucide-react";
 
 import {
   archiveProduct,
@@ -101,7 +101,7 @@ function ProdutosPage() {
     <div className="space-y-5">
       <PageHeader
         title="Produtos"
-        description="Preço, disponibilidade e destaque em um só lugar. O que você altera aqui aparece no cardápio do cliente."
+        description="Preço, disponibilidade, estoque e destaque em um só lugar. O que você altera aqui aparece no cardápio do cliente."
         action={
           <>
             {publicMenuHref ? (
@@ -184,6 +184,10 @@ function ProdutosPage() {
         <ul className="space-y-3">
           {items.map((product) => {
             const available = product.is_active && !product.is_sold_out && !product.is_archived;
+            const scheduleConfigured = Boolean(product.available_weekdays || product.available_from || product.available_to);
+            const stockControlled = product.stock_quantity !== null && product.stock_quantity !== undefined;
+            const lowStock = stockControlled && Number(product.stock_quantity) > 0 && Number(product.stock_quantity) <= Number(product.low_stock_threshold ?? 5);
+            const outOfStock = stockControlled && Number(product.stock_quantity) <= 0;
             return (
               <li key={product.id}>
                 <Card className="overflow-hidden transition-shadow hover:shadow-md">
@@ -192,11 +196,14 @@ function ProdutosPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="min-w-0 truncate font-bold text-foreground">{product.name}</span>
-                        {product.is_archived ? <Badge variant="outline">Arquivado</Badge> : !product.is_active ? <Badge variant="secondary">Oculto</Badge> : product.is_sold_out ? <Badge variant="destructive">Esgotado</Badge> : <Badge variant="success">Disponível</Badge>}
+                        {product.is_archived ? <Badge variant="outline">Arquivado</Badge> : !product.is_active ? <Badge variant="secondary">Oculto</Badge> : product.is_sold_out ? <Badge variant="destructive">Esgotado</Badge> : outOfStock ? <Badge variant="destructive">Sem estoque</Badge> : product.runtime_available === false ? <Badge variant="secondary"><CalendarClock className="mr-1 size-3" />Fora do horário</Badge> : <Badge variant="success">Disponível</Badge>}
                         {product.is_featured ? <Badge variant="brand">Destaque</Badge> : null}
+                        {scheduleConfigured ? <Badge variant="outline"><CalendarClock className="mr-1 size-3" />Programado</Badge> : null}
+                        {lowStock ? <Badge variant="secondary">Estoque baixo: {product.stock_quantity}</Badge> : null}
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {product.category_name ?? "Sem categoria"} · <span className="font-bold text-foreground">{formatPriceBRL(product.base_price)}</span>
+                        {product.max_quantity ? ` · máx. ${product.max_quantity} por pedido` : ""}
                       </p>
                       {product.description ? <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{product.description}</p> : null}
                     </div>
