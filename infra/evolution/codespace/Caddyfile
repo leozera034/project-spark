@@ -1,15 +1,24 @@
 :8080 {
   @health path /
   handle @health {
-    reverse_proxy evolution:8080
+    reverse_proxy evolution:8080 {
+      header_up apikey {$EVOLUTION_API_KEY}
+    }
   }
 
   @authorized header apikey {$EVOLUTION_API_KEY}
   handle @authorized {
-    reverse_proxy evolution:8080
+    reverse_proxy evolution:8080 {
+      header_up apikey {$EVOLUTION_API_KEY}
+    }
   }
 
   handle {
-    respond "Unauthorized" 401
+    basic_auth {
+      comandiva $2y$05$b/JhigBjoi930TgCwOnxgOC0Kc8m6KsLhRf3PWg1nh7vhj5exRsBO
+    }
+    reverse_proxy evolution:8080 {
+      header_up apikey {$EVOLUTION_API_KEY}
+    }
   }
 }
