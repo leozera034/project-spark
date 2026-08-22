@@ -108,11 +108,15 @@ for attempt in $(seq 1 90); do
       exit 1
     fi
 
+    if [[ -n "${CODESPACE_NAME:-}" ]] && command -v gh >/dev/null 2>&1; then
+      gh codespace ports visibility 8080:public 8081:private -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
+    fi
+
     echo "[Comandiva] OK: Evolution ativa."
     echo "[Comandiva] OK: Baileys $BAILEYS_VERSION."
     echo "[Comandiva] OK: gateway autenticado."
     echo "[Comandiva] URL: $EVOLUTION_PUBLIC_URL"
-    echo "[Comandiva] Mantenha 8080 PUBLIC e 8081 PRIVATE."
+    echo "[Comandiva] 8080 PUBLIC; 8081 PRIVATE (automático quando permitido pelo Codespaces)."
     exit 0
   fi
   sleep 2
