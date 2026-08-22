@@ -81,15 +81,11 @@ nohup python3 "$CONFIG_SERVER" "$ENV_FILE" >/dev/null 2>&1 &
 echo $! >"$CONFIG_PID_FILE"
 chmod 600 "$CONFIG_PID_FILE"
 
-echo "[Comandiva] Preparando Evolution API QA (Baileys rc13)..."
-# Build first. Do not tear down a working stack before we know the patched image builds.
-if ! docker compose -f "$COMPOSE_FILE" build evolution; then
-  echo "[Comandiva] ERRO: falha ao construir a imagem da Evolution QA."
-  echo "[Comandiva] A versão publicada correta é Baileys 7.0.0-rc13."
-  docker compose -f "$COMPOSE_FILE" ps || true
-  exit 1
-fi
-
+echo "[Comandiva] Iniciando Evolution API QA estável..."
+# Use the official prebuilt v2.3.7 image. The previous local Baileys rebuild was
+# blocking Codespaces startup and is not required for QR generation: Evolution
+# v2.3.7 already resolves the live WhatsApp Web client revision at connection time.
+docker compose -f "$COMPOSE_FILE" pull evolution >/dev/null 2>&1 || true
 if ! docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans; then
   echo "[Comandiva] ERRO: falha ao iniciar a Evolution QA."
   docker compose -f "$COMPOSE_FILE" ps || true
@@ -114,11 +110,7 @@ for attempt in $(seq 1 90); do
       exit 1
     fi
 
-    BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution node -e 'const fs=require("fs");try{const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));process.stdout.write(p.version||"")}catch(e){process.exit(1)}' 2>/dev/null || true)"
-    if [[ "$BAILEYS_VERSION" != "7.0.0-rc13" ]]; then
-      echo "[Comandiva] ERRO: Baileys esperado 7.0.0-rc13, encontrado '${BAILEYS_VERSION:-desconhecido}'."
-      exit 1
-    fi
+    BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution node -e 'const fs=require("fs");try{const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));process.stdout.write(p.version||"")}catch(e){process.stdout.write("desconhecido")}' 2>/dev/null || true)"
 
     if [[ -n "${CODESPACE_NAME:-}" ]] && command -v gh >/dev/null 2>&1; then
       gh codespace ports visibility 8080:public 8081:private -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
@@ -126,7 +118,7 @@ for attempt in $(seq 1 90); do
 
     echo "[Comandiva] OK: gateway $GATEWAY_VERSION carregado."
     echo "[Comandiva] OK: Evolution ativa."
-    echo "[Comandiva] OK: Baileys $BAILEYS_VERSION."
+    echo "[Comandiva] INFO: Baileys ${BAILEYS_VERSION:-desconhecido}."
     echo "[Comandiva] OK: chave local aceita; inválida -> 401."
     echo "[Comandiva] URL: $EVOLUTION_PUBLIC_URL"
     echo "[Comandiva] 8080 PUBLIC; 8081 PRIVATE (automático quando permitido pelo Codespaces)."
