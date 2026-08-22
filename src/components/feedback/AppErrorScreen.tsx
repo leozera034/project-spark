@@ -14,7 +14,6 @@ export function classifyAppError(error: unknown): AppErrorKind {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLowerCase();
 
-  // Deploy novo com chunks antigos em cache: o navegador falha ao importar o módulo.
   if (
     normalized.includes("importing a module script failed") ||
     normalized.includes("failed to fetch dynamically imported module") ||
@@ -56,13 +55,13 @@ const COPY: Record<AppErrorKind, { title: string; body: string; action: string }
     action: "Recarregar",
   },
   stale_build: {
-    title: "Atualizando o aplicativo",
-    body: "Uma versão nova do Pediu Aqui foi publicada e o seu navegador ainda tem a versão antiga em cache. Vamos recarregar para aplicar a atualização.",
+    title: "Atualizando a Comandiva",
+    body: "Uma versão nova da Comandiva foi publicada e o seu navegador ainda está com arquivos antigos em cache. Vamos recarregar para aplicar a atualização.",
     action: "Recarregar agora",
   },
   unexpected: {
     title: "Algo deu errado por aqui",
-    body: "A falha foi registrada e a nossa equipe consegue investigar. Você pode tentar de novo ou voltar ao início.",
+    body: "A falha foi registrada e pode ser investigada. Você pode tentar novamente ou voltar ao início.",
     action: "Tentar de novo",
   },
 };
@@ -73,7 +72,7 @@ const COPY: Record<AppErrorKind, { title: string; body: string; action: string }
  */
 export function recoverFromStaleBuild(): boolean {
   if (typeof window === "undefined") return false;
-  const KEY = "pediu-aqui:stale-build-reload";
+  const KEY = "comandiva:stale-build-reload";
   try {
     if (window.sessionStorage.getItem(KEY)) return false;
     window.sessionStorage.setItem(KEY, String(Date.now()));
@@ -108,8 +107,8 @@ export function AppErrorScreen({
       <div className="relative w-full max-w-md text-center">
         <Link
           to="/"
-          className="inline-flex rounded-lg"
-          aria-label="Pediu Aqui — ir para a página inicial"
+          className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label="Comandiva — ir para a página inicial"
         >
           <BrandLogo lockup="horizontal" className="h-7 w-auto" />
         </Link>
