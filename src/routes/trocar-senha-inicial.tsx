@@ -15,12 +15,12 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/trocar-senha-inicial")({
   head: () => ({
     meta: [
-      { title: "Criar sua senha | Pediu Aqui" },
+      { title: "Criar sua senha | Comandiva" },
       {
         name: "description",
-        content: "Troca obrigatória da senha temporária no primeiro acesso ao Pediu Aqui.",
+        content: "Troca obrigatória da senha temporária no primeiro acesso à Comandiva.",
       },
-      { property: "og:title", content: "Criar sua senha | Pediu Aqui" },
+      { property: "og:title", content: "Criar sua senha | Comandiva" },
       { property: "og:description", content: "Troca obrigatória da senha temporária." },
       { name: "robots", content: "noindex" },
     ],
