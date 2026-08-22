@@ -132,6 +132,47 @@ $$;
 revoke all on function public.update_catalog_product_availability(uuid,uuid,smallint[],time,time,integer,numeric,numeric,timestamptz) from public, anon;
 grant execute on function public.update_catalog_product_availability(uuid,uuid,smallint[],time,time,integer,numeric,numeric,timestamptz) to authenticated;
 
+-- O mesmo produto pode aparecer em linhas diferentes por causa de tamanho,
+-- adicionais ou observação. O limite é do produto no pedido inteiro, não de
+-- cada linha isolada. Como o trigger é BEFORE INSERT, somamos NEW.quantity.
+create or replace function private.reserve_product_inventory_from_order_item()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public','private','pg_temp'
+as $$
+declare
+  _max_quantity integer;
+  _existing_quantity numeric;
+begin
+  if new.product_id is null then return new; end if;
+
+  if not private.product_runtime_available(new.store_id,new.product_id,now()) then
+    raise exception 'PRODUCT_RUNTIME_UNAVAILABLE' using errcode='P0001';
+  end if;
+
+  select p.max_quantity into _max_quantity
+    from public.products p
+   where p.id=new.product_id and p.store_id=new.store_id and not p.is_archived;
+
+  if _max_quantity is not null then
+    select coalesce(sum(i.quantity),0)
+      into _existing_quantity
+      from public.order_items i
+     where i.store_id=new.store_id
+       and i.order_id=new.order_id
+       and i.product_id=new.product_id;
+
+    if _existing_quantity + new.quantity > _max_quantity then
+      raise exception 'PRODUCT_MAX_QUANTITY_EXCEEDED' using errcode='P0001';
+    end if;
+  end if;
+
+  perform private.reserve_product_inventory(new.store_id,new.order_id,new.id,new.product_id,new.quantity,'product');
+  return new;
+end;
+$$;
+
 create or replace function public.storefront_catalog(_slug text)
 returns jsonb
 language plpgsql
