@@ -12,6 +12,7 @@ import {
   Blocks,
   Building2,
   ChefHat,
+  Headphones,
   LayoutGrid,
   LogOut,
   Menu,
@@ -19,9 +20,11 @@ import {
   MoreHorizontal,
   Settings,
   ShoppingBag,
+  Star,
   Truck,
   Users,
   UtensilsCrossed,
+  WalletCards,
   X,
 } from "lucide-react";
 
@@ -70,10 +73,13 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app/loja/entregas", label: "Entregas", icon: Truck, section: "Operação" },
   { to: "/app/loja/cardapio", label: "Cardápio", icon: UtensilsCrossed, section: "Gestão", mobile: true },
   { to: "/app/loja/crescimento", label: "Clientes", icon: Users, section: "Gestão" },
+  { to: "/app/loja/avaliacoes", label: "Avaliações", icon: Star, section: "Gestão" },
+  { to: "/app/loja/financeiro", label: "Financeiro", icon: WalletCards, section: "Gestão" },
   { to: "/app/loja/whatsapp", label: "WhatsApp", icon: MessageCircle, section: "Gestão" },
   { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, section: "Gestão" },
   { to: "/app/loja/modulos", label: "Recursos", icon: Blocks, section: "Conta" },
   { to: "/app/loja/configuracoes", label: "Configurações", icon: Settings, section: "Conta" },
+  { to: "/app/loja/ajuda", label: "Ajuda", icon: Headphones, section: "Conta" },
 ];
 
 const NAV_SECTIONS: NavSection[] = ["Operação", "Gestão", "Conta"];
@@ -145,7 +151,7 @@ function StoreAppLayout() {
 
   return (
     <div className="app-premium-shell min-h-dvh bg-background lg:flex">
-      <aside className={cn("app-premium-sidebar hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex", collapsed ? "w-[4.75rem]" : "w-[16.5rem]")}>        
+      <aside className={cn("app-premium-sidebar hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex", collapsed ? "w-[4.75rem]" : "w-[16.5rem]")}>
         <div className="flex h-[76px] items-center gap-2 border-b border-sidebar-border px-3">
           {collapsed ? <BrandSymbol tone="white" className="mx-auto size-11" /> : <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />}
         </div>
