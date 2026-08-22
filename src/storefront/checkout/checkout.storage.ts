@@ -1,15 +1,18 @@
 /**
  * Armazenamento local do checkout, isolado por slug.
  *
- * Guardamos apenas conveniência: a chave de idempotência do envio em curso e
- * o comprovante do último pedido enviado. Nenhum preço é fonte de verdade e
- * nenhuma URL assinada de imagem é gravada.
+ * Guardamos apenas conveniência: a chave de idempotência do envio em curso,
+ * o comprovante do último pedido e uma montagem local para “Pedir de novo”.
+ * Nenhum preço é fonte de verdade e nenhuma URL assinada de imagem é gravada.
  */
-import type { LocalOrderReceipt } from "./checkout.types";
+import type { LocalOrderReceipt, LocalReorderDraft } from "./checkout.types";
 
+// Mantidos por compatibilidade com carrinhos/comprovantes já gravados em aparelhos existentes.
 const KEY_PREFIX = "pediu-aqui:checkout:v1:";
 const RECEIPT_PREFIX = "pediu-aqui:pedido:v1:";
+const REORDER_PREFIX = "comandiva:reorder:v1:";
 const RECEIPT_TTL_MS = 1000 * 60 * 60 * 24 * 2;
+const REORDER_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 const memory = new Map<string, string>();
 
@@ -85,4 +88,42 @@ export function readReceipt(slug: string): LocalOrderReceipt | null {
   } catch {
     return null;
   }
+}
+
+export function saveReorderDraft(slug: string, draft: LocalReorderDraft) {
+  if (typeof window === "undefined" || draft.lines.length === 0) return;
+  safeSet(`${REORDER_PREFIX}${slug}`, JSON.stringify(draft));
+}
+
+export function readReorderDraft(slug: string): LocalReorderDraft | null {
+  if (typeof window === "undefined") return null;
+  const key = `${REORDER_PREFIX}${slug}`;
+  const raw = safeGet(key);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as LocalReorderDraft;
+    if (
+      parsed?.schemaVersion !== 1 ||
+      parsed.slug !== slug ||
+      !Array.isArray(parsed.lines) ||
+      parsed.lines.length === 0 ||
+      parsed.lines.length > 40
+    ) {
+      safeRemove(key);
+      return null;
+    }
+    if (Date.now() - new Date(parsed.createdAt).getTime() > REORDER_TTL_MS) {
+      safeRemove(key);
+      return null;
+    }
+    return parsed;
+  } catch {
+    safeRemove(key);
+    return null;
+  }
+}
+
+export function clearReorderDraft(slug: string) {
+  if (typeof window === "undefined") return;
+  safeRemove(`${REORDER_PREFIX}${slug}`);
 }
