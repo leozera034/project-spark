@@ -18,7 +18,7 @@
     "test:user-brand": "node tools/check-user-facing-brand.mjs",
     "test:storefront-ux": "node tools/check-storefront-ux.mjs",
     "test:smoke": "node tools/smoke-routes.mjs",
-    "check": "npm run test:hygiene && npm run test:db-static && npm run test:merchant-ux && npm run test:user-brand && npm run test:storefront-ux && npm run lint:ci && npm run typecheck && npm run build && npm run test:smoke",
+    "check": "npm run test:hygiene && npm run test:db-static && npm run test:merchant-ux && npm run test:user-brand && npm run test:storefront-ux && npm run lint:ci && npm run build && npm run typecheck && npm run test:smoke",
     "format": "prettier --write .",
     "brand:generate": "node tools/generate-brand-assets.mjs"
   },
