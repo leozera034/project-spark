@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 import type {
+  ManualPixKeyType,
   StoreConfiguration,
   StoreOperationalPreview,
   StoreOption,
@@ -207,6 +208,36 @@ export async function reorderNeighborhoods(
 ): Promise<StoreConfiguration> {
   return unwrap(
     await rpc("reorder_store_neighborhoods", { _store_id: storeId, _ids: ids }),
+  ) as StoreConfiguration;
+}
+
+export async function setStoreOnlinePayments(params: {
+  storeId: string;
+  enabled: boolean;
+  acknowledgeFees?: boolean;
+}): Promise<StoreConfiguration> {
+  return unwrap(
+    await rpc("set_my_store_online_payments", {
+      _store_id: params.storeId,
+      _enabled: params.enabled,
+      _acknowledge_fees: params.acknowledgeFees ?? false,
+    }),
+  ) as StoreConfiguration;
+}
+
+export async function setStoreManualPix(params: {
+  storeId: string;
+  enabled: boolean;
+  pixKey: string | null;
+  pixKeyType: ManualPixKeyType | null;
+}): Promise<StoreConfiguration> {
+  return unwrap(
+    await rpc("set_my_store_manual_pix", {
+      _store_id: params.storeId,
+      _enabled: params.enabled,
+      _pix_key: params.pixKey,
+      _pix_key_type: params.pixKeyType,
+    }),
   ) as StoreConfiguration;
 }
 
