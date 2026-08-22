@@ -61,14 +61,14 @@ function connectionError(error: unknown) {
   if (code === "EVOLUTION_RUNTIME_NOT_CONFIGURED") return "A conexão do WhatsApp está temporariamente indisponível.";
   if (code === "EVOLUTION_INSTANCE_CREATE_FAILED") return "Não foi possível preparar a conexão agora.";
   if (code === "EVOLUTION_QR_FAILED") return "Não foi possível gerar o QR Code. Tente novamente.";
-  if (code === "EVOLUTION_STATUS_FAILED") return "Não foi possível confirmar o estado ao vivo da conexão.";
+  if (code === "EVOLUTION_STATUS_FAILED") return "Não foi possível confirmar o estado atual da conexão.";
   if (code === "EVOLUTION_DISCONNECT_FAILED") return "Não foi possível desconectar o aparelho.";
   if (code === "EVOLUTION_SEND_FAILED") return "O WhatsApp recusou o envio da mensagem.";
-  if (code === "EVOLUTION_SEND_AMBIGUOUS") return "O envio não retornou confirmação segura.";
+  if (code === "EVOLUTION_SEND_AMBIGUOUS") return "O envio não retornou uma confirmação segura.";
   if (code === "EVOLUTION_MANUAL_SEND_NOT_READY") return "Conecte o WhatsApp antes de enviar mensagens.";
-  if (code === "EVOLUTION_UNREACHABLE") return "O serviço de WhatsApp está temporariamente indisponível.";
+  if (code === "EVOLUTION_UNREACHABLE") return "O WhatsApp está temporariamente indisponível. Tente novamente em instantes.";
   if (code === "FORBIDDEN") return "Sua conta não tem permissão para gerenciar o WhatsApp desta loja.";
-  return "Não foi possível concluir a operação do WhatsApp.";
+  return "Não foi possível concluir esta operação do WhatsApp.";
 }
 
 export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }) {
@@ -96,17 +96,17 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       if (result.connected) {
         setQr(null);
         setUiError(null);
-        setNotice("Conexão confirmada ao vivo.");
+        setNotice("WhatsApp conectado e pronto para usar.");
         return;
       }
       if (result.repairRequired) {
         const repaired = await refreshQrMutateAsyncRef.current(storeId);
         setQr(repaired);
         setUiError(null);
-        setNotice("A sessão anterior foi encerrada. Escaneie o novo QR Code.");
+        setNotice("A conexão anterior encerrou. Escaneie o novo QR Code para reconectar.");
       }
     } catch {
-      // A consulta principal mantém o último snapshot conhecido. Ações explícitas exibem o erro.
+      // A consulta principal mantém o último estado conhecido. Ações explícitas exibem o erro.
     } finally {
       statusCheckInFlightRef.current = false;
     }
@@ -173,11 +173,11 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       const result = await actions.start.mutateAsync(storeId);
       if (result.connected) {
         setQr(null);
-        setNotice("Conexão confirmada.");
+        setNotice("WhatsApp conectado e pronto para usar.");
         return;
       }
       setQr(result);
-      setNotice(result.recovered ? "Sessão renovada. Escaneie este novo QR Code." : null);
+      setNotice(result.recovered ? "Conexão renovada. Escaneie este novo QR Code." : null);
     } catch (error) {
       setNotice(null);
       setUiError(connectionError(error));
@@ -190,7 +190,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     try {
       const result = await actions.refreshQr.mutateAsync(storeId);
       setQr(result);
-      setNotice(result.recovered ? "Sessão renovada. Escaneie este novo QR Code." : null);
+      setNotice(result.recovered ? "Conexão renovada. Escaneie este novo QR Code." : null);
     } catch (error) {
       setUiError(connectionError(error));
     }
@@ -217,7 +217,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       await actions.disconnect.mutateAsync(storeId);
       const result = await actions.start.mutateAsync(storeId);
       setQr(result.connected ? null : result);
-      setNotice(result.connected ? "Conexão confirmada." : "Escaneie o novo QR Code para concluir a reconexão.");
+      setNotice(result.connected ? "WhatsApp conectado e pronto para usar." : "Escaneie o novo QR Code para concluir a reconexão.");
     } catch (error) {
       setNotice(null);
       setUiError(connectionError(error));
@@ -246,20 +246,20 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         : "Desconectado";
 
   return (
-    <Card className="overflow-hidden border-[#25D366]/20 shadow-sm">
+    <Card className={`overflow-hidden shadow-sm ${connected ? "border-success/25" : "border-brand/15"}`}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
-            <div className={`grid size-11 shrink-0 place-items-center rounded-2xl ${connected ? "bg-emerald-500/12 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+            <div className={`grid size-11 shrink-0 place-items-center rounded-2xl ${connected ? "bg-success-soft text-success" : "bg-brand-soft text-brand"}`}>
               <MessageCircle className="size-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-display text-xl font-black tracking-tight">Seu WhatsApp</h2>
-                <Badge variant={connected ? "default" : pending ? "secondary" : "outline"}>{statusLabel}</Badge>
+                <Badge variant={connected ? "success" : pending ? "warning" : "outline"}>{statusLabel}</Badge>
               </div>
               <p className="mt-1 max-w-xl text-sm leading-5 text-muted-foreground">
-                O status é conferido diretamente na sessão do WhatsApp enquanto esta tela está aberta.
+                A Comandiva verifica a conexão automaticamente enquanto esta tela está aberta.
               </p>
             </div>
           </div>
@@ -271,7 +271,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             className="w-full shrink-0 sm:w-auto"
           >
             {actions.status.isPending || connection.isFetching ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-            Atualizar status
+            Atualizar
           </Button>
         </div>
 
@@ -279,13 +279,13 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
           <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-muted/25 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="font-bold">Plano {activeMode}</p>
+                <p className="font-bold">WhatsApp {activeMode}</p>
                 <Badge variant="secondary">{subscriptionLabel(activeAddon?.subscription?.status)}</Badge>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 {automaticActive
-                  ? "Mensagens manuais e automações de status estão incluídas."
-                  : "Envio manual pelo painel, sem automações de pedido."}
+                  ? "Mensagens manuais e avisos automáticos dos pedidos estão incluídos."
+                  : "Envio manual pelo painel, sem avisos automáticos dos pedidos."}
               </p>
             </div>
             <p className="shrink-0 text-sm font-bold text-muted-foreground">{activePrice}/mês</p>
@@ -306,20 +306,20 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         )}
 
         {resolving ? (
-          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Confirmando a sessão atual…
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground" role="status">
+            <Loader2 className="size-4 animate-spin" /> Conferindo sua conexão…
           </div>
         ) : null}
 
         {!resolving && connected ? (
           <div className="mt-4 space-y-4">
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+            <div className="rounded-2xl border border-success/25 bg-success-soft/45 p-4">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-emerald-800 dark:text-emerald-200">WhatsApp conectado e pronto</p>
-                  <p className="mt-1 text-sm leading-5 text-emerald-800/70 dark:text-emerald-100/70">
-                    {connection.data?.display_phone_number || "Número vinculado"} · última confirmação {formatDate(connection.data?.last_health_at)}
+                  <p className="font-bold text-foreground">WhatsApp conectado e pronto</p>
+                  <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                    {connection.data?.display_phone_number || "Número vinculado"} · verificado em {formatDate(connection.data?.last_health_at)}
                   </p>
                 </div>
               </div>
@@ -334,13 +334,13 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button variant="outline" onClick={() => void reconnect()} disabled={busy || actions.sendManual.isPending} className="sm:w-auto">
                 {actions.disconnect.isPending || actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
-                Trocar / reconectar número
+                Trocar ou reconectar número
               </Button>
             </div>
 
             {manualActive ? (
               <details className="rounded-2xl border border-border">
-                <summary className="cursor-pointer list-none px-4 py-3.5 font-semibold">Enviar mensagem manual</summary>
+                <summary className="cursor-pointer list-none px-4 py-3.5 font-semibold">Enviar uma mensagem agora</summary>
                 <div className="border-t border-border p-4">
                   <div className="grid gap-4 md:grid-cols-[220px_1fr]">
                     <div>
@@ -356,7 +356,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
                     <Button variant="ghost" onClick={() => void disconnect()} disabled={busy || actions.sendManual.isPending} className="text-destructive hover:text-destructive">
                       <Power className="size-4" /> Desconectar
                     </Button>
-                    <Button onClick={() => void sendManual()} disabled={!phone.trim() || !message.trim() || actions.sendManual.isPending} className="bg-[#FF681F] hover:bg-[#E95612]">
+                    <Button onClick={() => void sendManual()} disabled={!phone.trim() || !message.trim() || actions.sendManual.isPending}>
                       {actions.sendManual.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                       Enviar mensagem
                     </Button>
@@ -374,12 +374,12 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         ) : null}
 
         {!resolving && canProvision && !connected && !qr ? (
-          <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-dashed border-[#25D366]/35 bg-[#25D366]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-dashed border-success/30 bg-success-soft/25 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-bold">Pronto para conectar</p>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">O QR Code aparece somente durante a conexão e desaparece assim que a sessão for confirmada.</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">Gere o QR Code e escaneie pelo WhatsApp da loja. Ele desaparece assim que a conexão for confirmada.</p>
             </div>
-            <Button onClick={() => void startConnection()} disabled={busy} className="w-full shrink-0 bg-[#FF681F] hover:bg-[#E95612] sm:w-auto">
+            <Button onClick={() => void startConnection()} disabled={busy} className="w-full shrink-0 sm:w-auto">
               {actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
               Gerar QR Code
             </Button>
@@ -392,9 +392,9 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
               {qr.qrCodeDataUrl ? (
                 <img src={qr.qrCodeDataUrl} alt="QR Code para conectar o WhatsApp" className="aspect-square w-full max-w-[220px] object-contain" />
               ) : qr.pairingCode ? (
-                <div className="text-center">
-                  <Smartphone className="mx-auto mb-3 size-8 text-primary" />
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Código de vinculação</p>
+                <div className="text-center text-[#1c1c1e]">
+                  <Smartphone className="mx-auto mb-3 size-8 text-brand" />
+                  <p className="text-xs font-semibold uppercase tracking-widest text-[#6f6376]">Código de vinculação</p>
                   <p className="mt-3 font-mono text-2xl font-black tracking-[0.18em]">{qr.pairingCode}</p>
                 </div>
               ) : (
@@ -404,11 +404,11 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
             <div>
               <h3 className="font-display text-xl font-black tracking-tight">Escaneie no WhatsApp</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                WhatsApp → Aparelhos conectados → Conectar aparelho. O painel verifica a sessão automaticamente a cada poucos segundos.
+                No WhatsApp da loja, abra Aparelhos conectados → Conectar aparelho. A confirmação acontece automaticamente.
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <Button variant="outline" onClick={() => void refreshQr()} disabled={busy}>
-                  <RefreshCw className="size-4" /> Novo QR
+                  <RefreshCw className="size-4" /> Gerar outro QR
                 </Button>
                 <Button variant="ghost" onClick={() => void reconcileLiveStatusRef.current()} disabled={actions.status.isPending || actions.refreshQr.isPending}>
                   {actions.status.isPending || actions.refreshQr.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
@@ -419,12 +419,12 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
           </div>
         ) : null}
 
-        {notice && !(notice.toLowerCase().includes("conexão confirmada") && !connected) ? (
-          <p className="mt-4 flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+        {notice && !(notice.toLowerCase().includes("conectado e pronto") && !connected) ? (
+          <p className="mt-4 flex items-start gap-2 rounded-xl border border-success/20 bg-success-soft/35 p-3 text-sm text-success" aria-live="polite">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" /> {notice}
           </p>
         ) : null}
-        {uiError ? <p className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{uiError}</p> : null}
+        {uiError ? <p className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive" role="alert">{uiError}</p> : null}
       </CardContent>
     </Card>
   );
