@@ -37,23 +37,22 @@ export function useSetStoreSmartDeliveryPause() {
   const fn = useServerFn(setStoreSmartDeliveryPause);
 
   return useMutation({
-    mutationFn: (input: { storeId: string; paused: boolean; reason?: string | null }) =>
-      fn({ data: input }),
+    mutationFn: (input: { storeId: string; paused: boolean; reason?: string | null }) => fn({ data: input }),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["store", result.store_id, "smart-delivery-control-center"] });
       queryClient.invalidateQueries({ queryKey: ["store", result.store_id, "smart-delivery-readiness"] });
       if (result.is_paused) {
         toast.success(
           result.cancelled_pending_jobs > 0
-            ? `Smart Delivery pausado. ${result.cancelled_pending_jobs} job(s) pendente(s) cancelado(s).`
-            : "Smart Delivery pausado.",
+            ? `Rotas inteligentes pausadas. ${result.cancelled_pending_jobs} cálculo(s) pendente(s) foram cancelado(s).`
+            : "Rotas inteligentes pausadas.",
         );
       } else {
-        toast.success("Smart Delivery retomado. Os gates de provider, add-on e limite continuam valendo.");
+        toast.success("Rotas inteligentes retomadas. O sistema continuará respeitando a disponibilidade e os limites do recurso.");
       }
     },
     onError: () => {
-      toast.error("Não foi possível alterar o estado do Smart Delivery.");
+      toast.error("Não foi possível alterar o estado das rotas inteligentes.");
     },
   });
 }
