@@ -116,12 +116,9 @@ export function useStorefrontPreferences(slug: string) {
 
   const commit = useCallback(
     (updater: (current: PreferenceDocument) => PreferenceDocument) => {
-      setDocument((current) => {
-        const base = current.slug === slug ? current : readDocument(slug);
-        const next = updater(base);
-        writeDocument(next);
-        return next;
-      });
+      const next = updater(readDocument(slug));
+      writeDocument(next);
+      setDocument(next);
     },
     [slug],
   );
