@@ -6,19 +6,8 @@ import { PageHeader } from "@/components/catalog/PageHeader";
 export const Route = createFileRoute("/app/loja/cardapio/opcoes")({
   head: () => ({
     meta: [
-      { title: "Grupos de opções | Pediu Aqui" },
-      {
-        name: "description",
-        content:
-          "Crie grupos de opções reaproveitáveis: tamanhos, sabores, adicionais e complementos.",
-      },
-      { property: "og:title", content: "Grupos de opções | Pediu Aqui" },
-      {
-        property: "og:description",
-        content: "Biblioteca de grupos de opções do cardápio da sua loja.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { title: "Opções e adicionais | Comandiva" },
+      { name: "description", content: "Crie tamanhos, sabores, adicionais e complementos para os produtos da loja." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -30,7 +19,7 @@ function OpcoesPage() {
     <div className="space-y-4">
       <PageHeader
         title="Opções e adicionais"
-        description="Um único motor genérico atende tamanhos, sabores, adicionais, complementos e escolhas obrigatórias. Vincule os grupos aos produtos na aba de configuração avançada."
+        description="Crie escolhas que podem ser reaproveitadas em vários produtos, como tamanhos, sabores, molhos e complementos."
       />
       <OptionGroupLibrary />
     </div>
