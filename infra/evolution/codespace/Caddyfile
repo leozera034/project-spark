@@ -20,6 +20,7 @@
       uri /functions/v1/comandiva-evolution-gateway-auth
       header_up Authorization {http.request.header.Authorization}
       header_up X-Comandiva-Store-Id {http.request.header.X-Comandiva-Store-Id}
+      header_up X-Legacy-Evolution-Key {http.request.header.apikey}
     }
 
     reverse_proxy evolution:8080 {
