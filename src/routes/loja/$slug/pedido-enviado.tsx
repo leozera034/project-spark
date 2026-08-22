@@ -4,19 +4,20 @@
  * Stripe são consultados pelo orderId + trackingToken e nunca por preço do browser.
  */
 import { useEffect, useState } from "react";
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { CheckCircle2, CircleAlert, Clock, Copy, LoaderCircle, Share2, Store } from "lucide-react";
+import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react-router";
+import { CheckCircle2, CircleAlert, Clock, Copy, LoaderCircle, RefreshCw, Share2, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useCart } from "@/storefront/cart/cart.context";
 import {
   createStripeOrderCheckout,
   fetchStripeOrderPaymentStatus,
   type StripeOrderPaymentStatus,
 } from "@/storefront/checkout/checkout.api";
-import { readReceipt } from "@/storefront/checkout/checkout.storage";
-import type { LocalOrderReceipt } from "@/storefront/checkout/checkout.types";
+import { readReceipt, readReorderDraft } from "@/storefront/checkout/checkout.storage";
+import type { LocalOrderReceipt, LocalReorderDraft } from "@/storefront/checkout/checkout.types";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
@@ -37,7 +38,10 @@ export const Route = createFileRoute("/loja/$slug/pedido-enviado")({
 
 function OrderSentPage() {
   const { slug } = parentRoute.useParams();
+  const navigate = useNavigate();
+  const cart = useCart();
   const [receipt, setReceipt] = useState<LocalOrderReceipt | null>(null);
+  const [reorderDraft, setReorderDraft] = useState<LocalReorderDraft | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeOrderPaymentStatus | null>(null);
   const [stripeRetryBusy, setStripeRetryBusy] = useState(false);
@@ -45,6 +49,7 @@ function OrderSentPage() {
 
   useEffect(() => {
     setReceipt(readReceipt(slug));
+    setReorderDraft(readReorderDraft(slug));
     setHydrated(true);
   }, [slug]);
 
@@ -95,6 +100,8 @@ function OrderSentPage() {
   const cancelled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("payment") === "cancelled";
   const paid = stripeStatus?.status === "succeeded";
   const processing = isStripe && !paid && stripeStatus?.status !== "canceled" && !cancelled;
+  const currentCartInProgress = cart.itemCount > 0;
+  const canRepeat = Boolean(reorderDraft?.lines.length) && reorderDraft?.orderNumber === order.orderNumber;
 
   async function retryStripePayment() {
     if (!order.trackingToken || stripeRetryBusy) return;
@@ -107,6 +114,17 @@ function OrderSentPage() {
       setStripeError("Não foi possível abrir o pagamento agora. Tente novamente em instantes.");
       setStripeRetryBusy(false);
     }
+  }
+
+  async function repeatLastOrder() {
+    if (!reorderDraft || currentCartInProgress) {
+      await navigate({ to: "/loja/$slug/carrinho", params: { slug } });
+      return;
+    }
+
+    for (const line of reorderDraft.lines) cart.addLine(line);
+    cart.revalidate();
+    await navigate({ to: "/loja/$slug/carrinho", params: { slug } });
   }
 
   return (
@@ -154,6 +172,26 @@ function OrderSentPage() {
       </div>
 
       {order.trackingToken ? <TrackingLinkActions slug={slug} token={order.trackingToken} orderNumber={order.orderNumber} /> : null}
+
+      {canRepeat ? (
+        <section className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><RefreshCw className="size-5" /></span>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold">Gostou? Peça de novo em poucos toques</h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {currentCartInProgress
+                  ? "Você já tem outro carrinho em andamento. Abra esse carrinho antes de repetir o pedido anterior."
+                  : "A Comandiva remonta os mesmos itens e depois confere preços, estoque e disponibilidade atuais com a loja."}
+              </p>
+            </div>
+          </div>
+          <Button className="mt-3 min-h-12 w-full" variant={currentCartInProgress ? "outline" : "default"} onClick={() => void repeatLastOrder()}>
+            <RefreshCw className="size-4" /> {currentCartInProgress ? "Ver carrinho atual" : "Pedir novamente"}
+          </Button>
+        </section>
+      ) : null}
+
       <Button asChild variant="outline" className="mt-3 min-h-12 w-full"><Link to="/loja/$slug" params={{ slug }}>Voltar ao cardápio</Link></Button>
     </main>
   );
