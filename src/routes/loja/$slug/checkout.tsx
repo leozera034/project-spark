@@ -15,7 +15,12 @@ import { useCart } from "@/storefront/cart/cart.context";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
 import { CheckoutError, fetchPaymentMethods, postOrder } from "@/storefront/checkout/checkout.api";
 import { messageForCheckoutError } from "@/storefront/checkout/checkout.errors";
-import { currentIdempotencyKey, rotateIdempotencyKey, saveReceipt } from "@/storefront/checkout/checkout.storage";
+import {
+  currentIdempotencyKey,
+  rotateIdempotencyKey,
+  saveReceipt,
+  saveReorderDraft,
+} from "@/storefront/checkout/checkout.storage";
 import type { PublicPaymentMethod } from "@/storefront/checkout/checkout.types";
 
 const parentRoute = getRouteApi("/loja/$slug");
@@ -147,6 +152,7 @@ function CheckoutPage() {
         return;
       }
 
+      const createdAt = new Date().toISOString();
       saveReceipt(slug, {
         schemaVersion: 1,
         slug,
@@ -154,7 +160,29 @@ function CheckoutPage() {
         fulfillmentType: context.type,
         paymentLabel: selectedMethod.displayName,
         paymentInstructions: selectedMethod.publicInstructions,
-        createdAt: new Date().toISOString(),
+        createdAt,
+      });
+      saveReorderDraft(slug, {
+        schemaVersion: 1,
+        slug,
+        orderNumber: result.order.orderNumber,
+        createdAt,
+        lines: cart.lines.map((line) => ({
+          productId: line.productId,
+          productNameSnapshot: line.productNameSnapshot,
+          variantId: line.variantId,
+          variantNameSnapshot: line.variantNameSnapshot,
+          selections: line.selections.map((selection) => ({ ...selection })),
+          quantity: line.quantity,
+          notes: line.notes,
+          saleMode: line.saleMode,
+          unitLabel: line.unitLabel,
+          minimumQuantity: line.minimumQuantity,
+          quantityStep: line.quantityStep,
+          maxQuantity: line.maxQuantity,
+          lastKnownUnitPrice: line.lastKnownUnitPrice,
+          lastKnownTotal: line.lastKnownTotal,
+        })),
       });
       rotateIdempotencyKey(slug);
       cart.emptyAll();
