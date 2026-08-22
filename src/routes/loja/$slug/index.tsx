@@ -7,6 +7,8 @@ import {
   Coffee,
   Flame,
   Gift,
+  Heart,
+  History,
   IceCreamBowl,
   MapPin,
   Pizza,
@@ -19,6 +21,7 @@ import {
   UtensilsCrossed,
   Wine,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import { CartBar } from "@/components/storefront/CartBar";
@@ -40,8 +43,10 @@ import {
   getStorefrontThemeVisual,
   resolveStorefrontThemeProfile,
 } from "@/storefront/default-banners";
+import { useStorefrontPreferences } from "@/storefront/preferences/storefront-preferences";
 
 const parentRoute = getRouteApi("/loja/$slug");
+type CatalogProduct = PublicCatalog["products"][number];
 
 export const Route = createFileRoute("/loja/$slug/")({
   component: StorefrontPage,
@@ -55,6 +60,89 @@ function categoryIconForName(name: string) {
   return null;
 }
 
+function ProductRail({
+  eyebrow,
+  title,
+  description,
+  icon: Icon,
+  products,
+  fallbackIcon: FallbackIcon,
+  onOpen,
+  isFavorite,
+  onToggleFavorite,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string | null;
+  icon: LucideIcon;
+  products: CatalogProduct[];
+  fallbackIcon: LucideIcon;
+  onOpen: (id: string) => void;
+  isFavorite: (id: string) => boolean;
+  onToggleFavorite: (id: string) => void;
+}) {
+  if (products.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-3xl pt-7" aria-label={title}>
+      <div className="flex items-end justify-between gap-3 px-4 sm:px-6">
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[.12em] text-brand">
+            <Icon className="size-4" /> {eyebrow}
+          </p>
+          <h2 className="mt-1 text-xl font-black tracking-[-.025em]">{title}</h2>
+          {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:px-6">
+        {products.map((product) => {
+          const favorite = isFavorite(product.id);
+          return (
+            <div key={product.id} className="relative w-[172px] shrink-0 snap-start sm:w-[190px]">
+              <button
+                type="button"
+                onClick={() => onOpen(product.id)}
+                disabled={product.is_sold_out}
+                aria-label={product.is_sold_out ? `${product.name}, esgotado` : `Abrir ${product.name}`}
+                className="group w-full overflow-hidden rounded-2xl border border-black/[.06] bg-white text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-default disabled:opacity-65 disabled:hover:translate-y-0"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-brand/8">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                  ) : (
+                    <div className="grid size-full place-items-center text-brand"><FallbackIcon className="size-9" strokeWidth={1.7} /></div>
+                  )}
+                  {product.is_best_seller ? (
+                    <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/94 px-2 py-1 text-[10px] font-black text-brand shadow-sm"><Flame className="size-3" /> Mais pedido</span>
+                  ) : null}
+                  {product.is_sold_out ? <span className="absolute bottom-2 left-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-black text-white">Esgotado</span> : null}
+                </div>
+                <div className="p-3">
+                  <p className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug">{product.name}</p>
+                  <p className={`mt-2 text-sm font-black tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
+                    {product.is_sold_out ? "Indisponível" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={favorite}
+                aria-label={favorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
+                onClick={() => onToggleFavorite(product.id)}
+                className="absolute right-2 top-2 z-10 grid size-11 place-items-center rounded-full border border-black/8 bg-white/95 text-foreground shadow-sm backdrop-blur transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <Heart className={`size-5 ${favorite ? "fill-brand text-brand" : "text-foreground/70"}`} />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function StorefrontPage() {
   const { store: storePayload, catalog } = parentRoute.useLoaderData() as {
     store: PublicStorePayload;
@@ -66,6 +154,7 @@ function StorefrontPage() {
 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const preferences = useStorefrontPreferences(slug);
   const [term, setTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -114,6 +203,18 @@ function StorefrontPage() {
     [grouped],
   );
 
+  const productById = useMemo(
+    () => new Map(catalog.products.map((product) => [product.id, product] as const)),
+    [catalog.products],
+  );
+  const favoriteProducts = useMemo(
+    () => preferences.favoriteProductIds.map((id) => productById.get(id)).filter((product): product is CatalogProduct => Boolean(product)).slice(0, 8),
+    [preferences.favoriteProductIds, productById],
+  );
+  const recentProducts = useMemo(
+    () => preferences.recentProductIds.map((id) => productById.get(id)).filter((product): product is CatalogProduct => Boolean(product)).slice(0, 8),
+    [preferences.recentProductIds, productById],
+  );
   const bestSellers = useMemo(
     () => catalog.products.filter((product) => product.is_best_seller).slice(0, 5),
     [catalog.products],
@@ -160,8 +261,10 @@ function StorefrontPage() {
 
   const todayHours = hours.filter((h) => h.weekday === new Date().getDay());
 
-  const openProduct = (id: string) =>
-    navigate({ to: "/loja/$slug", params: { slug }, search: { produto: id } });
+  const openProduct = (id: string) => {
+    preferences.rememberViewed(id);
+    void navigate({ to: "/loja/$slug", params: { slug }, search: { produto: id } });
+  };
   const closeProduct = () =>
     navigate({ to: "/loja/$slug", params: { slug }, search: {}, replace: true });
 
@@ -288,45 +391,46 @@ function StorefrontPage() {
         </div>
       </div>
 
+      {!term && favoriteProducts.length > 0 ? (
+        <ProductRail
+          eyebrow="Salvos neste aparelho"
+          title="Seus favoritos"
+          description={`${favoriteProducts.length} ${favoriteProducts.length === 1 ? "item salvo" : "itens salvos"} nesta loja.`}
+          icon={Heart}
+          products={favoriteProducts}
+          fallbackIcon={ProductFallbackIcon}
+          onOpen={openProduct}
+          isFavorite={preferences.isFavorite}
+          onToggleFavorite={preferences.toggleFavorite}
+        />
+      ) : null}
+
+      {!term && recentProducts.length >= 2 ? (
+        <ProductRail
+          eyebrow="Continue de onde parou"
+          title="Vistos recentemente"
+          description="Atalhos guardados somente neste aparelho."
+          icon={History}
+          products={recentProducts}
+          fallbackIcon={ProductFallbackIcon}
+          onOpen={openProduct}
+          isFavorite={preferences.isFavorite}
+          onToggleFavorite={preferences.toggleFavorite}
+        />
+      ) : null}
+
       {!term && spotlightProducts.length > 0 ? (
-        <section className="mx-auto max-w-3xl pt-7" aria-labelledby="spotlight-title">
-          <div className="flex items-end justify-between gap-3 px-4 sm:px-6">
-            <div>
-              <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[.12em] text-brand">
-                <Flame className="size-4" /> Preferidos dos clientes
-              </p>
-              <h2 id="spotlight-title" className="mt-1 text-xl font-black tracking-[-.025em]">{spotlightTitle}</h2>
-              {bestSellers.length > 0 ? <p className="mt-1 text-xs text-muted-foreground">Calculado pelas vendas reais dos últimos 30 dias.</p> : null}
-            </div>
-          </div>
-          <div className="mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:px-6">
-            {spotlightProducts.map((product) => (
-              <button
-                key={product.id}
-                type="button"
-                onClick={() => openProduct(product.id)}
-                className="group w-[172px] shrink-0 snap-start overflow-hidden rounded-2xl border border-black/[.06] bg-white text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition hover:-translate-y-0.5 hover:shadow-md sm:w-[190px]"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-brand/8">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
-                  ) : (
-                    <div className="grid size-full place-items-center text-brand"><ProductFallbackIcon className="size-9" strokeWidth={1.7} /></div>
-                  )}
-                  {product.is_best_seller ? (
-                    <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/94 px-2 py-1 text-[10px] font-black text-brand shadow-sm"><Flame className="size-3" /> Mais pedido</span>
-                  ) : null}
-                </div>
-                <div className="p-3">
-                  <p className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug">{product.name}</p>
-                  <p className="mt-2 text-sm font-black text-brand tabular-nums">
-                    {product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+        <ProductRail
+          eyebrow="Preferidos dos clientes"
+          title={spotlightTitle}
+          description={bestSellers.length > 0 ? "Calculado pelas vendas reais dos últimos 30 dias." : null}
+          icon={Flame}
+          products={spotlightProducts}
+          fallbackIcon={ProductFallbackIcon}
+          onOpen={openProduct}
+          isFavorite={preferences.isFavorite}
+          onToggleFavorite={preferences.toggleFavorite}
+        />
       ) : null}
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
@@ -350,47 +454,62 @@ function StorefrontPage() {
               </div>
 
               <ul className="mt-4 space-y-3">
-                {items.map((product, productIndex) => (
-                  <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 45}>
-                    <button
-                      type="button"
-                      onClick={() => openProduct(product.id)}
-                      aria-label={product.is_sold_out ? `${product.name}, esgotado` : `Abrir ${product.name}`}
-                      className="group flex w-full items-center gap-3 rounded-2xl border border-black/[0.055] bg-white p-3.5 text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(61,37,25,.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:gap-4 sm:p-4 disabled:opacity-55 disabled:hover:translate-y-0"
-                      disabled={product.is_sold_out}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 items-start gap-2">
-                          <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug text-foreground sm:text-base">{product.name}</p>
-                          <div className="flex shrink-0 flex-col items-end gap-1">
-                            {product.is_best_seller ? <span className="inline-flex items-center gap-1 rounded-full bg-highlight-soft px-2.5 py-1 text-[10px] font-black text-highlight-soft-foreground sm:text-[11px]"><Flame className="size-3" /> Mais pedido</span> : null}
-                            {product.is_featured ? <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
+                {items.map((product, productIndex) => {
+                  const favorite = preferences.isFavorite(product.id);
+                  return (
+                    <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 45}>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => openProduct(product.id)}
+                          aria-label={product.is_sold_out ? `${product.name}, esgotado` : `Abrir ${product.name}`}
+                          className="group flex w-full items-center gap-3 rounded-2xl border border-black/[0.055] bg-white p-3.5 text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(61,37,25,.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:gap-4 sm:p-4 disabled:opacity-55 disabled:hover:translate-y-0"
+                          disabled={product.is_sold_out}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 items-start gap-2">
+                              <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug text-foreground sm:text-base">{product.name}</p>
+                              <div className="flex shrink-0 flex-col items-end gap-1">
+                                {product.is_best_seller ? <span className="inline-flex items-center gap-1 rounded-full bg-highlight-soft px-2.5 py-1 text-[10px] font-black text-highlight-soft-foreground sm:text-[11px]"><Flame className="size-3" /> Mais pedido</span> : null}
+                                {product.is_featured ? <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
+                              </div>
+                            </div>
+                            {product.description ? <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.description}</p> : null}
+                            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <p className={`text-sm font-extrabold tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
+                                {product.is_sold_out ? "Esgotado" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
+                              </p>
+                              {!product.is_sold_out ? <span className="text-[11px] font-semibold text-muted-foreground">{product.has_variants || product.has_options ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
+                            </div>
                           </div>
-                        </div>
-                        {product.description ? <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.description}</p> : null}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <p className={`text-sm font-extrabold tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
-                            {product.is_sold_out ? "Esgotado" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
-                          </p>
-                          {!product.is_sold_out ? <span className="text-[11px] font-semibold text-muted-foreground">{product.has_variants || product.has_options ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
-                        </div>
-                      </div>
 
-                      <div className="relative shrink-0">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-20 rounded-2xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025] sm:size-24" />
-                        ) : (
-                          <div className="grid size-20 place-items-center rounded-2xl bg-brand/10 text-brand sm:size-24"><ProductFallbackIcon className="size-7 sm:size-8" strokeWidth={1.8} /></div>
-                        )}
-                        {!product.is_sold_out ? (
-                          <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border-2 border-white bg-brand text-brand-foreground shadow-md transition-transform group-hover:scale-105" aria-hidden="true">
-                            <Plus className="size-4" strokeWidth={2.5} />
-                          </span>
-                        ) : null}
+                          <div className="relative shrink-0">
+                            {product.image_url ? (
+                              <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-20 rounded-2xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025] sm:size-24" />
+                            ) : (
+                              <div className="grid size-20 place-items-center rounded-2xl bg-brand/10 text-brand sm:size-24"><ProductFallbackIcon className="size-7 sm:size-8" strokeWidth={1.8} /></div>
+                            )}
+                            {!product.is_sold_out ? (
+                              <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border-2 border-white bg-brand text-brand-foreground shadow-md transition-transform group-hover:scale-105" aria-hidden="true">
+                                <Plus className="size-4" strokeWidth={2.5} />
+                              </span>
+                            ) : null}
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          aria-pressed={favorite}
+                          aria-label={favorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
+                          onClick={() => preferences.toggleFavorite(product.id)}
+                          className="absolute right-2 top-2 z-10 grid size-11 place-items-center rounded-full border border-black/8 bg-white/95 text-foreground shadow-sm backdrop-blur transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:right-3 sm:top-3"
+                        >
+                          <Heart className={`size-5 ${favorite ? "fill-brand text-brand" : "text-foreground/70"}`} />
+                        </button>
                       </div>
-                    </button>
-                  </Reveal>
-                ))}
+                    </Reveal>
+                  );
+                })}
               </ul>
             </Reveal>
           ))

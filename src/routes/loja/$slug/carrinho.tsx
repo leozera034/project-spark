@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, getRouteApi, useNavigate, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  Flame,
   Loader2,
   Minus,
   Pencil,
   Plus,
   RefreshCw,
   ShoppingBag,
+  Sparkles,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
@@ -23,9 +25,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { CART_MESSAGES, messageForLineStatus } from "@/storefront/cart/cart.errors";
 import { useCart } from "@/storefront/cart/cart.context";
 import { useCustomerWizard } from "@/storefront/customer/customer-wizard.context";
-import type { PublicStorePayload } from "@/lib/storefront.server";
+import type { PublicCatalog, PublicStorePayload } from "@/lib/storefront.server";
 
 const parentRoute = getRouteApi("/loja/$slug");
+type RecommendationSource = "copurchase" | "bestseller_fallback" | "local_fallback";
 
 export const Route = createFileRoute("/loja/$slug/carrinho")({
   head: () => ({
@@ -44,13 +47,15 @@ export const Route = createFileRoute("/loja/$slug/carrinho")({
 
 function CartPage() {
   const { slug } = parentRoute.useParams();
-  const { store } = parentRoute.useLoaderData() as { store: PublicStorePayload };
+  const { store, catalog } = parentRoute.useLoaderData() as { store: PublicStorePayload; catalog: PublicCatalog };
   const navigate = useNavigate();
   const cart = useCart();
   const wizard = useCustomerWizard();
   const isDelivery = wizard.orderingContext?.type === "entrega";
   const [confirmEmpty, setConfirmEmpty] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
+  const [recommendationSource, setRecommendationSource] = useState<RecommendationSource>("local_fallback");
 
   const loading = cart.quoteState === "loading";
   const offline = cart.quoteState === "offline";
@@ -61,11 +66,87 @@ function CartPage() {
     [cart.views],
   );
 
+  const cartProductIds = useMemo(
+    () => Array.from(new Set(cart.lines.map((line) => line.productId))).sort(),
+    [cart.lines],
+  );
+  const cartProductKey = cartProductIds.join(",");
+
+  useEffect(() => {
+    if (!cart.hydrated || cartProductIds.length === 0) {
+      setRecommendedIds([]);
+      setRecommendationSource("local_fallback");
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+
+    void fetch(`/api/public/storefront/${encodeURIComponent(slug)}/recomendacoes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ productIds: cartProductIds }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("recommendations_unavailable");
+        return response.json() as Promise<{ productIds?: unknown; source?: unknown }>;
+      })
+      .then((result) => {
+        if (!active) return;
+        const ids = Array.isArray(result.productIds)
+          ? result.productIds.filter((id): id is string => typeof id === "string").slice(0, 6)
+          : [];
+        setRecommendedIds(ids);
+        setRecommendationSource(result.source === "copurchase" ? "copurchase" : "bestseller_fallback");
+      })
+      .catch((error) => {
+        if (!active || error instanceof DOMException && error.name === "AbortError") return;
+        setRecommendedIds([]);
+        setRecommendationSource("local_fallback");
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+    // `cartProductKey` representa de forma determinística o conjunto de produtos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.hydrated, cartProductKey, slug]);
+
+  const suggestions = useMemo(() => {
+    const inCart = new Set(cartProductIds);
+    const byId = new Map(catalog.products.map((product) => [product.id, product] as const));
+    const fromServer = recommendedIds
+      .map((id) => byId.get(id))
+      .filter((product): product is PublicCatalog["products"][number] => Boolean(product) && !product.is_sold_out && !inCart.has(product.id));
+
+    if (fromServer.length > 0) return fromServer.slice(0, 6);
+
+    const eligible = catalog.products.filter((product) => !product.is_sold_out && !inCart.has(product.id));
+    const priority = eligible.filter((product) => product.is_best_seller || product.is_featured);
+    const fallback = eligible.filter((product) => !product.is_best_seller && !product.is_featured);
+    return [...priority, ...fallback].slice(0, 6);
+  }, [catalog.products, cartProductIds, recommendedIds]);
+
+  const recommendationDescription = recommendationSource === "copurchase"
+    ? "Escolhas que costumam aparecer junto com produtos como os do seu carrinho."
+    : recommendationSource === "bestseller_fallback"
+      ? "A loja ainda não tem combinações suficientes; mostramos os mais pedidos disponíveis."
+      : "Priorizamos destaques e itens populares que ainda não estão no carrinho.";
+
   const editLine = (lineId: string, productId: string) =>
     navigate({
       to: "/loja/$slug",
       params: { slug },
       search: { produto: productId, linha: lineId },
+    });
+
+  const openSuggestion = (productId: string) =>
+    navigate({
+      to: "/loja/$slug",
+      params: { slug },
+      search: { produto: productId },
     });
 
   return (
@@ -198,6 +279,36 @@ function CartPage() {
                 );
               })}
             </ul>
+
+            {suggestions.length > 0 ? (
+              <section className="mt-6 rounded-2xl border border-border bg-muted/20 py-4" aria-labelledby="cart-suggestions-title">
+                <div className="px-4">
+                  <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[.12em] text-brand"><Sparkles className="size-4" /> Complete seu pedido</p>
+                  <h2 id="cart-suggestions-title" className="mt-1 text-lg font-black">Peça também</h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{recommendationDescription}</p>
+                </div>
+                <div className="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+                  {suggestions.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => openSuggestion(product.id)}
+                      className="w-[150px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-background text-left shadow-sm transition active:scale-[.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    >
+                      <div className="relative aspect-[4/3] bg-brand/8">
+                        {product.image_url ? <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-full object-cover" /> : <div className="grid size-full place-items-center text-brand"><ShoppingBag className="size-7" /></div>}
+                        {product.is_best_seller ? <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-background/95 px-2 py-1 text-[10px] font-black text-brand shadow-sm"><Flame className="size-3" /> Popular</span> : null}
+                        <span className="absolute bottom-2 right-2 grid size-10 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground shadow-md" aria-hidden="true"><Plus className="size-4" /></span>
+                      </div>
+                      <div className="p-3">
+                        <p className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug">{product.name}</p>
+                        <p className="mt-2 text-sm font-black text-brand tabular-nums">{product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button variant="ghost" className="min-h-11 justify-start gap-2 sm:justify-center" onClick={cart.revalidate} disabled={loading}>
