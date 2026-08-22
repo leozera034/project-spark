@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MoreHorizontal, PackageSearch } from "lucide-react";
+import { ExternalLink, MoreHorizontal, PackageSearch, Plus, Search, X } from "lucide-react";
 
 import {
   archiveProduct,
@@ -42,11 +42,13 @@ import { PageHeader } from "@/components/catalog/PageHeader";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { ListSkeleton } from "@/components/feedback/Skeletons";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/cardapio/produtos/")({ component: ProdutosPage });
 
 function ProdutosPage() {
   const { storeId, categories, activeCategories, overview, run, isBusy } = useCatalog();
+  const scope = useStoreScope();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [categoryId, setCategoryId] = useState<string>("todas");
@@ -62,7 +64,14 @@ function ProdutosPage() {
   const can = overview?.can ?? { view: true, create: false, update: false, archive: false };
   const query = useQuery({
     queryKey: ["catalog", "products", storeId, debounced, categoryId, status, page],
-    queryFn: () => listProducts({ storeId, search: debounced, categoryId: categoryId === "todas" ? null : categoryId, status, limit: CATALOG_PAGE_SIZE, offset: page * CATALOG_PAGE_SIZE }),
+    queryFn: () => listProducts({
+      storeId,
+      search: debounced,
+      categoryId: categoryId === "todas" ? null : categoryId,
+      status,
+      limit: CATALOG_PAGE_SIZE,
+      offset: page * CATALOG_PAGE_SIZE,
+    }),
     enabled: Boolean(storeId),
     retry: false,
   });
@@ -71,53 +80,130 @@ function ProdutosPage() {
   const total = query.data?.total ?? 0;
   const canCreate = can.create && activeCategories.some((c) => c.is_active);
   const categoryOptions = useMemo(() => categories.filter((c) => !c.is_archived), [categories]);
+  const hasFilters = Boolean(search.trim()) || categoryId !== "todas" || status !== "todos";
+  const counts = overview?.counts;
+  const publicMenuHref = scope.selectedStore?.slug ? `/loja/${scope.selectedStore.slug}` : null;
 
   const refreshAfter = async (promise: Promise<unknown>) => {
     await promise;
     await query.refetch();
   };
 
+  const clearFilters = () => {
+    setSearch("");
+    setDebounced("");
+    setCategoryId("todas");
+    setStatus("todos");
+    setPage(0);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PageHeader
         title="Produtos"
-        description="Edite o que o cliente vê e controle a disponibilidade sem abrir configurações desnecessárias."
-        action={canCreate ? <Button asChild><Link to="/app/loja/cardapio/produtos/novo">Novo produto</Link></Button> : can.create ? <span className="text-xs text-muted-foreground">Crie uma categoria ativa para cadastrar produtos.</span> : null}
+        description="Preço, disponibilidade e destaque em um só lugar. O que você altera aqui aparece no cardápio do cliente."
+        action={
+          <>
+            {publicMenuHref ? (
+              <Button asChild variant="outline">
+                <a href={publicMenuHref} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-4" /> Ver cardápio
+                </a>
+              </Button>
+            ) : null}
+            {canCreate ? (
+              <Button asChild>
+                <Link to="/app/loja/cardapio/produtos/novo"><Plus className="size-4" /> Novo produto</Link>
+              </Button>
+            ) : can.create ? (
+              <span className="self-center text-xs text-muted-foreground">Crie uma categoria ativa para cadastrar produtos.</span>
+            ) : null}
+          </>
+        }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="busca">Buscar</Label><Input id="busca" value={search} placeholder="Nome do produto ou categoria" onChange={(e) => setSearch(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label htmlFor="filtro-categoria">Categoria</Label><Select value={categoryId} onValueChange={setCategoryId}><SelectTrigger id="filtro-categoria"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todas">Todas</SelectItem>{categoryOptions.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
-        <div className="space-y-1.5"><Label htmlFor="filtro-status">Situação</Label><Select value={status} onValueChange={(v) => setStatus(v as ProductStatusFilter)}><SelectTrigger id="filtro-status"><SelectValue /></SelectTrigger><SelectContent>{PRODUCT_STATUS_FILTERS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent></Select></div>
-      </div>
+      {counts ? (
+        <section className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Resumo dos produtos">
+          <CatalogMetric label="Ativos" value={counts.products_active} tone="success" onClick={() => setStatus("ativos")} active={status === "ativos"} />
+          <CatalogMetric label="Esgotados" value={counts.products_sold_out} tone="danger" onClick={() => setStatus("esgotados")} active={status === "esgotados"} />
+          <CatalogMetric label="Destaques" value={counts.products_featured} tone="brand" onClick={() => setStatus("destaques")} active={status === "destaques"} />
+          <CatalogMetric label="Arquivados" value={counts.products_archived} tone="muted" onClick={() => setStatus("arquivados")} active={status === "arquivados"} />
+        </section>
+      ) : null}
 
-      <p className="text-sm text-muted-foreground">{query.isLoading ? "Carregando…" : `${total} produto(s)`}</p>
+      <section className="rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4" aria-label="Filtros de produtos">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="busca">Buscar</Label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input id="busca" value={search} placeholder="Nome do produto ou categoria" className="pl-10 pr-10" onChange={(e) => setSearch(e.target.value)} />
+              {search ? (
+                <button type="button" aria-label="Limpar busca" onClick={() => setSearch("")} className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <X className="size-4" />
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="filtro-categoria">Categoria</Label>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger id="filtro-categoria"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                {categoryOptions.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="filtro-status">Situação</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as ProductStatusFilter)}>
+              <SelectTrigger id="filtro-status"><SelectValue /></SelectTrigger>
+              <SelectContent>{PRODUCT_STATUS_FILTERS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="mt-3 flex min-h-8 flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {query.isLoading ? "Carregando produtos…" : `${total} ${total === 1 ? "produto encontrado" : "produtos encontrados"}`}
+          </p>
+          {hasFilters ? <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>Limpar filtros</Button> : null}
+        </div>
+      </section>
 
       {query.isLoading ? <ListSkeleton rows={4} /> : query.isError ? (
         <ErrorState title="Não foi possível carregar os produtos" description="A conexão com o servidor falhou. Tente novamente." onRetry={() => void query.refetch()} retrying={query.isFetching} />
       ) : items.length === 0 ? (
-        <EmptyState icon={PackageSearch} title="Nenhum produto encontrado" description="Ajuste os filtros de busca ou cadastre um novo produto." />
+        <EmptyState
+          icon={PackageSearch}
+          title={hasFilters ? "Nenhum produto com esses filtros" : "Seu cardápio ainda não tem produtos"}
+          description={hasFilters ? "Tente limpar os filtros ou buscar por outro nome." : "Cadastre o primeiro produto para começar a vender."}
+          action={hasFilters ? <Button variant="outline" onClick={clearFilters}>Limpar filtros</Button> : canCreate ? <Button asChild><Link to="/app/loja/cardapio/produtos/novo">Criar primeiro produto</Link></Button> : null}
+        />
       ) : (
         <ul className="space-y-3">
           {items.map((product) => {
             const available = product.is_active && !product.is_sold_out && !product.is_archived;
             return (
               <li key={product.id}>
-                <Card>
+                <Card className="overflow-hidden transition-shadow hover:shadow-md">
                   <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                    <CatalogImage path={product.image_path} alt={product.name} className="h-20 w-20 shrink-0 sm:h-16 sm:w-16" />
+                    <CatalogImage path={product.image_path} alt={product.name} className="h-24 w-full shrink-0 rounded-xl object-cover sm:h-16 sm:w-16" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate font-semibold text-foreground">{product.name}</span>
+                        <span className="min-w-0 truncate font-bold text-foreground">{product.name}</span>
                         {product.is_archived ? <Badge variant="outline">Arquivado</Badge> : !product.is_active ? <Badge variant="secondary">Oculto</Badge> : product.is_sold_out ? <Badge variant="destructive">Esgotado</Badge> : <Badge variant="success">Disponível</Badge>}
-                        {product.is_featured ? <Badge>Destaque</Badge> : null}
+                        {product.is_featured ? <Badge variant="brand">Destaque</Badge> : null}
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{product.category_name ?? "Sem categoria"} · <span className="font-semibold text-foreground">{formatPriceBRL(product.base_price)}</span></p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {product.category_name ?? "Sem categoria"} · <span className="font-bold text-foreground">{formatPriceBRL(product.base_price)}</span>
+                      </p>
+                      {product.description ? <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{product.description}</p> : null}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       {can.update && !product.is_archived ? (
-                        <label className="flex min-h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold">
+                        <label className="flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold">
                           <Switch
                             checked={available}
                             disabled={isBusy || !product.is_active}
@@ -134,11 +220,17 @@ function ProdutosPage() {
                         </label>
                       ) : null}
 
-                      {can.update && !product.is_archived ? <Button asChild variant="outline" size="sm"><Link to="/app/loja/cardapio/produtos/$id" params={{ id: product.id }}>Editar</Link></Button> : null}
+                      {can.update && !product.is_archived ? (
+                        <Button asChild variant="outline" size="sm" className="min-h-11">
+                          <Link to="/app/loja/cardapio/produtos/$id" params={{ id: product.id }}>Editar</Link>
+                        </Button>
+                      ) : null}
 
                       {(can.update || can.archive) ? (
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Mais ações para ${product.name}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Mais ações para ${product.name}`}><MoreHorizontal className="size-4" /></Button>
+                          </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {can.update && !product.is_archived ? (
                               <>
@@ -161,8 +253,29 @@ function ProdutosPage() {
       )}
 
       {total > CATALOG_PAGE_SIZE ? (
-        <div className="flex items-center justify-between"><Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>Anterior</Button><span className="text-xs text-muted-foreground">Página {page + 1} de {Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE))}</span><Button variant="outline" size="sm" disabled={!query.data?.has_more} onClick={() => setPage((p) => p + 1)}>Próxima</Button></div>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2">
+          <Button variant="outline" size="sm" disabled={page === 0 || query.isFetching} onClick={() => setPage((p) => Math.max(0, p - 1))}>Anterior</Button>
+          <span className="text-xs text-muted-foreground">Página {page + 1} de {Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE))}</span>
+          <Button variant="outline" size="sm" disabled={!query.data?.has_more || query.isFetching} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
+        </div>
       ) : null}
     </div>
+  );
+}
+
+function CatalogMetric({ label, value, tone, active, onClick }: { label: string; value: number; tone: "success" | "danger" | "brand" | "muted"; active: boolean; onClick: () => void }) {
+  const toneClass = tone === "success"
+    ? "text-success"
+    : tone === "danger"
+      ? "text-danger"
+      : tone === "brand"
+        ? "text-brand"
+        : "text-muted-foreground";
+
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active} className={`rounded-2xl border bg-card p-3 text-left shadow-sm transition hover:border-brand/25 hover:shadow-md ${active ? "border-brand/35 ring-2 ring-brand/10" : "border-border"}`}>
+      <p className="text-[11px] font-black uppercase tracking-[.1em] text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-display text-2xl font-black tabular-nums ${toneClass}`}>{value}</p>
+    </button>
   );
 }
