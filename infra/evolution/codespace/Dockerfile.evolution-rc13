@@ -5,4 +5,4 @@ WORKDIR /evolution
 
 # QA patch: Evolution v2.3.7 ships Baileys rc.9. rc.13 contains fixes
 # required for current WhatsApp Web behavior and removes the vulnerable rc.9 build.
-RUN npm install --omit=dev --no-save --ignore-scripts baileys@7.0.0-rc.13
+RUN npm install --omit=dev --no-save baileys@7.0.0-rc.13
