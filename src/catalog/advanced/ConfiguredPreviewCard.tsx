@@ -107,9 +107,9 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Prévia administrativa</CardTitle>
+        <CardTitle className="text-base">Prévia de configuração</CardTitle>
         <CardDescription>
-          Simule uma configuração como se fosse o cliente. O preço é sempre calculado no servidor.
+          Simule as escolhas do cliente. O preço é sempre calculado pelo mesmo motor usado no cardápio público.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -153,8 +153,8 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
           const byQuantity = group.selection_type === "quantidade" || group.portion_count !== null;
           const items = group.items.filter((i) => i.is_active && !i.is_archived);
           return (
-            <fieldset key={group.id} className="rounded-lg border border-border p-3">
-              <legend className="px-1 text-sm font-medium text-foreground">
+            <fieldset key={group.id} className="rounded-xl border border-border p-3">
+              <legend className="px-1 text-sm font-bold text-foreground">
                 {group.name}
                 {group.is_required ? " *" : ""}
               </legend>
@@ -167,7 +167,7 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
                 {items.map((item) => {
                   const current = chosen[group.id]?.[item.id] ?? 0;
                   return (
-                    <li key={item.id} className="flex items-center gap-3">
+                    <li key={item.id} className="flex min-h-11 items-center gap-3 rounded-lg px-1">
                       {byQuantity ? (
                         <Input
                           type="number"
@@ -206,14 +206,14 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
           );
         })}
 
-        <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="rounded-xl border border-border bg-muted/30 p-4">
           {previewQuery.isLoading ? (
             <Skeleton className="h-16 w-full" />
           ) : preview ? (
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-sm text-muted-foreground">Total</span>
-                <span className="text-2xl font-semibold text-foreground">
+                <span className="text-2xl font-black text-foreground">
                   {preview.final_total !== null ? formatPriceBRL(preview.final_total) : "—"}
                 </span>
               </div>
@@ -256,8 +256,8 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Prévia interna. O cardápio público do cliente chega em fase posterior.
+        <p className="text-xs leading-5 text-muted-foreground">
+          Esta simulação usa o motor real de preço. Para conferir foto, layout e jornada completa, abra “Ver como cliente” na área do Cardápio.
         </p>
       </CardContent>
     </Card>
