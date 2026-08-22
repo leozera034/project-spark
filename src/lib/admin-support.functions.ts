@@ -21,7 +21,7 @@ export interface AdminSupportTicketItem {
   messageCount: number;
 }
 export interface AdminSupportTicketDetail {
-  ticket: AdminSupportTicketItem & { updatedAt: string };
+  ticket: Omit<AdminSupportTicketItem, "lastMessageAt" | "messageCount"> & { updatedAt: string };
   messages: Array<{ id: string; authorKind: "loja" | "admin" | "sistema"; body: string; createdAt: string }>;
 }
 
