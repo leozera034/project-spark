@@ -1,7 +1,7 @@
 /**
  * Confirmação do pedido enviado.
  * O comprovante local contém somente dados retornados pelo servidor; pagamentos
- * Stripe são consultados pelo orderId + trackingToken e nunca por preço do browser.
+ * Stripe e instruções privadas do pedido são consultados por orderId/trackingToken.
  */
 import { useEffect, useState } from "react";
 import { createFileRoute, getRouteApi, Link, useNavigate } from "@tanstack/react-router";
@@ -18,6 +18,7 @@ import {
 } from "@/storefront/checkout/checkout.api";
 import { readReceipt, readReorderDraft } from "@/storefront/checkout/checkout.storage";
 import type { LocalOrderReceipt, LocalReorderDraft } from "@/storefront/checkout/checkout.types";
+import { fetchOrderTracking } from "@/storefront/tracking/tracking.api";
 
 const parentRoute = getRouteApi("/loja/$slug");
 
@@ -36,6 +37,13 @@ export const Route = createFileRoute("/loja/$slug/pedido-enviado")({
   component: OrderSentPage,
 });
 
+function extractPixKey(instructions: string | null): string | null {
+  if (!instructions) return null;
+  const match = instructions.match(/^Chave Pix[^:]*:\s*(.+)$/im);
+  const value = match?.[1]?.trim() ?? "";
+  return value || null;
+}
+
 function OrderSentPage() {
   const { slug } = parentRoute.useParams();
   const navigate = useNavigate();
@@ -46,6 +54,8 @@ function OrderSentPage() {
   const [stripeStatus, setStripeStatus] = useState<StripeOrderPaymentStatus | null>(null);
   const [stripeRetryBusy, setStripeRetryBusy] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
+  const [securePaymentInstructions, setSecurePaymentInstructions] = useState<string | null>(null);
+  const [pixKeyCopied, setPixKeyCopied] = useState(false);
 
   useEffect(() => {
     setReceipt(readReceipt(slug));
@@ -53,7 +63,15 @@ function OrderSentPage() {
     setHydrated(true);
   }, [slug]);
 
-  const isStripe = Boolean(receipt?.paymentLabel.toLowerCase().includes("stripe"));
+  const isStripe = Boolean(
+    receipt?.paymentKind === "stripe_online" ||
+    receipt?.paymentProcessingMode === "online" ||
+    receipt?.paymentLabel.toLowerCase().includes("stripe"),
+  );
+  const isManualPix = Boolean(
+    !isStripe &&
+    (receipt?.paymentKind === "pix" || receipt?.paymentLabel.toLowerCase().includes("pix")),
+  );
 
   useEffect(() => {
     if (!receipt || !isStripe || !receipt.order.trackingToken) return;
@@ -81,6 +99,16 @@ function OrderSentPage() {
     };
   }, [receipt, isStripe]);
 
+  useEffect(() => {
+    if (!receipt || !isManualPix || !receipt.order.trackingToken) return;
+    let alive = true;
+    void fetchOrderTracking(receipt.order.trackingToken, null).then((result) => {
+      if (!alive || !result.ok || !result.changed) return;
+      setSecurePaymentInstructions(result.payment.publicInstructions ?? null);
+    });
+    return () => { alive = false; };
+  }, [receipt, isManualPix]);
+
   if (!hydrated) {
     return <main className="storefront-global flex min-h-svh items-center justify-center px-6"><p className="text-sm text-muted-foreground">Carregando…</p></main>;
   }
@@ -102,6 +130,8 @@ function OrderSentPage() {
   const processing = isStripe && !paid && stripeStatus?.status !== "canceled" && !cancelled;
   const currentCartInProgress = cart.itemCount > 0;
   const canRepeat = Boolean(reorderDraft?.lines.length) && reorderDraft?.orderNumber === order.orderNumber;
+  const displayedPaymentInstructions = securePaymentInstructions ?? receipt.paymentInstructions;
+  const pixKey = isManualPix ? extractPixKey(displayedPaymentInstructions) : null;
 
   async function retryStripePayment() {
     if (!order.trackingToken || stripeRetryBusy) return;
@@ -113,6 +143,17 @@ function OrderSentPage() {
     } catch {
       setStripeError("Não foi possível abrir o pagamento agora. Tente novamente em instantes.");
       setStripeRetryBusy(false);
+    }
+  }
+
+  async function copyPixKey() {
+    if (!pixKey) return;
+    try {
+      await navigator.clipboard.writeText(pixKey);
+      setPixKeyCopied(true);
+      window.setTimeout(() => setPixKeyCopied(false), 2500);
+    } catch {
+      window.prompt("Copie a chave Pix:", pixKey);
     }
   }
 
@@ -154,6 +195,12 @@ function OrderSentPage() {
         </div>
       ) : null}
 
+      {isManualPix ? (
+        <div className="mt-5 rounded-2xl border border-warning/30 bg-warning-soft/35 p-4">
+          <div className="flex items-start gap-3"><CircleAlert className="mt-0.5 size-5 shrink-0" /><div><p className="text-sm font-bold">Pix conferido pela loja</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Este Pix vai direto para a loja. A Comandiva não confirma o recebimento automaticamente; a loja precisa verificar o valor antes de considerar pago.</p></div></div>
+        </div>
+      ) : null}
+
       <div className="panel mt-6 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div><p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">Número do pedido</p><p className="mt-0.5 text-3xl font-black tabular-nums">#{order.orderNumber}</p></div>
@@ -167,7 +214,7 @@ function OrderSentPage() {
           <div className="flex justify-between gap-4 border-t pt-2 text-base font-black"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(order.total)}</dd></div>
           <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Pagamento</dt><dd className="min-w-0 break-words text-right font-semibold">{receipt.paymentLabel}</dd></div>
         </dl>
-        {receipt.paymentInstructions ? <p className="mt-3 break-words rounded-xl border border-border bg-surface-muted p-3.5 text-xs leading-relaxed text-muted-foreground">{receipt.paymentInstructions}</p> : null}
+        {displayedPaymentInstructions ? <div className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5"><p className="whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">{displayedPaymentInstructions}</p>{pixKey ? <Button type="button" variant="outline" className="mt-3 min-h-11 w-full bg-background" onClick={() => void copyPixKey()}><Copy className="size-4" />{pixKeyCopied ? "Chave copiada" : "Copiar chave Pix"}</Button> : null}</div> : isManualPix ? <p className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5 text-xs leading-relaxed text-muted-foreground">Carregando a chave Pix segura do pedido…</p> : null}
         {order.etaMinutes ? <p className="mt-4 flex items-start gap-2 text-sm"><Clock className="mt-0.5 size-4 shrink-0 text-brand" /><span>A previsão pode mudar conforme preparo e deslocamento. O acompanhamento mostra o estágio real do pedido.</span></p> : null}
       </div>
 
