@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock3, CreditCard, MapPin, Palette, Settings2, Truck, UserRoundCog } from "lucide-react";
+import { Building2, Clock3, CreditCard, MapPin, Palette, Settings2, Truck, UserRoundCog, WalletCards } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -26,9 +26,10 @@ const GROUPS = [
   },
   {
     title: "Pagamentos e conta",
-    description: "Formas de pagamento e assinatura da Comandiva.",
+    description: "Formas de pagamento, recebimentos e assinatura da Comandiva.",
     items: [
       { to: "/app/loja/configuracoes/pagamentos", label: "Pagamentos do pedido", description: "Dinheiro, cartão, Pix e disponibilidade", icon: CreditCard },
+      { to: "/app/loja/financeiro", label: "Financeiro e repasses", description: "Saldo, taxas, valores a receber e repasses", icon: WalletCards },
       { to: "/app/loja/plano", label: "Conta e plano", description: "Assinatura, cobrança e gestão do plano", icon: UserRoundCog },
     ],
   },

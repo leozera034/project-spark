@@ -6,6 +6,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Check, Clock, MapPin, MessageCircle, Phone, RefreshCw, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
+import { OrderReviewCard } from "@/components/storefront/OrderReviewCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -200,6 +201,7 @@ function TrackingPage() {
       </section>
 
       <OrderSummary data={data} />
+      {data.status.isFinal ? <OrderReviewCard token={token} fulfillment={data.fulfillment.type} /> : null}
 
       {whatsapp || phone ? (
         <section className="panel mt-4 p-4 sm:p-5">

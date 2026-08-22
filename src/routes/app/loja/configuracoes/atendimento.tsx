@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { updateServiceSettings } from "@/store-config/api";
+import { setManualStoreOpen } from "@/store-config/manual-open";
 import {
   SectionForm,
   TextField,
@@ -30,6 +31,7 @@ function AtendimentoSection() {
     prepMinutes: String(settings?.default_prep_minutes ?? 30),
     soundAlert: settings?.sound_alert_enabled ?? true,
     autoOpen: settings?.auto_open_by_hours ?? true,
+    manualOpen: settings?.manual_override_open ?? false,
   });
 
   const minOrder = parseCurrencyInput(form.value.minOrder);
@@ -57,8 +59,8 @@ function AtendimentoSection() {
       onSubmit={() => {
         if (!storeId || !settings || minOrderError || prepError || modeError) return;
         void save(
-          () =>
-            updateServiceSettings({
+          async () => {
+            const updated = await updateServiceSettings({
               storeId,
               acceptsDelivery: form.value.acceptsDelivery,
               acceptsPickup: form.value.acceptsPickup,
@@ -67,8 +69,22 @@ function AtendimentoSection() {
               soundAlertEnabled: form.value.soundAlert,
               autoOpenByHours: form.value.autoOpen,
               expectedUpdatedAt: settings.updated_at,
-            }),
-          "Configurações de atendimento atualizadas.",
+            });
+
+            if (!form.value.autoOpen && updated.settings.manual_override_open !== form.value.manualOpen) {
+              return setManualStoreOpen({
+                storeId,
+                open: form.value.manualOpen,
+                expectedUpdatedAt: updated.settings.updated_at,
+              });
+            }
+            return updated;
+          },
+          form.value.autoOpen
+            ? "Atendimento atualizado. A loja seguirá os horários cadastrados."
+            : form.value.manualOpen
+              ? "Atendimento atualizado. A loja está aberta manualmente."
+              : "Atendimento atualizado. A loja está fechada manualmente.",
         );
       }}
     >
@@ -117,10 +133,19 @@ function AtendimentoSection() {
         <ToggleRow
           id="autoOpen"
           label="Abrir e fechar automaticamente pelos horários"
-          hint="Desligue para controlar a abertura manualmente."
+          hint="Ative para seguir a grade de horários. Desative para controlar a loja manualmente."
           checked={form.value.autoOpen}
           onChange={(v) => form.set("autoOpen", v)}
         />
+        {!form.value.autoOpen ? (
+          <ToggleRow
+            id="manualOpen"
+            label={form.value.manualOpen ? "Loja aberta manualmente" : "Loja fechada manualmente"}
+            hint={form.value.manualOpen ? "O cardápio aceita pedidos até você fechar manualmente ou voltar ao modo por horários." : "O cardápio não aceita novos pedidos até você abrir manualmente ou voltar ao modo por horários."}
+            checked={form.value.manualOpen}
+            onChange={(v) => form.set("manualOpen", v)}
+          />
+        ) : null}
         <ToggleRow
           id="soundAlert"
           label="Alerta sonoro de novo pedido"
@@ -129,6 +154,16 @@ function AtendimentoSection() {
           onChange={(v) => form.set("soundAlert", v)}
         />
       </div>
+
+      <Alert>
+        <AlertDescription>
+          {form.value.autoOpen
+            ? "A abertura segue os horários cadastrados. Fora da grade, o cardápio fica fechado automaticamente."
+            : form.value.manualOpen
+              ? "Modo manual ativo: a loja permanece aberta mesmo fora da grade de horários até você alterar este controle."
+              : "Modo manual ativo: a loja permanece fechada mesmo dentro da grade de horários até você alterar este controle."}
+        </AlertDescription>
+      </Alert>
 
       <Alert>
         <AlertDescription>

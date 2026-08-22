@@ -53,10 +53,65 @@ async function syncConnectedAccount(raw:J){
   if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}if(!storeId)return false;
   const requirements=obj(raw.requirements);const {error}=await a.rpc("backend_upsert_stripe_connect_account",{_store_id:storeId,_stripe_account_id:accountId,_country:str(raw.country),_business_type:str(raw.business_type),_details_submitted:raw.details_submitted===true,_charges_enabled:raw.charges_enabled===true,_payouts_enabled:raw.payouts_enabled===true,_requirements_currently_due:Array.isArray(requirements.currently_due)?requirements.currently_due:[],_metadata:{source:"stripe_webhook"}} as never);return !error;
 }
-async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){
+
+type PaymentSyncResult={mapped:boolean;ok:boolean;requiresRefund?:boolean;error?:string;settlementRecorded?:boolean};
+async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null):Promise<PaymentSyncResult>{
   const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),storeId=str(metadata.comandiva_store_id),pi=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);
-  if(!orderId||!storeId||!pi||!status||!amount||!currency)return false;const account=connectedAccount??str(raw.on_behalf_of);if(!account)return false;
-  const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_webhook",event_created:eventCreated}} as never);return !error;
+  if(!orderId||!storeId||!pi||!status||!amount||!currency)return{mapped:false,ok:true};
+  const destinationAccount=str(metadata.comandiva_destination_account);
+  const account=connectedAccount??str(raw.on_behalf_of)??destinationAccount;
+  if(!account)return{mapped:false,ok:true};
+  const chargePattern=(str(metadata.comandiva_charge_pattern)??(destinationAccount?"separate":"direct")).toLowerCase();
+  const platformFee=int(raw.application_fee_amount)??int(metadata.comandiva_platform_fee_cents)??0;
+  const latestCharge=str(raw.latest_charge)??str(obj(raw.latest_charge).id);
+  const transferGroup=str(raw.transfer_group);
+  const chargeAccount=chargePattern==="direct"?(connectedAccount??account):undefined;
+  let balanceTransactionId:string|null=null;
+  if(latestCharge){
+    const charge=await stripeGet(`/v1/charges/${encodeURIComponent(latestCharge)}`,chargeAccount);
+    if(charge.ok)balanceTransactionId=str(charge.body.balance_transaction)??str(obj(charge.body.balance_transaction).id);
+  }
+  const a=admin();
+  const recorded=await a.rpc("backend_record_stripe_payment_intent",{
+    _order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,
+    _application_fee_amount:platformFee,_status:status,_event_id:eventId,
+    _last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,
+    _metadata:{source:"stripe_webhook",event_created:eventCreated,charge_pattern:chargePattern,stripe_charge_id:latestCharge,stripe_balance_transaction_id:balanceTransactionId,transfer_group:transferGroup}
+  } as never);
+  if(recorded.error)return{mapped:true,ok:false,error:recorded.error.message};
+  const requiresRefund=obj(recorded.data).requires_refund===true;
+  if(status!=="succeeded")return{mapped:true,ok:true,requiresRefund,settlementRecorded:false};
+  if(!latestCharge||!balanceTransactionId)return{mapped:true,ok:false,requiresRefund,error:"settlement_context_missing"};
+  const bt=await stripeGet(`/v1/balance_transactions/${encodeURIComponent(balanceTransactionId)}`,chargeAccount);
+  if(!bt.ok)return{mapped:true,ok:false,requiresRefund,error:`balance_transaction_lookup_${bt.status}`};
+  const stripeFee=int(bt.body.fee),availableAt=unixIso(bt.body.available_on);
+  if(stripeFee===null||!availableAt)return{mapped:true,ok:false,requiresRefund,error:"balance_transaction_incomplete"};
+  const settlement=await a.rpc("backend_upsert_order_settlement",{
+    _order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_charge_id:latestCharge,_balance_transaction_id:balanceTransactionId,
+    _gross_cents:amount,_stripe_fee_cents:Math.max(stripeFee,0),_platform_fee_cents:Math.max(platformFee,0),_available_at:availableAt,
+    _metadata:{source:"stripe_webhook",event_id:eventId,event_created:eventCreated,charge_pattern:chargePattern,transfer_group:transferGroup}
+  } as never);
+  if(settlement.error)return{mapped:true,ok:false,requiresRefund,error:settlement.error.message};
+  return{mapped:true,ok:true,requiresRefund,settlementRecorded:true};
+}
+
+async function syncChargeRefund(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){
+  const paymentIntent=str(raw.payment_intent)??str(obj(raw.payment_intent).id);if(!paymentIntent)return{relevant:false,ok:true};
+  const chargeId=str(raw.id),amountRefunded=int(raw.amount_refunded)??0,currency=str(raw.currency)??"brl";
+  const {data,error}=await admin().rpc("backend_record_stripe_order_refund",{_payment_intent_id:paymentIntent,_stripe_account_id:connectedAccount,_charge_id:chargeId,_amount_refunded_cents:amountRefunded,_currency:currency,_event_id:eventId,_event_created:eventCreated,_metadata:{source:"stripe_webhook",event_type:"charge.refunded"}} as never);
+  if(error)return{relevant:true,ok:false,error:error.message};
+  return{relevant:obj(data).relevant===true,ok:true,result:data};
+}
+
+async function syncDispute(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){
+  let paymentIntent=str(raw.payment_intent)??str(obj(raw.payment_intent).id);
+  const chargeId=str(raw.charge)??str(obj(raw.charge).id);
+  if(!paymentIntent&&chargeId){const charge=await stripeGet(`/v1/charges/${encodeURIComponent(chargeId)}`,connectedAccount??undefined);if(charge.ok)paymentIntent=str(charge.body.payment_intent)??str(obj(charge.body.payment_intent).id)}
+  if(!paymentIntent)return{relevant:false,ok:true};
+  const disputeId=str(raw.id),status=str(raw.status)??"unknown",amount=int(raw.amount)??0,currency=str(raw.currency)??"brl";
+  const {data,error}=await admin().rpc("backend_record_stripe_order_dispute",{_payment_intent_id:paymentIntent,_stripe_account_id:connectedAccount,_dispute_id:disputeId,_dispute_status:status,_amount_cents:amount,_currency:currency,_event_id:eventId,_event_created:eventCreated,_metadata:{source:"stripe_webhook",charge_id:chargeId}} as never);
+  if(error)return{relevant:true,ok:false,error:error.message};
+  return{relevant:obj(data).relevant===true,ok:true,result:data};
 }
 
 async function syncProfessionalServiceCheckout(raw:J,eventId:string){
@@ -67,6 +122,15 @@ async function syncProfessionalServiceCheckout(raw:J,eventId:string){
   if(!sessionId||!amountTotal)return{relevant:true,ok:false,error:"professional_service_checkout_incomplete"};
   const {data,error}=await admin().rpc("backend_complete_professional_service_payment",{_order_id:orderId,_checkout_session_id:sessionId,_payment_intent_id:paymentIntentId,_amount_total:amountTotal,_currency:currency,_event_id:eventId} as never);
   return{relevant:true,ok:!error,error:error?.message,result:data};
+}
+
+async function expireOrderCheckout(raw:J,eventId:string){
+  const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),sessionId=str(raw.id);
+  if(!orderId)return{relevant:false,ok:true};
+  if(!sessionId)return{relevant:true,ok:false,error:"checkout_session_id_missing"};
+  const {data,error}=await admin().rpc("backend_expire_stripe_order_checkout",{_order_id:orderId,_checkout_session_id:sessionId,_event_id:eventId} as never);
+  if(error)return{relevant:true,ok:false,error:error.message};
+  return{relevant:true,ok:true,processed:obj(data).processed===true,result:data};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -83,7 +147,30 @@ Deno.serve(async(req:Request)=>{
   try{
     const data=obj(event.data),resource=obj(data.object);
     if(eventType==="account.updated"){const ok=await syncConnectedAccount(resource);await finish(ok?"processed":"ignored",ok?null:"account_not_mapped");return response(200,{ok:true,processed:ok})}
-    if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
+    if(eventType.startsWith("payment_intent.")){
+      const synced=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);
+      if(!synced.mapped){await finish("ignored","payment_intent_not_mapped");return response(200,{ok:true,ignored:true})}
+      if(!synced.ok){await finish("failed",synced.error??"payment_intent_reconcile_failed");return response(409,{ok:false,error:"payment_intent_reconcile_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,settlementRecorded:synced.settlementRecorded===true,requiresRefund:synced.requiresRefund===true});
+    }
+    if(eventType==="charge.refunded"){
+      const refund=await syncChargeRefund(resource,eventId,connectedAccount,eventCreated);
+      if(!refund.relevant){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      if(!refund.ok){await finish("failed",refund.error??"refund_reconcile_failed");return response(409,{ok:false,error:"refund_reconcile_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,kind:"order_refund"});
+    }
+    if(["charge.dispute.created","charge.dispute.updated","charge.dispute.closed","charge.dispute.funds_withdrawn","charge.dispute.funds_reinstated"].includes(eventType)){
+      const dispute=await syncDispute(resource,eventId,connectedAccount,eventCreated);
+      if(!dispute.relevant){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      if(!dispute.ok){await finish("failed",dispute.error??"dispute_reconcile_failed");return response(409,{ok:false,error:"dispute_reconcile_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,kind:"order_dispute"});
+    }
+    if(eventType==="checkout.session.expired"){
+      const expired=await expireOrderCheckout(resource,eventId);
+      if(!expired.relevant){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      if(!expired.ok){await finish("failed",expired.error??"order_checkout_expire_failed");return response(409,{ok:false,error:"order_checkout_expire_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,kind:"order_checkout_expired",orderProcessed:expired.processed===true});
+    }
     if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){
       const service=await syncProfessionalServiceCheckout(resource,eventId);
       if(service.relevant){if(!service.ok){await finish("failed",service.error??"professional_service_reconcile_failed");return response(409,{ok:false,error:"professional_service_reconcile_failed"})}await finish("processed");return response(200,{ok:true,processed:true,kind:"professional_service",pending:service.pending===true})}
