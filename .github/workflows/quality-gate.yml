@@ -35,6 +35,8 @@ jobs:
         run: npm run test:merchant-ux
       - name: User-facing Comandiva brand guard
         run: npm run test:user-brand
+      - name: Storefront commerce UX guard
+        run: npm run test:storefront-ux
       - name: Logic lint
         run: npm run lint:ci
       - name: Typecheck
