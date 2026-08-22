@@ -195,12 +195,12 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
                 <Building2 className="size-5" />
               </span>
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Escopo da operação</p>
-                <h1 className="font-display text-2xl font-black">Escolha a loja</h1>
+                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Escolha a operação</p>
+                <h1 className="font-display text-2xl font-black">Qual loja você quer gerenciar?</h1>
               </div>
             </div>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Sua conta possui acesso a mais de uma loja. A Comandiva não escolhe uma delas silenciosamente: selecione o contexto antes de consultar ou alterar dados.
+              Selecione uma loja para manter pedidos, cardápio, entregas e relatórios no mesmo contexto durante toda a sessão.
             </p>
             <div className="mt-6 grid gap-2">
               {stores.map((store) => (
@@ -223,25 +223,5 @@ export function StoreScopeProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <StoreScopeContext.Provider value={value}>
-      {children}
-      {stores.length > 1 && selectedStore ? (
-        <label className="fixed right-3 top-[4.75rem] z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-xl border border-border bg-background/95 px-3 py-2 shadow-e2 backdrop-blur sm:right-4">
-          <Building2 className="size-4 shrink-0 text-brand" aria-hidden="true" />
-          <span className="sr-only">Loja em operação</span>
-          <select
-            aria-label="Loja em operação"
-            value={selectedStore.id}
-            onChange={(event) => void selectStore(event.target.value)}
-            className="max-w-48 bg-transparent text-sm font-bold text-foreground outline-none sm:max-w-64"
-          >
-            {stores.map((store) => (
-              <option key={store.id} value={store.id}>{store.name}</option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-    </StoreScopeContext.Provider>
-  );
+  return <StoreScopeContext.Provider value={value}>{children}</StoreScopeContext.Provider>;
 }
