@@ -11,12 +11,12 @@ import {
   WalletCards,
 } from "lucide-react";
 
-import { useAuth } from "@/auth/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PayoutSpeed, StoreFinancialSettlement, StorePayoutHistoryItem } from "@/lib/store-finance.functions";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 import { useStoreFinanceActions, useStoreFinancialCenter } from "@/store/finance/store-finance.queries";
 
 export const Route = createFileRoute("/app/loja/financeiro")({
@@ -55,8 +55,14 @@ function formatDate(value: string | null | undefined) {
 }
 
 function StoreFinancialCenter() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId } = useStoreScope();
+  if (!storeId) {
+    return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Escolha uma loja para ver o financeiro.</div>;
+  }
+  return <StoreFinancialCenterForStore key={storeId} storeId={storeId} />;
+}
+
+function StoreFinancialCenterForStore({ storeId }: { storeId: string }) {
   const finance = useStoreFinancialCenter(storeId);
   const actions = useStoreFinanceActions();
   const [speed, setSpeed] = useState<PayoutSpeed>("standard");
@@ -74,10 +80,6 @@ function StoreFinancialCenter() {
   }, [data, speed]);
   const payoutFee = Math.ceil((available * speedFeeBps) / 10000);
   const payoutNet = Math.max(available - payoutFee, 0);
-
-  if (!storeId) {
-    return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
-  }
 
   const requestPayout = () => {
     if (!payoutReady || available <= 0 || actions.requestPayout.isPending) return;
