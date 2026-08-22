@@ -2,6 +2,7 @@
  * Fase 14 — Tipos do checkout público (navegador).
  * Nenhum valor aqui é fonte de verdade: o servidor sempre recalcula.
  */
+import type { CartLineInput } from "@/storefront/cart/cart.types";
 
 export type PublicPaymentMethod = {
   id: string;
@@ -42,5 +43,18 @@ export type LocalOrderReceipt = {
   fulfillmentType: "entrega" | "retirada";
   paymentLabel: string;
   paymentInstructions: string | null;
+  createdAt: string;
+};
+
+/**
+ * Cópia local da montagem do último pedido para “Pedir de novo”.
+ * Os preços são apenas snapshots: ao restaurar, o carrinho recotiza tudo no servidor.
+ * Não contém endereço, telefone, customer_id, store_id nem tokens administrativos.
+ */
+export type LocalReorderDraft = {
+  schemaVersion: 1;
+  slug: string;
+  orderNumber: number;
+  lines: CartLineInput[];
   createdAt: string;
 };
