@@ -4,6 +4,7 @@ import { ArrowLeft, Check, MapPin, Phone, Store } from "lucide-react";
 
 import { OrderingContextBar } from "@/components/storefront/OrderingContextBar";
 import { brl } from "@/components/storefront/format";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ function CheckoutPage() {
     if (!fulfillmentType) return;
     let active = true;
     setMethods(null);
+    setMethodId(null);
     fetchPaymentMethods(slug, fulfillmentType)
       .then((list) => {
         if (!active) return;
@@ -70,6 +72,18 @@ function CheckoutPage() {
   const changeValue = changeFor.trim() ? Number(changeFor.replace(",", ".")) : null;
   const changeValid = !selectedMethod?.requiresChange || !needsChange || (changeValue !== null && Number.isFinite(changeValue) && changeValue >= cart.total);
   const canSubmit = Boolean(context) && cart.canCheckout && phoneValid && Boolean(selectedMethod) && changeValid && !submitting;
+
+  const submitHint = !cart.canCheckout
+    ? "O carrinho mudou ou possui uma pendência. Volte e revise antes de enviar."
+    : !phoneValid
+      ? "Confira o telefone informado ou deixe o campo vazio."
+      : methods !== null && methods.length === 0
+        ? "A loja ainda não publicou uma forma de pagamento para esta modalidade."
+        : !selectedMethod
+          ? "Escolha uma forma de pagamento para continuar."
+          : !changeValid
+            ? `Informe um valor de troco igual ou maior que ${brl(cart.total)}.`
+            : null;
 
   if (!context) {
     return (
@@ -191,11 +205,11 @@ function CheckoutPage() {
         </section>
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
-          <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-2xl bg-brand/10 text-brand"><Phone className="size-5" /></div>
-            <div>
-              <h2 className="text-lg font-extrabold">Telefone <span className="font-medium text-muted-foreground">(opcional)</span></h2>
-              <p className="text-sm text-muted-foreground">Você pode continuar sem informar.</p>
+          <div className="flex items-start gap-3">
+            <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand"><Phone className="size-5" /></div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-extrabold">Telefone para contato</h2><Badge variant="brandSoft">Recomendado</Badge></div>
+              <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">Você pode continuar sem informar, mas ele ajuda a resolver imprevistos rapidamente.</p>
             </div>
           </div>
           <div className="mt-4 space-y-2">
@@ -211,25 +225,23 @@ function CheckoutPage() {
               aria-invalid={phoneTouched && !phoneValid}
               className="min-h-[58px] rounded-2xl text-lg"
             />
-            <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[.07] p-3 text-sm leading-relaxed">
-              <strong>É muito importante informar um telefone.</strong> A loja ou o entregador podem precisar falar com você se não encontrarem o endereço, houver dúvida no pedido ou algum imprevisto na entrega.
-            </div>
-            {phoneTouched && !phoneValid ? <p className="text-sm font-medium text-destructive">Confira o DDD e o número, ou deixe o campo vazio.</p> : null}
+            <p className="rounded-2xl bg-muted/45 p-3 text-sm leading-relaxed text-muted-foreground">A loja ou o entregador podem usar esse número somente para dúvidas sobre este pedido, como endereço, troco ou entrega.</p>
+            {phoneTouched && !phoneValid ? <p role="alert" className="text-sm font-medium text-destructive">Confira o DDD e o número, ou deixe o campo vazio.</p> : null}
           </div>
         </section>
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
           <h2 className="text-lg font-extrabold">Como você quer pagar?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Toque em uma opção. Só isso.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Escolha a forma de pagamento disponível para este pedido.</p>
           <div className="mt-4 space-y-3">
             {methods === null ? <><Skeleton className="h-16 rounded-2xl" /><Skeleton className="h-16 rounded-2xl" /></> : methods.length === 0 ? (
               <p className="rounded-2xl bg-muted p-4 text-sm">A loja ainda não publicou formas de pagamento para esta modalidade.</p>
             ) : methods.map((method) => {
               const selected = method.id === methodId;
               return (
-                <button key={method.id} type="button" onClick={() => { setMethodId(method.id); setNeedsChange(false); setChangeFor(""); }} className={`flex min-h-[64px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition active:scale-[.99] ${selected ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "bg-background hover:bg-muted/40"}`}>
-                  <div><p className="font-bold">{method.displayName}</p>{method.publicInstructions ? <p className="mt-0.5 text-xs text-muted-foreground">{method.publicInstructions}</p> : null}</div>
-                  <span className={`grid size-7 place-items-center rounded-full border ${selected ? "border-brand bg-brand text-white" : ""}`}>{selected ? <Check className="size-4" /> : null}</span>
+                <button key={method.id} type="button" aria-pressed={selected} onClick={() => { setMethodId(method.id); setNeedsChange(false); setChangeFor(""); }} className={`flex min-h-[64px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition active:scale-[.99] ${selected ? "border-brand bg-brand/5 ring-2 ring-brand/20" : "bg-background hover:bg-muted/40"}`}>
+                  <div className="min-w-0"><p className="font-bold">{method.displayName}</p>{method.publicInstructions ? <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{method.publicInstructions}</p> : null}</div>
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${selected ? "border-brand bg-brand text-white" : ""}`}>{selected ? <Check className="size-4" /> : null}</span>
                 </button>
               );
             })}
@@ -242,28 +254,32 @@ function CheckoutPage() {
                 <Button type="button" variant={!needsChange ? "default" : "outline"} className="min-h-12 rounded-xl" onClick={() => { setNeedsChange(false); setChangeFor(""); }}>Não</Button>
                 <Button type="button" variant={needsChange ? "default" : "outline"} className="min-h-12 rounded-xl" onClick={() => setNeedsChange(true)}>Sim</Button>
               </div>
-              {needsChange ? <div className="mt-3"><Label htmlFor="troco">Troco para quanto?</Label><Input id="troco" inputMode="decimal" placeholder={`Ex.: ${Math.ceil(cart.total / 10) * 10}`} value={changeFor} onChange={(e) => setChangeFor(e.target.value)} className="mt-2 min-h-14 rounded-xl text-lg" />{!changeValid ? <p className="mt-2 text-sm text-destructive">O valor precisa ser igual ou maior que {brl(cart.total)}.</p> : null}</div> : null}
+              {needsChange ? <div className="mt-3"><Label htmlFor="troco">Troco para quanto?</Label><Input id="troco" inputMode="decimal" placeholder={`Ex.: ${Math.ceil(cart.total / 10) * 10}`} value={changeFor} onChange={(e) => setChangeFor(e.target.value)} className="mt-2 min-h-14 rounded-xl text-lg" />{!changeValid ? <p role="alert" className="mt-2 text-sm text-destructive">O valor precisa ser igual ou maior que {brl(cart.total)}.</p> : null}</div> : null}
             </div>
           ) : null}
         </section>
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
-          <Label htmlFor="observacao" className="text-base font-extrabold">Alguma observação? <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+          <div className="flex items-center justify-between gap-3"><Label htmlFor="observacao" className="text-base font-extrabold">Alguma observação? <span className="font-normal text-muted-foreground">(opcional)</span></Label><span className="text-xs tabular-nums text-muted-foreground">{notes.length}/400</span></div>
           <Textarea id="observacao" value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={400} placeholder="Ex.: tocar a campainha, retirar ingrediente..." className="mt-3 min-h-24 rounded-2xl text-base" />
         </section>
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
           <h2 className="text-lg font-extrabold">Resumo</h2>
-          <div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Itens</span><strong>{brl(cart.subtotal)}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">{context.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</span><strong>{context.type === "entrega" ? (cart.deliveryFee === null ? "A calcular" : brl(cart.deliveryFee)) : "Sem taxa"}</strong></div><div className="mt-3 flex justify-between border-t pt-3 text-lg"><span className="font-extrabold">Total</span><span className="font-black">{brl(cart.total)}</span></div></div>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><strong>{brl(cart.subtotal)}</strong></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">{context.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</span><strong>{context.type === "entrega" ? (cart.deliveryFee === null ? "A calcular" : brl(cart.deliveryFee)) : "Sem taxa"}</strong></div>
+            <div className="mt-3 flex justify-between border-t pt-3 text-lg"><span className="font-extrabold">Total</span><span className="font-black">{brl(cart.total)}</span></div>
+          </div>
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-14px_34px_rgba(58,35,24,.08)] backdrop-blur-xl">
         <div className="mx-auto max-w-2xl">
-          <Button className={`w-full ${BIG_BUTTON}`} disabled={!canSubmit} onClick={() => void submit()}>
+          <Button className={`w-full ${BIG_BUTTON}`} disabled={!canSubmit} loading={submitting} loadingLabel="Enviando pedido" onClick={() => void submit()}>
             {submitting ? "Enviando pedido…" : `Enviar pedido · ${brl(cart.total)}`}
           </Button>
-          {!selectedMethod && methods?.length ? <p className="mt-2 text-center text-xs text-muted-foreground">Escolha uma forma de pagamento para continuar.</p> : null}
+          {submitHint ? <p className="mt-2 text-center text-xs font-medium text-muted-foreground" aria-live="polite">{submitHint}</p> : <p className="mt-2 text-center text-[11px] text-muted-foreground">Ao enviar, a loja recebe o pedido imediatamente para confirmação.</p>}
         </div>
       </div>
     </main>
