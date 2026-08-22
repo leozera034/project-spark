@@ -62,6 +62,7 @@ function StoreReviewsPage() {
       </header>
 
       {reviews.isError ? <ErrorState title="Não foi possível carregar as avaliações" onRetry={() => void reviews.refetch()} /> : null}
+      {actions.reply.isError ? <p className="rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert">A resposta não foi salva. O conteúdo anterior da avaliação permanece intacto; tente novamente.</p> : null}
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric icon={Star} label="Nota média" value={reviews.isLoading ? "—" : total ? number(summary?.averageRating) : "—"} detail={`${total} avaliação(ões)`} />
@@ -113,14 +114,14 @@ function StoreReviewsPage() {
         {!reviews.isLoading && !reviews.isError && total === 0 ? <EmptyState title="Ainda não há avaliações" description="Quando um cliente avaliar um pedido entregue ou retirado, a nota aparecerá aqui." /> : null}
         {!reviews.isLoading && total > 0 && items.length === 0 ? <EmptyState size="compact" title="Nenhuma avaliação neste filtro" description="Troque o filtro para ver outras avaliações." /> : null}
         <div className="space-y-3">
-          {items.map((review) => <ReviewCard key={review.id} review={review} storeId={storeId} replying={actions.reply.isPending} onReply={(reply) => actions.reply.mutate({ storeId, reviewId: review.id, reply })} />)}
+          {items.map((review) => <ReviewCard key={review.id} review={review} replying={actions.reply.isPending} onReply={(reply) => actions.reply.mutate({ storeId, reviewId: review.id, reply })} />)}
         </div>
       </section>
     </div>
   );
 }
 
-function ReviewCard({ review, storeId: _storeId, replying, onReply }: { review: StoreReviewItem; storeId: string; replying: boolean; onReply: (reply: string) => void }) {
+function ReviewCard({ review, replying, onReply }: { review: StoreReviewItem; replying: boolean; onReply: (reply: string) => void }) {
   const [reply, setReply] = useState("");
   const hasReply = Boolean(review.merchantReply);
   return (
