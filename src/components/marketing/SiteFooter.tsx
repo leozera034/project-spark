@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { reopenAnalyticsPreferences } from "@/lib/analytics";
 
 /** Rodapé institucional da Comandiva. */
 export function SiteFooter() {
@@ -53,6 +54,13 @@ export function SiteFooter() {
             <Link to="/termos" className="transition-colors hover:text-carbon-foreground">
               Termos de Uso
             </Link>
+            <button
+              type="button"
+              onClick={reopenAnalyticsPreferences}
+              className="transition-colors hover:text-carbon-foreground"
+            >
+              Preferências de cookies
+            </button>
           </div>
         </div>
       </div>
