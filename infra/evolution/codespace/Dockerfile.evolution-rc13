@@ -3,13 +3,14 @@ FROM evoapicloud/evolution-api:v2.3.7
 USER root
 WORKDIR /evolution
 
-# Evolution v2.3.7 ships Baileys rc.9. Keep the runtime package metadata
-# aligned with the patched dependency and remove only the root prepare hook.
-# The upstream runtime image omits git, while npm dependencies may still need it
-# during installation, so install it explicitly for a deterministic QA build.
+# Evolution v2.3.7 ships Baileys rc.9. The published npm version after rc.9
+# changed its prerelease spelling from rc.9 to rc13 (without the extra dot).
+# Keep the runtime package metadata aligned with the patched dependency and
+# remove only the root prepare hook. The upstream runtime image omits git,
+# while npm dependencies may still need it during installation.
 RUN apk add --no-cache git \
     && npm pkg delete scripts.prepare \
-    && npm pkg set dependencies.baileys=7.0.0-rc.13 \
-    && npm install --omit=dev --package-lock=false --no-save baileys@7.0.0-rc.13 \
-    && node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));if(p.version!=="7.0.0-rc.13"){throw new Error(`Baileys inesperado: ${p.version}`)}' \
+    && npm pkg set dependencies.baileys=7.0.0-rc13 \
+    && npm install --omit=dev --package-lock=false --no-save baileys@7.0.0-rc13 \
+    && node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));if(p.version!=="7.0.0-rc13"){throw new Error(`Baileys inesperado: ${p.version}`)}' \
     && npm cache clean --force
