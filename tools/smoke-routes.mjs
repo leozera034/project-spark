@@ -51,7 +51,7 @@ async function request(path, timeoutMs = 8_000) {
   return fetch(`${origin}${path}`, {
     redirect: "manual",
     signal: AbortSignal.timeout(timeoutMs),
-    headers: { "user-agent": "PediuAqui-CI-Smoke/1.0" },
+    headers: { "user-agent": "Comandiva-CI-Smoke/1.0" },
   });
 }
 
