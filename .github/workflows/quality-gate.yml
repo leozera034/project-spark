@@ -106,6 +106,9 @@ jobs:
       - name: Run store hours overlap contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_hours_overlap_contract.sql
+      - name: Run manual store opening contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_manual_open_contract.sql
       - name: Run Stripe order payment lifecycle contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/stripe_order_payment_lifecycle_contract.sql
