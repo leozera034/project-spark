@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toFriendlyMessage as baseFriendlyMessage } from "@/store-config/errors";
 
+import { optimizeCatalogImage } from "./image-optimization";
 import type {
   CatalogCategory,
   CatalogOverview,
@@ -10,8 +11,6 @@ import type {
 } from "./types";
 
 const BUCKET = "store-catalog";
-const ALLOWED_MIME = ["image/png", "image/jpeg", "image/webp"];
-const MAX_BYTES = 5 * 1024 * 1024;
 
 const CATALOG_MESSAGES: Record<string, string> = {
   DUPLICATE_CATEGORY: "Já existe uma categoria com este nome.",
@@ -26,6 +25,9 @@ const CATALOG_MESSAGES: Record<string, string> = {
   INVALID_MAX_QUANTITY: "O limite máximo por pedido precisa ser maior que zero.",
   INVALID_STOCK: "O estoque não pode ser negativo.",
   INVALID_LOW_STOCK_THRESHOLD: "O alerta de estoque baixo precisa ser zero ou maior.",
+  UPLOAD_INVALID_TYPE: "Use uma foto PNG, JPG ou WebP.",
+  UPLOAD_TOO_LARGE: "A foto é grande demais. Use uma imagem de até 20 MB; a Comandiva otimiza antes de enviar.",
+  UPLOAD_FAILED: "Não foi possível enviar a foto agora. Tente novamente.",
   // Fase 10 — motor avançado
   INVALID_SALE_MODE: "Modo de venda inválido.",
   INVALID_MEASUREMENT_UNIT: "Escolha uma unidade de medida válida.",
@@ -409,16 +411,13 @@ export async function uploadCatalogImage(params: {
   entityId: string;
   file: File;
 }): Promise<string> {
-  if (!ALLOWED_MIME.includes(params.file.type)) throw new Error("UPLOAD_INVALID_TYPE");
-  if (params.file.size > MAX_BYTES) throw new Error("UPLOAD_TOO_LARGE");
-
-  const ext =
-    params.file.type === "image/png" ? "png" : params.file.type === "image/webp" ? "webp" : "jpg";
+  const file = await optimizeCatalogImage(params.file);
+  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const path = `${params.storeId}/${params.scope}/${params.entityId}/${crypto.randomUUID()}.${ext}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(path, params.file, { contentType: params.file.type, upsert: false });
+    .upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw new Error("UPLOAD_FAILED");
   return path;
 }
