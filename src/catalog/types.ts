@@ -27,6 +27,18 @@ export interface CatalogProduct {
   is_sold_out: boolean;
   is_archived: boolean;
   has_variants: boolean;
+  /** Janela opcional de venda no fuso da loja. Null = sem restrição. */
+  available_from?: string | null;
+  available_to?: string | null;
+  /** 0=domingo ... 6=sábado. Null = todos os dias. */
+  available_weekdays?: number[] | null;
+  /** Limite máximo deste produto dentro de um pedido. */
+  max_quantity?: number | null;
+  /** Estoque canônico. Null = sem controle de estoque por quantidade. */
+  stock_quantity?: number | null;
+  low_stock_threshold?: number;
+  /** Disponibilidade real agora, já considerando agenda, estoque e variações. */
+  runtime_available?: boolean;
   sort_order: number;
   updated_at: string;
 }
