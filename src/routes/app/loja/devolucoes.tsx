@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, Bike, Car, MapPin, PackageCheck, RefreshCw, RotateCcw, XCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { useMyStores, useTransitionReasons } from "@/store-orders/useStoreOrders";
+import { useTransitionReasons } from "@/store-orders/useStoreOrders";
 import { useCancelReturnedDelivery, useRetryReturnedDelivery } from "@/store/couriers/hooks/useCouriers";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { brl } from "@/components/storefront/format";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/devolucoes")({
   head: () => ({ meta: [{ title: "Pedidos retornados | Comandiva" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -58,10 +59,7 @@ const RETURN_REASON_LABEL: Record<string, string> = {
 };
 
 function ReturnedDeliveriesPage() {
-  const storesQuery = useMyStores();
-  const stores = storesQuery.data ?? [];
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
-  const storeId = selectedStore ?? (stores.length === 1 ? stores[0].id : null);
+  const { storeId, selectedStore } = useStoreScope();
 
   const queue = useQuery<ReturnQueuePayload>({
     queryKey: ["returned-deliveries", storeId],
@@ -74,23 +72,24 @@ function ReturnedDeliveriesPage() {
     refetchInterval: 20000,
   });
 
-  if (storesQuery.isLoading) return <div className="mx-auto max-w-5xl space-y-4 p-6"><Skeleton className="h-12 w-72" /><Skeleton className="h-64 w-full" /></div>;
-  if (storesQuery.error || stores.length === 0) return <div className="mx-auto max-w-3xl p-6"><ErrorState title="Sem acesso aos pedidos retornados" description="Sua conta não está vinculada a uma loja autorizada." /></div>;
+  if (!storeId) return <div className="mx-auto max-w-3xl p-6"><EmptyState title="Escolha uma loja" description="Selecione a loja que você quer operar." /></div>;
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Button variant="ghost" size="sm" className="mb-2 -ml-2" asChild><Link to="/app/loja/entregas"><ArrowLeft className="size-4" /> Voltar para entregas</Link></Button>
-          <h1 className="font-display text-3xl font-black tracking-tight">Pedidos que voltaram para a loja</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Entregas</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
+          <h1 className="mt-1 font-display text-3xl font-black tracking-tight">Pedidos que voltaram</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Escolha o que fazer com cada pedido: corrigir e tentar novamente ou cancelar.</p>
         </div>
         <Button variant="outline" size="icon" aria-label="Atualizar" onClick={() => void queue.refetch()}><RefreshCw className="size-4" /></Button>
       </header>
 
-      {stores.length > 1 ? <div className="flex flex-wrap gap-2">{stores.map((store) => <Button key={store.id} size="sm" variant={storeId === store.id ? "default" : "outline"} onClick={() => setSelectedStore(store.id)}>{store.name}</Button>)}</div> : null}
-
-      {!storeId ? <EmptyState title="Escolha uma loja" description="Selecione a loja que você quer operar." /> : queue.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : queue.error ? <ErrorState title="Não foi possível carregar os pedidos retornados" description="Tente novamente." onRetry={() => void queue.refetch()} /> : (queue.data?.returns.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido aguardando decisão" description="Quando uma entrega voltar para a loja, ela aparecerá aqui." /> : (
+      {queue.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : queue.error ? <ErrorState title="Não foi possível carregar os pedidos retornados" description="Tente novamente." onRetry={() => void queue.refetch()} /> : (queue.data?.returns.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido aguardando decisão" description="Quando uma entrega voltar para a loja, ela aparecerá aqui." /> : (
         <div className="grid gap-4">{queue.data?.returns.map((item) => <ReturnCard key={item.deliveryId} storeId={storeId} item={item} onDone={() => void queue.refetch()} />)}</div>
       )}
     </div>
