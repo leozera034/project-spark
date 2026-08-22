@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Link,
@@ -113,6 +113,27 @@ function StoreAppLayout() {
   const currentItem = NAV_ITEMS.find((item) => isActive(pathname, item.to)) ?? NAV_ITEMS[0];
   const newOrders = countsQuery.data?.byStatus?.aguardando_confirmacao ?? 0;
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+    setMobileMoreOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen && !mobileMoreOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMobileNavOpen(false);
+      setMobileMoreOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileMoreOpen, mobileNavOpen]);
+
   const handleSignOut = () => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.storeSignIn as never }));
 
   return (
@@ -124,9 +145,9 @@ function StoreAppLayout() {
 
         {!collapsed && scope.selectedStore ? (
           <div className="border-b border-sidebar-border p-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3">
+            <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/45 px-3 py-3">
               <p className="text-[10px] font-black uppercase tracking-[.14em] text-sidebar-foreground/50">Loja em operação</p>
-              <div className="mt-1 flex min-w-0 items-center gap-2"><Building2 className="size-4 shrink-0 text-sidebar-primary" /><p className="truncate text-sm font-bold text-white">{scope.selectedStore.name}</p></div>
+              <div className="mt-1 flex min-w-0 items-center gap-2"><Building2 className="size-4 shrink-0 text-sidebar-primary" /><p className="truncate text-sm font-bold text-sidebar-foreground">{scope.selectedStore.name}</p></div>
               {operationalQuery.data ? <p className="mt-2 text-xs font-semibold text-sidebar-foreground/65">{operationalQuery.data.is_open ? operationalQuery.data.closes_at ? `Aberta · fecha às ${operationalQuery.data.closes_at}` : "Aberta agora" : operationalQuery.data.next_open_at ? `Fechada · abre ${operationalQuery.data.next_open_day} às ${operationalQuery.data.next_open_at}` : "Fechada agora"}</p> : null}
             </div>
           </div>
@@ -147,15 +168,15 @@ function StoreAppLayout() {
         </nav>
 
         <div className="border-t border-sidebar-border p-3">
-          <Button variant="ghost" size="sm" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expandir menu" : "Recolher menu"} className={cn("w-full text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", collapsed ? "justify-center px-0" : "justify-start")}>
+          <Button variant="ghost" size="sm" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expandir menu" : "Recolher menu"} title={collapsed ? "Expandir menu" : undefined} className={cn("w-full text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", collapsed ? "justify-center px-0" : "justify-start")}>
             <Menu className="size-4" aria-hidden="true" />{collapsed ? null : "Recolher menu"}
           </Button>
         </div>
       </aside>
 
       {mobileNavOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" aria-label="Fechar menu" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} />
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu da loja">
+          <button type="button" aria-label="Fechar menu" className="absolute inset-0 bg-foreground/45 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} />
           <nav aria-label="Navegação da loja" className="absolute inset-y-0 left-0 flex w-[19rem] max-w-[88vw] flex-col bg-sidebar text-sidebar-foreground shadow-e2" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
             <div className="flex h-[76px] items-center justify-between border-b border-sidebar-border px-4">
               <BrandLogo lockup="horizontal" tone="white" className="h-10 w-auto" />
@@ -164,7 +185,11 @@ function StoreAppLayout() {
             {scope.selectedStore ? (
               <div className="border-b border-sidebar-border px-4 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[.14em] text-sidebar-foreground/45">Loja em operação</p>
-                <div className="mt-1 flex items-center justify-between gap-2"><p className="truncate text-sm font-bold text-white">{scope.selectedStore.name}</p>{operationalQuery.data ? <span className={cn("size-2.5 shrink-0 rounded-full", operationalQuery.data.is_open ? "bg-emerald-400" : "bg-white/30")} /> : null}</div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-bold text-sidebar-foreground">{scope.selectedStore.name}</p>
+                  {operationalQuery.data ? <span className={cn("size-2.5 shrink-0 rounded-full", operationalQuery.data.is_open ? "bg-success" : "bg-sidebar-foreground/25")} aria-hidden="true" /> : null}
+                </div>
+                {operationalQuery.data ? <span className="sr-only">{operationalQuery.data.is_open ? "Loja aberta" : "Loja fechada"}</span> : null}
               </div>
             ) : null}
             <div className="flex-1 overflow-y-auto p-3">
@@ -178,7 +203,7 @@ function StoreAppLayout() {
                       const badgeCount = badgeForItem(item, newOrders);
                       return (
                         <Link key={item.to} to={item.to as never} onClick={() => setMobileNavOpen(false)} aria-current={active ? "page" : undefined} className={cn("flex min-h-12 items-center gap-3 rounded-xl px-3 text-base font-semibold", active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")}>
-                          <Icon className="size-5 shrink-0" aria-hidden="true" /><span className="min-w-0 flex-1 truncate">{item.label}</span>{badgeCount > 0 ? <span className="min-w-6 rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-black text-primary-foreground">{badgeCount > 99 ? "99+" : badgeCount}</span> : null}
+                          <Icon className="size-5 shrink-0" aria-hidden="true" /><span className="min-w-0 flex-1 truncate">{item.label}</span>{badgeCount > 0 ? <span className="min-w-6 rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-black text-primary-foreground" aria-hidden="true">{badgeCount > 99 ? "99+" : badgeCount}</span> : null}{badgeCount > 0 ? <span className="sr-only">{badgeCount} novos pedidos</span> : null}
                         </Link>
                       );
                     })}
@@ -191,9 +216,9 @@ function StoreAppLayout() {
       ) : null}
 
       {mobileMoreOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/45 px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-20 backdrop-blur-sm lg:hidden" onClick={() => setMobileMoreOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-foreground/40 px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-20 backdrop-blur-sm lg:hidden" onClick={() => setMobileMoreOpen(false)} role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
           <div className="max-h-[72dvh] w-full overflow-y-auto rounded-[24px] border border-border bg-card p-3 shadow-e3" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between px-2 py-1"><div><p className="font-display text-lg font-black">Mais opções</p><p className="text-xs text-muted-foreground">Gestão, comunicação e conta</p></div><Button variant="ghost" size="icon" onClick={() => setMobileMoreOpen(false)} aria-label="Fechar"><X className="size-4" /></Button></div>
+            <div className="mb-3 flex items-center justify-between px-2 py-1"><div><p id="mobile-more-title" className="font-display text-lg font-black">Mais opções</p><p className="text-xs text-muted-foreground">Gestão, comunicação e conta</p></div><Button variant="ghost" size="icon" onClick={() => setMobileMoreOpen(false)} aria-label="Fechar"><X className="size-4" /></Button></div>
             {NAV_SECTIONS.map((section) => {
               const items = MOBILE_MORE.filter((item) => item.section === section);
               if (items.length === 0) return null;
@@ -217,13 +242,13 @@ function StoreAppLayout() {
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <header className="app-premium-topbar sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-3 border-b px-3 sm:px-5 lg:px-7">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" aria-label="Abrir menu" onClick={() => setMobileNavOpen(true)}><Menu className="size-5" /></Button>
+            <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" aria-label="Abrir menu" onClick={() => { setMobileMoreOpen(false); setMobileNavOpen(true); }}><Menu className="size-5" /></Button>
             <BrandSymbol className="size-9 shrink-0 lg:hidden" />
             <div className="min-w-0"><p className="hidden text-[10px] font-black uppercase tracking-[.14em] text-muted-foreground sm:block">{currentItem.section}</p><p className="truncate text-sm font-bold text-foreground sm:text-base">{currentItem.label}</p></div>
           </div>
 
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-            {operationalQuery.data ? <Badge variant={operationalQuery.data.is_open ? "success" : "secondary"} className="hidden lg:inline-flex">{operationalQuery.data.is_open ? "Loja aberta" : "Loja fechada"}</Badge> : null}
+            {operationalQuery.data ? <Badge variant={operationalQuery.data.is_open ? "success" : "secondary"} className="hidden lg:inline-flex" aria-live="polite">{operationalQuery.data.is_open ? "Loja aberta" : "Loja fechada"}</Badge> : null}
             <StoreSwitcher />
             <ThemeToggle />
             <div className="hidden min-w-0 border-l border-border pl-3 xl:block"><p className="max-w-36 truncate text-xs font-bold text-foreground">{authContext?.full_name ?? "Equipe"}</p><p className="text-[10px] text-muted-foreground">Equipe da loja</p></div>
@@ -242,12 +267,12 @@ function StoreAppLayout() {
             return (
               <Link key={item.to} to={item.to as never} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-[60px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-[10px] font-semibold leading-tight sm:text-[11px]", active ? "text-brand" : "text-muted-foreground")}>
                 {active ? <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary" /> : null}
-                <span className="relative"><Icon className="size-5 shrink-0" aria-hidden="true" />{badgeCount > 0 ? <span className="absolute -right-2.5 -top-2 min-w-4 rounded-full bg-primary px-1 text-[9px] font-black leading-4 text-primary-foreground">{badgeCount > 9 ? "9+" : badgeCount}</span> : null}</span>
-                <span className="max-w-full truncate">{item.label}</span>
+                <span className="relative"><Icon className="size-5 shrink-0" aria-hidden="true" />{badgeCount > 0 ? <span className="absolute -right-2.5 -top-2 min-w-4 rounded-full bg-primary px-1 text-[9px] font-black leading-4 text-primary-foreground" aria-hidden="true">{badgeCount > 9 ? "9+" : badgeCount}</span> : null}</span>
+                <span className="max-w-full truncate">{item.label}</span>{badgeCount > 0 ? <span className="sr-only">{badgeCount} novos pedidos</span> : null}
               </Link>
             );
           })}
-          <button type="button" onClick={() => setMobileMoreOpen(true)} aria-current={MOBILE_MORE.some((item) => isActive(pathname, item.to)) ? "page" : undefined} className={cn("relative flex min-h-[60px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-[10px] font-semibold leading-tight sm:text-[11px]", MOBILE_MORE.some((item) => isActive(pathname, item.to)) ? "text-brand" : "text-muted-foreground")}>
+          <button type="button" onClick={() => { setMobileNavOpen(false); setMobileMoreOpen(true); }} aria-label="Abrir mais opções" aria-current={MOBILE_MORE.some((item) => isActive(pathname, item.to)) ? "page" : undefined} className={cn("relative flex min-h-[60px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-[10px] font-semibold leading-tight sm:text-[11px]", MOBILE_MORE.some((item) => isActive(pathname, item.to)) ? "text-brand" : "text-muted-foreground")}>
             {MOBILE_MORE.some((item) => isActive(pathname, item.to)) ? <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary" /> : null}<MoreHorizontal className="size-5 shrink-0" /><span>Mais</span>
           </button>
         </nav>
@@ -266,7 +291,7 @@ function StoreSwitcher() {
   }
 
   return (
-    <label className="flex max-w-[9.5rem] items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 py-2 shadow-sm sm:max-w-56 sm:px-3">
+    <label className="flex max-w-[9.5rem] items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 py-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 sm:max-w-56 sm:px-3">
       <Building2 className="size-4 shrink-0 text-brand" aria-hidden="true" /><span className="sr-only">Loja em operação</span>
       <select aria-label="Loja em operação" value={selected.id} onChange={(event) => void scope.selectStore(event.target.value)} className="min-w-0 max-w-full cursor-pointer bg-transparent text-xs font-bold text-foreground outline-none sm:text-sm">
         {scope.stores.map((store) => <option key={store.id} value={store.id}>{store.name}</option>)}
@@ -280,8 +305,8 @@ function NavLink({ item, active, collapsed, badgeCount }: { item: NavItem; activ
   return (
     <Link to={item.to as never} aria-current={active ? "page" : undefined} title={collapsed ? item.label : undefined} className={cn("group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors", collapsed && "justify-center px-0", active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/68 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")}>
       {active && !collapsed ? <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-sidebar-primary" /> : null}
-      <span className="relative shrink-0"><Icon className="size-5" aria-hidden="true" />{collapsed && badgeCount > 0 ? <span className="absolute -right-2 -top-2 size-4 rounded-full bg-primary text-center text-[9px] font-black leading-4 text-primary-foreground">{badgeCount > 9 ? "9+" : badgeCount}</span> : null}</span>
-      {collapsed ? null : <><span className="min-w-0 flex-1 truncate">{item.label}</span>{badgeCount > 0 ? <span className="min-w-6 rounded-full bg-primary px-1.5 py-0.5 text-center text-[10px] font-black text-primary-foreground">{badgeCount > 99 ? "99+" : badgeCount}</span> : null}</>}
+      <span className="relative shrink-0"><Icon className="size-5" aria-hidden="true" />{collapsed && badgeCount > 0 ? <span className="absolute -right-2 -top-2 size-4 rounded-full bg-primary text-center text-[9px] font-black leading-4 text-primary-foreground" aria-hidden="true">{badgeCount > 9 ? "9+" : badgeCount}</span> : null}</span>
+      {collapsed ? null : <><span className="min-w-0 flex-1 truncate">{item.label}</span>{badgeCount > 0 ? <span className="min-w-6 rounded-full bg-primary px-1.5 py-0.5 text-center text-[10px] font-black text-primary-foreground" aria-hidden="true">{badgeCount > 99 ? "99+" : badgeCount}</span> : null}{badgeCount > 0 ? <span className="sr-only">{badgeCount} novos pedidos</span> : null}</>}
     </Link>
   );
 }
