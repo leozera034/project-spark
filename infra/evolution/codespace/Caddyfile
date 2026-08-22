@@ -1,11 +1,14 @@
 :8080 {
-  header X-Comandiva-Gateway "basic-v1"
+  header X-Comandiva-Gateway "basic-v2"
+
+  @gateway_diag path /__comandiva_gateway
+  handle @gateway_diag {
+    respond "basic-v2" 200
+  }
 
   @health path /
   handle @health {
-    reverse_proxy evolution:8080 {
-      header_up apikey {$EVOLUTION_API_KEY}
-    }
+    respond "basic-v2" 200
   }
 
   @local header apikey {$EVOLUTION_API_KEY}
@@ -15,9 +18,28 @@
     }
   }
 
+  @auth_diag path /__comandiva_auth
+  handle @auth_diag {
+    basic_auth {
+      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
+    }
+    respond "authorized" 200
+  }
+
+  @upstream_diag path /__comandiva_upstream
+  handle @upstream_diag {
+    basic_auth {
+      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
+    }
+    rewrite * /instance/connectionState/comandiva_security_probe
+    reverse_proxy evolution:8080 {
+      header_up apikey {$EVOLUTION_API_KEY}
+    }
+  }
+
   handle {
     basic_auth {
-      comandiva $2a$10$Pny573sPRZLovayRs9qUB.2c6p/TJMx3776mkNWatum4LDKWnq/ty
+      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
     }
 
     reverse_proxy evolution:8080 {
