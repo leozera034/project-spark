@@ -10,6 +10,9 @@ export type PublicPaymentMethod = {
   displayName: string;
   publicInstructions: string | null;
   requiresChange: boolean;
+  processingMode: "online" | "manual";
+  provider: "stripe" | "store";
+  confirmationMode: "automatic" | "manual";
 };
 
 export type PublicOrderReceipt = {
@@ -43,6 +46,9 @@ export type LocalOrderReceipt = {
   fulfillmentType: "entrega" | "retirada";
   paymentLabel: string;
   paymentInstructions: string | null;
+  /** Campos opcionais mantêm compatibilidade com comprovantes criados antes da separação manual/online. */
+  paymentKind?: string;
+  paymentProcessingMode?: "online" | "manual";
   createdAt: string;
 };
 
