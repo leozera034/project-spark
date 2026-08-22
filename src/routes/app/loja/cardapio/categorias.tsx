@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, FolderOpen, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowUp, FolderOpen, ImagePlus, Loader2, Plus } from "lucide-react";
 
 import {
   archiveCategory,
@@ -61,7 +61,9 @@ function CategoriasPage() {
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const can = overview?.can ?? { view: true, create: false, update: false, archive: false };
-  const visible = categories.filter((c) => (showArchived ? c.is_archived : !c.is_archived));
+  const activeCategories = categories.filter((c) => !c.is_archived);
+  const archivedCategories = categories.filter((c) => c.is_archived);
+  const visible = showArchived ? archivedCategories : activeCategories;
   const nameInvalid = draft.name.trim().length < 2 || draft.name.trim().length > 60;
 
   async function submitDraft() {
@@ -114,29 +116,31 @@ function CategoriasPage() {
     if (!done) return;
   }
 
+  const openNewCategory = () => setDraft({ ...EMPTY_DRAFT, open: true });
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PageHeader
         title="Categorias"
-        description="Organize a ordem em que os clientes veem as seções do cardápio."
+        description="Organize a ordem em que os clientes encontram as seções do cardápio."
         action={
           can.create ? (
-            <Button onClick={() => setDraft({ ...EMPTY_DRAFT, open: true })}>
-              Nova categoria
+            <Button onClick={openNewCategory}>
+              <Plus className="size-4" /> Nova categoria
             </Button>
           ) : null
         }
       />
 
-      <div className="flex items-center gap-2">
-        <Switch
-          id="arquivadas"
-          checked={showArchived}
-          onCheckedChange={(v) => setShowArchived(Boolean(v))}
-        />
-        <Label htmlFor="arquivadas" className="text-sm text-muted-foreground">
-          Ver arquivadas
-        </Label>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm">
+        <div>
+          <p className="text-sm font-bold text-foreground">{activeCategories.length} {activeCategories.length === 1 ? "categoria" : "categorias"} no cardápio</p>
+          <p className="text-xs text-muted-foreground">A ordem abaixo é a mesma vista pelo cliente.</p>
+        </div>
+        <label className="flex min-h-11 items-center gap-2 rounded-xl px-2">
+          <Switch id="arquivadas" checked={showArchived} onCheckedChange={(v) => setShowArchived(Boolean(v))} />
+          <span className="text-sm font-semibold text-muted-foreground">Arquivadas{archivedCategories.length > 0 ? ` (${archivedCategories.length})` : ""}</span>
+        </label>
       </div>
 
       {visible.length === 0 ? (
@@ -148,60 +152,35 @@ function CategoriasPage() {
               ? "As categorias arquivadas aparecem aqui quando você arquivar alguma."
               : "Crie a primeira categoria para organizar os produtos do seu cardápio."
           }
+          action={!showArchived && can.create ? <Button onClick={openNewCategory}><Plus className="size-4" /> Criar primeira categoria</Button> : null}
         />
       ) : (
         <ul className="space-y-3">
           {visible.map((category, index) => (
             <li key={category.id}>
-              <Card>
+              <Card className="overflow-hidden transition-shadow hover:shadow-md">
                 <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                  <CatalogImage
-                    path={category.image_path}
-                    alt={category.name}
-                    className="h-16 w-16 shrink-0"
-                  />
+                  <CatalogImage path={category.image_path} alt={category.name} className="h-20 w-full shrink-0 rounded-xl object-cover sm:h-16 sm:w-16" />
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="truncate font-medium text-foreground">{category.name}</span>
-                      {category.is_archived ? (
-                        <Badge variant="outline">Arquivada</Badge>
-                      ) : category.is_active ? (
-                        <Badge>Ativa</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inativa</Badge>
-                      )}
+                      <span className="truncate font-bold text-foreground">{category.name}</span>
+                      {category.is_archived ? <Badge variant="outline">Arquivada</Badge> : category.is_active ? <Badge variant="success">Ativa</Badge> : <Badge variant="secondary">Inativa</Badge>}
                       <span className="text-xs text-muted-foreground">
-                        {category.product_count} produto(s)
+                        {category.product_count} {category.product_count === 1 ? "produto" : "produtos"}
                       </span>
                     </div>
-                    {category.description ? (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                        {category.description}
-                      </p>
-                    ) : null}
+                    {category.description ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     {!showArchived && can.update ? (
                       <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Subir ${category.name}`}
-                          disabled={index === 0 || isBusy}
-                          onClick={() => void move(index, -1)}
-                        >
-                          <ArrowUp className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Subir ${category.name}`} disabled={index === 0 || isBusy} onClick={() => void move(index, -1)}>
+                          <ArrowUp className="size-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Descer ${category.name}`}
-                          disabled={index === visible.length - 1 || isBusy}
-                          onClick={() => void move(index, 1)}
-                        >
-                          <ArrowDown className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Descer ${category.name}`} disabled={index === visible.length - 1 || isBusy} onClick={() => void move(index, 1)}>
+                          <ArrowDown className="size-4" />
                         </Button>
                       </>
                     ) : null}
@@ -209,9 +188,7 @@ function CategoriasPage() {
                     {can.update && !category.is_archived ? (
                       <>
                         <input
-                          ref={(el) => {
-                            fileInputs.current[category.id] = el;
-                          }}
+                          ref={(el) => { fileInputs.current[category.id] = el; }}
                           type="file"
                           accept="image/png,image/jpeg,image/webp"
                           className="hidden"
@@ -220,22 +197,14 @@ function CategoriasPage() {
                             event.target.value = "";
                           }}
                         />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={uploadingId === category.id}
-                          onClick={() => fileInputs.current[category.id]?.click()}
-                        >
-                          {uploadingId === category.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ImagePlus className="h-4 w-4" />
-                          )}
-                          <span className="ml-1 hidden sm:inline">Imagem</span>
+                        <Button variant="outline" size="sm" className="min-h-11" disabled={uploadingId === category.id} onClick={() => fileInputs.current[category.id]?.click()}>
+                          {uploadingId === category.id ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+                          <span>Imagem</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="min-h-11"
                           onClick={() =>
                             setDraft({
                               open: true,
@@ -251,16 +220,11 @@ function CategoriasPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="min-h-11"
                           disabled={isBusy}
                           onClick={() =>
                             void run(
-                              () =>
-                                setCategoryActive(
-                                  storeId!,
-                                  category.id,
-                                  !category.is_active,
-                                  category.updated_at,
-                                ),
+                              () => setCategoryActive(storeId!, category.id, !category.is_active, category.updated_at),
                               category.is_active ? "Categoria desativada." : "Categoria ativada.",
                             )
                           }
@@ -274,19 +238,12 @@ function CategoriasPage() {
                       <Button
                         variant={category.is_archived ? "default" : "ghost"}
                         size="sm"
+                        className="min-h-11"
                         disabled={isBusy}
                         onClick={() =>
                           void run(
-                            () =>
-                              archiveCategory(
-                                storeId!,
-                                category.id,
-                                !category.is_archived,
-                                category.updated_at,
-                              ),
-                            category.is_archived
-                              ? "Categoria restaurada."
-                              : "Categoria arquivada.",
+                            () => archiveCategory(storeId!, category.id, !category.is_archived, category.updated_at),
+                            category.is_archived ? "Categoria restaurada." : "Categoria arquivada.",
                           )
                         }
                       >
@@ -301,65 +258,39 @@ function CategoriasPage() {
         </ul>
       )}
 
-      <Dialog
-        open={draft.open}
-        onOpenChange={(open) => setDraft((prev) => (open ? prev : EMPTY_DRAFT))}
-      >
+      <Dialog open={draft.open} onOpenChange={(open) => setDraft((prev) => (open ? prev : EMPTY_DRAFT))}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{draft.editing ? "Editar categoria" : "Nova categoria"}</DialogTitle>
-            <DialogDescription>
-              O nome aparece para o cliente e não pode se repetir dentro da sua loja.
-            </DialogDescription>
+            <DialogDescription>O nome aparece para o cliente e não pode se repetir dentro da sua loja.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="cat-nome">Nome</Label>
-              <Input
-                id="cat-nome"
-                value={draft.name}
-                maxLength={60}
-                onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))}
-                placeholder="Ex.: Bebidas"
-              />
-              {draft.name.length > 0 && nameInvalid ? (
-                <p className="text-xs text-destructive">Use entre 2 e 60 caracteres.</p>
-              ) : null}
+              <Input id="cat-nome" value={draft.name} maxLength={60} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} placeholder="Ex.: Bebidas" className="min-h-12" />
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className={draft.name.length > 0 && nameInvalid ? "text-destructive" : "text-muted-foreground"}>{draft.name.length > 0 && nameInvalid ? "Use entre 2 e 60 caracteres." : "Use um nome curto que o cliente reconheça rápido."}</span>
+                <span className="shrink-0 tabular-nums text-muted-foreground">{draft.name.length}/60</span>
+              </div>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="cat-desc">Descrição (opcional)</Label>
-              <Textarea
-                id="cat-desc"
-                value={draft.description}
-                maxLength={280}
-                rows={3}
-                onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))}
-              />
+              <Textarea id="cat-desc" value={draft.description} maxLength={280} rows={3} onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))} placeholder="Ex.: Refrigerantes, sucos, água e energéticos." />
+              <p className="text-right text-xs tabular-nums text-muted-foreground">{draft.description.length}/280</p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Switch
-                id="cat-ativa"
-                checked={draft.isActive}
-                onCheckedChange={(v) => setDraft((p) => ({ ...p, isActive: Boolean(v) }))}
-              />
-              <Label htmlFor="cat-ativa">Visível no cardápio</Label>
+            <div className="flex min-h-14 items-center justify-between gap-4 rounded-xl border border-border p-3">
+              <div><Label htmlFor="cat-ativa">Visível no cardápio</Label><p className="mt-0.5 text-xs text-muted-foreground">Desative para esconder a seção temporariamente.</p></div>
+              <Switch id="cat-ativa" checked={draft.isActive} onCheckedChange={(v) => setDraft((p) => ({ ...p, isActive: Boolean(v) }))} />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDraft(EMPTY_DRAFT)}>
-              Cancelar
-            </Button>
-            <Button
-              disabled={nameInvalid}
-              loading={isBusy}
-              loadingLabel="Salvando"
-              onClick={() => void submitDraft()}
-            >
-              {isBusy ? "Salvando…" : "Salvar"}
+            <Button variant="ghost" className="min-h-11" onClick={() => setDraft(EMPTY_DRAFT)}>Cancelar</Button>
+            <Button className="min-h-11" disabled={nameInvalid} loading={isBusy} loadingLabel="Salvando" onClick={() => void submitDraft()}>
+              {isBusy ? "Salvando…" : "Salvar categoria"}
             </Button>
           </DialogFooter>
         </DialogContent>
