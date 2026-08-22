@@ -25,6 +25,9 @@ export type PublicPaymentMethod = {
   displayName: string;
   publicInstructions: string | null;
   requiresChange: boolean;
+  processingMode: "online" | "manual";
+  provider: "stripe" | "store";
+  confirmationMode: "automatic" | "manual";
 };
 
 export type PublicOrderReceipt = {
@@ -74,13 +77,19 @@ export async function loadPublicPaymentMethods(
   if (!data) throw new StorefrontError("not_found");
 
   const payload = data as Record<string, unknown>;
-  return ((payload.methods ?? []) as Record<string, unknown>[]).map((raw) => ({
-    id: String(raw.id),
-    kind: String(raw.kind ?? "outro"),
-    displayName: String(raw.displayName ?? ""),
-    publicInstructions: raw.publicInstructions ? String(raw.publicInstructions) : null,
-    requiresChange: Boolean(raw.requiresChange),
-  }));
+  return ((payload.methods ?? []) as Record<string, unknown>[]).map((raw) => {
+    const online = String(raw.processingMode ?? "manual") === "online";
+    return {
+      id: String(raw.id),
+      kind: String(raw.kind ?? "outro"),
+      displayName: String(raw.displayName ?? ""),
+      publicInstructions: raw.publicInstructions ? String(raw.publicInstructions) : null,
+      requiresChange: Boolean(raw.requiresChange),
+      processingMode: online ? "online" : "manual",
+      provider: String(raw.provider ?? (online ? "stripe" : "store")) === "stripe" ? "stripe" : "store",
+      confirmationMode: String(raw.confirmationMode ?? (online ? "automatic" : "manual")) === "automatic" ? "automatic" : "manual",
+    };
+  });
 }
 
 /**
