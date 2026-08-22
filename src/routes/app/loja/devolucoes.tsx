@@ -19,7 +19,7 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { brl } from "@/components/storefront/format";
 
 export const Route = createFileRoute("/app/loja/devolucoes")({
-  head: () => ({ meta: [{ title: "Devoluções de entrega | Comandiva" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Pedidos retornados | Comandiva" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ReturnedDeliveriesPage,
 });
 
@@ -75,25 +75,23 @@ function ReturnedDeliveriesPage() {
   });
 
   if (storesQuery.isLoading) return <div className="mx-auto max-w-5xl space-y-4 p-6"><Skeleton className="h-12 w-72" /><Skeleton className="h-64 w-full" /></div>;
-  if (storesQuery.error || stores.length === 0) return <div className="mx-auto max-w-3xl p-6"><ErrorState title="Sem acesso às devoluções" description="Sua conta não está vinculada a uma loja autorizada." /></div>;
+  if (storesQuery.error || stores.length === 0) return <div className="mx-auto max-w-3xl p-6"><ErrorState title="Sem acesso aos pedidos retornados" description="Sua conta não está vinculada a uma loja autorizada." /></div>;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Button variant="ghost" size="sm" className="mb-2 -ml-2" asChild><Link to="/app/loja/pedidos"><ArrowLeft className="size-4" /> Voltar aos pedidos</Link></Button>
-          <h1 className="text-2xl font-black tracking-tight">Pedidos que voltaram para a loja</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Resolva a destinação do pedido: cancelar ou liberar uma nova tentativa. Nenhum pedido retornado é marcado como entregue automaticamente.</p>
+          <Button variant="ghost" size="sm" className="mb-2 -ml-2" asChild><Link to="/app/loja/entregas"><ArrowLeft className="size-4" /> Voltar para entregas</Link></Button>
+          <h1 className="font-display text-3xl font-black tracking-tight">Pedidos que voltaram para a loja</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Escolha o que fazer com cada pedido: corrigir e tentar novamente ou cancelar.</p>
         </div>
         <Button variant="outline" size="icon" aria-label="Atualizar" onClick={() => void queue.refetch()}><RefreshCw className="size-4" /></Button>
       </header>
 
       {stores.length > 1 ? <div className="flex flex-wrap gap-2">{stores.map((store) => <Button key={store.id} size="sm" variant={storeId === store.id ? "default" : "outline"} onClick={() => setSelectedStore(store.id)}>{store.name}</Button>)}</div> : null}
 
-      {!storeId ? <EmptyState title="Escolha uma loja" description="Selecione a loja que você quer operar." /> : queue.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : queue.error ? <ErrorState title="Não foi possível carregar as devoluções" description="Tente novamente." onRetry={() => void queue.refetch()} /> : (queue.data?.returns.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido aguardando decisão" description="Quando um entregador devolver um pedido fisicamente à loja, ele aparecerá aqui." /> : (
-        <div className="grid gap-4">
-          {queue.data?.returns.map((item) => <ReturnCard key={item.deliveryId} storeId={storeId} item={item} onDone={() => void queue.refetch()} />)}
-        </div>
+      {!storeId ? <EmptyState title="Escolha uma loja" description="Selecione a loja que você quer operar." /> : queue.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : queue.error ? <ErrorState title="Não foi possível carregar os pedidos retornados" description="Tente novamente." onRetry={() => void queue.refetch()} /> : (queue.data?.returns.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido aguardando decisão" description="Quando uma entrega voltar para a loja, ela aparecerá aqui." /> : (
+        <div className="grid gap-4">{queue.data?.returns.map((item) => <ReturnCard key={item.deliveryId} storeId={storeId} item={item} onDone={() => void queue.refetch()} />)}</div>
       )}
     </div>
   );
@@ -108,33 +106,17 @@ function ReturnCard({ storeId, item, onDone }: { storeId: string; item: ReturnRo
 
   return (
     <Card className="overflow-hidden border-2 border-warning/45 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-warning-soft px-4 py-3">
-        <div className="flex items-center gap-2"><AlertTriangle className="size-5 text-warning" /><span className="font-black">PEDIDO RETORNOU À LOJA</span></div>
-        <Badge variant="outline">#{item.orderNumber}</Badge>
-      </div>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex flex-wrap items-start justify-between gap-3 text-lg">
-          <span>{item.customerName || "Cliente"}</span>
-          <span className="tabular-nums">{brl(item.total)}</span>
-        </CardTitle>
-      </CardHeader>
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-warning-soft px-4 py-3"><div className="flex items-center gap-2"><AlertTriangle className="size-5 text-warning" /><span className="font-black">PEDIDO RETORNOU À LOJA</span></div><Badge variant="outline">#{item.orderNumber}</Badge></div>
+      <CardHeader className="pb-2"><CardTitle className="flex flex-wrap items-start justify-between gap-3 text-lg"><span>{item.customerName || "Cliente"}</span><span className="tabular-nums">{brl(item.total)}</span></CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl bg-muted/50 p-3"><p className="text-[10px] font-black uppercase text-muted-foreground">Motivo do retorno</p><p className="mt-1 font-bold">{RETURN_REASON_LABEL[item.returnReasonCode ?? ""] ?? item.returnReasonCode ?? "Não informado"}</p>{item.returnNote ? <p className="mt-1 text-xs text-muted-foreground">{item.returnNote}</p> : null}</div>
-          <div className="rounded-xl bg-muted/50 p-3"><p className="text-[10px] font-black uppercase text-muted-foreground">Devolução física</p><p className="mt-1 font-bold">{returnedAt}</p><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><VehicleIcon className="size-3.5" /> {item.courierName || "Entregador"}</p></div>
+          <div className="rounded-xl bg-muted/50 p-3"><p className="text-[10px] font-black uppercase text-muted-foreground">Motivo do retorno</p><p className="mt-1 font-bold">{RETURN_REASON_LABEL[item.returnReasonCode ?? ""] ?? "Não informado"}</p>{item.returnNote ? <p className="mt-1 text-xs text-muted-foreground">{item.returnNote}</p> : null}</div>
+          <div className="rounded-xl bg-muted/50 p-3"><p className="text-[10px] font-black uppercase text-muted-foreground">Retornou em</p><p className="mt-1 font-bold">{returnedAt}</p><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><VehicleIcon className="size-3.5" /> {item.courierName || "Entregador"}</p></div>
         </div>
 
-        <div className="rounded-xl border border-border p-3">
-          <p className="flex items-center gap-2 text-xs font-black uppercase text-muted-foreground"><MapPin className="size-4" /> Endereço usado na tentativa</p>
-          <p className="mt-2 font-semibold">{String(address.street ?? "")}, {String(address.number ?? "")}</p>
-          <p className="text-sm text-muted-foreground">{String(address.neighborhoodName ?? item.neighborhood ?? "")}</p>
-          {address.reference ? <p className="mt-1 text-xs text-muted-foreground">Referência: {String(address.reference)}</p> : null}
-        </div>
+        <div className="rounded-xl border border-border p-3"><p className="flex items-center gap-2 text-xs font-black uppercase text-muted-foreground"><MapPin className="size-4" /> Endereço da tentativa</p><p className="mt-2 font-semibold">{String(address.street ?? "")}, {String(address.number ?? "")}</p><p className="text-sm text-muted-foreground">{String(address.neighborhoodName ?? item.neighborhood ?? "")}</p>{address.reference ? <p className="mt-1 text-xs text-muted-foreground">Referência: {String(address.reference)}</p> : null}</div>
 
-        <div className="flex flex-wrap gap-2">
-          {item.canRetry ? <Button className="gap-2" onClick={() => setRetryOpen(true)}><RotateCcw className="size-4" /> Corrigir / nova tentativa</Button> : null}
-          {item.canCancel ? <Button variant="destructive" className="gap-2" onClick={() => setCancelOpen(true)}><XCircle className="size-4" /> Cancelar pedido</Button> : null}
-        </div>
+        <div className="flex flex-wrap gap-2">{item.canRetry ? <Button className="gap-2" onClick={() => setRetryOpen(true)}><RotateCcw className="size-4" /> Corrigir / nova tentativa</Button> : null}{item.canCancel ? <Button variant="destructive" className="gap-2" onClick={() => setCancelOpen(true)}><XCircle className="size-4" /> Cancelar pedido</Button> : null}</div>
 
         <RetryDialog storeId={storeId} item={item} open={retryOpen} onOpenChange={setRetryOpen} onDone={onDone} />
         <CancelDialog storeId={storeId} item={item} open={cancelOpen} onOpenChange={setCancelOpen} onDone={onDone} />
@@ -170,8 +152,8 @@ function RetryDialog({ storeId, item, open, onOpenChange, onDone }: { storeId: s
 
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>Liberar nova tentativa</DialogTitle><DialogDescription>O pedido volta para “Aguardando entregador”. Depois escolha um entregador novamente.</DialogDescription></DialogHeader><div className="space-y-4">
     <div className="grid grid-cols-2 gap-2"><Button type="button" variant={!correctAddress ? "default" : "outline"} onClick={() => setCorrectAddress(false)}>Mesmo endereço</Button><Button type="button" variant={correctAddress ? "default" : "outline"} onClick={() => setCorrectAddress(true)}>Corrigir endereço</Button></div>
-    {correctAddress ? <div className="space-y-3 rounded-xl border p-3"><div className="space-y-1"><Label>Rua</Label><Input value={street} onChange={(e) => setStreet(e.target.value)} /></div><div className="grid grid-cols-2 gap-2"><div className="space-y-1"><Label>Número</Label><Input value={number} onChange={(e) => setNumber(e.target.value)} /></div><div className="space-y-1"><Label>Bairro</Label><Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} /></div></div><div className="space-y-1"><Label>Complemento</Label><Input value={complement} onChange={(e) => setComplement(e.target.value)} /></div><div className="space-y-1"><Label>Referência</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} /></div><p className="text-xs text-muted-foreground">Ao corrigir o endereço, coordenadas antigas são descartadas para não reutilizar uma rota incorreta.</p></div> : null}
-    <div className="space-y-1"><Label>Observação interna</Label><Textarea value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} placeholder="Ex.: cliente confirmou o novo número por telefone." /></div>
+    {correctAddress ? <div className="space-y-3 rounded-xl border p-3"><div className="space-y-1"><Label>Rua</Label><Input value={street} onChange={(event) => setStreet(event.target.value)} /></div><div className="grid grid-cols-2 gap-2"><div className="space-y-1"><Label>Número</Label><Input value={number} onChange={(event) => setNumber(event.target.value)} /></div><div className="space-y-1"><Label>Bairro</Label><Input value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} /></div></div><div className="space-y-1"><Label>Complemento</Label><Input value={complement} onChange={(event) => setComplement(event.target.value)} /></div><div className="space-y-1"><Label>Referência</Label><Input value={reference} onChange={(event) => setReference(event.target.value)} /></div><p className="text-xs text-muted-foreground">Com o endereço corrigido, a próxima estimativa de entrega será calculada novamente.</p></div> : null}
+    <div className="space-y-1"><Label>Observação interna</Label><Textarea value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="Ex.: cliente confirmou o novo número por telefone." /></div>
   </div><DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} disabled={retry.isPending}>Voltar</Button><Button onClick={() => void submit()} disabled={!canSubmit || retry.isPending}><PackageCheck className="size-4" /> Liberar nova tentativa</Button></DialogFooter></DialogContent></Dialog>;
 }
 
@@ -190,5 +172,5 @@ function CancelDialog({ storeId, item, open, onOpenChange, onDone }: { storeId: 
     onDone();
   }
 
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent><DialogHeader><DialogTitle>Cancelar pedido retornado</DialogTitle><DialogDescription>Use somente quando a loja decidiu que não haverá nova tentativa. Eventual estorno financeiro continua seguindo o fluxo de pagamento correspondente.</DialogDescription></DialogHeader><div className="space-y-3"><div className="flex flex-wrap gap-2">{reasons.map((reason) => <Button key={reason.code} size="sm" type="button" variant={reasonCode === reason.code ? "default" : "outline"} onClick={() => setReasonCode(reason.code)}>{reason.internal_label}</Button>)}</div>{selected?.public_message ? <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">Mensagem ao cliente: “{selected.public_message}”</p> : null}<div className="space-y-1"><Label>Observação interna</Label><Textarea value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} /></div></div><DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} disabled={cancel.isPending}>Voltar</Button><Button variant="destructive" onClick={() => void submit()} disabled={!reasonCode || cancel.isPending}>Confirmar cancelamento</Button></DialogFooter></DialogContent></Dialog>;
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent><DialogHeader><DialogTitle>Cancelar pedido retornado</DialogTitle><DialogDescription>Use quando a loja decidiu que não haverá nova tentativa.</DialogDescription></DialogHeader><div className="space-y-3"><div className="flex flex-wrap gap-2">{reasons.map((reason) => <Button key={reason.code} size="sm" type="button" variant={reasonCode === reason.code ? "default" : "outline"} onClick={() => setReasonCode(reason.code)}>{reason.internal_label}</Button>)}</div>{selected?.public_message ? <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">Mensagem ao cliente: “{selected.public_message}”</p> : null}<div className="space-y-1"><Label>Observação interna</Label><Textarea value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} /></div></div><DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} disabled={cancel.isPending}>Voltar</Button><Button variant="destructive" onClick={() => void submit()} disabled={!reasonCode || cancel.isPending}>Confirmar cancelamento</Button></DialogFooter></DialogContent></Dialog>;
 }
