@@ -37,14 +37,14 @@ export function StripeConnectStatus({
     try {
       const result = await beginStripeConnectOnboarding({ data: { storeId } });
       if (result.alreadyReady) {
-        toast.success("A conta Stripe desta loja já está pronta para receber pagamentos.");
+        toast.success("Sua conta de recebimento online já está pronta.");
         await onRefresh?.();
         return;
       }
-      if (!result.onboardingUrl) throw new Error("A Stripe não retornou o link de cadastro.");
+      if (!result.onboardingUrl) throw new Error("Não foi possível abrir o cadastro agora.");
       window.location.assign(result.onboardingUrl);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível abrir o cadastro Stripe.");
+    } catch {
+      toast.error("Não foi possível abrir a configuração de recebimentos agora.");
     } finally {
       setStarting(false);
     }
@@ -54,61 +54,38 @@ export function StripeConnectStatus({
     <article className="panel overflow-hidden">
       <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-3">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-soft-foreground">
-            <Landmark className="size-5" />
-          </span>
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Landmark className="size-5" /></span>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-lg font-black text-foreground">Stripe Connect</h2>
+              <h2 className="font-display text-lg font-black text-foreground">Recebimento online</h2>
               <Badge variant={accountReady ? "success" : platformReady ? "warning" : "outline"}>
-                {accountReady ? "Pagamentos liberados" : status?.connected ? "Cadastro em andamento" : platformReady ? "Pronto para conectar" : "Indisponível"}
+                {accountReady ? "Pronto para receber" : status?.connected ? "Cadastro em andamento" : platformReady ? "Pronto para configurar" : "Indisponível"}
               </Badge>
             </div>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              O Stripe Connect vincula a conta de pagamentos da loja ao Comandiva. O dinheiro dos pedidos é processado na conta Stripe da própria loja; o Comandiva não armazena dados de cartão.
+              Configure a conta que receberá os pagamentos online dos pedidos. Dados de cartão são processados pelo parceiro de pagamento e não ficam armazenados na Comandiva.
             </p>
             {!accountReady && platformReady ? (
-              <button
-                type="button"
-                onClick={() => void startOnboarding()}
-                disabled={starting}
-                className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-brand-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <button type="button" onClick={() => void startOnboarding()} disabled={starting} className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-brand-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
                 {starting ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpRight className="size-4" />}
-                {status?.connected ? "Continuar cadastro Stripe" : "Conectar conta Stripe"}
+                {status?.connected ? "Continuar cadastro" : "Configurar recebimentos"}
               </button>
             ) : null}
           </div>
         </div>
         <div className="grid min-w-[230px] gap-2 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
-          <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Plataforma</span><strong className="text-foreground">{platformReady ? "Pronta" : "Pendente"}</strong></div>
-          <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Cobranças</span><strong className="text-foreground">{status?.charges_enabled ? "Ativas" : "Pendentes"}</strong></div>
-          <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Repasses</span><strong className="text-foreground">{status?.payouts_enabled ? "Ativos" : "Pendentes"}</strong></div>
+          <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Receber pagamentos</span><strong className="text-foreground">{status?.charges_enabled ? "Liberado" : "Pendente"}</strong></div>
+          <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Receber repasses</span><strong className="text-foreground">{status?.payouts_enabled ? "Liberado" : "Pendente"}</strong></div>
           {formatBps(status?.application_fee_bps) ? <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Taxa Comandiva</span><strong className="text-foreground">{formatBps(status?.application_fee_bps)}</strong></div> : null}
         </div>
       </div>
 
       {requirements.length > 0 ? (
-        <div className="border-t border-border bg-warning-soft/45 px-5 py-4 sm:px-6">
-          <div className="flex items-start gap-2 text-sm text-warning-soft-foreground">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-            <p><strong>Cadastro incompleto.</strong> A Stripe ainda exige {requirements.length} requisito{requirements.length === 1 ? "" : "s"} antes de liberar totalmente a conta.</p>
-          </div>
-        </div>
+        <div className="border-t border-border bg-warning-soft/45 px-5 py-4 sm:px-6"><div className="flex items-start gap-2 text-sm text-warning-soft-foreground"><TriangleAlert className="mt-0.5 size-4 shrink-0" /><p><strong>Cadastro incompleto.</strong> Ainda existem {requirements.length} etapa{requirements.length === 1 ? "" : "s"} para liberar totalmente os recebimentos.</p></div></div>
       ) : accountReady ? (
-        <div className="border-t border-border bg-success-soft/45 px-5 py-4 sm:px-6">
-          <div className="flex items-start gap-2 text-sm text-success">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-            <p><strong>Conta operacional.</strong> A loja está apta a receber pagamentos e repasses pelo Stripe Connect.</p>
-          </div>
-        </div>
+        <div className="border-t border-border bg-success-soft/45 px-5 py-4 sm:px-6"><div className="flex items-start gap-2 text-sm text-success"><ShieldCheck className="mt-0.5 size-4 shrink-0" /><p><strong>Tudo pronto.</strong> A loja está apta a receber pagamentos e repasses online.</p></div></div>
       ) : (
-        <div className="border-t border-border bg-muted/25 px-5 py-4 sm:px-6">
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-            <CreditCard className="mt-0.5 size-4 shrink-0" />
-            <p>O cadastro é concluído em ambiente seguro da Stripe. Ao finalizar, você volta automaticamente para esta página.</p>
-          </div>
-        </div>
+        <div className="border-t border-border bg-muted/25 px-5 py-4 sm:px-6"><div className="flex items-start gap-2 text-sm text-muted-foreground"><CreditCard className="mt-0.5 size-4 shrink-0" /><p>O cadastro financeiro é concluído em ambiente seguro do parceiro de pagamento.</p></div></div>
       )}
     </article>
   );
