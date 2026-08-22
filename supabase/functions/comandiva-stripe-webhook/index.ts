@@ -69,6 +69,15 @@ async function syncProfessionalServiceCheckout(raw:J,eventId:string){
   return{relevant:true,ok:!error,error:error?.message,result:data};
 }
 
+async function expireOrderCheckout(raw:J,eventId:string){
+  const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),sessionId=str(raw.id);
+  if(!orderId)return{relevant:false,ok:true};
+  if(!sessionId)return{relevant:true,ok:false,error:"checkout_session_id_missing"};
+  const {data,error}=await admin().rpc("backend_expire_stripe_order_checkout",{_order_id:orderId,_checkout_session_id:sessionId,_event_id:eventId} as never);
+  if(error)return{relevant:true,ok:false,error:error.message};
+  return{relevant:true,ok:true,processed:obj(data).processed===true,result:data};
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="GET")return response(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()?200:503,{ok:Boolean(Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim()),provider:"stripe"});
   if(req.method!=="POST")return response(405,{ok:false,error:"method_not_allowed"});
@@ -84,6 +93,12 @@ Deno.serve(async(req:Request)=>{
     const data=obj(event.data),resource=obj(data.object);
     if(eventType==="account.updated"){const ok=await syncConnectedAccount(resource);await finish(ok?"processed":"ignored",ok?null:"account_not_mapped");return response(200,{ok:true,processed:ok})}
     if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
+    if(eventType==="checkout.session.expired"){
+      const expired=await expireOrderCheckout(resource,eventId);
+      if(!expired.relevant){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      if(!expired.ok){await finish("failed",expired.error??"order_checkout_expire_failed");return response(409,{ok:false,error:"order_checkout_expire_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,kind:"order_checkout_expired",orderProcessed:expired.processed===true});
+    }
     if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){
       const service=await syncProfessionalServiceCheckout(resource,eventId);
       if(service.relevant){if(!service.ok){await finish("failed",service.error??"professional_service_reconcile_failed");return response(409,{ok:false,error:"professional_service_reconcile_failed"})}await finish("processed");return response(200,{ok:true,processed:true,kind:"professional_service",pending:service.pending===true})}
