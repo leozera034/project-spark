@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Minus, Plus } from "lucide-react";
+import { Heart, Minus, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UNIT_LABELS, brl } from "@/components/storefront/format";
 import { CART_MESSAGES } from "@/storefront/cart/cart.errors";
 import { useCart } from "@/storefront/cart/cart.context";
+import { useStorefrontPreferences } from "@/storefront/preferences/storefront-preferences";
 import type { PublicProductDetail } from "@/lib/storefront.server";
 
 type Selection = { option_group_id: string; option_item_id: string; quantity: number };
@@ -55,6 +56,7 @@ export function ProductConfigurator({
   onClose,
 }: Props) {
   const cart = useCart();
+  const preferences = useStorefrontPreferences(slug);
   const [cartError, setCartError] = useState<string | null>(null);
   const { data, isPending, isError } = useQuery({
     queryKey: ["storefront-product", slug, productId],
@@ -95,6 +97,11 @@ export function ProductConfigurator({
     // `cart.lines` só é lido na abertura; mudanças posteriores não resetam a tela.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, editLineId]);
+
+  useEffect(() => {
+    if (!data?.product.id) return;
+    preferences.rememberViewed(data.product.id);
+  }, [data?.product.id, preferences.rememberViewed]);
 
   useEffect(() => {
     setCartError(null);
@@ -250,6 +257,7 @@ export function ProductConfigurator({
   }
 
   const product = data.product;
+  const favorite = preferences.isFavorite(product.id);
   const measured = product.sale_mode === "measured";
   const unit = UNIT_LABELS[product.measurement_unit] ?? product.unit_label ?? "un";
   const step = product.quantity_step || 1;
@@ -270,9 +278,22 @@ export function ProductConfigurator({
         ) : null}
 
         <div className="space-y-2">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <h2 className="min-w-0 flex-1 text-xl font-black leading-tight tracking-[-.02em]">{product.name}</h2>
-            {product.is_sold_out ? <Badge variant="destructive">Esgotado</Badge> : !storeOpen ? <Badge variant="secondary">Loja fechada</Badge> : null}
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start gap-2">
+                <h2 className="min-w-0 flex-1 text-xl font-black leading-tight tracking-[-.02em]">{product.name}</h2>
+                {product.is_sold_out ? <Badge variant="destructive">Esgotado</Badge> : !storeOpen ? <Badge variant="secondary">Loja fechada</Badge> : null}
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-pressed={favorite}
+              aria-label={favorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
+              onClick={() => preferences.toggleFavorite(product.id)}
+              className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <Heart className={`size-5 ${favorite ? "fill-brand text-brand" : "text-muted-foreground"}`} />
+            </button>
           </div>
           {product.description ? (
             <p className="text-sm leading-relaxed text-muted-foreground">{product.description}</p>
