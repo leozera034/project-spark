@@ -9,6 +9,8 @@ const roots = [
   join(root, "src/components/feedback"),
   join(root, "src/components/courier"),
   join(root, "src/components/store"),
+  join(root, "src/components/storefront"),
+  join(root, "src/storefront"),
 ];
 
 async function walk(dir) {
