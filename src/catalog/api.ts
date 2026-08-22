@@ -22,6 +22,10 @@ const CATALOG_MESSAGES: Record<string, string> = {
   INVALID_DESCRIPTION: "A descrição contém conteúdo não permitido.",
   INVALID_FILTER: "Não foi possível aplicar este filtro.",
   INVALID_ORDER: "Não foi possível reordenar a lista.",
+  INVALID_AVAILABILITY_DAYS: "Escolha pelo menos um dia válido para a disponibilidade.",
+  INVALID_MAX_QUANTITY: "O limite máximo por pedido precisa ser maior que zero.",
+  INVALID_STOCK: "O estoque não pode ser negativo.",
+  INVALID_LOW_STOCK_THRESHOLD: "O alerta de estoque baixo precisa ser zero ou maior.",
   // Fase 10 — motor avançado
   INVALID_SALE_MODE: "Modo de venda inválido.",
   INVALID_MEASUREMENT_UNIT: "Escolha uma unidade de medida válida.",
@@ -45,7 +49,7 @@ const CATALOG_MESSAGES: Record<string, string> = {
   INVALID_PORTION_COUNT: "A quantidade de porções precisa ficar entre 2 e 8.",
   INVALID_ITEM_NAME: "Informe um nome válido para o item.",
   INVALID_ITEM_DESCRIPTION: "A descrição do item contém conteúdo não permitido.",
-  INVALID_MAX_QUANTITY: "A quantidade máxima do item precisa ser pelo menos 1.",
+  INVALID_MAX_QUANTITY_ITEM: "A quantidade máxima do item precisa ser pelo menos 1.",
   DUPLICATE_ITEM: "Já existe um item com este nome neste grupo.",
   ITEM_ARCHIVED: "Este item está arquivado. Restaure antes de alterar.",
   DUPLICATE_LINK: "Este grupo já está vinculado ao produto.",
@@ -255,6 +259,32 @@ export async function updateProduct(params: {
       _description: params.description,
       _base_price: params.basePrice,
       _allows_notes: params.allowsNotes,
+      _expected_updated_at: params.expectedUpdatedAt,
+    }),
+  );
+}
+
+export async function updateProductAvailability(params: {
+  storeId: string;
+  id: string;
+  availableWeekdays: number[] | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  maxQuantity: number | null;
+  stockQuantity: number | null;
+  lowStockThreshold: number;
+  expectedUpdatedAt: string;
+}): Promise<CatalogProduct> {
+  return unwrap<CatalogProduct>(
+    await rpc("update_catalog_product_availability", {
+      _store_id: params.storeId,
+      _id: params.id,
+      _available_weekdays: params.availableWeekdays,
+      _available_from: params.availableFrom,
+      _available_to: params.availableTo,
+      _max_quantity: params.maxQuantity,
+      _stock_quantity: params.stockQuantity,
+      _low_stock_threshold: params.lowStockThreshold,
       _expected_updated_at: params.expectedUpdatedAt,
     }),
   );
