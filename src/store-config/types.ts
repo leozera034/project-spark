@@ -28,6 +28,8 @@ export interface StoreConfigStore {
   updated_at: string;
 }
 
+export type ManualPixKeyType = "aleatoria" | "cpf_cnpj" | "email" | "telefone" | "outro";
+
 export interface StoreConfigSettings {
   brand_primary: string;
   brand_accent: string;
@@ -41,7 +43,25 @@ export interface StoreConfigSettings {
   sound_alert_enabled: boolean;
   auto_open_by_hours: boolean;
   manual_override_open: boolean | null;
+  online_payments_enabled: boolean;
+  manual_pix_key: string | null;
+  manual_pix_key_type: ManualPixKeyType | null;
+  online_payment_terms_accepted_at: string | null;
   updated_at: string;
+}
+
+export interface StorePaymentSetup {
+  online_enabled: boolean;
+  online_ready: boolean;
+  stripe_connected: boolean;
+  details_submitted: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  transfers_enabled: boolean;
+  requirements_currently_due: string[];
+  application_fee_bps: number | null;
+  manual_pix_configured: boolean;
+  online_terms_accepted_at: string | null;
 }
 
 export interface StoreConfigShift {
@@ -72,6 +92,7 @@ export interface StoreConfigPaymentMethod {
   is_active: boolean;
   available_for_delivery: boolean;
   available_for_pickup: boolean;
+  processing_mode: "online" | "manual";
   sort_order: number;
   updated_at: string;
 }
@@ -87,6 +108,7 @@ export interface StoreConfigAbilities {
 export interface StoreConfiguration {
   store: StoreConfigStore;
   settings: StoreConfigSettings;
+  payment_setup: StorePaymentSetup;
   hours: StoreConfigShift[];
   neighborhoods: StoreConfigNeighborhood[];
   payment_methods: StoreConfigPaymentMethod[];
