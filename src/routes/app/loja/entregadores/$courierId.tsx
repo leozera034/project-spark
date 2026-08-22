@@ -6,7 +6,6 @@ import {
   useDeactivateCourier,
   useResetCourierAccess,
 } from "@/store/couriers/hooks/useCouriers";
-import { useAuth } from "@/auth/useAuth";
 import type { CourierHistoryEntry } from "@/store/couriers/courier.types";
 import { COURIER_VEHICLE_LABEL, formatRouteDistance, formatRouteDuration } from "@/store/couriers/courier.formatters";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { cn } from "@/lib/utils";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/entregadores/$courierId")({ component: CourierDetailPage });
 
@@ -66,8 +66,7 @@ function humanize(value: string) {
 
 function CourierDetailPage() {
   const { courierId } = Route.useParams();
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId, selectedStore } = useStoreScope();
   const { data: courier, isLoading, isError, refetch } = useCourierDetail(storeId, courierId);
   const updateCourier = useUpdateCourier();
   const activateCourier = useActivateCourier();
@@ -89,11 +88,11 @@ function CourierDetailPage() {
   }, [courier]);
 
   if (isLoading) {
-    return <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8"><Skeleton className="h-8 w-48" /><div className="grid gap-6 md:grid-cols-3"><Skeleton className="h-64 md:col-span-2" /><Skeleton className="h-64" /></div></main>;
+    return <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8"><Skeleton className="h-8 w-48" /><div className="grid gap-6 md:grid-cols-3"><Skeleton className="h-64 md:col-span-2" /><Skeleton className="h-64" /></div></main>;
   }
 
   if (isError || !courier) {
-    return <main className="container mx-auto max-w-4xl px-4 py-8"><ErrorState title="Entregador não encontrado" description="O perfil pode ter sido removido ou você não tem acesso a ele." onRetry={() => refetch()} /></main>;
+    return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8"><ErrorState title="Entregador não encontrado" description="O perfil pode ter sido removido ou você não tem acesso a ele." onRetry={() => refetch()} /></main>;
   }
 
   const handleUpdate = async (event: React.FormEvent) => {
@@ -135,10 +134,14 @@ function CourierDetailPage() {
   const route = courier.currentAssignment?.route ?? null;
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2"><Link to="/app/loja/entregadores"><ChevronLeft className="mr-1 h-4 w-4" /> Voltar</Link></Button>
+          <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2"><Link to="/app/loja/entregadores"><ChevronLeft className="mr-1 h-4 w-4" /> Voltar aos entregadores</Link></Button>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Entregas</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="font-display text-3xl font-black tracking-tight">{courier.displayName}</h1>
             <Badge variant={courier.isActive ? "success" : "secondary"}>{courier.isActive ? "Ativo" : "Inativo"}</Badge>
