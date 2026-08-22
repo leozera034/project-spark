@@ -254,7 +254,7 @@ function CheckoutPage() {
 
         <section className="rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
           <h2 className="text-lg font-extrabold">Resumo</h2>
-          <div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Itens</span><strong>{brl(cart.subtotal)}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Entrega</span><strong>{brl(cart.deliveryFee)}</strong></div><div className="mt-3 flex justify-between border-t pt-3 text-lg"><span className="font-extrabold">Total</span><span className="font-black">{brl(cart.total)}</span></div></div>
+          <div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Itens</span><strong>{brl(cart.subtotal)}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">{context.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</span><strong>{context.type === "entrega" ? (cart.deliveryFee === null ? "A calcular" : brl(cart.deliveryFee)) : "Sem taxa"}</strong></div><div className="mt-3 flex justify-between border-t pt-3 text-lg"><span className="font-extrabold">Total</span><span className="font-black">{brl(cart.total)}</span></div></div>
         </section>
       </div>
 
