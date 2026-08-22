@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_DIR="$HOME/.comandiva-evolution-qa"
+PERSISTED_ROOT="/workspaces/.codespaces/.persistedshare"
+if [[ -d "$PERSISTED_ROOT/comandiva-evolution-qa" ]]; then
+  RUNTIME_DIR="$PERSISTED_ROOT/comandiva-evolution-qa"
+else
+  RUNTIME_DIR="$HOME/.comandiva-evolution-qa"
+fi
 ENV_FILE="$RUNTIME_DIR/runtime.env"
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "A configuração ainda não existe. Rode: bash infra/evolution/codespace/start.sh"
+  echo "A configuração ainda não existe. Use Evolution: restaurar 8080 PUBLIC."
   exit 1
 fi
 
@@ -27,9 +32,8 @@ Comandiva · Evolution QA
 EVOLUTION_API_BASE_URL=$EVOLUTION_PUBLIC_URL
 EVOLUTION_API_KEY=$EVOLUTION_API_KEY
 
-1. Confirme que a porta 8080 está PUBLIC no painel PORTS do Codespaces.
-2. Abra $EVOLUTION_PUBLIC_URL/ e confirme resposta HTTP 200 da Evolution API.
-3. Cadastre os dois valores acima nos Edge Function secrets do Supabase.
-4. Não envie a EVOLUTION_API_KEY por chat e não salve em arquivo do repositório.
+1. Confirme 8080 PUBLIC e 8081 PRIVATE.
+2. Cadastre os dois valores nos Edge Function secrets do Supabase quando necessário.
+3. Não envie a EVOLUTION_API_KEY por chat nem salve no repositório.
 
 EOF
