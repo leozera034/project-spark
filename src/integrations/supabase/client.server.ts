@@ -11,7 +11,7 @@ const EDGE_REQUEST_TIMEOUT_MS = 15_000;
 
 const EDGE_RPC_ALLOWLIST = new Set([
   'check_public_store_slug','storefront_store','storefront_catalog','storefront_product','storefront_price',
-  'storefront_fulfillment','storefront_validate_fulfillment','storefront_validate_fulfillment_v2','storefront_payment_methods','storefront_submit_order','storefront_order_tracking',
+  'storefront_fulfillment','storefront_validate_fulfillment','storefront_payment_methods','storefront_submit_order','storefront_order_tracking',
 ]);
 
 export class PediuBackendApiError extends Error {
