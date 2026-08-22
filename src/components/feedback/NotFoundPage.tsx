@@ -4,18 +4,13 @@ import { ArrowLeft, Compass, Home } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 
-/**
- * Página 404 padrão do Pediu Aqui.
- * Usada pelo notFoundComponent da raiz e como defaultNotFoundComponent do router,
- * cobrindo qualquer rota inexistente.
- */
+/** Página 404 global da Comandiva. */
 export function NotFoundPage() {
   return (
     <main
       id="conteudo"
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-5 py-16"
     >
-      {/* halo decorativo da marca */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-brand/15 blur-3xl"
@@ -26,7 +21,7 @@ export function NotFoundPage() {
           <Link
             to="/"
             className="inline-flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            aria-label="Pediu Aqui — ir para a página inicial"
+            aria-label="Comandiva — ir para a página inicial"
           >
             <BrandLogo lockup="horizontal" className="h-7 w-auto" />
           </Link>
@@ -45,7 +40,7 @@ export function NotFoundPage() {
 
         <p className="mx-auto mt-4 max-w-md text-pretty text-base text-muted-foreground">
           O endereço que você abriu não existe, mudou de lugar ou o link está incompleto.
-          Nada de errado com o seu pedido — é só um caminho que não leva a lugar nenhum.
+          Se era o link de uma loja, confira se ele foi copiado por inteiro.
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -72,7 +67,7 @@ export function NotFoundPage() {
         </div>
 
         <p className="mt-8 text-sm text-muted-foreground">
-          Se você chegou aqui pelo link de uma loja, confira se o endereço está completo.
+          Se o problema continuar, volte ao início e abra a loja novamente.
         </p>
       </div>
     </main>
