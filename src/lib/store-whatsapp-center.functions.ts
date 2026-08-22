@@ -36,12 +36,15 @@ export interface StoreWhatsAppMessageHistoryEntry {
   recipient_e164: string;
   purpose: "transactional" | "marketing";
   provider: string;
-  status: "queued" | "sending" | "sent" | "delivered" | "read" | "failed" | "cancelled";
+  status: "queued" | "sending" | "sent" | "delivered" | "read" | "failed" | "cancelled" | "blocked";
+  event_code: string | null;
+  body_preview: string | null;
   queued_at: string;
   sent_at: string | null;
   delivered_at: string | null;
   read_at: string | null;
   failed_at: string | null;
+  latency_seconds: number | null;
   error_code: string | null;
   error_message: string | null;
 }
@@ -98,7 +101,7 @@ export const listStoreWhatsAppMessageHistory = createServerFn({ method: "GET" })
     z.object({ storeId: z.string().uuid(), limit: z.number().int().min(1).max(200).default(50) }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    const result = await rpcCaller(context.supabase)("list_store_whatsapp_message_history", {
+    const result = await rpcCaller(context.supabase)("list_store_whatsapp_message_history_v2", {
       _store_id: data.storeId,
       _limit: data.limit,
     });
