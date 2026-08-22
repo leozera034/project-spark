@@ -13,9 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Banknote, CircleDollarSign, PackageCheck, RefreshCw, ShoppingBag, Truck, WalletCards, XCircle } from "lucide-react";
+import { AlertCircle, CircleDollarSign, PackageCheck, RefreshCw, ShoppingBag, Truck, WalletCards, XCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/relatorios/entregas/")({
   head: () => ({ meta: [{ title: "Relatórios | Comandiva" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/app/loja/relatorios/entregas/")({
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function StoreReports() {
+  const { selectedStore } = useStoreScope();
   const [period, setPeriod] = useState<DeliveryReportPeriodType>("today");
   const businessQuery = useStoreBusinessReportSummary(period);
   const deliverySummaryQuery = useStoreDeliveryReportSummary(period);
@@ -45,7 +47,10 @@ function StoreReports() {
     <div className="mx-auto w-full max-w-7xl space-y-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <header className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Resultados</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Gestão</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">Relatórios</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Vendas, pedidos, pagamentos e entregas em uma leitura rápida da operação.</p>
         </div>
