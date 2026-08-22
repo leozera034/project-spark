@@ -110,31 +110,31 @@ export async function postOrder(
     }
 
     if (payload.ok && typeof window !== "undefined") {
-      try {
+      const methods = await fetchPaymentMethods(slug, body.fulfillment.type).catch(() => []);
+      const selected = methods.find((method) => method.id === body.payment.methodId);
+      const online = selected?.kind === "stripe_online" || selected?.processingMode === "online";
+
+      if (online && selected) {
         const stripe = await createStripeOrderCheckout({
           slug,
           orderId: payload.order.id,
           trackingToken: payload.order.trackingToken,
         });
-        const methods = await fetchPaymentMethods(slug, body.fulfillment.type).catch(() => []);
-        const selected = methods.find((method) => method.id === body.payment.methodId);
         saveReceipt(slug, {
           schemaVersion: 1,
           slug,
           order: payload.order,
           fulfillmentType: body.fulfillment.type,
-          paymentLabel: selected?.displayName ?? "Cartão online · Stripe",
-          paymentInstructions: selected?.publicInstructions ?? "Pagamento seguro processado pela Stripe.",
+          paymentLabel: selected.displayName,
+          paymentInstructions: selected.publicInstructions,
+          paymentKind: selected.kind,
+          paymentProcessingMode: selected.processingMode,
           createdAt: new Date().toISOString(),
         });
         rotateIdempotencyKey(slug);
         clearCart(slug);
         window.location.assign(stripe.checkoutUrl);
         await new Promise<never>(() => undefined);
-      } catch (error) {
-        if (!(error instanceof CheckoutError) || error.code !== "order_not_stripe_payment") {
-          throw error;
-        }
       }
     }
 
