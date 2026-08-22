@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageSquareReply, RefreshCw, Star, UtensilsCrossed, Truck } from "lucide-react";
 
-import { useAuth } from "@/auth/useAuth";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { StoreReviewItem } from "@/lib/store-reviews.functions";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 import { useStoreReviewActions, useStoreReviewCenter } from "@/store/reviews/store-reviews.queries";
 
 export const Route = createFileRoute("/app/loja/avaliacoes")({
@@ -27,8 +27,14 @@ const FILTERS: Array<{ key: Filter; label: string }> = [
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
 function StoreReviewsPage() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId } = useStoreScope();
+  if (!storeId) {
+    return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Escolha uma loja para ver as avaliações.</div>;
+  }
+  return <StoreReviewsForStore key={storeId} storeId={storeId} />;
+}
+
+function StoreReviewsForStore({ storeId }: { storeId: string }) {
   const reviews = useStoreReviewCenter(storeId);
   const actions = useStoreReviewActions();
   const [filter, setFilter] = useState<Filter>("todas");
@@ -40,10 +46,6 @@ function StoreReviewsPage() {
     if (filter === "elogios") return source.filter((item) => item.overallRating >= 4);
     return source;
   }, [reviews.data?.items, filter]);
-
-  if (!storeId) {
-    return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
-  }
 
   const summary = reviews.data?.summary;
   const total = summary?.total ?? 0;
