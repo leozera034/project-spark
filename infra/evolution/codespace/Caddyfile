@@ -1,4 +1,6 @@
 :8080 {
+  header X-Comandiva-Gateway "jwt-v1"
+
   @health path /
   handle @health {
     reverse_proxy evolution:8080 {
