@@ -165,6 +165,8 @@ export type PublicProductCard = {
   has_options: boolean;
   is_sold_out: boolean;
   is_featured: boolean;
+  /** Top de vendas reais da loja nos últimos 30 dias; não expõe contagem. */
+  is_best_seller: boolean;
   minimum_quantity: number;
   quantity_step: number;
   max_quantity: number | null;
@@ -220,6 +222,7 @@ export async function loadPublicCatalog(rawSlug: string): Promise<PublicCatalog>
       has_options: Boolean(p.has_options),
       is_sold_out: Boolean(p.is_sold_out),
       is_featured: Boolean(p.is_featured),
+      is_best_seller: Boolean(p.is_best_seller),
       minimum_quantity: Number(p.minimum_quantity ?? 1),
       quantity_step: Number(p.quantity_step ?? 1),
       max_quantity: p.max_quantity === null || p.max_quantity === undefined ? null : Number(p.max_quantity),
@@ -262,7 +265,7 @@ export type PublicVariant = {
 };
 
 export type PublicProductDetail = {
-  product: Omit<PublicProductCard, "has_options" | "is_featured" | "from_price"> & {
+  product: Omit<PublicProductCard, "has_options" | "is_featured" | "is_best_seller" | "from_price"> & {
     image_url: string | null;
   };
   variants: PublicVariant[];
@@ -395,4 +398,3 @@ export async function computePublicPrice(input: PriceInput): Promise<PublicPrice
     validation_errors: [],
   };
 }
-
