@@ -8,7 +8,21 @@ import {
   refreshStoreEvolutionWhatsAppQr,
   sendStoreEvolutionWhatsAppManual,
   startStoreEvolutionWhatsApp,
+  type EvolutionWhatsAppActionResult,
+  type StoreEvolutionWhatsAppConnection,
 } from "@/lib/store-evolution-whatsapp.functions";
+
+const connectionKey = (storeId: string) => ["store-growth", storeId, "evolution-whatsapp-connection"] as const;
+
+function liveStatus(result: EvolutionWhatsAppActionResult, current: StoreEvolutionWhatsAppConnection["status"]): StoreEvolutionWhatsAppConnection["status"] {
+  if (result.connected === true) return "connected";
+  const state = (result.state ?? "").toLowerCase();
+  if (["open", "connected"].includes(state)) return "connected";
+  if (["connecting", "pending", "created"].includes(state)) return "pending";
+  if (["close", "closed", "disconnected"].includes(state)) return "disconnected";
+  if (result.connected === false && current === "connected") return "disconnected";
+  return current;
+}
 
 export function useStoreEvolutionWhatsAppConnection(storeId: string | null) {
   const fn = useServerFn(getStoreEvolutionWhatsAppConnection);
@@ -34,9 +48,36 @@ export function useStoreEvolutionWhatsAppActions() {
   const disconnectFn = useServerFn(disconnectStoreEvolutionWhatsApp);
   const sendManualFn = useServerFn(sendStoreEvolutionWhatsAppManual);
 
+  const syncLiveResult = (storeId: string, result: EvolutionWhatsAppActionResult) => {
+    queryClient.setQueryData<StoreEvolutionWhatsAppConnection>(connectionKey(storeId), (current) => {
+      if (!current) return current;
+      const status = liveStatus(result, current.status);
+      const connected = status === "connected";
+      return {
+        ...current,
+        connected,
+        status,
+        instance_name: result.instanceName ?? current.instance_name,
+        display_phone_number: result.displayPhoneNumber ?? current.display_phone_number,
+        last_health_at: new Date().toISOString(),
+        last_error: connected ? null : current.last_error,
+      };
+    });
+  };
+
+  const forceDisconnected = (storeId: string) => {
+    queryClient.setQueryData<StoreEvolutionWhatsAppConnection>(connectionKey(storeId), (current) => current ? {
+      ...current,
+      connected: false,
+      status: "disconnected",
+      display_phone_number: null,
+      last_health_at: new Date().toISOString(),
+    } : current);
+  };
+
   const invalidate = async (storeId: string) => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["store-growth", storeId, "evolution-whatsapp-connection"] }),
+      queryClient.invalidateQueries({ queryKey: connectionKey(storeId) }),
       queryClient.invalidateQueries({ queryKey: ["store-growth", storeId, "whatsapp-readiness"] }),
       queryClient.invalidateQueries({ queryKey: ["store-growth", storeId, "whatsapp-history"] }),
       queryClient.invalidateQueries({ queryKey: ["store-growth", storeId, "whatsapp-usage"] }),
@@ -45,22 +86,34 @@ export function useStoreEvolutionWhatsAppActions() {
 
   const status = useMutation({
     mutationFn: (storeId: string) => statusFn({ data: { storeId } }),
-    onSuccess: async (_result, storeId) => invalidate(storeId),
+    onSuccess: async (result, storeId) => {
+      syncLiveResult(storeId, result);
+      await invalidate(storeId);
+    },
   });
 
   const start = useMutation({
     mutationFn: (storeId: string) => startFn({ data: { storeId } }),
-    onSuccess: async (_result, storeId) => invalidate(storeId),
+    onSuccess: async (result, storeId) => {
+      syncLiveResult(storeId, result);
+      await invalidate(storeId);
+    },
   });
 
   const refreshQr = useMutation({
     mutationFn: (storeId: string) => refreshQrFn({ data: { storeId } }),
-    onSuccess: async (_result, storeId) => invalidate(storeId),
+    onSuccess: async (result, storeId) => {
+      syncLiveResult(storeId, result);
+      await invalidate(storeId);
+    },
   });
 
   const disconnect = useMutation({
     mutationFn: (storeId: string) => disconnectFn({ data: { storeId } }),
-    onSuccess: async (_result, storeId) => invalidate(storeId),
+    onSuccess: async (_result, storeId) => {
+      forceDisconnected(storeId);
+      await invalidate(storeId);
+    },
   });
 
   const sendManual = useMutation({
