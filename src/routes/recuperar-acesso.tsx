@@ -12,13 +12,13 @@ import { useAuth } from "@/auth/useAuth";
 export const Route = createFileRoute("/recuperar-acesso")({
   head: () => ({
     meta: [
-      { title: "Recuperar acesso | Pediu Aqui" },
+      { title: "Recuperar acesso | Comandiva" },
       {
         name: "description",
-        content: "Receba um link por e-mail para redefinir a senha da sua conta Pediu Aqui.",
+        content: "Receba um link por e-mail para redefinir a senha da sua conta Comandiva.",
       },
-      { property: "og:title", content: "Recuperar acesso | Pediu Aqui" },
-      { property: "og:description", content: "Redefina a senha da sua conta Pediu Aqui." },
+      { property: "og:title", content: "Recuperar acesso | Comandiva" },
+      { property: "og:description", content: "Redefina a senha da sua conta Comandiva." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -35,7 +35,6 @@ function RecoveryPage() {
     event.preventDefault();
     if (busy) return;
     setBusy(true);
-    // A resposta é sempre idêntica: nunca revelamos se o e-mail existe.
     await sendPasswordRecovery(email);
     setBusy(false);
     setSent(true);
