@@ -114,6 +114,17 @@ function StorefrontPage() {
     [grouped],
   );
 
+  const bestSellers = useMemo(
+    () => catalog.products.filter((product) => product.is_best_seller).slice(0, 5),
+    [catalog.products],
+  );
+  const featuredProducts = useMemo(
+    () => catalog.products.filter((product) => product.is_featured).slice(0, 6),
+    [catalog.products],
+  );
+  const spotlightProducts = bestSellers.length > 0 ? bestSellers : featuredProducts;
+  const spotlightTitle = bestSellers.length > 0 ? "Mais pedidos" : "Destaques da casa";
+
   useEffect(() => {
     if (grouped.length === 0) return;
     const elements = grouped
@@ -277,6 +288,47 @@ function StorefrontPage() {
         </div>
       </div>
 
+      {!term && spotlightProducts.length > 0 ? (
+        <section className="mx-auto max-w-3xl pt-7" aria-labelledby="spotlight-title">
+          <div className="flex items-end justify-between gap-3 px-4 sm:px-6">
+            <div>
+              <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[.12em] text-brand">
+                <Flame className="size-4" /> Preferidos dos clientes
+              </p>
+              <h2 id="spotlight-title" className="mt-1 text-xl font-black tracking-[-.025em]">{spotlightTitle}</h2>
+              {bestSellers.length > 0 ? <p className="mt-1 text-xs text-muted-foreground">Calculado pelas vendas reais dos últimos 30 dias.</p> : null}
+            </div>
+          </div>
+          <div className="mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:px-6">
+            {spotlightProducts.map((product) => (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => openProduct(product.id)}
+                className="group w-[172px] shrink-0 snap-start overflow-hidden rounded-2xl border border-black/[.06] bg-white text-left shadow-[0_8px_22px_rgba(61,37,25,.07)] transition hover:-translate-y-0.5 hover:shadow-md sm:w-[190px]"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-brand/8">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt="" loading="lazy" decoding="async" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                  ) : (
+                    <div className="grid size-full place-items-center text-brand"><ProductFallbackIcon className="size-9" strokeWidth={1.7} /></div>
+                  )}
+                  {product.is_best_seller ? (
+                    <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/94 px-2 py-1 text-[10px] font-black text-brand shadow-sm"><Flame className="size-3" /> Mais pedido</span>
+                  ) : null}
+                </div>
+                <div className="p-3">
+                  <p className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug">{product.name}</p>
+                  <p className="mt-2 text-sm font-black text-brand tabular-nums">
+                    {product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {grouped.length === 0 ? (
           <EmptyState
@@ -310,14 +362,17 @@ function StorefrontPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-start gap-2">
                           <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug text-foreground sm:text-base">{product.name}</p>
-                          {product.is_featured ? <span className="shrink-0 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            {product.is_best_seller ? <span className="inline-flex items-center gap-1 rounded-full bg-highlight-soft px-2.5 py-1 text-[10px] font-black text-highlight-soft-foreground sm:text-[11px]"><Flame className="size-3" /> Mais pedido</span> : null}
+                            {product.is_featured ? <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
+                          </div>
                         </div>
                         {product.description ? <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.description}</p> : null}
                         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                           <p className={`text-sm font-extrabold tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
                             {product.is_sold_out ? "Esgotado" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
                           </p>
-                          {!product.is_sold_out ? <span className="text-[11px] font-semibold text-muted-foreground">{product.has_variants ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
+                          {!product.is_sold_out ? <span className="text-[11px] font-semibold text-muted-foreground">{product.has_variants || product.has_options ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
                         </div>
                       </div>
 
