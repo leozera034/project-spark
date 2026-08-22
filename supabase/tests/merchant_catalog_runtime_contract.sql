@@ -42,8 +42,9 @@ BEGIN
 
   IF reserve_definition NOT ILIKE '%PRODUCT_RUNTIME_UNAVAILABLE%'
      OR reserve_definition NOT ILIKE '%PRODUCT_MAX_QUANTITY_EXCEEDED%'
-     OR reserve_definition NOT ILIKE '%reserve_product_inventory%' THEN
-    RAISE EXCEPTION 'Checkout inventory trigger must enforce runtime availability and quantity limits before stock reservation';
+     OR reserve_definition NOT ILIKE '%reserve_product_inventory%'
+     OR reserve_definition NOT ILIKE '%_existing_quantity + new.quantity%' THEN
+    RAISE EXCEPTION 'Checkout inventory trigger must enforce aggregate runtime/quantity limits before stock reservation';
   END IF;
 
   IF pg_get_functiondef('public.storefront_submit_order(text,jsonb)'::regprocedure)
