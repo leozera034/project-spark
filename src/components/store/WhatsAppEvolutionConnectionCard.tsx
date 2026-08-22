@@ -48,13 +48,20 @@ function subscriptionActive(status: string | null | undefined) {
   return status === "active" || status === "trial" || status === "grace_period" || status === "complimentary";
 }
 
+function subscriptionLabel(status: string | null | undefined) {
+  if (status === "complimentary") return "Cortesia";
+  if (status === "trial") return "Teste ativo";
+  if (status === "grace_period") return "Ativo · regularizar cobrança";
+  return "Ativo";
+}
+
 function connectionError(error: unknown) {
   const code = error instanceof Error ? error.message : "";
   if (code === "WHATSAPP_PAYMENT_REQUIRED") return "Escolha um modo de WhatsApp para conectar este número.";
   if (code === "EVOLUTION_RUNTIME_NOT_CONFIGURED") return "A conexão do WhatsApp está temporariamente indisponível.";
   if (code === "EVOLUTION_INSTANCE_CREATE_FAILED") return "Não foi possível preparar a conexão agora.";
   if (code === "EVOLUTION_QR_FAILED") return "Não foi possível gerar o QR Code. Tente novamente.";
-  if (code === "EVOLUTION_STATUS_FAILED") return "Não foi possível consultar o estado da conexão.";
+  if (code === "EVOLUTION_STATUS_FAILED") return "Não foi possível confirmar o estado ao vivo da conexão.";
   if (code === "EVOLUTION_DISCONNECT_FAILED") return "Não foi possível desconectar o aparelho.";
   if (code === "EVOLUTION_SEND_FAILED") return "O WhatsApp recusou o envio da mensagem.";
   if (code === "EVOLUTION_SEND_AMBIGUOUS") return "O envio não retornou confirmação segura.";
@@ -89,17 +96,17 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       if (result.connected) {
         setQr(null);
         setUiError(null);
-        setNotice("WhatsApp conectado e pronto para uso.");
+        setNotice("Conexão confirmada ao vivo.");
         return;
       }
       if (result.repairRequired) {
         const repaired = await refreshQrMutateAsyncRef.current(storeId);
         setQr(repaired);
         setUiError(null);
-        setNotice("A sessão anterior foi descartada. Escaneie este novo QR Code.");
+        setNotice("A sessão anterior foi encerrada. Escaneie o novo QR Code.");
       }
     } catch {
-      // Polling is best-effort. Explicit actions continue surfacing errors to the user.
+      // A consulta principal mantém o último snapshot conhecido. Ações explícitas exibem o erro.
     } finally {
       statusCheckInFlightRef.current = false;
     }
@@ -134,6 +141,11 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     || actions.refreshQr.isPending
     || actions.disconnect.isPending
     || actions.status.isPending;
+  const activeMode = automaticActive ? "Automático" : manualDirectActive ? "Manual" : null;
+  const activeAddon = automaticActive ? automaticAddon : manualDirectActive ? manualAddon : null;
+  const activePrice = automaticActive
+    ? formatPrice(automaticAddon?.monthly_price?.amount_cents, 3990)
+    : formatPrice(manualAddon?.monthly_price?.amount_cents, 1490);
 
   useEffect(() => {
     if (!connection.isSuccess || reconciledStoreRef.current === storeId) return;
@@ -143,9 +155,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
 
   useEffect(() => {
     if (!pending || connected) return;
-    const timer = window.setInterval(() => {
-      void reconcileLiveStatusRef.current();
-    }, 3_000);
+    const timer = window.setInterval(() => void reconcileLiveStatusRef.current(), 3_000);
     return () => window.clearInterval(timer);
   }, [connected, pending, storeId]);
 
@@ -153,7 +163,6 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     if (!connected) return;
     setQr(null);
     setUiError(null);
-    setNotice("WhatsApp conectado e pronto para uso.");
   }, [connected]);
 
   async function startConnection() {
@@ -164,7 +173,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       const result = await actions.start.mutateAsync(storeId);
       if (result.connected) {
         setQr(null);
-        setNotice("WhatsApp conectado.");
+        setNotice("Conexão confirmada.");
         return;
       }
       setQr(result);
@@ -208,7 +217,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
       await actions.disconnect.mutateAsync(storeId);
       const result = await actions.start.mutateAsync(storeId);
       setQr(result.connected ? null : result);
-      setNotice(result.connected ? "WhatsApp conectado." : "Escaneie o novo QR Code para concluir a reconexão.");
+      setNotice(result.connected ? "Conexão confirmada." : "Escaneie o novo QR Code para concluir a reconexão.");
     } catch (error) {
       setNotice(null);
       setUiError(connectionError(error));
@@ -228,83 +237,149 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     }
   }
 
+  const statusLabel = resolving
+    ? "Verificando"
+    : connected
+      ? "Conectado"
+      : pending
+        ? "Aguardando conexão"
+        : "Desconectado";
+
   return (
-    <Card className="overflow-hidden border-[#25D366]/25 shadow-sm">
-      <CardContent className="p-5 sm:p-6">
-        <div className="mb-5 flex items-start justify-between gap-3">
+    <Card className="overflow-hidden border-[#25D366]/20 shadow-sm">
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#25D366]/10 text-[#128C7E]">
+            <div className={`grid size-11 shrink-0 place-items-center rounded-2xl ${connected ? "bg-emerald-500/12 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
               <MessageCircle className="size-5" />
             </div>
-            <div>
-              <h2 className="font-display text-xl font-black tracking-tight">Seu WhatsApp</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Escolha o nível de automação e use o número da loja pelo Comandiva.</p>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-xl font-black tracking-tight">Seu WhatsApp</h2>
+                <Badge variant={connected ? "default" : pending ? "secondary" : "outline"}>{statusLabel}</Badge>
+              </div>
+              <p className="mt-1 max-w-xl text-sm leading-5 text-muted-foreground">
+                O status é conferido diretamente na sessão do WhatsApp enquanto esta tela está aberta.
+              </p>
             </div>
           </div>
-          <Badge variant={connected ? "default" : "secondary"} className="shrink-0">
-            {resolving ? "Verificando…" : connected ? "Conectado" : pending ? "Aguardando" : "Desconectado"}
-          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void reconcileLiveStatusRef.current()}
+            disabled={busy || resolving}
+            className="w-full shrink-0 sm:w-auto"
+          >
+            {actions.status.isPending || connection.isFetching ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
+            Atualizar status
+          </Button>
         </div>
 
-        <div className="mb-5 grid gap-3 sm:grid-cols-2">
-          <ModeCard
-            title="Manual"
-            price={`${formatPrice(manualAddon?.monthly_price?.amount_cents, 1490)}/mês`}
-            description="Conecte o número e envie mensagens manualmente pelo painel."
-            active={manualActive}
-            status={automaticActive && !manualDirectActive ? "Incluído no Automático" : manualAddon?.subscription?.status}
-          />
-          <ModeCard
-            title="Automático"
-            price={`${formatPrice(automaticAddon?.monthly_price?.amount_cents, 3990)}/mês`}
-            description="Inclui o Manual e dispara atualizações conforme o pedido avança."
-            active={automaticActive}
-            status={automaticAddon?.subscription?.status}
-            highlighted
-          />
-        </div>
+        {activeMode ? (
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-muted/25 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-bold">Plano {activeMode}</p>
+                <Badge variant="secondary">{subscriptionLabel(activeAddon?.subscription?.status)}</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {automaticActive
+                  ? "Mensagens manuais e automações de status estão incluídas."
+                  : "Envio manual pelo painel, sem automações de pedido."}
+              </p>
+            </div>
+            <p className="shrink-0 text-sm font-bold text-muted-foreground">{activePrice}/mês</p>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
+            <div>
+              <p className="font-bold">Escolha como usar o WhatsApp</p>
+              <p className="mt-1 text-sm text-muted-foreground">Ative apenas um modo. O Automático já inclui o envio manual.</p>
+            </div>
+            {manualAddon ? (
+              <AddonPurchaseReadiness storeId={storeId} addon={manualAddon} canViewBilling={Boolean(addons.data?.can_view_billing)} />
+            ) : null}
+            {automaticAddon ? (
+              <AddonPurchaseReadiness storeId={storeId} addon={automaticAddon} canViewBilling={Boolean(addons.data?.can_view_billing)} />
+            ) : null}
+          </div>
+        )}
 
         {resolving ? (
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Confirmando a conexão atual…
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" /> Confirmando a sessão atual…
+          </div>
+        ) : null}
+
+        {!resolving && connected ? (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-emerald-800 dark:text-emerald-200">WhatsApp conectado e pronto</p>
+                  <p className="mt-1 text-sm leading-5 text-emerald-800/70 dark:text-emerald-100/70">
+                    {connection.data?.display_phone_number || "Número vinculado"} · última confirmação {formatDate(connection.data?.last_health_at)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-3">
+              <ConnectionMetric label="Número" value={connection.data?.display_phone_number || "Vinculado"} />
+              <ConnectionMetric label="Modo" value={activeMode ?? "Ativo"} />
+              <ConnectionMetric label="Conectado desde" value={formatDate(connection.data?.connected_at)} />
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" onClick={() => void reconnect()} disabled={busy || actions.sendManual.isPending} className="sm:w-auto">
+                {actions.disconnect.isPending || actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+                Trocar / reconectar número
+              </Button>
+            </div>
+
+            {manualActive ? (
+              <details className="rounded-2xl border border-border">
+                <summary className="cursor-pointer list-none px-4 py-3.5 font-semibold">Enviar mensagem manual</summary>
+                <div className="border-t border-border p-4">
+                  <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+                    <div>
+                      <Label htmlFor="evolution-manual-phone">WhatsApp do cliente</Label>
+                      <Input id="evolution-manual-phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(34) 99999-9999" inputMode="tel" maxLength={32} />
+                    </div>
+                    <div>
+                      <Label htmlFor="evolution-manual-message">Mensagem</Label>
+                      <Textarea id="evolution-manual-message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Olá! Seu pedido já está pronto." rows={3} maxLength={4096} />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+                    <Button variant="ghost" onClick={() => void disconnect()} disabled={busy || actions.sendManual.isPending} className="text-destructive hover:text-destructive">
+                      <Power className="size-4" /> Desconectar
+                    </Button>
+                    <Button onClick={() => void sendManual()} disabled={!phone.trim() || !message.trim() || actions.sendManual.isPending} className="bg-[#FF681F] hover:bg-[#E95612]">
+                      {actions.sendManual.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                      Enviar mensagem
+                    </Button>
+                  </div>
+                </div>
+              </details>
+            ) : null}
           </div>
         ) : null}
 
         {!resolving && !connected && !canProvision ? (
-          <div className="space-y-3">
-            <p className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Escolha o modo Manual ou Automático para liberar a conexão desta loja.
-            </p>
-            {manualAddon ? (
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Manual</p>
-                <AddonPurchaseReadiness
-                  storeId={storeId}
-                  addon={manualAddon}
-                  canViewBilling={Boolean(addons.data?.can_view_billing)}
-                />
-              </div>
-            ) : null}
-            {automaticAddon ? (
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Automático</p>
-                <AddonPurchaseReadiness
-                  storeId={storeId}
-                  addon={automaticAddon}
-                  canViewBilling={Boolean(addons.data?.can_view_billing)}
-                />
-              </div>
-            ) : null}
-          </div>
+          <p className="mt-4 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Ative um modo de WhatsApp para liberar a conexão desta loja.
+          </p>
         ) : null}
 
         {!resolving && canProvision && !connected && !qr ? (
-          <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-[#25D366]/40 bg-[#25D366]/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-dashed border-[#25D366]/35 bg-[#25D366]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-semibold">Pronto para conectar</p>
-              <p className="mt-1 text-sm text-muted-foreground">Gere o QR Code e leia em Aparelhos conectados no WhatsApp.</p>
+              <p className="font-bold">Pronto para conectar</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">O QR Code aparece somente durante a conexão e desaparece assim que a sessão for confirmada.</p>
             </div>
-            <Button onClick={() => void startConnection()} disabled={busy} className="shrink-0 bg-[#FF681F] hover:bg-[#E95612]">
+            <Button onClick={() => void startConnection()} disabled={busy} className="w-full shrink-0 bg-[#FF681F] hover:bg-[#E95612] sm:w-auto">
               {actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
               Gerar QR Code
             </Button>
@@ -312,10 +387,10 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         ) : null}
 
         {qr && !connected ? (
-          <div className="grid gap-5 lg:grid-cols-[280px_1fr] lg:items-center">
-            <div className="flex min-h-64 items-center justify-center rounded-3xl border border-border bg-white p-4 shadow-sm">
+          <div className="mt-4 grid gap-4 rounded-2xl border border-border p-4 lg:grid-cols-[250px_1fr] lg:items-center">
+            <div className="flex min-h-56 items-center justify-center rounded-2xl bg-white p-3">
               {qr.qrCodeDataUrl ? (
-                <img src={qr.qrCodeDataUrl} alt="QR Code para conectar o WhatsApp" className="aspect-square w-full max-w-[240px] object-contain" />
+                <img src={qr.qrCodeDataUrl} alt="QR Code para conectar o WhatsApp" className="aspect-square w-full max-w-[220px] object-contain" />
               ) : qr.pairingCode ? (
                 <div className="text-center">
                   <Smartphone className="mx-auto mb-3 size-8 text-primary" />
@@ -327,79 +402,24 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
               )}
             </div>
             <div>
-              <h3 className="font-display text-2xl font-black tracking-tight">Escaneie no WhatsApp</h3>
+              <h3 className="font-display text-xl font-black tracking-tight">Escaneie no WhatsApp</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                WhatsApp → Aparelhos conectados → Conectar aparelho. A tela confirma a conexão automaticamente.
+                WhatsApp → Aparelhos conectados → Conectar aparelho. O painel verifica a sessão automaticamente a cada poucos segundos.
               </p>
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <Button variant="outline" onClick={() => void refreshQr()} disabled={busy}>
                   <RefreshCw className="size-4" /> Novo QR
                 </Button>
                 <Button variant="ghost" onClick={() => void reconcileLiveStatusRef.current()} disabled={actions.status.isPending || actions.refreshQr.isPending}>
                   {actions.status.isPending || actions.refreshQr.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-                  Verificar
+                  Verificar agora
                 </Button>
               </div>
             </div>
           </div>
         ) : null}
 
-        {connected ? (
-          <div className="space-y-5">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <ConnectionMetric label="Status" value="Conectado" />
-              <ConnectionMetric label="Número" value={connection.data?.display_phone_number || "WhatsApp vinculado"} />
-              <ConnectionMetric label="Modo" value={automaticActive ? "Automático" : "Manual"} />
-            </div>
-            <p className="text-xs text-muted-foreground">Conectado desde {formatDate(connection.data?.connected_at)}.</p>
-
-            {automaticActive ? (
-              <div className="rounded-2xl border border-[#25D366]/25 bg-[#25D366]/5 p-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#128C7E]" />
-                  <div>
-                    <p className="font-semibold">Atualizações automáticas ativas</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Pedidos da loja podem disparar mensagens conforme mudam de status.</p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => void reconnect()} disabled={busy || actions.sendManual.isPending}>
-                {actions.disconnect.isPending || actions.start.isPending ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
-                Reconectar / novo QR
-              </Button>
-            </div>
-
-            <details className="rounded-2xl border border-border">
-              <summary className="cursor-pointer list-none px-4 py-3 font-semibold">Enviar mensagem manual</summary>
-              <div className="border-t border-border p-4">
-                <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-                  <div>
-                    <Label htmlFor="evolution-manual-phone">WhatsApp do cliente</Label>
-                    <Input id="evolution-manual-phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(11) 99999-9999" inputMode="tel" maxLength={32} />
-                  </div>
-                  <div>
-                    <Label htmlFor="evolution-manual-message">Mensagem</Label>
-                    <Textarea id="evolution-manual-message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Olá! Seu pedido já está pronto." rows={3} maxLength={4096} />
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap justify-between gap-2">
-                  <Button variant="outline" onClick={() => void disconnect()} disabled={busy || actions.sendManual.isPending}>
-                    <Power className="size-4" /> Desconectar
-                  </Button>
-                  <Button onClick={() => void sendManual()} disabled={!phone.trim() || !message.trim() || actions.sendManual.isPending} className="bg-[#FF681F] hover:bg-[#E95612]">
-                    {actions.sendManual.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                    Enviar
-                  </Button>
-                </div>
-              </div>
-            </details>
-          </div>
-        ) : null}
-
-        {notice ? (
+        {notice && !(notice.toLowerCase().includes("conexão confirmada") && !connected) ? (
           <p className="mt-4 flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" /> {notice}
           </p>
@@ -410,41 +430,11 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   );
 }
 
-function ModeCard({
-  title,
-  price,
-  description,
-  active,
-  status,
-  highlighted = false,
-}: {
-  title: string;
-  price: string;
-  description: string;
-  active: boolean;
-  status?: string | null;
-  highlighted?: boolean;
-}) {
-  return (
-    <div className={`rounded-2xl border p-4 ${highlighted ? "border-[#25D366]/35 bg-[#25D366]/5" : "border-border bg-muted/20"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold">{title}</p>
-          <p className="mt-1 text-lg font-black">{price}</p>
-        </div>
-        <Badge variant={active ? "default" : "outline"}>{active ? (status === "complimentary" ? "Cortesia" : "Ativo") : "Opcional"}</Badge>
-      </div>
-      <p className="mt-2 text-xs leading-5 text-muted-foreground">{description}</p>
-      {status === "Incluído no Automático" ? <p className="mt-2 text-xs font-semibold text-[#128C7E]">Incluído no Automático</p> : null}
-    </div>
-  );
-}
-
 function ConnectionMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate font-semibold" title={value}>{value}</p>
+    <div className="min-w-0 rounded-xl border border-border bg-background p-3.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-sm font-bold" title={value}>{value}</p>
     </div>
   );
 }
