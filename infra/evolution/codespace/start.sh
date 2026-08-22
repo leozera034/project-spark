@@ -2,7 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-RUNTIME_DIR="$HOME/.comandiva-evolution-qa"
+PERSISTED_ROOT="/workspaces/.codespaces/.persistedshare"
+LEGACY_RUNTIME_DIR="$HOME/.comandiva-evolution-qa"
+if [[ -d "$PERSISTED_ROOT" ]]; then
+  RUNTIME_DIR="$PERSISTED_ROOT/comandiva-evolution-qa"
+else
+  RUNTIME_DIR="$LEGACY_RUNTIME_DIR"
+fi
 ENV_FILE="$RUNTIME_DIR/runtime.env"
 COMPOSE_FILE="$ROOT_DIR/infra/evolution/codespace/docker-compose.yml"
 CONFIG_SERVER="$ROOT_DIR/infra/evolution/codespace/config-server.py"
@@ -10,6 +16,12 @@ CONFIG_PID_FILE="$RUNTIME_DIR/config-server.pid"
 
 mkdir -p "$RUNTIME_DIR"
 chmod 700 "$RUNTIME_DIR"
+
+# Migrate the previous runtime key once, so a rebuild does not silently rotate it.
+if [[ ! -f "$ENV_FILE" && -f "$LEGACY_RUNTIME_DIR/runtime.env" ]]; then
+  cp "$LEGACY_RUNTIME_DIR/runtime.env" "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
   if command -v openssl >/dev/null 2>&1; then
@@ -39,8 +51,6 @@ set -a
 source "$ENV_FILE"
 set +a
 
-# The QA key is always a 64-character hexadecimal value. Fail closed if the
-# runtime file was accidentally corrupted instead of silently rotating it.
 if [[ ! "$EVOLUTION_API_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
   echo "[Comandiva] ERRO: chave local da Evolution inválida."
   exit 1
@@ -55,6 +65,12 @@ fi
 
 export EVOLUTION_API_KEY
 export POSTGRES_PASSWORD
+
+if [[ ! $(command -v docker) ]]; then
+  echo "[Comandiva] ERRO: Docker indisponível neste container."
+  echo "[Comandiva] Use Codespaces: Rebuild Container para aplicar o devcontainer com Docker-in-Docker."
+  exit 1
+fi
 
 if [[ -f "$CONFIG_PID_FILE" ]]; then
   OLD_CONFIG_PID="$(cat "$CONFIG_PID_FILE" 2>/dev/null || true)"
