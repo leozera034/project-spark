@@ -46,7 +46,6 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useMyStores,
   useOrderCounts,
   useOrderDetail,
   useOrderHistory,
@@ -68,7 +67,6 @@ import {
   COURIER_VEHICLE_LABEL,
   formatRouteDistance,
   formatRouteDuration,
-  routeQualityLabel,
 } from "@/store/couriers/courier.formatters";
 import {
   ACTION_LABEL,
@@ -77,6 +75,7 @@ import {
   type StoreOrderAction,
   type StoreOrderListItem,
 } from "@/store-orders/types";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/pedidos")({
   head: () => ({
@@ -90,11 +89,7 @@ export const Route = createFileRoute("/app/loja/pedidos")({
 });
 
 function OrdersPanel() {
-  const storesQuery = useMyStores();
-  const stores = storesQuery.data ?? [];
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
-  const storeId = selectedStore ?? (stores.length === 1 ? stores[0].id : null);
-  const selectionRequired = !storeId && stores.length > 1;
+  const { storeId, selectedStore } = useStoreScope();
   const [queueKey, setQueueKey] = useState(ORDER_QUEUES[0].key);
   const [search, setSearch] = useState("");
   const [delayedOnly, setDelayedOnly] = useState(false);
@@ -107,7 +102,7 @@ function OrdersPanel() {
     () => ({ statuses: queue.statuses, fulfillment, search, delayedOnly }),
     [queue.statuses, fulfillment, search, delayedOnly],
   );
-  const enabled = !selectionRequired && !storesQuery.isLoading;
+  const enabled = Boolean(storeId);
   const live = useOrderRealtime(storeId);
   const countsQuery = useOrderCounts(storeId, enabled);
   const listQuery = useOrderQueue(storeId, filters, enabled);
@@ -115,19 +110,17 @@ function OrdersPanel() {
   const countFor = (statuses: string[]) => statuses.reduce((total, status) => total + (counts[status as never] ?? 0), 0);
   const activeFilterCount = Number(Boolean(fulfillment)) + Number(delayedOnly);
 
-  if (storesQuery.isLoading) {
-    return <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-6 sm:px-6"><Skeleton className="h-10 w-64" /><Skeleton className="h-64 w-full rounded-xl" /></div>;
-  }
-  if (storesQuery.error || stores.length === 0) {
-    return <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6"><ErrorState title="Sem acesso a pedidos" description="Sua conta não está vinculada a nenhuma loja com permissão de fila de pedidos." /></div>;
+  if (!storeId) {
+    return <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6"><EmptyState title="Escolha uma loja" description="Selecione a loja que você quer operar." /></div>;
   }
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
       <StoreOperationalAlerts />
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-black tracking-tight">Pedidos</h1>
+          <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Operação</p>
+          <h1 className="mt-1 font-display text-3xl font-black tracking-tight">Pedidos</h1>
           <p className="mt-1 text-sm text-muted-foreground">Acompanhe cada pedido da chegada até a entrega ou retirada.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -136,41 +129,33 @@ function OrdersPanel() {
         </div>
       </header>
 
-      {stores.length > 1 ? <div className="mt-4 flex flex-wrap gap-2">{stores.map((store) => <Button key={store.id} size="sm" variant={storeId === store.id ? "default" : "outline"} onClick={() => setSelectedStore(store.id)}>{store.name}</Button>)}</div> : null}
+      <nav className="rail mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Filas de pedidos">
+        {ORDER_QUEUES.map((item) => (
+          <Button key={item.key} size="sm" className="shrink-0" variant={item.key === queueKey ? "default" : "outline"} onClick={() => setQueueKey(item.key)} aria-current={item.key === queueKey ? "page" : undefined}>
+            {item.label}<span className="ml-1.5 tabular-nums opacity-70">{countFor(item.statuses)}</span>
+          </Button>
+        ))}
+      </nav>
 
-      {selectionRequired ? (
-        <EmptyState className="mt-8" title="Escolha uma loja" description="Sua conta atende mais de uma loja. Selecione qual fila você quer operar agora." />
-      ) : (
-        <>
-          <nav className="rail mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Filas de pedidos">
-            {ORDER_QUEUES.map((item) => (
-              <Button key={item.key} size="sm" className="shrink-0" variant={item.key === queueKey ? "default" : "outline"} onClick={() => setQueueKey(item.key)} aria-current={item.key === queueKey ? "page" : undefined}>
-                {item.label}<span className="ml-1.5 tabular-nums opacity-70">{countFor(item.statuses)}</span>
-              </Button>
-            ))}
-          </nav>
+      <div className="mt-4 flex items-center gap-2">
+        <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Número do pedido ou nome" aria-label="Buscar pedidos" className="pl-9" /></div>
+        <Button variant={activeFilterCount ? "default" : "outline"} className="shrink-0 md:hidden" onClick={() => setFiltersOpen(true)}>
+          <SlidersHorizontal className="size-4" /> Filtros{activeFilterCount ? ` (${activeFilterCount})` : ""}
+        </Button>
+        <div className="hidden items-center gap-2 md:flex">
+          <Button size="sm" variant={fulfillment === "entrega" ? "default" : "outline"} onClick={() => setFulfillment(fulfillment === "entrega" ? null : "entrega")}><Bike className="size-4" /> Entrega</Button>
+          <Button size="sm" variant={fulfillment === "retirada" ? "default" : "outline"} onClick={() => setFulfillment(fulfillment === "retirada" ? null : "retirada")}><ShoppingBag className="size-4" /> Retirada</Button>
+          <Button size="sm" variant={delayedOnly ? "default" : "outline"} onClick={() => setDelayedOnly((value) => !value)}><AlertTriangle className="size-4" /> Atrasados</Button>
+        </div>
+      </div>
 
-          <div className="mt-4 flex items-center gap-2">
-            <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Número do pedido ou nome" aria-label="Buscar pedidos" className="pl-9" /></div>
-            <Button variant={activeFilterCount ? "default" : "outline"} className="shrink-0 md:hidden" onClick={() => setFiltersOpen(true)}>
-              <SlidersHorizontal className="size-4" /> Filtros{activeFilterCount ? ` (${activeFilterCount})` : ""}
-            </Button>
-            <div className="hidden items-center gap-2 md:flex">
-              <Button size="sm" variant={fulfillment === "entrega" ? "default" : "outline"} onClick={() => setFulfillment(fulfillment === "entrega" ? null : "entrega")}><Bike className="size-4" /> Entrega</Button>
-              <Button size="sm" variant={fulfillment === "retirada" ? "default" : "outline"} onClick={() => setFulfillment(fulfillment === "retirada" ? null : "retirada")}><ShoppingBag className="size-4" /> Retirada</Button>
-              <Button size="sm" variant={delayedOnly ? "default" : "outline"} onClick={() => setDelayedOnly((value) => !value)}><AlertTriangle className="size-4" /> Atrasados</Button>
-            </div>
-          </div>
-
-          <section className="mt-5">
-            {listQuery.isLoading ? <div className="space-y-3"><Skeleton className="h-28 w-full rounded-xl" /><Skeleton className="h-28 w-full rounded-xl" /></div> : listQuery.error ? <ErrorState title="Não foi possível carregar a fila" description="Verifique sua conexão e tente novamente." onRetry={() => void listQuery.refetch()} /> : (listQuery.data?.orders.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido nesta fila" description="Assim que um pedido chegar nesta etapa, ele aparece aqui automaticamente." /> : (
-              <ul className="grid gap-3 md:grid-cols-2">{listQuery.data?.orders.map((order) => <OrderCard key={order.id} order={order} storeId={storeId} onOpen={() => setOpenOrderId(order.id)} />)}</ul>
-            )}
-            {listQuery.data?.nextCursor ? <Button variant="outline" className="mt-4 w-full" onClick={() => listQuery.setCursor(listQuery.data?.nextCursor ?? null)}>Ver mais antigos</Button> : null}
-            {listQuery.cursor ? <Button variant="ghost" className="mt-2 w-full" onClick={() => listQuery.setCursor(null)}>Voltar ao início da fila</Button> : null}
-          </section>
-        </>
-      )}
+      <section className="mt-5">
+        {listQuery.isLoading ? <div className="space-y-3"><Skeleton className="h-28 w-full rounded-xl" /><Skeleton className="h-28 w-full rounded-xl" /></div> : listQuery.error ? <ErrorState title="Não foi possível carregar a fila" description="Verifique sua conexão e tente novamente." onRetry={() => void listQuery.refetch()} /> : (listQuery.data?.orders.length ?? 0) === 0 ? <EmptyState title="Nenhum pedido nesta fila" description="Assim que um pedido chegar nesta etapa, ele aparece aqui automaticamente." /> : (
+          <ul className="grid gap-3 md:grid-cols-2">{listQuery.data?.orders.map((order) => <OrderCard key={order.id} order={order} storeId={storeId} onOpen={() => setOpenOrderId(order.id)} />)}</ul>
+        )}
+        {listQuery.data?.nextCursor ? <Button variant="outline" className="mt-4 w-full" onClick={() => listQuery.setCursor(listQuery.data?.nextCursor ?? null)}>Ver mais antigos</Button> : null}
+        {listQuery.cursor ? <Button variant="ghost" className="mt-2 w-full" onClick={() => listQuery.setCursor(null)}>Voltar ao início da fila</Button> : null}
+      </section>
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="bottom" className="rounded-t-[28px] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-5">
@@ -183,7 +168,7 @@ function OrdersPanel() {
         </SheetContent>
       </Sheet>
 
-      <OrderDetailDialog storeId={storeId} storeName={stores.find((store) => store.id === storeId)?.name ?? "Loja"} orderId={openOrderId} onClose={() => setOpenOrderId(null)} />
+      <OrderDetailDialog storeId={storeId} storeName={selectedStore?.name ?? "Loja"} orderId={openOrderId} onClose={() => setOpenOrderId(null)} />
     </div>
   );
 }
