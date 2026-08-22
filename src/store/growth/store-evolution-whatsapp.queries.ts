@@ -14,7 +14,10 @@ import {
 
 const connectionKey = (storeId: string) => ["store-growth", storeId, "evolution-whatsapp-connection"] as const;
 
-function liveStatus(result: EvolutionWhatsAppActionResult, current: StoreEvolutionWhatsAppConnection["status"]): StoreEvolutionWhatsAppConnection["status"] {
+function liveStatus(
+  result: EvolutionWhatsAppActionResult,
+  current: StoreEvolutionWhatsAppConnection["status"],
+): StoreEvolutionWhatsAppConnection["status"] {
   if (result.connected === true) return "connected";
   const state = (result.state ?? "").toLowerCase();
   if (["open", "connected"].includes(state)) return "connected";
@@ -24,18 +27,50 @@ function liveStatus(result: EvolutionWhatsAppActionResult, current: StoreEvoluti
   return current;
 }
 
+function mergeLiveResult(
+  current: StoreEvolutionWhatsAppConnection,
+  result: EvolutionWhatsAppActionResult,
+): StoreEvolutionWhatsAppConnection {
+  const status = liveStatus(result, current.status);
+  const connected = status === "connected";
+  return {
+    ...current,
+    connected,
+    status,
+    instance_name: result.instanceName ?? current.instance_name,
+    display_phone_number: result.displayPhoneNumber ?? current.display_phone_number,
+    last_health_at: new Date().toISOString(),
+    last_error: connected ? null : current.last_error,
+  };
+}
+
 export function useStoreEvolutionWhatsAppConnection(storeId: string | null) {
-  const fn = useServerFn(getStoreEvolutionWhatsAppConnection);
+  const connectionFn = useServerFn(getStoreEvolutionWhatsAppConnection);
+  const statusFn = useServerFn(getStoreEvolutionWhatsAppLiveStatus);
+
   return useQuery({
     queryKey: ["store-growth", storeId, "evolution-whatsapp-connection"],
-    queryFn: () => fn({ data: { storeId: storeId! } }),
+    queryFn: async () => {
+      const snapshot = await connectionFn({ data: { storeId: storeId! } });
+      try {
+        const live = await statusFn({ data: { storeId: storeId! } });
+        return mergeLiveResult(snapshot, live);
+      } catch {
+        // The persisted snapshot is still useful when the QA provider is temporarily unreachable.
+        return snapshot;
+      }
+    },
     enabled: Boolean(storeId),
     staleTime: 0,
     refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
+    refetchIntervalInBackground: false,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      return status === "pending" ? 4_000 : 20_000;
+      if (status === "pending") return 3_000;
+      if (status === "connected") return 10_000;
+      return 30_000;
     },
   });
 }
@@ -49,20 +84,9 @@ export function useStoreEvolutionWhatsAppActions() {
   const sendManualFn = useServerFn(sendStoreEvolutionWhatsAppManual);
 
   const syncLiveResult = (storeId: string, result: EvolutionWhatsAppActionResult) => {
-    queryClient.setQueryData<StoreEvolutionWhatsAppConnection>(connectionKey(storeId), (current) => {
-      if (!current) return current;
-      const status = liveStatus(result, current.status);
-      const connected = status === "connected";
-      return {
-        ...current,
-        connected,
-        status,
-        instance_name: result.instanceName ?? current.instance_name,
-        display_phone_number: result.displayPhoneNumber ?? current.display_phone_number,
-        last_health_at: new Date().toISOString(),
-        last_error: connected ? null : current.last_error,
-      };
-    });
+    queryClient.setQueryData<StoreEvolutionWhatsAppConnection>(connectionKey(storeId), (current) =>
+      current ? mergeLiveResult(current, result) : current,
+    );
   };
 
   const forceDisconnected = (storeId: string) => {
