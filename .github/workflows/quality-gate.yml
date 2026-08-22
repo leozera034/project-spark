@@ -33,10 +33,10 @@ jobs:
         run: npm run test:db-static
       - name: Logic lint
         run: npm run lint:ci
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Build
+      - name: Build and generate TanStack route tree
         run: npm run build
+      - name: Typecheck generated route graph
+        run: npm run typecheck
       - name: External Supabase Edge contract smoke
         env:
           EDGE_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/pediu-backend-api
