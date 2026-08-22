@@ -3,6 +3,13 @@ FROM evoapicloud/evolution-api:v2.3.7
 USER root
 WORKDIR /evolution
 
-# QA patch: Evolution v2.3.7 ships Baileys rc.9. rc.13 contains fixes
-# required for current WhatsApp Web behavior and removes the vulnerable rc.9 build.
-RUN npm install --omit=dev --no-save baileys@7.0.0-rc.13
+# Evolution v2.3.7 ships Baileys rc.9. Keep the runtime package metadata
+# aligned with the patched dependency and remove only the root prepare hook.
+# The upstream runtime image omits git, while npm dependencies may still need it
+# during installation, so install it explicitly for a deterministic QA build.
+RUN apk add --no-cache git \
+    && npm pkg delete scripts.prepare \
+    && npm pkg set dependencies.baileys=7.0.0-rc.13 \
+    && npm install --omit=dev --package-lock=false --no-save baileys@7.0.0-rc.13 \
+    && node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("/evolution/node_modules/baileys/package.json","utf8"));if(p.version!=="7.0.0-rc.13"){throw new Error(`Baileys inesperado: ${p.version}`)}' \
+    && npm cache clean --force
