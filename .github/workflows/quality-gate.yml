@@ -69,7 +69,7 @@ jobs:
 
   database-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.SPARK_DATABASE_URL }}
     steps:
@@ -89,6 +89,33 @@ jobs:
       - name: Run WhatsApp provisioning contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/whatsapp_provisioning_contract.sql
+      - name: Run merchant Stripe payment operational contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/merchant_payment_operational_contract.sql
+      - name: Run merchant business metrics payment contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/merchant_business_metrics_payment_contract.sql
+      - name: Run merchant catalog runtime contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/merchant_catalog_runtime_contract.sql
+      - name: Run overnight store opening contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_overnight_open_contract.sql
+      - name: Run store hours overlap contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_hours_overlap_contract.sql
+      - name: Run Stripe order payment lifecycle contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/stripe_order_payment_lifecycle_contract.sql
+      - name: Run Stripe checkout expiration inventory contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/stripe_checkout_expiration_inventory_contract.sql
+      - name: Run Stripe late payment compensation contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/stripe_late_payment_compensation_contract.sql
+      - name: Run merchant financial center contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_financial_center_contract.sql
       - name: Run operational invariants
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/data_invariants.sql

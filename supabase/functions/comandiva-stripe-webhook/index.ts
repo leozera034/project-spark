@@ -53,10 +53,43 @@ async function syncConnectedAccount(raw:J){
   if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}if(!storeId)return false;
   const requirements=obj(raw.requirements);const {error}=await a.rpc("backend_upsert_stripe_connect_account",{_store_id:storeId,_stripe_account_id:accountId,_country:str(raw.country),_business_type:str(raw.business_type),_details_submitted:raw.details_submitted===true,_charges_enabled:raw.charges_enabled===true,_payouts_enabled:raw.payouts_enabled===true,_requirements_currently_due:Array.isArray(requirements.currently_due)?requirements.currently_due:[],_metadata:{source:"stripe_webhook"}} as never);return !error;
 }
+
 async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){
   const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),storeId=str(metadata.comandiva_store_id),pi=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);
-  if(!orderId||!storeId||!pi||!status||!amount||!currency)return false;const account=connectedAccount??str(raw.on_behalf_of);if(!account)return false;
-  const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:account,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_webhook",event_created:eventCreated}} as never);return !error;
+  if(!orderId||!storeId||!pi||!status||!amount||!currency)return false;
+  const destinationAccount=str(metadata.comandiva_destination_account);
+  const account=connectedAccount??str(raw.on_behalf_of)??destinationAccount;
+  if(!account)return false;
+  const chargePattern=(str(metadata.comandiva_charge_pattern)??(destinationAccount?"separate":"direct")).toLowerCase();
+  const fee=int(raw.application_fee_amount)??int(metadata.comandiva_platform_fee_cents)??0;
+  const latestCharge=str(raw.latest_charge)??str(obj(raw.latest_charge).id);
+  const transferGroup=str(raw.transfer_group);
+  let balanceTransaction:string|null=null;
+  if(latestCharge){
+    const charge=await stripeGet(`/v1/charges/${encodeURIComponent(latestCharge)}`,chargePattern==="direct"?(connectedAccount??undefined):undefined);
+    if(charge.ok)balanceTransaction=str(charge.body.balance_transaction)??str(obj(charge.body.balance_transaction).id);
+  }
+  const {error}=await admin().rpc("backend_record_stripe_payment_intent",{
+    _order_id:orderId,
+    _store_id:storeId,
+    _payment_intent_id:pi,
+    _stripe_account_id:account,
+    _amount_cents:amount,
+    _currency:currency,
+    _application_fee_amount:fee,
+    _status:status,
+    _event_id:eventId,
+    _last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,
+    _metadata:{
+      source:"stripe_webhook",
+      event_created:eventCreated,
+      charge_pattern:chargePattern,
+      stripe_charge_id:latestCharge,
+      stripe_balance_transaction_id:balanceTransaction,
+      transfer_group:transferGroup
+    }
+  } as never);
+  return !error;
 }
 
 async function syncProfessionalServiceCheckout(raw:J,eventId:string){
@@ -67,6 +100,15 @@ async function syncProfessionalServiceCheckout(raw:J,eventId:string){
   if(!sessionId||!amountTotal)return{relevant:true,ok:false,error:"professional_service_checkout_incomplete"};
   const {data,error}=await admin().rpc("backend_complete_professional_service_payment",{_order_id:orderId,_checkout_session_id:sessionId,_payment_intent_id:paymentIntentId,_amount_total:amountTotal,_currency:currency,_event_id:eventId} as never);
   return{relevant:true,ok:!error,error:error?.message,result:data};
+}
+
+async function expireOrderCheckout(raw:J,eventId:string){
+  const metadata=obj(raw.metadata),orderId=str(metadata.comandiva_order_id),sessionId=str(raw.id);
+  if(!orderId)return{relevant:false,ok:true};
+  if(!sessionId)return{relevant:true,ok:false,error:"checkout_session_id_missing"};
+  const {data,error}=await admin().rpc("backend_expire_stripe_order_checkout",{_order_id:orderId,_checkout_session_id:sessionId,_event_id:eventId} as never);
+  if(error)return{relevant:true,ok:false,error:error.message};
+  return{relevant:true,ok:true,processed:obj(data).processed===true,result:data};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -84,6 +126,12 @@ Deno.serve(async(req:Request)=>{
     const data=obj(event.data),resource=obj(data.object);
     if(eventType==="account.updated"){const ok=await syncConnectedAccount(resource);await finish(ok?"processed":"ignored",ok?null:"account_not_mapped");return response(200,{ok:true,processed:ok})}
     if(eventType.startsWith("payment_intent.")){const ok=await syncPaymentIntent(resource,eventId,connectedAccount,eventCreated);await finish(ok?"processed":"ignored",ok?null:"payment_intent_not_mapped");return response(200,{ok:true,processed:ok})}
+    if(eventType==="checkout.session.expired"){
+      const expired=await expireOrderCheckout(resource,eventId);
+      if(!expired.relevant){await finish("ignored");return response(200,{ok:true,ignored:true})}
+      if(!expired.ok){await finish("failed",expired.error??"order_checkout_expire_failed");return response(409,{ok:false,error:"order_checkout_expire_failed"})}
+      await finish("processed");return response(200,{ok:true,processed:true,kind:"order_checkout_expired",orderProcessed:expired.processed===true});
+    }
     if(eventType==="checkout.session.completed"||eventType==="checkout.session.async_payment_succeeded"){
       const service=await syncProfessionalServiceCheckout(resource,eventId);
       if(service.relevant){if(!service.ok){await finish("failed",service.error??"professional_service_reconcile_failed");return response(409,{ok:false,error:"professional_service_reconcile_failed"})}await finish("processed");return response(200,{ok:true,processed:true,kind:"professional_service",pending:service.pending===true})}
