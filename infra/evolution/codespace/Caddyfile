@@ -6,17 +6,20 @@
     }
   }
 
-  @authorized header apikey {$EVOLUTION_API_KEY}
-  handle @authorized {
+  @local header apikey {$EVOLUTION_API_KEY}
+  handle @local {
     reverse_proxy evolution:8080 {
       header_up apikey {$EVOLUTION_API_KEY}
     }
   }
 
   handle {
-    basic_auth {
-      comandiva $2y$05$b/JhigBjoi930TgCwOnxgOC0Kc8m6KsLhRf3PWg1nh7vhj5exRsBO
+    forward_auth https://ypgteuxzgqmkkkpvibhi.supabase.co {
+      uri /functions/v1/comandiva-evolution-gateway-auth
+      header_up Authorization {http.request.header.Authorization}
+      header_up X-Comandiva-Store-Id {http.request.header.X-Comandiva-Store-Id}
     }
+
     reverse_proxy evolution:8080 {
       header_up apikey {$EVOLUTION_API_KEY}
     }
