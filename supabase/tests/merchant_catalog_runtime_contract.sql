@@ -74,8 +74,9 @@ BEGIN
   catalog_definition := pg_get_functiondef('public.storefront_catalog(text)'::regprocedure);
   IF catalog_definition NOT ILIKE '%is_best_seller%'
      OR catalog_definition NOT ILIKE '%30 days%'
-     OR catalog_definition NOT ILIKE '%order_items%' THEN
-    RAISE EXCEPTION 'Public catalog must derive best sellers from recent real order history';
+     OR catalog_definition NOT ILIKE '%order_items%'
+     OR catalog_definition NOT ILIKE '%order_payment_operational_ready%' THEN
+    RAISE EXCEPTION 'Public catalog must derive best sellers from recent operationally valid order history';
   END IF;
 END $$;
 
