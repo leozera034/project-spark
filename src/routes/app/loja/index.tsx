@@ -21,8 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
-import { useOrderCounts, useOrderQueue } from "@/store-orders/useStoreOrders";
-import { ORDER_QUEUES, STATUS_LABEL, type StoreOrderStatus } from "@/store-orders/types";
+import { useOrderCounts, useOrderQueue, useOrderTransition } from "@/store-orders/useStoreOrders";
+import { ACTION_LABEL, ORDER_QUEUES, STATUS_LABEL, type StoreOrderAction, type StoreOrderListItem, type StoreOrderStatus } from "@/store-orders/types";
 import { orderStatusBadgeVariant } from "@/components/store/order-status";
 import { useStoreBusinessReportSummary } from "@/store/reports/deliveries/delivery-report.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
@@ -51,6 +51,13 @@ const KPI_QUEUES: Array<{ key: string; label: string; hint: string; statuses: St
   { key: "prontos", label: "Prontos", hint: "Retirada ou saída", statuses: ["pronto", "aguardando_retirada", "aguardando_entregador"] },
   { key: "rota", label: "Em rota", hint: "Indo ao cliente", statuses: ["em_rota"] },
 ];
+
+const ACTION_SUCCESS: Partial<Record<StoreOrderAction, string>> = {
+  accept: "Pedido aceito.",
+  start_preparation: "Preparo iniciado.",
+  mark_ready: "Pedido marcado como pronto.",
+  complete_pickup: "Retirada confirmada.",
+};
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -181,13 +188,13 @@ function StoreHome() {
           <div className="flex min-w-0 items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
             <div className="min-w-0">
               <h2 className="font-display text-lg font-black text-foreground">Fila de prioridade</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">Atrasados e novos aparecem primeiro para reduzir tempo de resposta.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Atrasados e novos aparecem primeiro. A ação principal pode ser concluída sem sair desta tela.</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="shrink-0"><Link to="/app/loja/pedidos">Ver todos <ArrowRight className="size-3.5" /></Link></Button>
           </div>
           <div className="p-3 sm:p-4">
             {recentQuery.isLoading ? (
-              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-[72px] animate-pulse rounded-xl border border-border bg-surface-muted" />)}</div>
+              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-[84px] animate-pulse rounded-xl border border-border bg-surface-muted" />)}</div>
             ) : recentQuery.error ? (
               <ErrorState kind="unexpected" title="Não foi possível carregar os pedidos" onRetry={() => void recentQuery.refetch()} />
             ) : priorityOrders.length === 0 ? (
@@ -195,29 +202,7 @@ function StoreHome() {
             ) : (
               <ul className="space-y-2">
                 {priorityOrders.map((order) => (
-                  <li key={order.id}>
-                    <Link
-                      to="/app/loja/pedidos"
-                      search={{ open: order.id } as never}
-                      className={`group flex min-w-0 items-center justify-between gap-3 rounded-2xl border px-3 py-3 transition sm:px-4 ${
-                        order.isDelayed ? "border-warning/30 bg-warning-soft/30" : "border-border bg-surface-muted/40 hover:border-brand/20 hover:bg-brand-soft/40"
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <p className="truncate text-sm font-black text-foreground">#{order.orderNumber} · {order.customerFirstName}</p>
-                          {order.status === "aguardando_confirmacao" ? <Badge variant="warning" className="shrink-0">Novo</Badge> : null}
-                        </div>
-                        <p className="mt-1 truncate text-xs text-muted-foreground">
-                          {order.itemCount} item(ns) · {order.fulfillment === "entrega" ? "Entrega" : "Retirada"}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1.5">
-                        <Badge variant={orderStatusBadgeVariant(order.status)}>{STATUS_LABEL[order.status]}</Badge>
-                        {order.isDelayed ? <span className="flex items-center gap-1 text-[11px] font-bold text-warning"><Clock className="size-3" /> {order.delayMinutes} min de atraso</span> : null}
-                      </div>
-                    </Link>
-                  </li>
+                  <PriorityOrderItem key={order.id} order={order} storeId={storeId} />
                 ))}
               </ul>
             )}
@@ -255,12 +240,62 @@ function StoreHome() {
             <p className="text-xs font-black uppercase tracking-[.12em] text-brand">Fluxo recomendado</p>
             <p className="mt-2 text-sm font-bold text-foreground">Pedidos → Cozinha → Entrega</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              A navegação foi organizada para acompanhar a sequência real do pedido e deixar gestão de cardápio, clientes e comunicação em uma área separada.
+              A navegação acompanha a sequência real do pedido. Cardápio, clientes e comunicação ficam separados para não atrapalhar a operação.
             </p>
           </section>
         </div>
       </div>
     </div>
+  );
+}
+
+function PriorityOrderItem({ order, storeId }: { order: StoreOrderListItem; storeId: string }) {
+  const transition = useOrderTransition(storeId);
+  const primaryAction = order.allowedActions.find((action) => action !== "reject" && action !== "cancel") ?? null;
+  const detailSearch = { open: order.id } as never;
+
+  return (
+    <li className={`rounded-2xl border p-3 transition sm:p-4 ${order.isDelayed ? "border-warning/30 bg-warning-soft/30" : "border-border bg-surface-muted/40"}`}>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Link to="/app/loja/pedidos" search={detailSearch} className="group min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="truncate text-sm font-black text-foreground">#{order.orderNumber} · {order.customerFirstName}</p>
+            {order.status === "aguardando_confirmacao" ? <Badge variant="warning" className="shrink-0">Novo</Badge> : null}
+          </div>
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span>{order.itemCount} item(ns)</span>
+            <span aria-hidden="true">·</span>
+            <span>{order.fulfillment === "entrega" ? "Entrega" : "Retirada"}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-foreground">{brl.format(order.total)}</span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge variant={orderStatusBadgeVariant(order.status)}>{STATUS_LABEL[order.status]}</Badge>
+            {order.isDelayed ? <span className="flex items-center gap-1 text-[11px] font-bold text-warning"><Clock className="size-3" /> {order.delayMinutes} min de atraso</span> : null}
+          </div>
+        </Link>
+
+        <div className="flex shrink-0 items-center gap-2 sm:justify-end">
+          {primaryAction ? (
+            <Button
+              size="sm"
+              className="flex-1 sm:flex-none"
+              disabled={transition.isRunning}
+              loading={transition.isRunning}
+              onClick={() => void transition.run(
+                { action: primaryAction, orderId: order.id, expectedVersion: order.version },
+                ACTION_SUCCESS[primaryAction] ?? `${ACTION_LABEL[primaryAction]} concluído.`,
+              )}
+            >
+              {ACTION_LABEL[primaryAction]}
+            </Button>
+          ) : null}
+          <Button asChild size="sm" variant="outline" className="flex-1 sm:flex-none">
+            <Link to="/app/loja/pedidos" search={detailSearch}>Detalhes</Link>
+          </Button>
+        </div>
+      </div>
+    </li>
   );
 }
 
