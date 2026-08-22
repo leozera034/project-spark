@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Crown, MessageCircle, RefreshCw, Search, TrendingUp, Users, WalletCards } from "lucide-react";
 
-import { useAuth } from "@/auth/useAuth";
 import { WhatsAppAutomationBuilder } from "@/components/store/WhatsAppAutomationBuilder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,7 @@ import {
   useStoreMarketingCampaigns,
   useStoreRevenueSeries,
 } from "@/store/growth/store-growth.queries";
+import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/crescimento")({
   head: () => ({ meta: [{ title: "Clientes | Comandiva" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -41,8 +41,7 @@ function normalizeBrazilWhatsAppPhone(rawPhone: string) {
 }
 
 function CustomersCenter() {
-  const { authContext } = useAuth();
-  const storeId = authContext?.store_ids?.[0] ?? null;
+  const { storeId, selectedStore } = useStoreScope();
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<GrowthSegment | "todos">("todos");
   const [campaignName, setCampaignName] = useState("");
@@ -58,7 +57,7 @@ function CustomersCenter() {
 
   const maxRevenue = useMemo(() => Math.max(1, ...(revenue.data ?? []).map((point) => Number(point.revenue) || 0)), [revenue.data]);
 
-  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Nenhuma loja vinculada a esta conta.</div>;
+  if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Selecione uma loja para consultar os clientes.</div>;
 
   const saveCampaign = () => {
     if (!campaignName.trim() || !campaignMessage.trim()) return;
@@ -72,7 +71,10 @@ function CustomersCenter() {
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Relacionamento</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-brand">Gestão</p>
+            {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
+          </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">Clientes</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Entenda quem compra, quem voltou e quem pode ser reativado.</p>
         </div>
