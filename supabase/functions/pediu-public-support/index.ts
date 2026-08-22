@@ -83,7 +83,7 @@ function json(req: Request, body: unknown, status = 200): Response {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "access-control-allow-origin": allowedOrigin(req),
-      "access-control-allow-headers": "apikey, content-type",
+      "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
       "access-control-allow-methods": "POST, OPTIONS",
       vary: "Origin",
     },
