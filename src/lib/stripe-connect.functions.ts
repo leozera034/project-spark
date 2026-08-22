@@ -14,6 +14,8 @@ export type StripeConnectStatus = {
   details_submitted?: boolean;
   charges_enabled?: boolean;
   payouts_enabled?: boolean;
+  transfers_enabled?: boolean;
+  online_payments_enabled?: boolean;
   country?: string | null;
   business_type?: string | null;
   requirements_currently_due?: string[];
