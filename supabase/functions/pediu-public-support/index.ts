@@ -13,6 +13,19 @@ const errorSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
+const slugSchema = z.string().trim().min(1).max(120).regex(/^[a-z0-9-]+$/i);
+const fulfillmentSchema = z.object({
+  slug: slugSchema,
+});
+const fulfillmentValidateSchema = z.object({
+  slug: slugSchema,
+  fulfillmentType: z.enum(["entrega", "retirada"]),
+  deliveryAreaId: z.string().uuid().nullable().optional(),
+  configurationVersion: z.string().trim().max(128).nullable().optional(),
+  latitude: z.number().finite().min(-90).max(90).nullable().optional(),
+  longitude: z.number().finite().min(-180).max(180).nullable().optional(),
+});
+
 function parseKeyDictionary(raw: string | undefined): Record<string, string> {
   if (!raw) return {};
   try {
@@ -163,6 +176,40 @@ async function listStoreSlugs(req: Request) {
   });
 }
 
+async function storefrontFulfillment(req: Request, payload: Record<string, unknown>) {
+  const parsed = fulfillmentSchema.safeParse(payload.input);
+  if (!parsed.success) return json(req, { ok: false, error: "invalid_input" }, 400);
+  const admin = adminClient();
+  const { data, error } = await admin.rpc("storefront_fulfillment", { _slug: parsed.data.slug } as never);
+  if (error) {
+    console.error("[pediu-public-support] fulfillment", error.code ?? "unknown");
+    return json(req, { ok: false, error: "fulfillment_unavailable" }, 502);
+  }
+  if (data == null) return json(req, { ok: false, error: "store_not_found" }, 404);
+  return json(req, { ok: true, data });
+}
+
+async function storefrontFulfillmentValidate(req: Request, payload: Record<string, unknown>) {
+  const parsed = fulfillmentValidateSchema.safeParse(payload.input);
+  if (!parsed.success) return json(req, { ok: false, error: "invalid_input" }, 400);
+  const input = parsed.data;
+  const admin = adminClient();
+  const { data, error } = await admin.rpc("storefront_validate_fulfillment_v2", {
+    _slug: input.slug,
+    _fulfillment_type: input.fulfillmentType,
+    _delivery_area_id: input.deliveryAreaId ?? null,
+    _configuration_version: input.configurationVersion ?? null,
+    _latitude: input.latitude ?? null,
+    _longitude: input.longitude ?? null,
+  } as never);
+  if (error) {
+    console.error("[pediu-public-support] fulfillment_validate", error.code ?? "unknown");
+    return json(req, { ok: false, error: "fulfillment_validation_unavailable" }, 502);
+  }
+  if (data == null) return json(req, { ok: false, error: "store_not_found" }, 404);
+  return json(req, { ok: true, data });
+}
+
 async function recordClientError(req: Request, payload: Record<string, unknown>) {
   const parsed = errorSchema.safeParse(payload.input);
   if (!parsed.success) return json(req, { ok: false, error: "invalid_input" }, 400);
@@ -207,6 +254,8 @@ Deno.serve(async (req: Request) => {
     const action = typeof payload.action === "string" ? payload.action : "";
     if (action === "plans") return await listPlans(req);
     if (action === "store_slugs") return await listStoreSlugs(req);
+    if (action === "storefront_fulfillment") return await storefrontFulfillment(req, payload);
+    if (action === "storefront_fulfillment_validate") return await storefrontFulfillmentValidate(req, payload);
     if (action === "record_client_error") return await recordClientError(req, payload);
     return json(req, { ok: false, error: "action_not_allowed" }, 403);
   } catch (error) {
