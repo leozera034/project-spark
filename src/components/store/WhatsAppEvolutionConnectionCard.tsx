@@ -69,6 +69,9 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   const addons = useStoreAddons(storeId);
   const actions = useStoreEvolutionWhatsAppActions();
   const statusMutateAsyncRef = useRef(actions.status.mutateAsync);
+  const refreshQrMutateAsyncRef = useRef(actions.refreshQr.mutateAsync);
+  const statusCheckInFlightRef = useRef(false);
+  const reconcileLiveStatusRef = useRef<() => Promise<void>>(async () => undefined);
   const reconciledStoreRef = useRef<string | null>(null);
   const [qr, setQr] = useState<QrState>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -77,6 +80,30 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   const [message, setMessage] = useState("");
 
   statusMutateAsyncRef.current = actions.status.mutateAsync;
+  refreshQrMutateAsyncRef.current = actions.refreshQr.mutateAsync;
+  reconcileLiveStatusRef.current = async () => {
+    if (statusCheckInFlightRef.current) return;
+    statusCheckInFlightRef.current = true;
+    try {
+      const result = await statusMutateAsyncRef.current(storeId);
+      if (result.connected) {
+        setQr(null);
+        setUiError(null);
+        setNotice("WhatsApp conectado e pronto para uso.");
+        return;
+      }
+      if (result.repairRequired) {
+        const repaired = await refreshQrMutateAsyncRef.current(storeId);
+        setQr(repaired);
+        setUiError(null);
+        setNotice("A sessão anterior foi descartada. Escaneie este novo QR Code.");
+      }
+    } catch {
+      // Polling is best-effort. Explicit actions continue surfacing errors to the user.
+    } finally {
+      statusCheckInFlightRef.current = false;
+    }
+  };
 
   const manualAddon = useMemo(
     () => addons.data?.items.find((addon) => addon.code === "whatsapp_manual") ?? null,
@@ -111,14 +138,14 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   useEffect(() => {
     if (!connection.isSuccess || reconciledStoreRef.current === storeId) return;
     reconciledStoreRef.current = storeId;
-    void statusMutateAsyncRef.current(storeId).catch(() => undefined);
+    void reconcileLiveStatusRef.current();
   }, [connection.isSuccess, storeId]);
 
   useEffect(() => {
     if (!pending || connected) return;
     const timer = window.setInterval(() => {
-      void statusMutateAsyncRef.current(storeId).catch(() => undefined);
-    }, 4_000);
+      void reconcileLiveStatusRef.current();
+    }, 3_000);
     return () => window.clearInterval(timer);
   }, [connected, pending, storeId]);
 
@@ -141,7 +168,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         return;
       }
       setQr(result);
-      setNotice(null);
+      setNotice(result.recovered ? "Sessão renovada. Escaneie este novo QR Code." : null);
     } catch (error) {
       setNotice(null);
       setUiError(connectionError(error));
@@ -154,6 +181,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     try {
       const result = await actions.refreshQr.mutateAsync(storeId);
       setQr(result);
+      setNotice(result.recovered ? "Sessão renovada. Escaneie este novo QR Code." : null);
     } catch (error) {
       setUiError(connectionError(error));
     }
@@ -307,8 +335,8 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
                 <Button variant="outline" onClick={() => void refreshQr()} disabled={busy}>
                   <RefreshCw className="size-4" /> Novo QR
                 </Button>
-                <Button variant="ghost" onClick={() => void statusMutateAsyncRef.current(storeId)} disabled={actions.status.isPending}>
-                  {actions.status.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
+                <Button variant="ghost" onClick={() => void reconcileLiveStatusRef.current()} disabled={actions.status.isPending || actions.refreshQr.isPending}>
+                  {actions.status.isPending || actions.refreshQr.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
                   Verificar
                 </Button>
               </div>
