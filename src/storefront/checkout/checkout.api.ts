@@ -83,14 +83,6 @@ export async function postOrder(
     throw new CheckoutError("offline");
   }
 
-  // Resolve the selected public method before creating the order. This prevents
-  // every successful manual order (for example card-at-delivery) from making a
-  // pointless Stripe checkout request that is expected to fail with 409.
-  // The server still validates the payment method again inside storefront_submit_order.
-  const methods = await fetchPaymentMethods(slug, body.fulfillment.type);
-  const selected = methods.find((method) => method.id === body.payment.methodId);
-  if (!selected) throw new CheckoutError("payment_method_unavailable");
-
   return withTimeout(async (signal) => {
     let response: Response;
     try {
@@ -117,26 +109,33 @@ export async function postOrder(
       throw new CheckoutError("failed");
     }
 
-    if (payload.ok && selected.kind === "stripe_online" && typeof window !== "undefined") {
-      const stripe = await createStripeOrderCheckout({
-        slug,
-        orderId: payload.order.id,
-        trackingToken: payload.order.trackingToken,
-      });
-      saveReceipt(slug, {
-        schemaVersion: 1,
-        slug,
-        order: payload.order,
-        fulfillmentType: body.fulfillment.type,
-        paymentLabel: selected.displayName,
-        paymentInstructions:
-          selected.publicInstructions ?? "Pagamento seguro processado pela Stripe.",
-        createdAt: new Date().toISOString(),
-      });
-      rotateIdempotencyKey(slug);
-      clearCart(slug);
-      window.location.assign(stripe.checkoutUrl);
-      await new Promise<never>(() => undefined);
+    if (payload.ok && typeof window !== "undefined") {
+      const methods = await fetchPaymentMethods(slug, body.fulfillment.type).catch(() => []);
+      const selected = methods.find((method) => method.id === body.payment.methodId);
+      const online = selected?.kind === "stripe_online" || selected?.processingMode === "online";
+
+      if (online && selected) {
+        const stripe = await createStripeOrderCheckout({
+          slug,
+          orderId: payload.order.id,
+          trackingToken: payload.order.trackingToken,
+        });
+        saveReceipt(slug, {
+          schemaVersion: 1,
+          slug,
+          order: payload.order,
+          fulfillmentType: body.fulfillment.type,
+          paymentLabel: selected.displayName,
+          paymentInstructions: selected.publicInstructions,
+          paymentKind: selected.kind,
+          paymentProcessingMode: selected.processingMode,
+          createdAt: new Date().toISOString(),
+        });
+        rotateIdempotencyKey(slug);
+        clearCart(slug);
+        window.location.assign(stripe.checkoutUrl);
+        await new Promise<never>(() => undefined);
+      }
     }
 
     return payload;
