@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { CheckCircle2, CircleAlert, Clock, Copy, LoaderCircle, Store } from "lucide-react";
+import { CheckCircle2, CircleAlert, Clock, Copy, LoaderCircle, Share2, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
 import { Button } from "@/components/ui/button";
@@ -112,17 +112,18 @@ function OrderSentPage() {
   return (
     <main className="storefront-global mx-auto min-h-svh max-w-md px-4 py-[max(2.5rem,env(safe-area-inset-top))] pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:px-6">
       <div className="text-center">
-        <span className="mx-auto grid size-16 place-items-center rounded-full bg-success-soft"><CheckCircle2 className="size-10 text-success" /></span>
-        <h1 className="mt-4 text-2xl font-semibold">Pedido enviado</h1>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">A loja recebeu seu pedido e vai confirmar em instantes.</p>
+        <span className="mx-auto grid size-16 place-items-center rounded-full bg-success-soft shadow-sm"><CheckCircle2 className="size-10 text-success" /></span>
+        <p className="mt-4 text-xs font-black uppercase tracking-[.14em] text-success">Recebido pela Comandiva</p>
+        <h1 className="mt-1 font-display text-2xl font-black">Pedido enviado</h1>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">A loja recebeu seu pedido. Agora você pode acompanhar cada atualização por esta tela.</p>
       </div>
 
       {isStripe ? (
-        <div className={`mt-5 rounded-xl border p-4 ${paid ? "border-success/30 bg-success-soft/50" : cancelled ? "border-warning/35 bg-warning-soft/45" : "border-border bg-muted/30"}`}>
+        <div className={`mt-5 rounded-2xl border p-4 ${paid ? "border-success/30 bg-success-soft/50" : cancelled ? "border-warning/35 bg-warning-soft/45" : "border-border bg-muted/30"}`}>
           <div className="flex items-start gap-3">
             {paid ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" /> : processing ? <LoaderCircle className="mt-0.5 size-5 shrink-0 animate-spin text-brand" /> : <CircleAlert className="mt-0.5 size-5 shrink-0" />}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">{paid ? "Pagamento confirmado" : cancelled ? "Pagamento não concluído" : "Confirmando pagamento"}</p>
+              <p className="text-sm font-bold">{paid ? "Pagamento confirmado" : cancelled ? "Pagamento não concluído" : "Confirmando pagamento"}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 {paid ? "A Stripe confirmou o pagamento deste pedido." : cancelled ? "O pedido foi criado, mas o checkout foi fechado antes da confirmação. Você pode tentar novamente." : "Aguardando a confirmação segura da Stripe. Esta tela atualiza automaticamente."}
               </p>
@@ -136,39 +137,71 @@ function OrderSentPage() {
       ) : null}
 
       <div className="panel mt-6 p-4 sm:p-5">
-        <p className="text-sm text-muted-foreground">Número do pedido</p>
-        <p className="text-2xl font-semibold tabular-nums">#{order.orderNumber}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div><p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">Número do pedido</p><p className="mt-0.5 text-3xl font-black tabular-nums">#{order.orderNumber}</p></div>
+          {order.etaMinutes ? <span className="rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand">~{order.etaMinutes} min</span> : null}
+        </div>
         <Separator className="my-4" />
         <dl className="space-y-2 text-sm">
-          <div className="flex justify-between gap-4"><dt className="min-w-0 text-muted-foreground">Modalidade</dt><dd className="shrink-0">{receipt.fulfillmentType === "entrega" ? "Entrega" : "Retirada"}</dd></div>
+          <div className="flex justify-between gap-4"><dt className="min-w-0 text-muted-foreground">Modalidade</dt><dd className="shrink-0 font-semibold">{receipt.fulfillmentType === "entrega" ? "Entrega" : "Retirada"}</dd></div>
           <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Subtotal</dt><dd className="shrink-0 tabular-nums">{brl(order.itemsSubtotal)}</dd></div>
           <div className="flex justify-between gap-4"><dt className="min-w-0 text-muted-foreground">{receipt.fulfillmentType === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</dt><dd className="shrink-0 tabular-nums">{receipt.fulfillmentType === "entrega" ? brl(order.deliveryFee) : "Sem taxa"}</dd></div>
-          <div className="flex justify-between gap-4 border-t pt-2 text-base font-semibold"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(order.total)}</dd></div>
-          <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Pagamento</dt><dd className="min-w-0 break-words text-right">{receipt.paymentLabel}</dd></div>
+          <div className="flex justify-between gap-4 border-t pt-2 text-base font-black"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(order.total)}</dd></div>
+          <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Pagamento</dt><dd className="min-w-0 break-words text-right font-semibold">{receipt.paymentLabel}</dd></div>
         </dl>
         {receipt.paymentInstructions ? <p className="mt-3 break-words rounded-xl border border-border bg-surface-muted p-3.5 text-xs leading-relaxed text-muted-foreground">{receipt.paymentInstructions}</p> : null}
-        {order.etaMinutes ? <p className="mt-4 flex items-start gap-2 text-sm"><Clock className="mt-0.5 size-4 shrink-0" /><span>Previsão informada pela loja: cerca de {order.etaMinutes} minutos.</span></p> : null}
+        {order.etaMinutes ? <p className="mt-4 flex items-start gap-2 text-sm"><Clock className="mt-0.5 size-4 shrink-0 text-brand" /><span>A previsão pode mudar conforme preparo e deslocamento. O acompanhamento mostra o estágio real do pedido.</span></p> : null}
       </div>
 
-      {order.trackingToken ? <TrackingLinkActions slug={slug} token={order.trackingToken} /> : null}
+      {order.trackingToken ? <TrackingLinkActions slug={slug} token={order.trackingToken} orderNumber={order.orderNumber} /> : null}
       <Button asChild variant="outline" className="mt-3 min-h-12 w-full"><Link to="/loja/$slug" params={{ slug }}>Voltar ao cardápio</Link></Button>
     </main>
   );
 }
 
-function TrackingLinkActions({ slug, token }: { slug: string; token: string }) {
+function TrackingLinkActions({ slug, token, orderNumber }: { slug: string; token: string; orderNumber: number }) {
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const path = `/loja/${slug}/acompanhar#${encodeURIComponent(token)}`;
-  async function copyLink() {
-    const absolute = `${window.location.origin}${path}`;
-    try { await navigator.clipboard.writeText(absolute); setCopied(true); window.setTimeout(() => setCopied(false), 2500); }
-    catch { window.prompt("Copie o link de acompanhamento:", absolute); }
+
+  function absoluteLink() {
+    return `${window.location.origin}${path}`;
   }
+
+  async function copyLink() {
+    const absolute = absoluteLink();
+    try {
+      await navigator.clipboard.writeText(absolute);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      window.prompt("Copie o link de acompanhamento:", absolute);
+    }
+  }
+
+  async function shareLink() {
+    const absolute = absoluteLink();
+    if (!navigator.share) {
+      await copyLink();
+      return;
+    }
+    try {
+      await navigator.share({ title: `Pedido #${orderNumber}`, text: `Acompanhe o pedido #${orderNumber}.`, url: absolute });
+      setShared(true);
+      window.setTimeout(() => setShared(false), 2500);
+    } catch {
+      // Cancelar a folha de compartilhamento não é erro para o cliente.
+    }
+  }
+
   return (
-    <div className="mt-6">
-      <Button asChild className="min-h-12 w-full"><a href={path}>Acompanhar pedido</a></Button>
-      <Button variant="outline" className="mt-3 min-h-12 w-full" onClick={copyLink}><Copy className="size-4" />{copied ? "Link copiado" : "Copiar link de acompanhamento"}</Button>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Este link é a chave do seu pedido: quem tiver ele consegue ver a situação, sem conta nem senha. Compartilhe só com quem você quiser acompanhar junto.</p>
+    <div className="mt-6 rounded-2xl border border-brand/15 bg-brand-soft/30 p-3">
+      <Button asChild className="min-h-13 w-full"><a href={path}>Acompanhar pedido agora</a></Button>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Button variant="outline" className="min-h-11 bg-background" onClick={() => void copyLink()}><Copy className="size-4" />{copied ? "Copiado" : "Copiar link"}</Button>
+        <Button variant="outline" className="min-h-11 bg-background" onClick={() => void shareLink()}><Share2 className="size-4" />{shared ? "Compartilhado" : "Compartilhar"}</Button>
+      </div>
+      <p className="mt-3 px-1 text-xs leading-relaxed text-muted-foreground">O link funciona como a chave privada do pedido. Compartilhe somente com quem deve acompanhar junto.</p>
     </div>
   );
 }
