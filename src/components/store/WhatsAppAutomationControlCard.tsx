@@ -67,7 +67,7 @@ export function WhatsAppAutomationControlCard({
         if (rule.is_enabled !== enabled) await saveEnabled(rule, enabled);
       }
     } catch {
-      setError("Não foi possível atualizar todas as automações. Tente novamente.");
+      setError("Não foi possível atualizar todas as mensagens automáticas. Tente novamente.");
     } finally {
       setBulkBusy(false);
     }
@@ -79,29 +79,29 @@ export function WhatsAppAutomationControlCard({
     try {
       await saveEnabled(rule, enabled);
     } catch {
-      setError("Não foi possível alterar esta automação.");
+      setError("Não foi possível alterar este aviso automático.");
     }
   }
 
   if (!automaticEntitled) return null;
 
   return (
-    <Card className="overflow-hidden border-violet-500/15 shadow-sm">
+    <Card className="overflow-hidden border-brand/15 shadow-sm">
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-violet-500/10 text-violet-700 dark:text-violet-300">
+            <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
               <Zap className="size-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-display text-lg font-black tracking-tight">Mensagens automáticas</h2>
-                <Badge variant={anyEnabled ? "default" : "secondary"}>
+                <Badge variant={anyEnabled ? "success" : "secondary"}>
                   {anyEnabled ? "Ligadas" : "Pausadas"}
                 </Badge>
               </div>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                Controle os avisos de pedido sem desconectar o WhatsApp. O envio manual continua disponível mesmo com a automação pausada.
+                Escolha quais atualizações do pedido o cliente recebe. O envio manual continua disponível mesmo com os avisos pausados.
               </p>
             </div>
           </div>
@@ -129,7 +129,7 @@ export function WhatsAppAutomationControlCard({
           </div>
           <div className="col-span-2 rounded-2xl bg-muted/45 px-3 py-3 sm:col-span-1">
             <p className="text-xs font-semibold text-muted-foreground">Cobertura</p>
-            <p className="mt-1 text-sm font-bold">{allEnabled ? "Todos os status" : anyEnabled ? "Parcial" : "Pausada"}</p>
+            <p className="mt-1 text-sm font-bold">{allEnabled ? "Todos os momentos" : anyEnabled ? "Parcial" : "Pausada"}</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ export function WhatsAppAutomationControlCard({
         <details className="group mt-4 rounded-2xl border border-border bg-background">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5">
             <div className="flex min-w-0 items-center gap-2">
-              {anyEnabled ? <BellRing className="size-4 text-violet-600" /> : <PauseCircle className="size-4 text-muted-foreground" />}
+              {anyEnabled ? <BellRing className="size-4 text-brand" /> : <PauseCircle className="size-4 text-muted-foreground" />}
               <span className="truncate text-sm font-bold">Escolher quais avisos enviar</span>
             </div>
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
@@ -151,7 +151,7 @@ export function WhatsAppAutomationControlCard({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{EVENT_LABELS[rule.event_code] ?? rule.name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {rule.is_enabled ? "Mensagem será enviada neste status" : "Aviso pausado"}
+                    {rule.is_enabled ? "Cliente recebe uma mensagem neste momento" : "Aviso pausado"}
                   </p>
                 </div>
                 <Switch
@@ -165,7 +165,7 @@ export function WhatsAppAutomationControlCard({
             {!rules.isLoading && orderRules.length === 0 ? (
               <div className="flex items-start gap-2 rounded-xl p-3 text-sm text-muted-foreground">
                 <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-                As automações serão exibidas aqui assim que forem configuradas.
+                Os avisos automáticos aparecerão aqui assim que a configuração estiver pronta.
               </div>
             ) : null}
           </div>
