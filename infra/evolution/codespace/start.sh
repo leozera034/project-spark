@@ -102,7 +102,7 @@ for attempt in $(seq 1 90); do
       exit 1
     fi
 
-    BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution node -e 'try{console.log(require("baileys/package.json").version)}catch(e){process.exit(1)}' 2>/dev/null || true)"
+    BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution npm ls baileys --depth=0 2>/dev/null | sed -n 's/.*baileys@//p' | head -n 1 | tr -d '[:space:]' || true)"
     if [[ "$BAILEYS_VERSION" != "7.0.0-rc.13" ]]; then
       echo "[Comandiva] ERRO: Baileys esperado rc.13, encontrado '${BAILEYS_VERSION:-desconhecido}'."
       exit 1
