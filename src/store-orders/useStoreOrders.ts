@@ -52,7 +52,6 @@ export interface QueueFilters {
 export function useOrderQueue(storeId: string | null, filters: QueueFilters, enabled: boolean) {
   const [cursor, setCursor] = useState<{ createdAt: string; id: string } | null>(null);
 
-  // Trocar de fila ou filtro sempre recomeça a paginação.
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   useEffect(() => {
     setCursor(null);
@@ -113,15 +112,18 @@ export function useTransitionReasons() {
   });
 }
 
-/** Assina o canal de sinais da loja e recarrega as consultas ao receber evento. */
-export function useOrderRealtime(storeId: string | null) {
+/**
+ * Assina sinais da loja e recarrega consultas autorizadas. `subscriber` evita
+ * colisão entre o shell global e páginas que também exibem estado do realtime.
+ */
+export function useOrderRealtime(storeId: string | null, subscriber = "page") {
   const queryClient = useQueryClient();
   const [live, setLive] = useState(false);
 
   useEffect(() => {
     if (!storeId) return;
     const channel = supabase
-      .channel(`store-orders:${storeId}`)
+      .channel(`store-orders:${storeId}:${subscriber}`)
       .on(
         "postgres_changes",
         {
@@ -140,7 +142,7 @@ export function useOrderRealtime(storeId: string | null) {
       setLive(false);
       void supabase.removeChannel(channel);
     };
-  }, [storeId, queryClient]);
+  }, [storeId, subscriber, queryClient]);
 
   return live;
 }
