@@ -12,14 +12,21 @@
       "type": "node-terminal",
       "request": "launch",
       "name": "Evolution: atualizar e reiniciar QA",
-      "command": "git pull --ff-only && bash infra/evolution/codespace/start.sh",
+      "command": "bash infra/evolution/codespace/restart.sh",
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "node-terminal",
       "request": "launch",
       "name": "Evolution: restaurar 8080 PUBLIC",
-      "command": "git pull --ff-only && bash infra/evolution/codespace/start.sh",
+      "command": "bash infra/evolution/codespace/restart.sh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Evolution: conferir fingerprint",
+      "command": "bash infra/evolution/codespace/show-fingerprint.sh",
       "cwd": "${workspaceFolder}"
     },
     {
