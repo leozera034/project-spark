@@ -1,0 +1,54 @@
+-- Merchant catalog runtime availability contract.
+-- Run with:
+--   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/merchant_catalog_runtime_contract.sql
+
+DO $$
+DECLARE
+  helper_definition text;
+  reserve_definition text;
+BEGIN
+  helper_definition := pg_get_functiondef(
+    'private.product_runtime_available(uuid,uuid,timestamp with time zone)'::regprocedure
+  );
+
+  IF helper_definition NOT ILIKE '%available_weekdays%'
+     OR helper_definition NOT ILIKE '%available_from%'
+     OR helper_definition NOT ILIKE '%available_to%'
+     OR helper_definition NOT ILIKE '%stock_quantity%'
+     OR helper_definition NOT ILIKE '%has_variants%' THEN
+    RAISE EXCEPTION 'Product runtime availability helper is incomplete';
+  END IF;
+
+  IF pg_get_functiondef('public.storefront_catalog(text)'::regprocedure)
+       NOT ILIKE '%private.product_runtime_available%'
+     OR pg_get_functiondef('public.storefront_product(text,uuid)'::regprocedure)
+       NOT ILIKE '%private.product_runtime_available%'
+     OR pg_get_functiondef('public.storefront_price(text,uuid,uuid,numeric,jsonb)'::regprocedure)
+       NOT ILIKE '%private.product_runtime_available%' THEN
+    RAISE EXCEPTION 'Storefront reads/pricing must use the authoritative runtime availability helper';
+  END IF;
+
+  IF pg_get_functiondef('public.storefront_price(text,uuid,uuid,numeric,jsonb)'::regprocedure)
+       NOT ILIKE '%quantity_limit%' THEN
+    RAISE EXCEPTION 'Storefront pricing must enforce product max_quantity';
+  END IF;
+
+  reserve_definition := pg_get_functiondef(
+    'private.reserve_product_inventory_from_order_item()'::regprocedure
+  );
+
+  IF reserve_definition NOT ILIKE '%PRODUCT_RUNTIME_UNAVAILABLE%'
+     OR reserve_definition NOT ILIKE '%PRODUCT_MAX_QUANTITY_EXCEEDED%'
+     OR reserve_definition NOT ILIKE '%reserve_product_inventory%' THEN
+    RAISE EXCEPTION 'Checkout inventory trigger must enforce runtime availability and quantity limits before stock reservation';
+  END IF;
+
+  IF pg_get_functiondef('public.storefront_submit_order(text,jsonb)'::regprocedure)
+       NOT ILIKE '%unavailable_now%'
+     OR pg_get_functiondef('public.storefront_submit_order(text,jsonb)'::regprocedure)
+       NOT ILIKE '%quantity_limit%' THEN
+    RAISE EXCEPTION 'Public checkout must map authoritative product availability errors';
+  END IF;
+END $$;
+
+SELECT 'merchant_catalog_runtime_contract_passed' AS result;
