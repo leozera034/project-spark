@@ -17,7 +17,6 @@ CONFIG_PID_FILE="$RUNTIME_DIR/config-server.pid"
 mkdir -p "$RUNTIME_DIR"
 chmod 700 "$RUNTIME_DIR"
 
-# Migrate the previous runtime key once, so a rebuild does not silently rotate it.
 if [[ ! -f "$ENV_FILE" && -f "$LEGACY_RUNTIME_DIR/runtime.env" ]]; then
   cp "$LEGACY_RUNTIME_DIR/runtime.env" "$ENV_FILE"
   chmod 600 "$ENV_FILE"
@@ -66,9 +65,8 @@ fi
 export EVOLUTION_API_KEY
 export POSTGRES_PASSWORD
 
-if [[ ! $(command -v docker) ]]; then
+if ! command -v docker >/dev/null 2>&1; then
   echo "[Comandiva] ERRO: Docker indisponível neste container."
-  echo "[Comandiva] Use Codespaces: Rebuild Container para aplicar o devcontainer com Docker-in-Docker."
   exit 1
 fi
 
@@ -83,17 +81,17 @@ nohup python3 "$CONFIG_SERVER" "$ENV_FILE" >/dev/null 2>&1 &
 echo $! >"$CONFIG_PID_FILE"
 chmod 600 "$CONFIG_PID_FILE"
 
-echo "[Comandiva] Reiniciando Evolution API QA..."
+echo "[Comandiva] Reiniciando Evolution API QA (Baileys rc13)..."
 docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
-docker compose -f "$COMPOSE_FILE" up -d --force-recreate
+docker compose -f "$COMPOSE_FILE" up -d --build --force-recreate
 
-for attempt in $(seq 1 60); do
+for attempt in $(seq 1 90); do
   if curl --silent --fail --max-time 2 http://127.0.0.1:8080/ >/dev/null 2>&1; then
     VALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H "apikey: $EVOLUTION_API_KEY" http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
     INVALID_STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 3 -H 'apikey: definitely-wrong-key' http://127.0.0.1:8080/instance/connectionState/comandiva_security_probe || true)"
 
     if [[ "$INVALID_STATUS" != "401" ]]; then
-      echo "[Comandiva] ERRO: gateway não rejeitou chave inválida (HTTP $INVALID_STATUS)."
+      echo "[Comandiva] ERRO: gateway não rejeitou credencial inválida (HTTP $INVALID_STATUS)."
       docker compose -f "$COMPOSE_FILE" ps || true
       exit 1
     fi
@@ -104,9 +102,15 @@ for attempt in $(seq 1 60); do
       exit 1
     fi
 
+    BAILEYS_VERSION="$(docker compose -f "$COMPOSE_FILE" exec -T evolution node -e 'try{console.log(require("baileys/package.json").version)}catch(e){process.exit(1)}' 2>/dev/null || true)"
+    if [[ "$BAILEYS_VERSION" != "7.0.0-rc.13" ]]; then
+      echo "[Comandiva] ERRO: Baileys esperado rc.13, encontrado '${BAILEYS_VERSION:-desconhecido}'."
+      exit 1
+    fi
+
     echo "[Comandiva] OK: Evolution ativa."
+    echo "[Comandiva] OK: Baileys $BAILEYS_VERSION."
     echo "[Comandiva] OK: gateway autenticado."
-    echo "[Comandiva] OK: chave inválida -> 401; chave local -> HTTP $VALID_STATUS."
     echo "[Comandiva] URL: $EVOLUTION_PUBLIC_URL"
     echo "[Comandiva] Mantenha 8080 PUBLIC e 8081 PRIVATE."
     exit 0
@@ -116,5 +120,5 @@ done
 
 echo "[Comandiva] ERRO: Evolution não respondeu na porta 8080."
 docker compose -f "$COMPOSE_FILE" ps || true
-docker compose -f "$COMPOSE_FILE" logs --tail=80 gateway evolution || true
+docker compose -f "$COMPOSE_FILE" logs --tail=120 gateway evolution || true
 exit 1
