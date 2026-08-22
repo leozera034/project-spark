@@ -7,6 +7,8 @@ const merchantShellPath = join(root, "src/routes/app/loja.tsx");
 const merchantHomePath = join(merchantRoutesRoot, "index.tsx");
 const legacySmartDeliveryPath = join(merchantRoutesRoot, "smart-delivery.tsx");
 const storeScopePath = join(root, "src/store-scope/StoreScopeProvider.tsx");
+const atendimentoPath = join(merchantRoutesRoot, "configuracoes/atendimento.tsx");
+const manualOpenApiPath = join(root, "src/store-config/manual-open.ts");
 const obsoleteThemePath = join(root, "src/purple-overrides.css");
 const criticalSurfaces = [
   join(root, "src/components/store/AddonPurchaseReadiness.tsx"),
@@ -67,6 +69,9 @@ for (const required of [
   "Pedidos",
   "Cozinha",
   "Entregas",
+  "Avaliações",
+  "Financeiro",
+  "Ajuda",
   "useOrderRealtime",
   "NewOrderAlertControl",
 ]) {
@@ -84,6 +89,22 @@ if (!scopeSource.includes("queryClient.invalidateQueries({ type: \"active\" })")
 }
 if (scopeSource.includes("/{store.slug}")) {
   fail(storeScopePath, "slug técnico não deve aparecer como informação principal na escolha de operação");
+}
+
+for (const relativePath of ["financeiro.tsx", "avaliacoes.tsx", "ajuda.tsx"]) {
+  const path = join(merchantRoutesRoot, relativePath);
+  const source = await readFile(path, "utf8");
+  if (!source.includes("useStoreScope")) fail(path, "central nova deve seguir a loja selecionada no escopo global");
+  if (!source.includes("key={storeId}")) fail(path, "central nova deve remontar estado local quando a loja selecionada mudar");
+}
+
+const atendimentoSource = await readFile(atendimentoPath, "utf8");
+for (const required of ["manualOpen", "setManualStoreOpen", "Loja aberta manualmente", "Loja fechada manualmente"]) {
+  if (!atendimentoSource.includes(required)) fail(atendimentoPath, `controle operacional manual incompleto: ${required}`);
+}
+const manualOpenApiSource = await readFile(manualOpenApiPath, "utf8");
+if (!manualOpenApiSource.includes("set_my_store_manual_open")) {
+  fail(manualOpenApiPath, "cliente do controle manual não chama o RPC autorizado");
 }
 
 const smartDeliverySource = await readFile(legacySmartDeliveryPath, "utf8");
