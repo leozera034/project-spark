@@ -33,6 +33,8 @@ jobs:
         run: npm run test:db-static
       - name: Merchant UX architecture guard
         run: npm run test:merchant-ux
+      - name: User-facing Comandiva brand guard
+        run: npm run test:user-brand
       - name: Logic lint
         run: npm run lint:ci
       - name: Typecheck
