@@ -20,6 +20,7 @@
 - [x] Recompra local segura (`Pedir novamente`) com nova recotação antes do checkout.
 - [x] Favoritos locais por loja, sem login e sem armazenar preço/dados pessoais.
 - [x] `Vistos recentemente` persistido somente no aparelho e filtrado pelo catálogo atual.
+- [x] `Peça também` baseado em co-compra agregada de pedidos válidos, com fallback determinístico para mais vendidos.
 - [x] Otimização de imagens no aparelho antes do upload.
 - [x] RPCs públicos sensíveis de fulfillment movidos para rota Edge autenticada por chave pública conhecida e service-role interno.
 - [x] Índices de cobertura adicionados nos caminhos quentes de catálogo, pedido e entrega.
@@ -38,7 +39,7 @@
 
 - [x] Favoritos locais por loja, sem exigir login.
 - [x] `Vistos recentemente` e descoberta personalizada apenas com dados locais quando não houver conta.
-- [ ] Recomendações `Peça também` baseadas em coocorrência de itens de pedidos pagos/concluídos.
+- [x] Recomendações `Peça também` baseadas em coocorrência de itens de pedidos pagos/concluídos.
 - [ ] Promoções e cupons server-side: valor fixo, percentual, frete grátis, pedido mínimo, janela de horário e limite de uso.
 - [ ] Histórico de pedidos do cliente com mecanismo seguro de vínculo/recuperação.
 - [ ] Recompra de pedido histórico com tratamento de item removido, preço alterado e opção indisponível.
@@ -89,7 +90,7 @@
 
 ## P3 — Recursos avançados
 
-- [ ] Recomendação de produtos baseada em co-compra com fallback determinístico.
+- [x] Recomendação de produtos baseada em co-compra com fallback determinístico.
 - [ ] ETA dinâmico combinando preparo histórico + fila + deslocamento.
 - [ ] Sugestão automática de tempo de preparo para o lojista.
 - [ ] Detecção de anomalias de pedidos/pagamentos para operação da plataforma.
@@ -113,8 +114,7 @@ Uma feature só pode ser marcada como concluída quando tiver:
 ## Próxima sequência recomendada
 
 1. Fechar P0 de produção e WhatsApp E2E.
-2. Recomendações `Peça também`.
-3. Cupons/promoções server-authoritative.
-4. Avaliações e histórico do cliente.
-5. Funil e inteligência operacional do lojista.
-6. ETA dinâmico e otimizações de entrega.
+2. Cupons/promoções server-authoritative.
+3. Avaliações e histórico do cliente.
+4. Funil e inteligência operacional do lojista.
+5. ETA dinâmico e otimizações de entrega.
