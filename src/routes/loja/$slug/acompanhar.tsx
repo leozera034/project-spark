@@ -1,11 +1,12 @@
 /**
- * Fase 16 — Bloco A: acompanhamento público sem segredo na URL.
+ * Acompanhamento público sem segredo persistente na URL.
  */
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { Check, Clock, MapPin, RefreshCw, Store } from "lucide-react";
+import { Check, Clock, MapPin, MessageCircle, Phone, RefreshCw, Store } from "lucide-react";
 
 import { brl } from "@/components/storefront/format";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ErrorState } from "@/components/feedback/ErrorState";
@@ -58,6 +59,21 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
 }
 
+function digitsOnly(value: string | null | undefined) {
+  return (value ?? "").replace(/\D+/g, "");
+}
+
+function whatsappHref(value: string) {
+  const digits = digitsOnly(value);
+  if (!digits) return null;
+  return `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`;
+}
+
+function phoneHref(value: string) {
+  const digits = digitsOnly(value);
+  return digits ? `tel:${digits}` : null;
+}
+
 function TrackingPage() {
   const { slug } = useParams({ from: "/loja/$slug/acompanhar" });
   const { token, ready } = useTokenFromFragment(slug);
@@ -102,6 +118,8 @@ function TrackingPage() {
   reached.add(data.status.publicCode);
   const currentIndex = steps.indexOf(data.status.publicCode);
   const route = data.fulfillment.route ?? null;
+  const whatsapp = data.store.publicWhatsapp ? whatsappHref(data.store.publicWhatsapp) : null;
+  const phone = data.store.publicPhone ? phoneHref(data.store.publicPhone) : null;
 
   return (
     <main className="storefront-global mx-auto min-h-svh max-w-md px-4 py-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:max-w-xl sm:px-6">
@@ -111,48 +129,93 @@ function TrackingPage() {
         ) : (
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-muted"><Store className="size-6 text-muted-foreground" /></span>
         )}
-        <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">Pedido na loja</p><p className="truncate font-semibold">{data.store.name}</p></div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">Acompanhamento</p>
+          <p className="truncate font-bold">{data.store.name}</p>
+        </div>
         <ThemeToggle className="shrink-0" />
       </header>
 
-      <section className="panel mt-6 p-4 sm:p-5">
-        <p className="text-sm text-muted-foreground">Número do pedido</p>
-        <p className="text-2xl font-semibold tabular-nums">#{data.orderNumber}</p>
-        <h1 className="mt-3 text-xl font-semibold">{copy.title}</h1>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{copy.description}</p>
-
-        {data.status.publicMessage ? <p className="mt-3 break-words rounded-xl border border-border bg-surface-muted p-3.5 text-sm leading-relaxed">Recado da loja: {data.status.publicMessage}</p> : null}
-
-        {data.fulfillment.estimatedMinutes && !data.status.isFinal ? (
-          <p className="mt-3 flex items-start gap-2 text-sm"><Clock className="mt-0.5 size-4 shrink-0" /><span>Previsão geral informada pela loja: cerca de {data.fulfillment.estimatedMinutes} minutos.</span></p>
-        ) : null}
-
-        {data.fulfillment.type === "entrega" && route && !data.status.isFinal ? (
-          <div className="mt-3 rounded-xl border border-border bg-surface-muted p-3.5">
-            <p className="flex items-center gap-2 text-sm font-medium"><MapPin className="size-4" /> Deslocamento: {formatDistance(route.distanceMeters)} · ~{route.estimatedMinutes} min</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {route.isApproximate
-                ? "Estimativa aproximada de distância e tempo de trajeto. Não é previsão de chegada do pedido."
-                : "Rota calculada para o trajeto. O tempo acima considera apenas o deslocamento, não preparo ou espera."}
-            </p>
+      <section className="panel mt-6 overflow-hidden p-0">
+        <div className="border-b border-border bg-brand-soft/35 p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">Pedido</p>
+              <p className="mt-0.5 text-2xl font-black tabular-nums">#{data.orderNumber}</p>
+            </div>
+            <Badge variant={data.status.isFinal ? "success" : "brandSoft"}>
+              {data.status.isFinal ? "Finalizado" : loading ? "Atualizando…" : "Atualiza automaticamente"}
+            </Badge>
           </div>
-        ) : null}
+          <h1 className="mt-4 font-display text-xl font-black tracking-[-.02em]">{copy.title}</h1>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{copy.description}</p>
+        </div>
 
-        {!data.status.isFinal ? (
-          <ol className="mt-5 space-y-3">
-            {steps.map((step, index) => (
-              <TimelineStep key={step} code={step} done={reached.has(step) || (currentIndex >= 0 && index < currentIndex)} current={step === data.status.publicCode} occurredAt={data.timeline.find((entry) => entry.code === step)?.occurredAt ?? null} />
-            ))}
-          </ol>
-        ) : null}
+        <div className="p-4 sm:p-5">
+          {data.status.publicMessage ? (
+            <p className="mb-4 break-words rounded-xl border border-border bg-surface-muted p-3.5 text-sm leading-relaxed">
+              <strong className="block text-xs uppercase tracking-[.1em] text-muted-foreground">Recado da loja</strong>
+              <span className="mt-1 block">{data.status.publicMessage}</span>
+            </p>
+          ) : null}
+
+          {data.fulfillment.estimatedMinutes && !data.status.isFinal ? (
+            <p className="mb-4 flex items-start gap-2 rounded-xl bg-muted/35 p-3.5 text-sm">
+              <Clock className="mt-0.5 size-4 shrink-0 text-brand" />
+              <span>Previsão geral informada pela loja: cerca de <strong>{data.fulfillment.estimatedMinutes} minutos</strong>.</span>
+            </p>
+          ) : null}
+
+          {data.fulfillment.type === "entrega" && route && !data.status.isFinal ? (
+            <div className="mb-4 rounded-xl border border-border bg-surface-muted p-3.5">
+              <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="size-4 text-brand" /> Deslocamento: {formatDistance(route.distanceMeters)} · ~{route.estimatedMinutes} min</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {route.isApproximate
+                  ? "Estimativa aproximada do trajeto. O tempo não inclui preparo ou espera."
+                  : "Rota calculada para o trajeto. O tempo considera deslocamento, não preparo ou espera."}
+              </p>
+            </div>
+          ) : null}
+
+          {!data.status.isFinal ? (
+            <ol className="space-y-0" aria-label="Etapas do pedido">
+              {steps.map((step, index) => (
+                <TimelineStep
+                  key={step}
+                  code={step}
+                  done={reached.has(step) || (currentIndex >= 0 && index < currentIndex)}
+                  current={step === data.status.publicCode}
+                  occurredAt={data.timeline.find((entry) => entry.code === step)?.occurredAt ?? null}
+                  last={index === steps.length - 1}
+                />
+              ))}
+            </ol>
+          ) : (
+            <div className="rounded-xl border border-success/20 bg-success-soft/55 p-4 text-sm text-success">
+              <p className="font-bold">Pedido concluído</p>
+              <p className="mt-1 opacity-80">Obrigado por pedir com {data.store.name}.</p>
+            </div>
+          )}
+        </div>
       </section>
 
       <OrderSummary data={data} />
 
-      {data.store.publicWhatsapp || data.store.publicPhone ? <p className="mt-4 break-words text-xs text-muted-foreground">Precisa falar com a loja? {data.store.publicWhatsapp ?? data.store.publicPhone}</p> : null}
+      {whatsapp || phone ? (
+        <section className="panel mt-4 p-4 sm:p-5">
+          <h2 className="text-sm font-black">Precisa falar com a loja?</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Use os contatos publicados por {data.store.name}. Evite compartilhar o link do pedido em canais públicos.</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {whatsapp ? <Button asChild className="min-h-12"><a href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle className="size-4" /> WhatsApp</a></Button> : null}
+            {phone ? <Button asChild variant="outline" className="min-h-12"><a href={phone}><Phone className="size-4" /> Ligar para a loja</a></Button> : null}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-1 gap-2 min-[390px]:grid-cols-2">
-        <Button variant="outline" className="min-h-12" onClick={refresh}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Atualizar</Button>
+        <Button variant="outline" className="min-h-12" onClick={refresh} disabled={loading}>
+          <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> {loading ? "Atualizando" : "Atualizar agora"}
+        </Button>
         <Button asChild className="min-h-12"><Link to="/loja/$slug" params={{ slug: data.store.slug }}>Ir ao cardápio</Link></Button>
       </div>
 
@@ -161,13 +224,16 @@ function TrackingPage() {
   );
 }
 
-function TimelineStep({ code, done, current, occurredAt }: { code: PublicOrderStatusCode; done: boolean; current: boolean; occurredAt: string | null }) {
+function TimelineStep({ code, done, current, occurredAt, last }: { code: PublicOrderStatusCode; done: boolean; current: boolean; occurredAt: string | null; last: boolean }) {
   return (
-    <li className="flex items-start gap-3">
-      <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border ${done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"}`}>{done ? <Check className="size-3.5" /> : null}</span>
-      <div className="min-w-0">
-        <p className={`text-sm ${current ? "font-semibold text-brand" : ""}`}>{TRACKING_COPY[code].title}</p>
-        {occurredAt ? <p className="text-xs text-muted-foreground">{new Date(occurredAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</p> : null}
+    <li className="relative flex min-h-14 items-start gap-3 pb-3">
+      {!last ? <span aria-hidden="true" className={`absolute left-[11px] top-6 h-[calc(100%-1rem)] w-px ${done ? "bg-primary/55" : "bg-border"}`} /> : null}
+      <span className={`relative z-10 mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border ${done ? "border-primary bg-primary text-primary-foreground" : current ? "border-brand bg-brand-soft text-brand" : "border-muted-foreground/35 bg-background"}`}>
+        {done ? <Check className="size-3.5" /> : current ? <span className="size-2 rounded-full bg-brand" /> : null}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className={`text-sm ${current ? "font-black text-brand" : done ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{TRACKING_COPY[code].title}</p>
+        {occurredAt ? <p className="mt-0.5 text-xs text-muted-foreground">{new Date(occurredAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</p> : current ? <p className="mt-0.5 text-xs font-medium text-muted-foreground">Etapa atual</p> : null}
       </div>
     </li>
   );
@@ -176,16 +242,16 @@ function TimelineStep({ code, done, current, occurredAt }: { code: PublicOrderSt
 function OrderSummary({ data }: { data: PublicOrderTracking }) {
   return (
     <section className="panel mt-4 p-4 sm:p-5">
-      <h2 className="text-sm font-semibold">Itens do pedido</h2>
+      <h2 className="text-sm font-black">Resumo do pedido</h2>
       <ul className="mt-3 space-y-3">
         {data.items.map((item, index) => (
           <li key={`${item.productName}-${index}`} className="text-sm">
             <div className="flex min-w-0 justify-between gap-3">
-              <span className="min-w-0 break-words">{item.quantity}{item.measurementUnit && item.measurementUnit !== "unidade" ? ` ${item.measurementUnit}` : "×"} {item.productName}{item.variantName ? ` · ${item.variantName}` : ""}</span>
-              <span className="shrink-0 tabular-nums">{brl(item.lineTotal)}</span>
+              <span className="min-w-0 break-words font-semibold">{item.quantity}{item.measurementUnit && item.measurementUnit !== "unidade" ? ` ${item.measurementUnit}` : "×"} {item.productName}{item.variantName ? ` · ${item.variantName}` : ""}</span>
+              <span className="shrink-0 font-semibold tabular-nums">{brl(item.lineTotal)}</span>
             </div>
-            {item.options.length > 0 ? <p className="break-words text-xs text-muted-foreground">{item.options.map((option) => option.optionName).join(", ")}</p> : null}
-            {item.note ? <p className="break-words text-xs text-muted-foreground">{item.note}</p> : null}
+            {item.options.length > 0 ? <p className="mt-0.5 break-words text-xs text-muted-foreground">{item.options.map((option) => option.optionName).join(", ")}</p> : null}
+            {item.note ? <p className="mt-0.5 break-words text-xs italic text-muted-foreground">“{item.note}”</p> : null}
           </li>
         ))}
       </ul>
@@ -193,7 +259,7 @@ function OrderSummary({ data }: { data: PublicOrderTracking }) {
       <dl className="space-y-2 text-sm">
         <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Subtotal</dt><dd className="shrink-0 tabular-nums">{brl(data.totals.subtotal)}</dd></div>
         <div className="flex justify-between gap-4"><dt className="min-w-0 text-muted-foreground">{data.fulfillment.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</dt><dd className="shrink-0 tabular-nums">{data.fulfillment.type === "entrega" ? brl(data.totals.deliveryFee) : "Sem taxa"}</dd></div>
-        <div className="flex justify-between gap-4 border-t pt-2 text-base font-semibold"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(data.totals.total)}</dd></div>
+        <div className="flex justify-between gap-4 border-t pt-2 text-base font-black"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(data.totals.total)}</dd></div>
         {data.payment.displayName ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Pagamento</dt><dd className="min-w-0 break-words text-right">{data.payment.displayName}</dd></div> : null}
       </dl>
       {data.fulfillment.type === "entrega" && data.fulfillment.neighborhoodName ? <p className="mt-3 text-xs text-muted-foreground">Entrega em {data.fulfillment.neighborhoodName}.</p> : null}
