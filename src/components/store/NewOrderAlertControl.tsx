@@ -123,7 +123,7 @@ export function NewOrderAlertControl({ count }: { count: number }) {
       aria-pressed={enabled}
       aria-label={enabled ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
       title={enabled ? "Som de novos pedidos ativado" : "Ativar som de novos pedidos"}
-      className="shrink-0 text-muted-foreground hover:text-foreground"
+      className="hidden shrink-0 text-muted-foreground hover:text-foreground sm:inline-flex"
     >
       {enabled ? <Bell className="size-4" /> : <BellOff className="size-4" />}
     </Button>
