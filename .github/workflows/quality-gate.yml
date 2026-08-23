@@ -103,6 +103,9 @@ jobs:
       - name: Run catalog promotions contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/catalog_promotions_contract.sql
+      - name: Run product category placements contract
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/product_category_placements_contract.sql
       - name: Run overnight store opening contract
         if: env.DATABASE_URL != ''
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/store_overnight_open_contract.sql
