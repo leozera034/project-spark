@@ -4,8 +4,6 @@ import { CalendarDays, CreditCard, FileText, RefreshCw, ShieldCheck } from "luci
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { PlanCatalog, type BillingInterval } from "@/components/billing/PlanCatalog";
-import { StripeConnectStatus } from "@/components/billing/StripeConnectStatus";
-import { WhatsAppAddonStatus } from "@/components/billing/WhatsAppAddonStatus";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,8 +20,6 @@ import {
 } from "@/lib/store-plan-billing.functions";
 import type { StoreBillingAccess, StoreBillingStage } from "@/lib/store-billing.functions";
 import { useStoreBillingAccess } from "@/store/billing/store-billing.queries";
-import { useStripeConnectStatus, useStripeRuntimeReadiness } from "@/store/billing/stripe-connect.queries";
-import { useWhatsAppAddonProvisioning } from "@/store/billing/whatsapp-addon.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 // @ts-ignore -- TanStack route tree is regenerated during build.
@@ -124,9 +120,6 @@ function StorePlanPage() {
   const plans = Route.useLoaderData();
   const { storeId, selectedStore } = useStoreScope();
   const billingQuery = useStoreBillingAccess(storeId);
-  const whatsappQuery = useWhatsAppAddonProvisioning(storeId);
-  const stripeStatusQuery = useStripeConnectStatus(storeId);
-  const stripeReadinessQuery = useStripeRuntimeReadiness();
 
   const getDetail = useServerFn(getMyStorePlanBillingDetail);
   const createCheckout = useServerFn(createStorePlanCheckout);
@@ -164,8 +157,8 @@ function StorePlanPage() {
   useEffect(() => { void loadDetail(); }, [loadDetail]);
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([loadDetail(), billingQuery.refetch(), stripeStatusQuery.refetch(), stripeReadinessQuery.refetch()]);
-  }, [loadDetail, billingQuery, stripeStatusQuery, stripeReadinessQuery]);
+    await Promise.all([loadDetail(), billingQuery.refetch()]);
+  }, [loadDetail, billingQuery]);
 
   const startCheckout = useCallback(async (planCode: "essencial" | "profissional" | "avancado", interval: BillingInterval) => {
     if (!storeId) return;
@@ -288,7 +281,7 @@ function StorePlanPage() {
             {selectedStore ? <Badge variant="outline">{selectedStore.name}</Badge> : null}
           </div>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">{planName(access, plans)}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Veja sua assinatura, próximas cobranças, histórico e opções de plano.</p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Veja sua assinatura da Comandiva, próximas cobranças, histórico e opções de plano.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={stage.variant}>{stage.label}</Badge>
@@ -298,11 +291,11 @@ function StorePlanPage() {
               const result = await createPortal({ data: { storeId } });
               window.location.assign(result.url);
             } catch {
-              setNotice("Não foi possível abrir a gestão de pagamento agora.");
+              setNotice("Não foi possível abrir a gestão da assinatura agora.");
             } finally {
               setActionBusy(null);
             }
-          }}><CreditCard className="size-4" /> Gerenciar pagamento</Button>
+          }}><CreditCard className="size-4" /> Gerenciar assinatura</Button>
         </div>
       </header>
 
@@ -344,16 +337,16 @@ function StorePlanPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><CalendarDays className="size-5 text-brand" /> Último pagamento</CardTitle><CardDescription>Resumo da cobrança mais recente confirmada.</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><CalendarDays className="size-5 text-brand" /> Último pagamento</CardTitle><CardDescription>Resumo da cobrança mais recente da assinatura.</CardDescription></CardHeader>
           <CardContent>
             {subscription?.last_paid ? <div><p className="font-display text-3xl font-black">{formatMoney(subscription.last_paid.amount_cents, subscription.last_paid.currency)}</p><p className="mt-1 text-sm text-muted-foreground">{formatDate(subscription.last_paid.paid_at) ?? "Data não disponível"}</p></div> : <p className="text-sm text-muted-foreground">Nenhum pagamento confirmado ainda.</p>}
-            {subscription?.last_payment_failure_at ? <p className="mt-4 rounded-xl border border-warning/25 bg-warning-soft p-3 text-sm">Houve uma falha recente de cobrança. Use “Gerenciar pagamento” para atualizar a forma de pagamento.</p> : null}
+            {subscription?.last_payment_failure_at ? <p className="mt-4 rounded-xl border border-warning/25 bg-warning-soft p-3 text-sm">Houve uma falha recente de cobrança. Use “Gerenciar assinatura” para atualizar a forma de pagamento.</p> : null}
           </CardContent>
         </Card>
       </section>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="size-5 text-brand" /> Histórico de cobranças</CardTitle><CardDescription>Valores e situação das cobranças já registradas.</CardDescription></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="size-5 text-brand" /> Histórico de cobranças</CardTitle><CardDescription>Mensalidades e cobranças da assinatura da Comandiva.</CardDescription></CardHeader>
         <CardContent className="space-y-2">
           {detail?.invoices?.length ? detail.invoices.map((invoice) => (
             <div key={invoice.id} className="flex flex-col gap-2 rounded-xl border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -368,16 +361,6 @@ function StorePlanPage() {
         <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-black uppercase tracking-[.18em] text-brand">Alterar plano</p><h2 id="compare-plans-title" className="mt-2 font-display text-3xl font-black tracking-[-.04em]">Planos Comandiva</h2><p className="mt-2 text-sm text-muted-foreground">Upgrades são liberados após a confirmação do pagamento. Downgrades entram no fim do período atual.</p></div>
         <PlanCatalog plans={plans} context="panel" currentPlanCode={access.plan_code} busyPlanCode={busyPlan} onSelectPlan={(code, interval) => void selectPlan(code, interval)} className="mt-7" />
       </section>
-
-      <details className="rounded-2xl border border-border bg-card">
-        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">Recebimentos online da loja</summary>
-        <div className="border-t border-border p-4 sm:p-5"><StripeConnectStatus storeId={storeId} status={stripeStatusQuery.data} readiness={stripeReadinessQuery.data} loading={stripeStatusQuery.isLoading || stripeReadinessQuery.isLoading} onRefresh={async () => { await Promise.all([stripeStatusQuery.refetch(), stripeReadinessQuery.refetch()]); }} /></div>
-      </details>
-
-      <details className="rounded-2xl border border-border bg-card">
-        <summary className="cursor-pointer list-none px-5 py-4 font-semibold">WhatsApp automático</summary>
-        <div className="border-t border-border p-4 sm:p-5"><WhatsAppAddonStatus data={whatsappQuery.data} loading={whatsappQuery.isLoading} /></div>
-      </details>
 
       {detailLoading ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><RefreshCw className="size-3 animate-spin" /> Atualizando dados da conta…</p> : null}
     </div>
