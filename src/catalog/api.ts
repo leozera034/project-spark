@@ -4,6 +4,7 @@ import { toFriendlyMessage as baseFriendlyMessage } from "@/store-config/errors"
 import { optimizeCatalogImage } from "./image-optimization";
 import type {
   CatalogCategory,
+  CatalogMenuIntelligence,
   CatalogOverview,
   CatalogProduct,
   CatalogProductPage,
@@ -18,6 +19,8 @@ const CATALOG_MESSAGES: Record<string, string> = {
   CATEGORY_ARCHIVED: "Esta categoria está arquivada e não recebe produtos.",
   PRODUCT_ARCHIVED: "Este produto está arquivado. Restaure antes de alterar.",
   INVALID_PRICE: "Informe um preço válido.",
+  INVALID_UNIT_COST: "Informe um custo válido, com no máximo duas casas decimais.",
+  INVALID_PERIOD: "Escolha um período entre 7 e 365 dias.",
   INVALID_DESCRIPTION: "A descrição contém conteúdo não permitido.",
   INVALID_FILTER: "Não foi possível aplicar este filtro.",
   INVALID_ORDER: "Não foi possível reordenar a lista.",
@@ -81,6 +84,15 @@ const rpc = supabase.rpc.bind(supabase) as any;
 
 export async function fetchCatalogOverview(storeId: string | null): Promise<CatalogOverview> {
   return unwrap<CatalogOverview>(await rpc("get_my_catalog_overview", { _store_id: storeId }));
+}
+
+export async function fetchCatalogMenuIntelligence(
+  storeId: string | null,
+  days = 30,
+): Promise<CatalogMenuIntelligence> {
+  return unwrap<CatalogMenuIntelligence>(
+    await rpc("get_catalog_menu_intelligence", { _store_id: storeId, _days: days }),
+  );
 }
 
 /* ---------------- Categorias ---------------- */
@@ -261,6 +273,22 @@ export async function updateProduct(params: {
       _description: params.description,
       _base_price: params.basePrice,
       _allows_notes: params.allowsNotes,
+      _expected_updated_at: params.expectedUpdatedAt,
+    }),
+  );
+}
+
+export async function updateProductCost(params: {
+  storeId: string;
+  id: string;
+  unitCost: number | null;
+  expectedUpdatedAt: string;
+}): Promise<CatalogProduct> {
+  return unwrap<CatalogProduct>(
+    await rpc("update_catalog_product_cost", {
+      _store_id: params.storeId,
+      _id: params.id,
+      _unit_cost: params.unitCost,
       _expected_updated_at: params.expectedUpdatedAt,
     }),
   );
