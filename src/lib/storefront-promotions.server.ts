@@ -29,14 +29,18 @@ export type PromotionalPriceResult = {
   validation_errors?: string[];
 };
 
-type PromotionPreview = { product_id: string; promotion: PublicPromotion };
+type CatalogEnrichment = {
+  product_id: string;
+  category_ids?: string[];
+  promotion?: PublicPromotion | null;
+};
 
 type RpcResult = { data: unknown; error: { message: string } | null };
 
 async function callPromotionRpc(name: string, args: Record<string, unknown>): Promise<RpcResult> {
   const db = await admin();
-  // As RPCs promocionais já estão versionadas por migração antes do arquivo
-  // gerado de tipos. O cast fica exclusivamente nesta borda server-only.
+  // As RPCs de catálogo/promocionais já estão versionadas por migração antes do
+  // arquivo gerado de tipos. O cast fica exclusivamente nesta borda server-only.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rpc = db.rpc.bind(db) as any;
   return rpc(name, args) as Promise<RpcResult>;
@@ -46,25 +50,32 @@ export async function decorateCatalogWithPromotions(
   rawSlug: string,
   catalog: PublicCatalog,
 ): Promise<PublicCatalog> {
-  const { data, error } = await callPromotionRpc("storefront_active_promotions", { _slug: rawSlug });
+  const { data, error } = await callPromotionRpc("storefront_catalog_enrichment", { _slug: rawSlug });
   if (error || !data) {
-    if (error) console.error("[storefront] promotions preview failed", error.message);
+    if (error) console.error("[storefront] catalog enrichment failed", error.message);
     return catalog;
   }
 
   const payload = data as Record<string, unknown>;
-  const previews = ((payload.products ?? []) as PromotionPreview[]).filter(
-    (entry) => entry?.product_id && entry?.promotion,
+  const enrichments = ((payload.products ?? []) as CatalogEnrichment[]).filter(
+    (entry) => Boolean(entry?.product_id),
   );
-  if (previews.length === 0) return catalog;
+  if (enrichments.length === 0) return catalog;
 
-  const byProduct = new Map(previews.map((entry) => [entry.product_id, entry.promotion] as const));
+  const byProduct = new Map(enrichments.map((entry) => [entry.product_id, entry] as const));
 
   return {
     ...catalog,
     products: catalog.products.map((product) => {
-      const promotion = byProduct.get(product.id);
-      if (!promotion) return product;
+      const enrichment = byProduct.get(product.id);
+      const categoryIds = Array.isArray(enrichment?.category_ids) && enrichment!.category_ids!.length > 0
+        ? Array.from(new Set(enrichment!.category_ids!.map(String)))
+        : [product.category_id];
+      const promotion = enrichment?.promotion ?? null;
+
+      if (!promotion) {
+        return { ...product, category_ids: categoryIds };
+      }
 
       const discount = Math.max(0, Number(promotion.discount_total ?? 0));
       const currentReference = product.has_variants && product.from_price !== null
@@ -72,10 +83,11 @@ export async function decorateCatalogWithPromotions(
         : Number(product.base_price);
       const promotionalReference = Math.max(0, currentReference - discount);
 
-      // O card recebe um preview de merchandising, mas o cálculo final continua
-      // exclusivamente no servidor via storefront_price_with_promotions.
+      // O card recebe preview de merchandising + placements, mas o cálculo final
+      // continua exclusivamente no servidor via storefront_price_with_promotions.
       return {
         ...product,
+        category_ids: categoryIds,
         original_base_price: Number(product.base_price),
         original_from_price: product.from_price === null ? null : Number(product.from_price),
         promotion_id: promotion.id,
