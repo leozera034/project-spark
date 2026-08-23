@@ -32,6 +32,7 @@ export type PromotionalPriceResult = {
 type CatalogEnrichment = {
   product_id: string;
   category_ids?: string[];
+  search_aliases?: string[];
   promotion?: PublicPromotion | null;
 };
 
@@ -68,13 +69,18 @@ export async function decorateCatalogWithPromotions(
     ...catalog,
     products: catalog.products.map((product) => {
       const enrichment = byProduct.get(product.id);
-      const categoryIds = Array.isArray(enrichment?.category_ids) && enrichment!.category_ids!.length > 0
-        ? Array.from(new Set(enrichment!.category_ids!.map(String)))
+      const rawCategoryIds = enrichment?.category_ids;
+      const categoryIds = Array.isArray(rawCategoryIds) && rawCategoryIds.length > 0
+        ? Array.from(new Set(rawCategoryIds.map(String)))
         : [product.category_id];
+      const rawSearchAliases = enrichment?.search_aliases;
+      const searchAliases = Array.isArray(rawSearchAliases)
+        ? Array.from(new Set(rawSearchAliases.map(String).filter(Boolean)))
+        : [];
       const promotion = enrichment?.promotion ?? null;
 
       if (!promotion) {
-        return { ...product, category_ids: categoryIds };
+        return { ...product, category_ids: categoryIds, search_aliases: searchAliases };
       }
 
       const discount = Math.max(0, Number(promotion.discount_total ?? 0));
@@ -83,11 +89,12 @@ export async function decorateCatalogWithPromotions(
         : Number(product.base_price);
       const promotionalReference = Math.max(0, currentReference - discount);
 
-      // O card recebe preview de merchandising + placements, mas o cálculo final
-      // continua exclusivamente no servidor via storefront_price_with_promotions.
+      // O card recebe preview de merchandising, placements e termos de busca,
+      // mas o cálculo financeiro final continua exclusivamente no servidor.
       return {
         ...product,
         category_ids: categoryIds,
+        search_aliases: searchAliases,
         original_base_price: Number(product.base_price),
         original_from_price: product.from_price === null ? null : Number(product.from_price),
         promotion_id: promotion.id,
