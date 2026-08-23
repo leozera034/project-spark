@@ -5,6 +5,7 @@ import { CalendarClock, CircleDollarSign, ImagePlus, Loader2, PackageCheck, Sett
 
 import {
   getProduct,
+  getProductCost,
   removeCatalogImage,
   setProductImage,
   updateProduct,
@@ -19,7 +20,7 @@ import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
 import { ComboSimpleBuilder } from "@/catalog/simple/ComboSimpleBuilder";
 import { PizzaSimpleBuilder } from "@/catalog/simple/PizzaSimpleBuilder";
 import { SimpleOptionsBuilder } from "@/catalog/simple/SimpleOptionsBuilder";
-import { formatPriceBRL, parsePriceInput, type CatalogProduct } from "@/catalog/types";
+import { formatPriceBRL, parsePriceInput, type CatalogProduct, type CatalogProductCost } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/catalog/PageHeader";
@@ -131,23 +132,13 @@ function AvailabilityEditor({
       <Card>
         <CardHeader>
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
-              <CalendarClock className="size-5" />
-            </span>
-            <div className="min-w-0">
-              <CardTitle className="text-base">Dias e horários de venda</CardTitle>
-              <CardDescription>
-                Ideal para almoço, happy hour, pratos de fim de semana ou qualquer item com horário próprio.
-              </CardDescription>
-            </div>
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><CalendarClock className="size-5" /></span>
+            <div className="min-w-0"><CardTitle className="text-base">Dias e horários de venda</CardTitle><CardDescription>Ideal para almoço, happy hour, pratos de fim de semana ou qualquer item com horário próprio.</CardDescription></div>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-border p-4">
-            <div className="min-w-0">
-              <Label htmlFor="schedule-product" className="font-semibold">Usar horário específico para este produto</Label>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{scheduleSummary}</p>
-            </div>
+            <div className="min-w-0"><Label htmlFor="schedule-product" className="font-semibold">Usar horário específico para este produto</Label><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{scheduleSummary}</p></div>
             <Switch id="schedule-product" checked={scheduleEnabled} disabled={!canUpdate || busy} onCheckedChange={setScheduleEnabled} />
           </div>
 
@@ -158,44 +149,16 @@ function AvailabilityEditor({
                 <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
                   {DAYS.map((day) => {
                     const selected = days.includes(day.value);
-                    return (
-                      <Button
-                        key={day.value}
-                        type="button"
-                        variant={selected ? "default" : "outline"}
-                        className="min-h-11 px-2"
-                        aria-pressed={selected}
-                        aria-label={day.label}
-                        disabled={!canUpdate || busy}
-                        onClick={() =>
-                          setDays((current) =>
-                            selected
-                              ? current.filter((value) => value !== day.value)
-                              : [...current, day.value].sort((a, b) => a - b),
-                          )
-                        }
-                      >
-                        {day.short}
-                      </Button>
-                    );
+                    return <Button key={day.value} type="button" variant={selected ? "default" : "outline"} className="min-h-11 px-2" aria-pressed={selected} aria-label={day.label} disabled={!canUpdate || busy} onClick={() => setDays((current) => selected ? current.filter((value) => value !== day.value) : [...current, day.value].sort((a, b) => a - b))}>{day.short}</Button>;
                   })}
                 </div>
                 {days.length === 0 ? <p className="mt-2 text-xs font-medium text-destructive">Selecione pelo menos um dia.</p> : null}
               </div>
-
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="available-from">Começa a vender</Label>
-                  <Input id="available-from" type="time" value={from} disabled={!canUpdate || busy} onChange={(event) => setFrom(event.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="available-to">Para de vender</Label>
-                  <Input id="available-to" type="time" value={to} disabled={!canUpdate || busy} onChange={(event) => setTo(event.target.value)} />
-                </div>
+                <div className="space-y-1.5"><Label htmlFor="available-from">Começa a vender</Label><Input id="available-from" type="time" value={from} disabled={!canUpdate || busy} onChange={(event) => setFrom(event.target.value)} /></div>
+                <div className="space-y-1.5"><Label htmlFor="available-to">Para de vender</Label><Input id="available-to" type="time" value={to} disabled={!canUpdate || busy} onChange={(event) => setTo(event.target.value)} /></div>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Pode deixar os horários vazios para restringir somente os dias. Se o horário final for menor que o inicial, a janela atravessa a meia-noite.
-              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">Pode deixar os horários vazios para restringir somente os dias. Se o horário final for menor que o inicial, a janela atravessa a meia-noite.</p>
             </div>
           ) : null}
         </CardContent>
@@ -204,23 +167,13 @@ function AvailabilityEditor({
       <Card>
         <CardHeader>
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
-              <PackageCheck className="size-5" />
-            </span>
-            <div className="min-w-0">
-              <CardTitle className="text-base">Estoque e limite por pedido</CardTitle>
-              <CardDescription>
-                Evite vender o que acabou e impeça uma única compra de levar toda a disponibilidade.
-              </CardDescription>
-            </div>
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><PackageCheck className="size-5" /></span>
+            <div className="min-w-0"><CardTitle className="text-base">Estoque e limite por pedido</CardTitle><CardDescription>Evite vender o que acabou e impeça uma única compra de levar toda a disponibilidade.</CardDescription></div>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-border p-4">
-            <div className="min-w-0">
-              <Label htmlFor="stock-product" className="font-semibold">Controlar estoque deste produto</Label>
-              <p className="mt-1 text-xs text-muted-foreground">Desative para vender sem uma quantidade de estoque cadastrada.</p>
-            </div>
+            <div className="min-w-0"><Label htmlFor="stock-product" className="font-semibold">Controlar estoque deste produto</Label><p className="mt-1 text-xs text-muted-foreground">Desative para vender sem uma quantidade de estoque cadastrada.</p></div>
             <Switch id="stock-product" checked={stockEnabled} disabled={!canUpdate || busy} onCheckedChange={setStockEnabled} />
           </div>
 
@@ -229,27 +182,15 @@ function AvailabilityEditor({
               <div className="space-y-1.5">
                 <Label htmlFor="stock-quantity">Quantidade em estoque</Label>
                 <Input id="stock-quantity" type="number" min="0" step="0.001" inputMode="decimal" value={stock} disabled={!canUpdate || busy} onChange={(event) => setStock(event.target.value)} />
-                {stockNumber !== null && lowStockNumber !== null && stockNumber <= lowStockNumber ? (
-                  <Badge variant={stockNumber <= 0 ? "destructive" : "secondary"}>{stockNumber <= 0 ? "Sem estoque" : "Estoque baixo"}</Badge>
-                ) : null}
+                {stockNumber !== null && lowStockNumber !== null && stockNumber <= lowStockNumber ? <Badge variant={stockNumber <= 0 ? "destructive" : "secondary"}>{stockNumber <= 0 ? "Sem estoque" : "Estoque baixo"}</Badge> : null}
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="low-stock">Avisar quando chegar em</Label>
-                <Input id="low-stock" type="number" min="0" step="0.001" inputMode="decimal" value={lowStock} disabled={!canUpdate || busy} onChange={(event) => setLowStock(event.target.value)} />
-                <p className="text-xs text-muted-foreground">A lista do cardápio destaca o item quando atingir este valor.</p>
-              </div>
+              <div className="space-y-1.5"><Label htmlFor="low-stock">Avisar quando chegar em</Label><Input id="low-stock" type="number" min="0" step="0.001" inputMode="decimal" value={lowStock} disabled={!canUpdate || busy} onChange={(event) => setLowStock(event.target.value)} /><p className="text-xs text-muted-foreground">A lista do cardápio destaca o item quando atingir este valor.</p></div>
             </div>
           ) : null}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="max-per-order">Máximo por pedido <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-            <Input id="max-per-order" type="number" min="1" step="1" inputMode="numeric" className="max-w-[220px]" value={maxPerOrder} disabled={!canUpdate || busy} onChange={(event) => setMaxPerOrder(event.target.value)} placeholder="Sem limite" />
-            <p className="text-xs text-muted-foreground">Ex.: limite 4 para impedir que um cliente compre mais de 4 unidades deste item no mesmo pedido.</p>
-          </div>
+          <div className="space-y-1.5"><Label htmlFor="max-per-order">Máximo por pedido <span className="font-normal text-muted-foreground">(opcional)</span></Label><Input id="max-per-order" type="number" min="1" step="1" inputMode="numeric" className="max-w-[220px]" value={maxPerOrder} disabled={!canUpdate || busy} onChange={(event) => setMaxPerOrder(event.target.value)} placeholder="Sem limite" /><p className="text-xs text-muted-foreground">Ex.: limite 4 para impedir que um cliente compre mais de 4 unidades deste item no mesmo pedido.</p></div>
 
-          <Button disabled={!canUpdate || busy || invalid} loading={busy} loadingLabel="Salvando disponibilidade" onClick={() => void submit()}>
-            Salvar disponibilidade e estoque
-          </Button>
+          <Button disabled={!canUpdate || busy || invalid} loading={busy} loadingLabel="Salvando disponibilidade" onClick={() => void submit()}>Salvar disponibilidade e estoque</Button>
         </CardContent>
       </Card>
     </div>
@@ -257,13 +198,13 @@ function AvailabilityEditor({
 }
 
 function CostEditor({
-  product,
+  costInfo,
   storeId,
   canUpdate,
   busy,
   save,
 }: {
-  product: CatalogProduct;
+  costInfo: CatalogProductCost;
   storeId: string;
   canUpdate: boolean;
   busy: boolean;
@@ -272,25 +213,18 @@ function CostEditor({
   const [cost, setCost] = useState("");
 
   useEffect(() => {
-    setCost(product.unit_cost === null || product.unit_cost === undefined ? "" : String(product.unit_cost).replace(".", ","));
-  }, [product.id, product.unit_cost]);
+    setCost(costInfo.unit_cost === null ? "" : String(costInfo.unit_cost).replace(".", ","));
+  }, [costInfo.id, costInfo.unit_cost]);
 
   const hasCost = cost.trim().length > 0;
   const parsedCost = hasCost ? parsePriceInput(cost) : null;
   const invalid = hasCost && parsedCost === null;
-  const estimatedMargin = parsedCost === null ? null : product.base_price - parsedCost;
-  const estimatedMarginPercent = estimatedMargin === null || product.base_price <= 0
-    ? null
-    : (estimatedMargin / product.base_price) * 100;
+  const estimatedMargin = parsedCost === null ? null : costInfo.base_price - parsedCost;
+  const estimatedMarginPercent = estimatedMargin === null || costInfo.base_price <= 0 ? null : (estimatedMargin / costInfo.base_price) * 100;
 
   async function submit() {
     if (!canUpdate || invalid) return;
-    await save({
-      storeId,
-      id: product.id,
-      unitCost: parsedCost,
-      expectedUpdatedAt: product.updated_at,
-    });
+    await save({ storeId, id: costInfo.id, unitCost: parsedCost, expectedUpdatedAt: costInfo.updated_at });
   }
 
   return (
@@ -298,58 +232,28 @@ function CostEditor({
       <Alert>
         <CircleDollarSign className="size-4" />
         <AlertTitle>Margem estimada, não lucro contábil</AlertTitle>
-        <AlertDescription>
-          Nesta primeira versão, a Comandiva considera apenas o custo base informado abaixo. Taxas, impostos, embalagem, ingredientes e custo específico de adicionais ainda não entram neste cálculo.
-        </AlertDescription>
+        <AlertDescription>Nesta primeira versão, a Comandiva considera apenas o custo base informado abaixo. Taxas, impostos, embalagem, ingredientes e custo específico de adicionais ainda não entram neste cálculo.</AlertDescription>
       </Alert>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Custo do produto</CardTitle>
-          <CardDescription>Informe quanto custa produzir ou comprar uma unidade comercial deste item.</CardDescription>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Custo do produto</CardTitle><CardDescription>Informe quanto custa produzir ou comprar uma unidade comercial deste item.</CardDescription></CardHeader>
         <CardContent className="space-y-5">
           <div className="max-w-sm space-y-1.5">
             <Label htmlFor="unit-cost">Custo estimado</Label>
-            <Input
-              id="unit-cost"
-              inputMode="decimal"
-              value={cost}
-              disabled={!canUpdate || busy}
-              onChange={(event) => setCost(event.target.value)}
-              placeholder="Ex.: 12,50"
-            />
+            <Input id="unit-cost" inputMode="decimal" value={cost} disabled={!canUpdate || busy} onChange={(event) => setCost(event.target.value)} placeholder="Ex.: 12,50" />
             <p className="text-xs text-muted-foreground">Deixe vazio para remover o custo cadastrado.</p>
             {invalid ? <p className="text-xs font-medium text-destructive">Informe um valor válido.</p> : null}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-border p-4">
-              <p className="text-xs font-semibold text-muted-foreground">Preço base</p>
-              <p className="mt-1 text-xl font-black tabular-nums">{formatPriceBRL(product.base_price)}</p>
-            </div>
-            <div className="rounded-2xl border border-border p-4">
-              <p className="text-xs font-semibold text-muted-foreground">Custo estimado</p>
-              <p className="mt-1 text-xl font-black tabular-nums">{parsedCost === null ? "—" : formatPriceBRL(parsedCost)}</p>
-            </div>
-            <div className="rounded-2xl border border-border p-4">
-              <p className="text-xs font-semibold text-muted-foreground">Margem bruta estimada</p>
-              <p className={`mt-1 text-xl font-black tabular-nums ${estimatedMargin !== null && estimatedMargin < 0 ? "text-destructive" : ""}`}>
-                {estimatedMargin === null ? "—" : formatPriceBRL(estimatedMargin)}
-              </p>
-              {estimatedMarginPercent !== null ? <p className="mt-1 text-xs text-muted-foreground">{estimatedMarginPercent.toFixed(1).replace(".", ",")}% do preço base</p> : null}
-            </div>
+            <div className="rounded-2xl border border-border p-4"><p className="text-xs font-semibold text-muted-foreground">Preço base</p><p className="mt-1 text-xl font-black tabular-nums">{formatPriceBRL(costInfo.base_price)}</p></div>
+            <div className="rounded-2xl border border-border p-4"><p className="text-xs font-semibold text-muted-foreground">Custo estimado</p><p className="mt-1 text-xl font-black tabular-nums">{parsedCost === null ? "—" : formatPriceBRL(parsedCost)}</p></div>
+            <div className="rounded-2xl border border-border p-4"><p className="text-xs font-semibold text-muted-foreground">Margem bruta estimada</p><p className={`mt-1 text-xl font-black tabular-nums ${estimatedMargin !== null && estimatedMargin < 0 ? "text-destructive" : ""}`}>{estimatedMargin === null ? "—" : formatPriceBRL(estimatedMargin)}</p>{estimatedMarginPercent !== null ? <p className="mt-1 text-xs text-muted-foreground">{estimatedMarginPercent.toFixed(1).replace(".", ",")}% do preço base</p> : null}</div>
           </div>
 
-          {product.has_variants ? (
-            <p className="rounded-xl bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
-              Este produto possui variações. A prévia acima usa o preço base; o relatório de vendas usa a receita real registrada nos pedidos, mas ainda aplica este mesmo custo base por quantidade vendida.
-            </p>
-          ) : null}
+          {costInfo.has_variants ? <p className="rounded-xl bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">Este produto possui variações. A prévia acima usa o preço base; o relatório de vendas usa a receita real registrada nos pedidos, mas ainda aplica este mesmo custo base por quantidade vendida.</p> : null}
 
-          <Button disabled={!canUpdate || busy || invalid} loading={busy} loadingLabel="Salvando custo" onClick={() => void submit()}>
-            Salvar custo
-          </Button>
+          <Button disabled={!canUpdate || busy || invalid} loading={busy} loadingLabel="Salvando custo" onClick={() => void submit()}>Salvar custo</Button>
         </CardContent>
       </Card>
     </div>
@@ -364,7 +268,9 @@ function EditarProduto() {
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement | null>(null);
 
+  const canAccessCost = Boolean(overview?.can.update);
   const productQuery = useQuery({ queryKey: ["catalog", "product", storeId, id], queryFn: () => getProduct(storeId!, id), enabled: Boolean(storeId), retry: false });
+  const costQuery = useQuery({ queryKey: ["catalog", "product-cost", storeId, id], queryFn: () => getProductCost(storeId!, id), enabled: Boolean(storeId && canAccessCost), retry: false });
   const product = productQuery.data ?? null;
 
   useEffect(() => { if (product) setValues(initialProductValues(product)); }, [product]);
@@ -378,17 +284,8 @@ function EditarProduto() {
     if (!storeId || !values || !product) return;
     const price = parsePriceInput(values.price);
     if (price === null) return;
-    const updated = await run(() => updateProduct({
-      storeId,
-      id: product.id,
-      categoryId: values.categoryId,
-      name: values.name.trim(),
-      description: values.description.trim(),
-      basePrice: price,
-      allowsNotes: values.allowsNotes,
-      expectedUpdatedAt: product.updated_at,
-    }), "Produto atualizado.");
-    if (updated) void productQuery.refetch();
+    const updated = await run(() => updateProduct({ storeId, id: product.id, categoryId: values.categoryId, name: values.name.trim(), description: values.description.trim(), basePrice: price, allowsNotes: values.allowsNotes, expectedUpdatedAt: product.updated_at }), "Produto atualizado.");
+    if (updated) { void productQuery.refetch(); if (canAccessCost) void costQuery.refetch(); }
   }
 
   async function handleFile(file: File | undefined) {
@@ -413,7 +310,7 @@ function EditarProduto() {
       <Tabs defaultValue="dados">
         <TabsList className="h-auto max-w-full flex-wrap justify-start">
           <TabsTrigger value="dados">Informações</TabsTrigger>
-          <TabsTrigger value="custo">Custo e margem</TabsTrigger>
+          {canAccessCost ? <TabsTrigger value="custo">Custo e margem</TabsTrigger> : null}
           <TabsTrigger value="opcoes">Preços e adicionais</TabsTrigger>
           <TabsTrigger value="disponibilidade">Disponibilidade</TabsTrigger>
         </TabsList>
@@ -428,78 +325,37 @@ function EditarProduto() {
                   <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => { void handleFile(event.target.files?.[0]); event.target.value = ""; }} />
                   <Button variant="outline" disabled={uploading} onClick={() => fileInput.current?.click()}>{uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}Enviar imagem</Button>
                   <p className="text-xs text-muted-foreground">PNG, JPG ou WebP de até 5 MB. Prefira foto clara, centralizada e sem textos pequenos.</p>
-                  {product.image_path ? <Button variant="ghost" size="sm" disabled={isBusy} onClick={() => void run(async () => {
-                    const previous = product.image_path;
-                    const updated = await setProductImage(storeId!, product.id, null);
-                    await removeCatalogImage(previous);
-                    refresh();
-                    void productQuery.refetch();
-                    return updated;
-                  }, "Imagem removida.")}>Remover imagem</Button> : null}
+                  {product.image_path ? <Button variant="ghost" size="sm" disabled={isBusy} onClick={() => void run(async () => { const previous = product.image_path; const updated = await setProductImage(storeId!, product.id, null); await removeCatalogImage(previous); refresh(); void productQuery.refetch(); return updated; }, "Imagem removida.")}>Remover imagem</Button> : null}
                 </div>
               ) : null}
             </CardContent>
           </Card>
 
-          <ProductForm
-            categories={categories.filter((c) => !c.is_archived)}
-            values={values}
-            onChange={setValues}
-            onSubmit={() => void submit()}
-            onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })}
-            submitting={isBusy || !canUpdate}
-            showStatusFields={false}
-            submitLabel="Salvar alterações"
-          />
+          <ProductForm categories={categories.filter((c) => !c.is_archived)} values={values} onChange={setValues} onSubmit={() => void submit()} onCancel={() => void navigate({ to: "/app/loja/cardapio/produtos" })} submitting={isBusy || !canUpdate} showStatusFields={false} submitLabel="Salvar alterações" />
         </TabsContent>
 
-        <TabsContent value="custo" className="mt-4">
-          {storeId ? (
-            <CostEditor
-              product={product}
-              storeId={storeId}
-              canUpdate={canUpdate}
-              busy={isBusy}
-              save={async (input) => {
+        {canAccessCost ? (
+          <TabsContent value="custo" className="mt-4">
+            {costQuery.isLoading ? <Skeleton className="h-64 w-full" /> : costQuery.data && storeId ? (
+              <CostEditor costInfo={costQuery.data} storeId={storeId} canUpdate={canUpdate} busy={isBusy} save={async (input) => {
                 const saved = await run(() => updateProductCost(input), "Custo do produto atualizado.");
-                if (saved) await productQuery.refetch();
+                if (saved) { await Promise.all([costQuery.refetch(), productQuery.refetch()]); }
                 return saved;
-              }}
-            />
-          ) : null}
-        </TabsContent>
+              }} />
+            ) : <Alert variant="destructive"><AlertTitle>Não foi possível carregar o custo</AlertTitle><AlertDescription>Tente novamente. Os demais dados do produto continuam disponíveis.</AlertDescription></Alert>}
+          </TabsContent>
+        ) : null}
 
-        <TabsContent value="opcoes" className="mt-4 space-y-4">
-          <PizzaSimpleBuilder productId={product.id} />
-          <ComboSimpleBuilder productId={product.id} />
-          <SimpleOptionsBuilder productId={product.id} />
-        </TabsContent>
+        <TabsContent value="opcoes" className="mt-4 space-y-4"><PizzaSimpleBuilder productId={product.id} /><ComboSimpleBuilder productId={product.id} /><SimpleOptionsBuilder productId={product.id} /></TabsContent>
 
         <TabsContent value="disponibilidade" className="mt-4">
-          {storeId ? (
-            <AvailabilityEditor
-              product={product}
-              storeId={storeId}
-              canUpdate={canUpdate}
-              busy={isBusy}
-              save={async (input) => {
-                const saved = await run(() => updateProductAvailability(input), "Disponibilidade e estoque atualizados.");
-                if (saved) await productQuery.refetch();
-                return saved;
-              }}
-            />
-          ) : null}
+          {storeId ? <AvailabilityEditor product={product} storeId={storeId} canUpdate={canUpdate} busy={isBusy} save={async (input) => { const saved = await run(() => updateProductAvailability(input), "Disponibilidade e estoque atualizados."); if (saved) await productQuery.refetch(); return saved; }} /> : null}
         </TabsContent>
       </Tabs>
 
       <details className="rounded-2xl border border-dashed border-border bg-muted/20">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 text-sm font-semibold text-muted-foreground">
-          <Settings2 className="size-4" /> Configurações avançadas
-        </summary>
-        <div className="space-y-3 border-t border-border p-4">
-          <Alert><AlertTitle>Use somente quando necessário</AlertTitle><AlertDescription>Para sabores, adicionais, acompanhamentos e combos, prefira a aba “Preços e adicionais”. Esta área atende configurações menos comuns.</AlertDescription></Alert>
-          <ProductBuilder productId={product.id} />
-        </div>
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 text-sm font-semibold text-muted-foreground"><Settings2 className="size-4" /> Configurações avançadas</summary>
+        <div className="space-y-3 border-t border-border p-4"><Alert><AlertTitle>Use somente quando necessário</AlertTitle><AlertDescription>Para sabores, adicionais, acompanhamentos e combos, prefira a aba “Preços e adicionais”. Esta área atende configurações menos comuns.</AlertDescription></Alert><ProductBuilder productId={product.id} /></div>
       </details>
     </div>
   );

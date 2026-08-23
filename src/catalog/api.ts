@@ -3,10 +3,13 @@ import { toFriendlyMessage as baseFriendlyMessage } from "@/store-config/errors"
 
 import { optimizeCatalogImage } from "./image-optimization";
 import type {
+  CatalogBulkAction,
+  CatalogBulkResult,
   CatalogCategory,
   CatalogMenuIntelligence,
   CatalogOverview,
   CatalogProduct,
+  CatalogProductCost,
   CatalogProductPage,
   ProductStatusFilter,
 } from "./types";
@@ -21,6 +24,9 @@ const CATALOG_MESSAGES: Record<string, string> = {
   INVALID_PRICE: "Informe um preço válido.",
   INVALID_UNIT_COST: "Informe um custo válido, com no máximo duas casas decimais.",
   INVALID_PERIOD: "Escolha um período entre 7 e 365 dias.",
+  INVALID_BULK_SELECTION: "Selecione entre 1 e 100 produtos para alterar de uma vez.",
+  INVALID_BULK_ACTION: "Esta ação em lote não é permitida.",
+  INVALID_BULK_VALUE: "A ação em lote está incompleta.",
   INVALID_DESCRIPTION: "A descrição contém conteúdo não permitido.",
   INVALID_FILTER: "Não foi possível aplicar este filtro.",
   INVALID_ORDER: "Não foi possível reordenar a lista.",
@@ -31,7 +37,6 @@ const CATALOG_MESSAGES: Record<string, string> = {
   UPLOAD_INVALID_TYPE: "Use uma foto PNG, JPG ou WebP.",
   UPLOAD_TOO_LARGE: "A foto é grande demais. Use uma imagem de até 20 MB; a Comandiva otimiza antes de enviar.",
   UPLOAD_FAILED: "Não foi possível enviar a foto agora. Tente novamente.",
-  // Fase 10 — motor avançado
   INVALID_SALE_MODE: "Modo de venda inválido.",
   INVALID_MEASUREMENT_UNIT: "Escolha uma unidade de medida válida.",
   INVALID_QUANTITY_RULES: "A quantidade mínima e o incremento precisam ser maiores que zero.",
@@ -228,6 +233,12 @@ export async function getProduct(storeId: string, id: string): Promise<CatalogPr
   );
 }
 
+export async function getProductCost(storeId: string, id: string): Promise<CatalogProductCost> {
+  return unwrap<CatalogProductCost>(
+    await rpc("get_catalog_product_cost", { _store_id: storeId, _id: id }),
+  );
+}
+
 export async function createProduct(params: {
   storeId: string;
   categoryId: string;
@@ -283,13 +294,31 @@ export async function updateProductCost(params: {
   id: string;
   unitCost: number | null;
   expectedUpdatedAt: string;
-}): Promise<CatalogProduct> {
-  return unwrap<CatalogProduct>(
+}): Promise<CatalogProductCost> {
+  return unwrap<CatalogProductCost>(
     await rpc("update_catalog_product_cost", {
       _store_id: params.storeId,
       _id: params.id,
       _unit_cost: params.unitCost,
       _expected_updated_at: params.expectedUpdatedAt,
+    }),
+  );
+}
+
+export async function bulkUpdateProducts(params: {
+  storeId: string;
+  productIds: string[];
+  action: CatalogBulkAction;
+  value?: boolean | null;
+  categoryId?: string | null;
+}): Promise<CatalogBulkResult> {
+  return unwrap<CatalogBulkResult>(
+    await rpc("bulk_update_catalog_products", {
+      _store_id: params.storeId,
+      _product_ids: params.productIds,
+      _action: params.action,
+      _value: params.value ?? null,
+      _category_id: params.categoryId ?? null,
     }),
   );
 }

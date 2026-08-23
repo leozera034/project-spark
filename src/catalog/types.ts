@@ -18,9 +18,6 @@ export interface CatalogProduct {
   description: string | null;
   image_path: string | null;
   base_price: number;
-  /** Custo estimado do produto base. Não inclui custo separado de adicionais/ingredientes na V1. */
-  unit_cost?: number | null;
-  cost_updated_at?: string | null;
   pricing_unit: string;
   minimum_quantity: number;
   quantity_step: number;
@@ -43,6 +40,16 @@ export interface CatalogProduct {
   /** Disponibilidade real agora, já considerando agenda, estoque e variações. */
   runtime_available?: boolean;
   sort_order: number;
+  updated_at: string;
+}
+
+/** Payload financeiro separado do catálogo operacional; acesso restrito a perfis autorizados. */
+export interface CatalogProductCost {
+  id: string;
+  base_price: number;
+  unit_cost: number | null;
+  cost_updated_at: string | null;
+  has_variants: boolean;
   updated_at: string;
 }
 
@@ -104,6 +111,14 @@ export interface CatalogMenuIntelligence {
   cost_scope: "base_product_only";
   summary: CatalogMenuIntelligenceSummary;
   items: CatalogMenuIntelligenceItem[];
+}
+
+export type CatalogBulkAction = "set_sold_out" | "set_active" | "set_featured" | "move_category";
+
+export interface CatalogBulkResult {
+  updated: number;
+  action: CatalogBulkAction;
+  product_ids: string[];
 }
 
 export type ProductStatusFilter =
