@@ -26,9 +26,9 @@ const GROUPS = [
   },
   {
     title: "Pagamentos e conta",
-    description: "Formas de pagamento, recebimentos e assinatura da Comandiva.",
+    description: "Como receber pedidos, acompanhar repasses e administrar a assinatura.",
     items: [
-      { to: "/app/loja/configuracoes/pagamentos", label: "Pagamentos do pedido", description: "Dinheiro, cartão, Pix e disponibilidade", icon: CreditCard },
+      { to: "/app/loja/configuracoes/pagamentos", label: "Pagamentos e recebimentos", description: "Ative pagamento online ou receba por Pix, dinheiro e maquininha", icon: CreditCard },
       { to: "/app/loja/financeiro", label: "Financeiro e repasses", description: "Saldo, taxas, valores a receber e repasses", icon: WalletCards },
       { to: "/app/loja/plano", label: "Conta e plano", description: "Assinatura, cobrança e gestão do plano", icon: UserRoundCog },
     ],
