@@ -67,7 +67,7 @@ function templateOperationError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (message.includes("TEMPLATE_VARIABLES_INVALID")) return "Confira os campos automáticos usados na mensagem.";
   if (message.includes("FORBIDDEN")) return "Sua conta não tem permissão para alterar as mensagens desta loja.";
-  if (message.startsWith("META_TEMPLATE_SUBMISSION_FAILED:")) return "A mensagem não pôde ser enviada para aprovação agora.";
+  if (message.startsWith("META_TEMPLATE_SUBMISSION_FAILED:")) return "A mensagem não pôde ser enviada para análise agora.";
   if (message.startsWith("META_TEMPLATE_SYNC_FAILED:")) return "Não foi possível atualizar o estado das mensagens agora.";
   return "Não foi possível concluir esta operação.";
 }
@@ -189,7 +189,7 @@ function WhatsAppCenter() {
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight">WhatsApp</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Conecte o número da loja, ajuste avisos automáticos e acompanhe as mensagens enviadas.</p>
         </div>
-        <Badge variant={automaticEntitled ? "success" : "outline"}>{automaticEntitled ? "Automático ativo" : "Envio manual"}</Badge>
+        <Badge variant={automaticEntitled ? "success" : "outline"}>{automaticEntitled ? "Automação ativa" : "Automação opcional"}</Badge>
       </header>
 
       <WhatsAppEvolutionConnectionCard storeId={storeId} />
