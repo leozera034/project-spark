@@ -24,6 +24,36 @@ function connectEnabled() { return (Deno.env.get("STRIPE_CONNECT_ENABLED") ?? ""
 function form(data: Record<string, string | number | boolean | null | undefined>) { const p = new URLSearchParams(); for (const [k, v] of Object.entries(data)) if (v !== null && v !== undefined) p.set(k, String(v)); return p; }
 async function stripe(path: string, init: { method?: string; data?: URLSearchParams; idempotencyKey?: string } = {}) { const sk = Deno.env.get("STRIPE_SECRET_KEY")?.trim(); if (!sk) return { ok: false, status: 503, body: { error: { message: "stripe_not_configured" } } as J }; const h = new Headers({ Authorization: `Bearer ${sk}` }); if (init.data) h.set("content-type", "application/x-www-form-urlencoded"); if (init.idempotencyKey) h.set("Idempotency-Key", init.idempotencyKey); const controller = new AbortController(), timer = setTimeout(() => controller.abort(), TIMEOUT_MS); try { const response = await fetch(`${STRIPE_API}${path}`, { method: init.method ?? "GET", headers: h, body: init.data?.toString(), signal: controller.signal }); return { ok: response.ok, status: response.status, body: obj(await response.json().catch(() => ({}))) }; } finally { clearTimeout(timer); } }
 
+function transfersEnabled(account: J) {
+  return str(obj(account.capabilities).transfers) === "active";
+}
+
+function recipientReady(account: J) {
+  return account.details_submitted === true && account.payouts_enabled === true && account.transfers_enabled === true;
+}
+
+async function saveRecipient(storeId: string, account: J, source: string, actorId?: string) {
+  const requirements = obj(account.requirements);
+  const due = Array.isArray(requirements.currently_due) ? requirements.currently_due.map((item) => String(item)) : [];
+  const { data, error } = await admin().rpc("backend_upsert_stripe_connect_recipient", {
+    _store_id: storeId,
+    _stripe_account_id: str(account.id),
+    _country: str(account.country),
+    _business_type: str(account.business_type),
+    _details_submitted: account.details_submitted === true,
+    _charges_enabled: account.charges_enabled === true,
+    _payouts_enabled: account.payouts_enabled === true,
+    _transfers_enabled: transfersEnabled(account),
+    _requirements_currently_due: due,
+    _dashboard_type: "none",
+    _fees_payer: "application",
+    _losses_payer: "application",
+    _metadata: { source, charge_pattern: "separate", ...(actorId ? { created_by: actorId } : {}) },
+  } as never);
+  if (error) throw new Error("stripe_account_mapping_failed");
+  return obj(data);
+}
+
 async function ensureAccount(user: User, storeId: string) {
   const a = admin();
   const existing = await a.rpc("backend_get_stripe_connect_account", { _store_id: storeId } as never);
@@ -37,29 +67,17 @@ async function ensureAccount(user: User, storeId: string) {
     country: "BR",
     email: user.email ?? undefined,
     "controller[stripe_dashboard][type]": "none",
-    "capabilities[card_payments][requested]": true,
     "capabilities[transfers][requested]": true,
     "business_profile[name]": str(obj(store.data).name) ?? "Comandiva Store",
     "metadata[comandiva_store_id]": storeId,
+    "metadata[comandiva_charge_pattern]": "separate",
   });
-  const created = await stripe("/v1/accounts", { method: "POST", data, idempotencyKey: `comandiva-connect-${storeId}` });
+  const created = await stripe("/v1/accounts", { method: "POST", data, idempotencyKey: `comandiva-recipient-${storeId}` });
   if (!created.ok) throw new Error(`stripe_account_create_${created.status}`);
   const accountId = str(created.body.id);
   if (!accountId) throw new Error("stripe_account_invalid");
-  const requirements = obj(created.body.requirements);
-  const saved = await a.rpc("backend_upsert_stripe_connect_account", {
-    _store_id: storeId,
-    _stripe_account_id: accountId,
-    _country: str(created.body.country),
-    _business_type: str(created.body.business_type),
-    _details_submitted: created.body.details_submitted === true,
-    _charges_enabled: created.body.charges_enabled === true,
-    _payouts_enabled: created.body.payouts_enabled === true,
-    _requirements_currently_due: Array.isArray(requirements.currently_due) ? requirements.currently_due : [],
-    _metadata: { source: "stripe_onboarding", created_by: user.id },
-  } as never);
-  if (saved.error) throw new Error("stripe_account_mapping_failed");
-  return { accountId, account: obj(saved.data) };
+  const saved = await saveRecipient(storeId, created.body, "stripe_onboarding", user.id);
+  return { accountId, account: saved };
 }
 
 Deno.serve(async (req: Request) => {
@@ -74,7 +92,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const { accountId, account } = await ensureAccount(user, storeId);
-    if (account.charges_enabled === true && account.payouts_enabled === true) return json(req, { ok: true, alreadyReady: true, accountId });
+    if (recipientReady(account)) return json(req, { ok: true, alreadyReady: true, accountId });
     const link = await stripe("/v1/account_links", {
       method: "POST",
       data: form({
