@@ -48,6 +48,7 @@ import { useStorefrontPreferences } from "@/storefront/preferences/storefront-pr
 const parentRoute = getRouteApi("/loja/$slug");
 type CatalogProduct = PublicCatalog["products"][number];
 type MerchandisedProduct = CatalogProduct & {
+  category_ids?: string[];
   original_base_price?: number;
   original_from_price?: number | null;
   promotion_id?: string;
@@ -74,6 +75,13 @@ function promotionFor(product: CatalogProduct) {
   const merch = product as MerchandisedProduct;
   if (!merch.promotion_name || Number(merch.promotion_discount_total ?? 0) <= 0) return null;
   return merch;
+}
+
+function productAppearsInCategory(product: CatalogProduct, categoryId: string) {
+  const categoryIds = (product as MerchandisedProduct).category_ids;
+  return Array.isArray(categoryIds) && categoryIds.length > 0
+    ? categoryIds.includes(categoryId)
+    : product.category_id === categoryId;
 }
 
 function currentPriceLabel(product: CatalogProduct) {
@@ -234,15 +242,20 @@ function StorefrontPage() {
     return catalog.categories
       .map((category) => ({
         category,
-        items: filtered.filter((p) => p.category_id === category.id),
+        items: filtered.filter((p) => productAppearsInCategory(p, category.id)),
       }))
       .filter((entry) => entry.items.length > 0);
   }, [catalog, term]);
 
-  const searchResultCount = useMemo(
-    () => grouped.reduce((total, entry) => total + entry.items.length, 0),
-    [grouped],
-  );
+  const searchResultCount = useMemo(() => {
+    const needle = foldText(term);
+    if (!needle) return catalog.products.length;
+    return catalog.products.filter(
+      (product) =>
+        foldText(product.name).includes(needle) ||
+        foldText(product.description ?? "").includes(needle),
+    ).length;
+  }, [catalog.products, term]);
 
   const productById = useMemo(
     () => new Map(catalog.products.map((product) => [product.id, product] as const)),
