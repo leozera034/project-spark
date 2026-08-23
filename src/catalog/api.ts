@@ -9,6 +9,7 @@ import type {
   CatalogMenuIntelligence,
   CatalogOverview,
   CatalogProduct,
+  CatalogProductCost,
   CatalogProductPage,
   ProductStatusFilter,
 } from "./types";
@@ -36,7 +37,6 @@ const CATALOG_MESSAGES: Record<string, string> = {
   UPLOAD_INVALID_TYPE: "Use uma foto PNG, JPG ou WebP.",
   UPLOAD_TOO_LARGE: "A foto é grande demais. Use uma imagem de até 20 MB; a Comandiva otimiza antes de enviar.",
   UPLOAD_FAILED: "Não foi possível enviar a foto agora. Tente novamente.",
-  // Fase 10 — motor avançado
   INVALID_SALE_MODE: "Modo de venda inválido.",
   INVALID_MEASUREMENT_UNIT: "Escolha uma unidade de medida válida.",
   INVALID_QUANTITY_RULES: "A quantidade mínima e o incremento precisam ser maiores que zero.",
@@ -233,6 +233,12 @@ export async function getProduct(storeId: string, id: string): Promise<CatalogPr
   );
 }
 
+export async function getProductCost(storeId: string, id: string): Promise<CatalogProductCost> {
+  return unwrap<CatalogProductCost>(
+    await rpc("get_catalog_product_cost", { _store_id: storeId, _id: id }),
+  );
+}
+
 export async function createProduct(params: {
   storeId: string;
   categoryId: string;
@@ -288,8 +294,8 @@ export async function updateProductCost(params: {
   id: string;
   unitCost: number | null;
   expectedUpdatedAt: string;
-}): Promise<CatalogProduct> {
-  return unwrap<CatalogProduct>(
+}): Promise<CatalogProductCost> {
+  return unwrap<CatalogProductCost>(
     await rpc("update_catalog_product_cost", {
       _store_id: params.storeId,
       _id: params.id,
