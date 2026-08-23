@@ -11,6 +11,7 @@ const SECTIONS = [
   { to: "/app/loja/cardapio", label: "Visão geral", exact: true },
   { to: "/app/loja/cardapio/produtos", label: "Produtos", exact: false },
   { to: "/app/loja/cardapio/categorias", label: "Categorias", exact: false },
+  { to: "/app/loja/cardapio/vitrines", label: "Vitrines", exact: false },
   { to: "/app/loja/cardapio/opcoes", label: "Adicionais", exact: false },
   { to: "/app/loja/cardapio/promocoes", label: "Promoções", exact: false },
 ] as const;
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/app/loja/cardapio")({
   head: () => ({
     meta: [
       { title: "Cardápio da loja | Comandiva" },
-      { name: "description", content: "Gerencie produtos, categorias, adicionais, promoções e disponibilidade do cardápio da sua loja." },
+      { name: "description", content: "Gerencie produtos, categorias, vitrines, adicionais, promoções e disponibilidade do cardápio da sua loja." },
       { property: "og:title", content: "Cardápio da loja | Comandiva" },
       { property: "og:description", content: "Administração do cardápio da loja na Comandiva." },
       { name: "robots", content: "noindex" },
@@ -56,7 +57,7 @@ function CardapioLayout() {
         <div>
           <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Gestão</p>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight text-foreground">Cardápio</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Organize o que o cliente vê, mantenha disponibilidade em dia, ajuste preços e programe promoções sem sair desta área.</p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Organize o que o cliente vê, mantenha disponibilidade em dia, distribua produtos em vitrines, ajuste preços e programe promoções sem sair desta área.</p>
         </div>
         <Button asChild><Link to="/app/loja/cardapio/produtos/novo"><Plus className="size-4" /> Novo produto</Link></Button>
       </header>
