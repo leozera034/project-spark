@@ -35,9 +35,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ErrorState } from "@/components/feedback/ErrorState";
+import { DeliveryProofCompletion } from "@/components/courier/DeliveryProofCompletion";
 import { cn } from "@/lib/utils";
 import {
-  useCompleteDelivery,
   useCompleteDeliveryReturn,
   useConfirmArrivalAtStore,
   useConfirmOrderPickup,
@@ -80,7 +80,6 @@ function DeliveryDetail() {
   const arriveAtStore = useConfirmArrivalAtStore();
   const pickupOrder = useConfirmOrderPickup();
   const startDelivery = useStartDelivery();
-  const completeDelivery = useCompleteDelivery();
   const startReturn = useStartDeliveryReturn();
   const completeReturn = useCompleteDeliveryReturn();
   const reportOccurrence = useReportDeliveryOccurrence();
@@ -278,7 +277,7 @@ function DeliveryDetail() {
           {(status === "aceita" || status === "atribuida") && !arrivedAtStore ? <Button className="h-16 w-full text-lg font-black" variant="brand" onClick={() => handleAction(arriveAtStore)} disabled={arriveAtStore.isPending}><MapPin className="mr-2 h-5 w-5" /> CHEGUEI NA LOJA</Button> : null}
           {(status === "aceita" || status === "atribuida") && arrivedAtStore ? <Button className="h-16 w-full bg-success text-lg font-black text-success-foreground hover:bg-success/90" onClick={() => handleAction(pickupOrder)} disabled={pickupOrder.isPending}><Package className="mr-2 h-5 w-5" /> COLETEI O PEDIDO</Button> : null}
           {status === "coletada" ? <Button className="h-16 w-full text-lg font-black" variant="brand" onClick={() => handleAction(startDelivery)} disabled={startDelivery.isPending}><VehicleIcon className="mr-2 h-5 w-5" /> INICIAR ENTREGA</Button> : null}
-          {status === "em_rota" ? <Button className="h-16 w-full bg-success text-lg font-black text-success-foreground hover:bg-success/90" onClick={() => handleAction(completeDelivery)} disabled={completeDelivery.isPending}><CheckCircle2 className="mr-2 h-5 w-5" /> ENTREGA CONCLUÍDA</Button> : null}
+          {status === "em_rota" ? <DeliveryProofCompletion deliveryId={delivery.deliveryId} expectedVersion={delivery.version} onCompleted={() => navigate({ to: "/app/entregador" })} /> : null}
           {status === "retornando_loja" ? <Button className="h-16 w-full bg-warning text-base font-black text-warning-foreground hover:bg-warning/90" onClick={handleCompleteReturn} disabled={completeReturn.isPending}><Store className="mr-2 h-5 w-5" /> CHEGUEI À LOJA E DEVOLVI O PEDIDO</Button> : null}
         </div>
       </footer>
