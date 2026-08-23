@@ -47,6 +47,16 @@ import { useStorefrontPreferences } from "@/storefront/preferences/storefront-pr
 
 const parentRoute = getRouteApi("/loja/$slug");
 type CatalogProduct = PublicCatalog["products"][number];
+type MerchandisedProduct = CatalogProduct & {
+  original_base_price?: number;
+  original_from_price?: number | null;
+  promotion_id?: string;
+  promotion_name?: string | null;
+  promotion_kind?: "percentual" | "valor_fixo";
+  promotion_value?: number;
+  promotion_discount_total?: number;
+  promotion_scope?: "store" | "category" | "product";
+};
 
 export const Route = createFileRoute("/loja/$slug/")({
   component: StorefrontPage,
@@ -58,6 +68,26 @@ function categoryIconForName(name: string) {
   if (folded.includes("mais pedido") || folded.includes("popular")) return Flame;
   if (folded.includes("combo")) return Gift;
   return null;
+}
+
+function promotionFor(product: CatalogProduct) {
+  const merch = product as MerchandisedProduct;
+  if (!merch.promotion_name || Number(merch.promotion_discount_total ?? 0) <= 0) return null;
+  return merch;
+}
+
+function currentPriceLabel(product: CatalogProduct) {
+  return product.from_price !== null && product.has_variants
+    ? `a partir de ${brl(product.from_price)}`
+    : brl(product.base_price);
+}
+
+function originalPriceLabel(product: CatalogProduct, merch: MerchandisedProduct) {
+  if (product.has_variants) {
+    const value = merch.original_from_price;
+    return value === null || value === undefined ? null : `a partir de ${brl(value)}`;
+  }
+  return merch.original_base_price === undefined ? null : brl(merch.original_base_price);
 }
 
 function ProductRail({
@@ -98,6 +128,8 @@ function ProductRail({
       <div className="mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:px-6">
         {products.map((product) => {
           const favorite = isFavorite(product.id);
+          const promotion = promotionFor(product);
+          const originalLabel = promotion ? originalPriceLabel(product, promotion) : null;
           return (
             <div key={product.id} className="relative w-[172px] shrink-0 snap-start sm:w-[190px]">
               <button
@@ -113,16 +145,25 @@ function ProductRail({
                   ) : (
                     <div className="grid size-full place-items-center text-brand"><FallbackIcon className="size-9" strokeWidth={1.7} /></div>
                   )}
-                  {product.is_best_seller ? (
+                  {promotion ? (
+                    <span className="absolute left-2 top-2 inline-flex max-w-[calc(100%-3.5rem)] items-center gap-1 truncate rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-black text-white shadow-sm"><Gift className="size-3 shrink-0" /> {promotion.promotion_name}</span>
+                  ) : product.is_best_seller ? (
                     <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/94 px-2 py-1 text-[10px] font-black text-brand shadow-sm"><Flame className="size-3" /> Mais pedido</span>
                   ) : null}
                   {product.is_sold_out ? <span className="absolute bottom-2 left-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-black text-white">Esgotado</span> : null}
                 </div>
                 <div className="p-3">
                   <p className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug">{product.name}</p>
-                  <p className={`mt-2 text-sm font-black tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
-                    {product.is_sold_out ? "Indisponível" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
-                  </p>
+                  {product.is_sold_out ? (
+                    <p className="mt-2 text-sm font-black text-muted-foreground">Indisponível</p>
+                  ) : promotion ? (
+                    <div className="mt-2">
+                      {originalLabel ? <p className="text-[11px] font-semibold text-muted-foreground line-through tabular-nums">{originalLabel}</p> : null}
+                      <p className="text-sm font-black text-emerald-700 tabular-nums">{currentPriceLabel(product)}</p>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm font-black text-brand tabular-nums">{currentPriceLabel(product)}</p>
+                  )}
                 </div>
               </button>
 
@@ -205,6 +246,13 @@ function StorefrontPage() {
 
   const productById = useMemo(
     () => new Map(catalog.products.map((product) => [product.id, product] as const)),
+    [catalog.products],
+  );
+  const promotionalProducts = useMemo(
+    () => catalog.products
+      .filter((product) => Boolean(promotionFor(product)))
+      .sort((a, b) => Number((b as MerchandisedProduct).promotion_discount_total ?? 0) - Number((a as MerchandisedProduct).promotion_discount_total ?? 0))
+      .slice(0, 8),
     [catalog.products],
   );
   const favoriteProducts = useMemo(
@@ -391,6 +439,20 @@ function StorefrontPage() {
         </div>
       </div>
 
+      {!term && promotionalProducts.length > 0 ? (
+        <ProductRail
+          eyebrow="Preço especial agora"
+          title="Ofertas ativas"
+          description="Descontos válidos agora e confirmados novamente no servidor antes do pedido."
+          icon={Gift}
+          products={promotionalProducts}
+          fallbackIcon={ProductFallbackIcon}
+          onOpen={openProduct}
+          isFavorite={preferences.isFavorite}
+          onToggleFavorite={preferences.toggleFavorite}
+        />
+      ) : null}
+
       {!term && favoriteProducts.length > 0 ? (
         <ProductRail
           eyebrow="Salvos neste aparelho"
@@ -456,6 +518,8 @@ function StorefrontPage() {
               <ul className="mt-4 space-y-3">
                 {items.map((product, productIndex) => {
                   const favorite = preferences.isFavorite(product.id);
+                  const promotion = promotionFor(product);
+                  const originalLabel = promotion ? originalPriceLabel(product, promotion) : null;
                   return (
                     <Reveal as="li" key={product.id} delay={Math.min(productIndex, 6) * 45}>
                       <div className="relative">
@@ -470,16 +534,24 @@ function StorefrontPage() {
                             <div className="flex min-w-0 items-start gap-2">
                               <p className="line-clamp-2 min-w-0 flex-1 text-[15px] font-extrabold leading-snug text-foreground sm:text-base">{product.name}</p>
                               <div className="flex shrink-0 flex-col items-end gap-1">
+                                {promotion ? <span className="inline-flex max-w-32 items-center gap-1 truncate rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700 sm:text-[11px]"><Gift className="size-3 shrink-0" /> {promotion.promotion_name}</span> : null}
                                 {product.is_best_seller ? <span className="inline-flex items-center gap-1 rounded-full bg-highlight-soft px-2.5 py-1 text-[10px] font-black text-highlight-soft-foreground sm:text-[11px]"><Flame className="size-3" /> Mais pedido</span> : null}
                                 {product.is_featured ? <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold text-brand sm:text-[11px]">Destaque</span> : null}
                               </div>
                             </div>
                             {product.description ? <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.description}</p> : null}
-                            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <p className={`text-sm font-extrabold tabular-nums ${product.is_sold_out ? "text-muted-foreground" : "text-brand"}`}>
-                                {product.is_sold_out ? "Esgotado" : product.from_price !== null && product.has_variants ? `a partir de ${brl(product.from_price)}` : brl(product.base_price)}
-                              </p>
-                              {!product.is_sold_out ? <span className="text-[11px] font-semibold text-muted-foreground">{product.has_variants || product.has_options ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
+                            <div className="mt-2 flex flex-wrap items-end gap-x-2 gap-y-1">
+                              {product.is_sold_out ? (
+                                <p className="text-sm font-extrabold text-muted-foreground">Esgotado</p>
+                              ) : promotion ? (
+                                <div>
+                                  {originalLabel ? <p className="text-[11px] font-semibold text-muted-foreground line-through tabular-nums">{originalLabel}</p> : null}
+                                  <p className="text-sm font-extrabold text-emerald-700 tabular-nums">{currentPriceLabel(product)}</p>
+                                </div>
+                              ) : (
+                                <p className="text-sm font-extrabold text-brand tabular-nums">{currentPriceLabel(product)}</p>
+                              )}
+                              {!product.is_sold_out ? <span className="pb-0.5 text-[11px] font-semibold text-muted-foreground">{product.has_variants || product.has_options ? "Escolher opções" : "Adicionar ao pedido"}</span> : null}
                             </div>
                           </div>
 
