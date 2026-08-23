@@ -5,6 +5,8 @@ const root = process.cwd();
 const merchantRoutesRoot = join(root, "src/routes/app/loja");
 const merchantShellPath = join(root, "src/routes/app/loja.tsx");
 const merchantHomePath = join(merchantRoutesRoot, "index.tsx");
+const merchantOrdersPath = join(merchantRoutesRoot, "pedidos.tsx");
+const deliveriesPath = join(merchantRoutesRoot, "entregas.tsx");
 const legacySmartDeliveryPath = join(merchantRoutesRoot, "smart-delivery.tsx");
 const storeScopePath = join(root, "src/store-scope/StoreScopeProvider.tsx");
 const atendimentoPath = join(merchantRoutesRoot, "configuracoes/atendimento.tsx");
@@ -66,21 +68,75 @@ for (const required of [
   "useStoreScope",
   "StoreSwitcher",
   "Navegação principal",
+  "Início",
   "Pedidos",
   "Cozinha",
+  "Cardápio",
   "Entregas",
-  "Avaliações",
-  "Financeiro",
-  "Ajuda",
+  "Clientes",
+  "WhatsApp",
+  "Relatórios",
+  "Recursos",
+  "Configurações",
   "useOrderRealtime",
   "NewOrderAlertControl",
 ]) {
   if (!shellSource.includes(required)) fail(merchantShellPath, `shell global sem marcador obrigatório: ${required}`);
 }
 
+for (const forbidden of [
+  '/app/loja/avaliacoes',
+  '/app/loja/financeiro',
+  '/app/loja/ajuda',
+  '/app/loja/smart-delivery',
+  'label: "Plano',
+]) {
+  if (shellSource.includes(forbidden)) fail(merchantShellPath, `item não deve estar na navegação principal do lojista: ${forbidden}`);
+}
+
+const mobilePrimaryMatches = [...shellSource.matchAll(/mobile:\s*true/g)].length;
+if (mobilePrimaryMatches !== 4) {
+  fail(merchantShellPath, `mobile deve ter exatamente 4 itens primários antes de Mais; encontrado: ${mobilePrimaryMatches}`);
+}
+for (const requiredMobile of [
+  'label: "Início", icon: LayoutGrid, section: "Operação", mobile: true',
+  'label: "Pedidos", icon: ShoppingBag, section: "Operação", mobile: true',
+  'label: "Cozinha", icon: ChefHat, section: "Operação", mobile: true',
+  'label: "Cardápio", icon: UtensilsCrossed, section: "Operação", mobile: true',
+]) {
+  if (!shellSource.includes(requiredMobile)) fail(merchantShellPath, `item mobile obrigatório ausente: ${requiredMobile}`);
+}
+
 const homeSource = await readFile(merchantHomePath, "utf8");
 for (const required of ["Fila de prioridade", "PriorityOrderItem", "useOrderTransition"]) {
   if (!homeSource.includes(required)) fail(merchantHomePath, `central operacional sem marcador obrigatório: ${required}`);
+}
+for (const forbidden of [
+  '/app/loja/avaliacoes',
+  '/app/loja/financeiro',
+  '/app/loja/ajuda',
+  'useStoreFinancialCenter',
+  'useStoreReviewCenter',
+  'useStoreSupportCenter',
+  'Stripe',
+]) {
+  if (homeSource.includes(forbidden)) fail(merchantHomePath, `home operacional contém área ou detalhe fora do escopo auditado: ${forbidden}`);
+}
+
+const ordersSource = await readFile(merchantOrdersPath, "utf8");
+for (const required of ["delayedOnly", "fulfillment", "Filtrar pedidos", "ORDER_QUEUES"]) {
+  if (!ordersSource.includes(required)) fail(merchantOrdersPath, `pedidos sem elemento operacional obrigatório: ${required}`);
+}
+for (const forbidden of ["iFood", "canal", "paymentFilter", "valueFilter", "periodFilter"]) {
+  if (ordersSource.includes(forbidden)) fail(merchantOrdersPath, `filtro não suportado ou inventado encontrado: ${forbidden}`);
+}
+
+const deliveriesSource = await readFile(deliveriesPath, "utf8");
+for (const forbidden of ["useSetStoreSmartDeliveryPause", "smart.jobs", "routesUsage", "pauseReason", "Pausar rotas", "kill switch", "API key"]) {
+  if (deliveriesSource.includes(forbidden)) fail(deliveriesPath, `detalhe técnico/controle interno exposto ao lojista: ${forbidden}`);
+}
+if (!deliveriesSource.includes("Estimativa inteligente de entrega")) {
+  fail(deliveriesPath, "central de Entregas deve expor apenas estado simples da estimativa inteligente");
 }
 
 const scopeSource = await readFile(storeScopePath, "utf8");
@@ -89,13 +145,6 @@ if (!scopeSource.includes("queryClient.invalidateQueries({ type: \"active\" })")
 }
 if (scopeSource.includes("/{store.slug}")) {
   fail(storeScopePath, "slug técnico não deve aparecer como informação principal na escolha de operação");
-}
-
-for (const relativePath of ["financeiro.tsx", "avaliacoes.tsx", "ajuda.tsx"]) {
-  const path = join(merchantRoutesRoot, relativePath);
-  const source = await readFile(path, "utf8");
-  if (!source.includes("useStoreScope")) fail(path, "central nova deve seguir a loja selecionada no escopo global");
-  if (!source.includes("key={storeId}")) fail(path, "central nova deve remontar estado local quando a loja selecionada mudar");
 }
 
 const atendimentoSource = await readFile(atendimentoPath, "utf8");
