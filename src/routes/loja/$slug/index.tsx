@@ -49,6 +49,7 @@ const parentRoute = getRouteApi("/loja/$slug");
 type CatalogProduct = PublicCatalog["products"][number];
 type MerchandisedProduct = CatalogProduct & {
   category_ids?: string[];
+  search_aliases?: string[];
   original_base_price?: number;
   original_from_price?: number | null;
   promotion_id?: string;
@@ -82,6 +83,16 @@ function productAppearsInCategory(product: CatalogProduct, categoryId: string) {
   return Array.isArray(categoryIds) && categoryIds.length > 0
     ? categoryIds.includes(categoryId)
     : product.category_id === categoryId;
+}
+
+function productMatchesSearch(product: CatalogProduct, needle: string) {
+  if (!needle) return true;
+  const merch = product as MerchandisedProduct;
+  return (
+    foldText(product.name).includes(needle) ||
+    foldText(product.description ?? "").includes(needle) ||
+    (merch.search_aliases ?? []).some((alias) => foldText(alias).includes(needle))
+  );
 }
 
 function currentPriceLabel(product: CatalogProduct) {
@@ -232,29 +243,22 @@ function StorefrontPage() {
   const grouped = useMemo(() => {
     const needle = foldText(term);
     const filtered = needle
-      ? catalog.products.filter(
-          (p) =>
-            foldText(p.name).includes(needle) ||
-            foldText(p.description ?? "").includes(needle),
-        )
+      ? catalog.products.filter((product) => productMatchesSearch(product, needle))
       : catalog.products;
 
     return catalog.categories
       .map((category) => ({
         category,
-        items: filtered.filter((p) => productAppearsInCategory(p, category.id)),
+        items: filtered.filter((product) => productAppearsInCategory(product, category.id)),
       }))
       .filter((entry) => entry.items.length > 0);
   }, [catalog, term]);
 
   const searchResultCount = useMemo(() => {
     const needle = foldText(term);
-    if (!needle) return catalog.products.length;
-    return catalog.products.filter(
-      (product) =>
-        foldText(product.name).includes(needle) ||
-        foldText(product.description ?? "").includes(needle),
-    ).length;
+    return needle
+      ? catalog.products.filter((product) => productMatchesSearch(product, needle)).length
+      : catalog.products.length;
   }, [catalog.products, term]);
 
   const productById = useMemo(
