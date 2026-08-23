@@ -60,6 +60,7 @@ function CartPage() {
   const loading = cart.quoteState === "loading";
   const offline = cart.quoteState === "offline";
   const stale = cart.quoteState !== "ready";
+  const discountTotal = cart.quote?.discountTotal ?? 0;
 
   const priceChanges = useMemo(
     () => cart.views.filter((view) => view.issues.includes("price_changed")).length,
@@ -205,12 +206,13 @@ function CartPage() {
                 const measured = line.saleMode === "measured";
                 const displayName = quote?.productName ?? line.productNameSnapshot;
                 const atMaximum = Boolean(line.maxQuantity && line.quantity >= line.maxQuantity);
+                const hasPromotion = Boolean(quote?.discountTotal && quote.discountTotal > 0);
 
                 return (
                   <li key={line.lineId} className={`panel rounded-2xl p-4 ${issues.length > 0 ? "border-destructive/50" : ""}`}>
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="break-words font-bold">{displayName}</p>
+                        <div className="flex flex-wrap items-center gap-2"><p className="break-words font-bold">{displayName}</p>{hasPromotion ? <Badge variant="success">{quote?.promotionName ?? "Promoção"}</Badge> : null}</div>
                         {line.variantNameSnapshot ? <p className="mt-0.5 break-words text-sm text-muted-foreground">{line.variantNameSnapshot}</p> : null}
                         {line.selections.length > 0 ? (
                           <p className="mt-0.5 break-words text-sm leading-relaxed text-muted-foreground">
@@ -220,7 +222,8 @@ function CartPage() {
                         {line.notes ? <p className="mt-1 break-words text-sm italic text-muted-foreground">“{line.notes}”</p> : null}
                       </div>
                       <div className="shrink-0 text-right">
-                        {total !== null ? <p className="font-black tabular-nums">{brl(total)}</p> : loading ? <Loader2 className="ml-auto size-4 animate-spin" /> : <p className="text-sm text-muted-foreground tabular-nums">{brl(line.lastKnownTotal)}</p>}
+                        {hasPromotion && quote?.originalTotal !== null ? <p className="text-xs text-muted-foreground line-through tabular-nums">{brl(quote.originalTotal)}</p> : null}
+                        {total !== null ? <p className={`font-black tabular-nums ${hasPromotion ? "text-emerald-700" : ""}`}>{brl(total)}</p> : loading ? <Loader2 className="ml-auto size-4 animate-spin" /> : <p className="text-sm text-muted-foreground tabular-nums">{brl(line.lastKnownTotal)}</p>}
                         {unitPrice !== null && line.quantity !== 1 ? <p className="text-xs text-muted-foreground tabular-nums">{brl(unitPrice)} / {measured ? unit : "un"}</p> : null}
                       </div>
                     </div>
@@ -332,12 +335,13 @@ function CartPage() {
 
             <dl className="panel space-y-2 rounded-2xl p-4 text-base">
               <div className="flex min-w-0 justify-between gap-4"><dt className="min-w-0 text-muted-foreground">Subtotal</dt><dd className="shrink-0 font-semibold tabular-nums">{brl(cart.subtotal)}</dd></div>
+              {discountTotal > 0 ? <div className="flex min-w-0 justify-between gap-4 text-emerald-700"><dt className="min-w-0">Desconto promocional</dt><dd className="shrink-0 font-bold tabular-nums">- {brl(discountTotal)}</dd></div> : null}
               <div className="flex min-w-0 justify-between gap-4">
                 <dt className="min-w-0 text-muted-foreground">{isDelivery ? "Taxa de entrega" : "Retirada na loja"}</dt>
                 <dd className="shrink-0 font-semibold tabular-nums">{isDelivery ? cart.quoteState === "ready" && cart.deliveryFee !== null ? brl(cart.deliveryFee) : "A calcular" : "Sem taxa"}</dd>
               </div>
               <div className="flex min-w-0 justify-between gap-4 border-t pt-2 text-lg font-black"><dt>Total</dt><dd className="shrink-0 tabular-nums">{brl(cart.total)}</dd></div>
-              <p className="text-xs leading-relaxed text-muted-foreground">{stale ? loading ? "Recalculando com a loja…" : "Valores aguardando confirmação da loja." : "Valores confirmados pelo servidor da loja."}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{stale ? loading ? "Recalculando com a loja…" : "Valores aguardando confirmação da loja." : discountTotal > 0 ? `Valores confirmados pelo servidor. Você economiza ${brl(discountTotal)}.` : "Valores confirmados pelo servidor da loja."}</p>
             </dl>
 
             {cart.minimumOrderAmount !== null && !cart.minimumOrderMet ? (
