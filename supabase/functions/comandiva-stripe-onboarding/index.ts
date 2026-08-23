@@ -79,8 +79,8 @@ Deno.serve(async (req: Request) => {
       method: "POST",
       data: form({
         account: accountId,
-        refresh_url: `${APP_ORIGIN}/app/loja/plano?stripe_connect=refresh`,
-        return_url: `${APP_ORIGIN}/app/loja/plano?stripe_connect=return`,
+        refresh_url: `${APP_ORIGIN}/app/loja/configuracoes/pagamentos?stripe_connect=refresh`,
+        return_url: `${APP_ORIGIN}/app/loja/configuracoes/pagamentos?stripe_connect=return`,
         type: "account_onboarding",
       }),
       idempotencyKey: `comandiva-onboarding-${accountId}-${crypto.randomUUID()}`,
