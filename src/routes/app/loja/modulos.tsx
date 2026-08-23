@@ -23,8 +23,8 @@ function isAddonEnabled(addon: StoreAddon | undefined) {
 
 function checkoutErrorMessage(error: unknown) {
   const code = error instanceof Error ? error.message : "";
-  if (code === "ADDON_PURCHASE_NOT_READY") return "A contratação ainda não está liberada para esta loja.";
-  if (code === "PROVIDER_PRICE_REQUIRES_RESYNC") return "O preço deste recurso precisa ser atualizado antes da contratação.";
+  if (code === "ADDON_PURCHASE_NOT_READY") return "Este recurso não está disponível para contratação agora.";
+  if (code === "PROVIDER_PRICE_REQUIRES_RESYNC") return "O valor deste recurso está sendo atualizado. Tente novamente em alguns instantes.";
   if (code === "STRIPE_NOT_CONFIGURED") return "O pagamento deste recurso ainda não está disponível.";
   if (code === "ACCOUNT_EMAIL_REQUIRED") return "Adicione um e-mail válido à sua conta antes da compra.";
   if (code === "CHECKOUT_IN_PROGRESS") return "Já existe uma contratação sendo preparada. Tente novamente em instantes.";
@@ -40,9 +40,9 @@ function StoreResourcesPage() {
   const canViewBilling = addons.data?.can_view_billing ?? false;
   const automaticAddon = addons.data?.items.find((item) => item.code === "whatsapp_automation");
   const automaticEnabled = isAddonEnabled(automaticAddon);
-  const shouldCheckPurchase = Boolean(
-    storeId && canViewBilling && automaticAddon && !automaticEnabled && automaticAddon.availability_status === "available" && automaticAddon.monthly_price,
-  );
+  const automaticPurchasable = Boolean(automaticAddon?.availability_status === "available" && automaticAddon.monthly_price);
+  const showAutomatic = automaticEnabled || automaticPurchasable;
+  const shouldCheckPurchase = Boolean(storeId && canViewBilling && automaticAddon && automaticPurchasable && !automaticEnabled);
   const preflight = useAddonPurchasePreflight(storeId, "whatsapp_automation", "monthly", shouldCheckPurchase);
 
   if (!storeId) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground">Selecione uma loja para consultar os recursos disponíveis.</div>;
@@ -72,36 +72,38 @@ function StoreResourcesPage() {
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Aqui aparecem apenas recursos que já existem no produto e podem ser usados ou contratados agora.</p>
       </header>
 
-      <Card className="overflow-hidden border-success/25">
-        <CardHeader className="bg-success-soft/35">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-success-soft text-success"><MessageCircle className="size-5" /></span>
-              <div>
-                <div className="flex flex-wrap items-center gap-2"><CardTitle>WhatsApp Automático</CardTitle>{automaticEnabled ? <Badge variant="success">Ativo</Badge> : <Badge variant="outline">Opcional</Badge>}</div>
-                <CardDescription className="mt-1">Avisos automáticos de pedido, mensagens personalizadas e envio manual pelo mesmo número conectado.</CardDescription>
+      {showAutomatic && automaticAddon ? (
+        <Card className="overflow-hidden border-success/25">
+          <CardHeader className="bg-success-soft/35">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-success-soft text-success"><MessageCircle className="size-5" /></span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2"><CardTitle>WhatsApp Automático</CardTitle>{automaticEnabled ? <Badge variant="success">Ativo</Badge> : <Badge variant="outline">Opcional</Badge>}</div>
+                  <CardDescription className="mt-1">Avisos automáticos de pedido, mensagens personalizadas e envio manual pelo mesmo número conectado.</CardDescription>
+                </div>
               </div>
+              {canViewBilling && monthlyPrice ? <p className="shrink-0 font-display text-2xl font-black">{monthlyPrice}<span className="ml-1 text-xs font-semibold text-muted-foreground">/mês</span></p> : null}
             </div>
-            {canViewBilling && monthlyPrice ? <p className="shrink-0 font-display text-2xl font-black">{monthlyPrice}<span className="ml-1 text-xs font-semibold text-muted-foreground">/mês</span></p> : null}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 p-5">
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {["Conexão por QR Code", "Avisos por status do pedido", "Mensagens editáveis", "Histórico de mensagens"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted/30 p-3 text-sm"><CheckCircle2 className="size-4 shrink-0 text-success" /> {item}</div>)}
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            {automaticEnabled ? (
-              <Button asChild><Link to="/app/loja/whatsapp">Gerenciar WhatsApp</Link></Button>
-            ) : canViewBilling ? (
-              <Button onClick={() => void startAutomaticCheckout()} disabled={!canCheckout}>
-                {checkout.isPending || preflight.isLoading ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
-                {preflight.isLoading ? "Verificando…" : preflight.data?.ready ? "Contratar" : "Indisponível"}
-              </Button>
-            ) : <Badge variant="outline">Contratação pelo proprietário</Badge>}
-            {!automaticEnabled && blocker ? <p className="text-xs text-muted-foreground">{blocker}</p> : null}
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-4 p-5">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {["Conexão por QR Code", "Avisos por status do pedido", "Mensagens editáveis", "Histórico de mensagens"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted/30 p-3 text-sm"><CheckCircle2 className="size-4 shrink-0 text-success" /> {item}</div>)}
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              {automaticEnabled ? (
+                <Button asChild><Link to="/app/loja/whatsapp">Gerenciar WhatsApp</Link></Button>
+              ) : canViewBilling ? (
+                <Button onClick={() => void startAutomaticCheckout()} disabled={!canCheckout}>
+                  {checkout.isPending || preflight.isLoading ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
+                  {preflight.isLoading ? "Verificando…" : preflight.data?.ready ? "Contratar" : "Indisponível"}
+                </Button>
+              ) : <Badge variant="outline">Contratação pelo proprietário</Badge>}
+              {!automaticEnabled && blocker ? <p className="text-xs text-muted-foreground">{blocker}</p> : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <section className="space-y-3">
         <div><h2 className="font-display text-xl font-black">Incluídos na operação</h2><p className="mt-1 text-sm text-muted-foreground">Essas áreas já fazem parte da plataforma e não precisam ser ativadas aqui.</p></div>
