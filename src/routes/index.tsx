@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 
-const TARGET = "/app/loja";
+const TARGET = "/app/loja/cardapio";
 const EMAIL = "qa.capture.loja.20260823@comandiva.test";
 const PASSWORD = "QLHMo7bpO@fmG!j02B";
 
