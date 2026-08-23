@@ -38,7 +38,7 @@ type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 
 function rpcCaller(client: { rpc: unknown }): RpcCaller {
-  return client.rpc as RpcCaller;
+  return client.rpc as unknown as RpcCaller;
 }
 
 export const getStorePushReadiness = createServerFn({ method: "GET" })

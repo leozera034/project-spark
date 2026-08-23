@@ -12,7 +12,7 @@ type FunctionError = {
 };
 
 function rpcCaller(client: { rpc: unknown }): RpcCaller {
-  return client.rpc as RpcCaller;
+  return client.rpc as unknown as RpcCaller;
 }
 
 export interface StoreMetaWhatsAppConnection {

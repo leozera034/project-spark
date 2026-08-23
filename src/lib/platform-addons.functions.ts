@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type RpcResult={data:unknown;error:unknown}; type RpcCaller=(fn:string,args?:Record<string,unknown>)=>Promise<RpcResult>; type FunctionError={context?:Response;message?:string};
-function rpcCaller(client:{rpc:unknown}):RpcCaller{return client.rpc as RpcCaller}
+function rpcCaller(client:{rpc:unknown}):RpcCaller{return client.rpc as unknown as RpcCaller}
 async function edgeErrorCode(error:unknown){const response=(error as FunctionError|null)?.context;if(typeof Response!=="undefined"&&response instanceof Response){try{const payload=await response.clone().json() as {error?:unknown};if(typeof payload?.error==="string"&&/^[a-z0-9_]{2,100}$/i.test(payload.error))return payload.error}catch{}}return"operation_failed"}
 function publicProviderSyncError(code:string){if(code==="forbidden")return new Error("FORBIDDEN");if(code==="stripe_not_configured"||code==="provider_not_configured")return new Error("STRIPE_NOT_CONFIGURED");if(code==="provider_unreachable")return new Error("STRIPE_UNREACHABLE");if(code==="stripe_price_create_failed")return new Error("STRIPE_PRICE_CREATE_FAILED");if(code==="stripe_price_invalid")return new Error("STRIPE_PRICE_VALIDATION_FAILED");if(code==="rate_limited")return new Error("RATE_LIMITED");return new Error("STRIPE_SYNC_FAILED")}
 

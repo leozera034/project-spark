@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
-function rpcCaller(client: { rpc: unknown }): RpcCaller { return client.rpc as RpcCaller; }
+function rpcCaller(client: { rpc: unknown }): RpcCaller { return client.rpc as unknown as RpcCaller; }
 
 export interface PlatformHealthSummary { totalStores:number; activeStores:number; suspendedStores:number; ordersLast24h:number; activeCouriers:number; generatedAt:string; }
 export interface PlatformBillingSummary { activeSubscriptions:number; trialSubscriptions:number; manualAccessSubscriptions:number; courtesySubscriptions:number; internalTrialSubscriptions:number; delinquentSubscriptions:number; suspendedSubscriptions:number; monthlyRecurringRevenue:number; manualAccessReferenceValue:number; paidCurrentMonth:number; professionalServicesPaidCurrentMonth:number; professionalServicesOpen:number; professionalServicesInProgress:number; professionalServicesDeliveredCurrentMonth:number; ordersCurrentMonth:number; completedOrderGmvCurrentMonth:number; confirmedOnlinePaymentsCurrentMonth:number; generatedAt:string; }

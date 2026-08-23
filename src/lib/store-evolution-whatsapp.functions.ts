@@ -50,7 +50,7 @@ const manualSendSchema = z.object({
 });
 
 function rpcCaller(client: { rpc: unknown }): RpcCaller {
-  return client.rpc as RpcCaller;
+  return client.rpc as unknown as RpcCaller;
 }
 
 async function edgeErrorCode(error: unknown): Promise<string> {

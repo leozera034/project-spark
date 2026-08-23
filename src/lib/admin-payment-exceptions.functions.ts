@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
-function rpcCaller(client: { rpc: unknown }): RpcCaller { return client.rpc as RpcCaller; }
+function rpcCaller(client: { rpc: unknown }): RpcCaller { return client.rpc as unknown as RpcCaller; }
 
 export type PaymentExceptionStatus = "open" | "in_review" | "resolved";
 
