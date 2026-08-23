@@ -61,6 +61,9 @@ export type CartQuoteLine = {
   productName: string | null;
   unitPrice: number | null;
   total: number | null;
+  originalTotal: number | null;
+  discountTotal: number;
+  promotionName: string | null;
   optionsTotal: number | null;
   validationErrors: string[];
 };
@@ -73,7 +76,9 @@ export type CartQuote = {
   fulfillmentValid: boolean;
   fulfillmentErrors: string[];
   storeIsOpen: boolean;
+  /** Subtotal bruto usado também para pedido mínimo no checkout. */
   subtotal: number;
+  discountTotal: number;
   deliveryFee: number | null;
   minimumOrderAmount: number | null;
   minimumOrderMet: boolean;
