@@ -25,7 +25,7 @@ type ProofRequirement = {
 
 type CompletionResult = {
   ok: boolean;
-  error?: "INVALID_PROOF" | "PROOF_RATE_LIMITED" | string;
+  error?: "INVALID_PROOF" | "PROOF_RATE_LIMITED" | "PROOF_REQUIRED" | string;
   attemptsRemaining?: number;
   retryAfterSeconds?: number;
   deliveryId?: string;
@@ -126,14 +126,29 @@ export function DeliveryProofCompletion({
       setFeedback(`Código incorreto. ${attemptsRemaining} tentativa${attemptsRemaining === 1 ? "" : "s"} restante${attemptsRemaining === 1 ? "" : "s"}.`);
       return;
     }
+    if (result.error === "PROOF_REQUIRED") {
+      setFeedback("Informe o código de 6 dígitos exibido no acompanhamento do cliente.");
+      return;
+    }
     setFeedback("Não foi possível validar a entrega. Confira o código e tente novamente.");
   }
 
   async function handlePrimaryAction() {
-    if (proof.isLoading) return;
-    if (requirement?.mode === "pin") {
+    if (proof.isLoading || completion.isPending) return;
+
+    let activeRequirement = requirement;
+    if (!activeRequirement) {
+      const refreshed = await proof.refetch();
+      activeRequirement = refreshed.data;
+      if (!activeRequirement) {
+        toast.error("Não foi possível verificar a regra de confirmação. A entrega não foi concluída.");
+        return;
+      }
+    }
+
+    if (activeRequirement.mode === "pin") {
       setCode("");
-      setFeedback(locked ? retryText(requirement.retryAfterSeconds) : null);
+      setFeedback(activeRequirement.retryAfterSeconds > 0 ? retryText(activeRequirement.retryAfterSeconds) : null);
       setOpen(true);
       return;
     }
@@ -141,16 +156,23 @@ export function DeliveryProofCompletion({
   }
 
   const digits = code.replace(/\D/g, "").slice(0, 6);
+  const actionLabel = proof.isLoading
+    ? "VERIFICANDO ENTREGA..."
+    : proof.isError || !requirement
+      ? "VERIFICAR CONFIRMAÇÃO"
+      : requirement.mode === "pin"
+        ? "CONFIRMAR COM CÓDIGO"
+        : "ENTREGA CONCLUÍDA";
 
   return (
     <>
       <Button
         className="h-16 w-full bg-success text-lg font-black text-success-foreground hover:bg-success/90"
         onClick={() => void handlePrimaryAction()}
-        disabled={proof.isLoading || completion.isPending}
+        disabled={proof.isLoading || completion.isPending || proof.isFetching}
       >
         {requirement?.mode === "pin" ? <KeyRound className="mr-2 h-5 w-5" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
-        {proof.isLoading ? "VERIFICANDO ENTREGA..." : requirement?.mode === "pin" ? "CONFIRMAR COM CÓDIGO" : "ENTREGA CONCLUÍDA"}
+        {actionLabel}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
