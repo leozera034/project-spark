@@ -1,9 +1,12 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ArrowRight, CheckCircle2, CircleDollarSign, ExternalLink, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
+import { fetchCatalogMenuIntelligence } from "@/catalog/api";
 import { useCatalog } from "@/catalog/CatalogProvider";
 import { applyCatalogStarterTemplate, type StarterTemplateCode } from "@/catalog/starter-templates";
+import { formatPriceBRL } from "@/catalog/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,11 +34,25 @@ function Metric({ label, value, hint }: { label: string; value: number; hint?: s
   return <Card><CardHeader className="pb-2"><CardDescription>{label}</CardDescription><CardTitle className="text-3xl tabular-nums">{value}</CardTitle></CardHeader>{hint ? <CardContent className="pt-0 text-xs text-muted-foreground">{hint}</CardContent> : null}</Card>;
 }
 
+function FinanceMetric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return <Card><CardHeader className="pb-2"><CardDescription>{label}</CardDescription><CardTitle className="text-2xl tabular-nums">{value}</CardTitle></CardHeader>{hint ? <CardContent className="pt-0 text-xs text-muted-foreground">{hint}</CardContent> : null}</Card>;
+}
+
 function CardapioOverview() {
   const navigate = useNavigate();
   const scope = useStoreScope();
   const { overview, categories, storeId, run, pendingKey, setPendingKey, isBusy } = useCatalog();
   const [otherBusinessType, setOtherBusinessType] = useState("");
+  const [intelligencePeriod, setIntelligencePeriod] = useState<30 | 90>(30);
+
+  const intelligenceQuery = useQuery({
+    queryKey: ["catalog", "menu-intelligence", storeId, intelligencePeriod],
+    queryFn: () => fetchCatalogMenuIntelligence(storeId, intelligencePeriod),
+    enabled: Boolean(storeId && overview && overview.counts.products_total > 0),
+    retry: false,
+    staleTime: 60_000,
+  });
+
   if (!overview) return null;
 
   const { counts, can } = overview;
@@ -47,6 +64,9 @@ function CardapioOverview() {
     counts.products_sold_out > 0 ? { label: `Revise ${counts.products_sold_out} produto${counts.products_sold_out === 1 ? "" : "s"} esgotado${counts.products_sold_out === 1 ? "" : "s"}`, to: "/app/loja/cardapio/produtos" as const } : null,
     counts.products_active > 0 && counts.products_featured === 0 ? { label: "Escolha produtos para destacar", to: "/app/loja/cardapio/produtos" as const } : null,
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+  const intelligence = intelligenceQuery.data ?? null;
+  const topProducts = intelligence?.items.filter((item) => item.revenue > 0).slice(0, 5) ?? [];
 
   async function useModel(model: MenuModel) {
     if (!storeId || !can.create || isBusy) return;
@@ -65,7 +85,7 @@ function CardapioOverview() {
       <div className="space-y-6">
         <PageHeader
           title="Cardápio"
-          description="Gerencie o que o cliente vê e confira o resultado publicado sem sair da Comandiva."
+          description="Gerencie o que o cliente vê e use dados reais de venda para melhorar preço, margem e disponibilidade."
           action={
             <>
               {publicMenuHref ? <Button asChild variant="outline"><a href={publicMenuHref} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /> Ver como cliente</a></Button> : null}
@@ -100,8 +120,56 @@ function CardapioOverview() {
           <Metric label="Destaques" value={counts.products_featured} hint="Chamam atenção no cardápio" />
         </div>
 
+        {intelligence ? (
+          <section className="space-y-4 rounded-2xl border border-brand/15 bg-brand-soft/15 p-4 sm:p-5" aria-label="Inteligência do cardápio">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-brand"><TrendingUp className="size-4" /><span className="text-xs font-extrabold uppercase tracking-[.14em]">Inteligência do cardápio</span></div>
+                <h2 className="mt-1 text-xl font-black">Venda real + custo informado</h2>
+                <p className="mt-1 max-w-2xl text-sm text-muted-foreground">A margem é uma estimativa operacional. Nesta versão, considera o custo base cadastrado e não inclui custo separado de adicionais, embalagem, taxas ou impostos.</p>
+              </div>
+              <div className="flex rounded-xl border border-border bg-background p-1">
+                <Button type="button" size="sm" variant={intelligencePeriod === 30 ? "default" : "ghost"} onClick={() => setIntelligencePeriod(30)}>30 dias</Button>
+                <Button type="button" size="sm" variant={intelligencePeriod === 90 ? "default" : "ghost"} onClick={() => setIntelligencePeriod(90)}>90 dias</Button>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <FinanceMetric label="Receita dos produtos" value={formatPriceBRL(intelligence.summary.revenue)} hint={`${intelligence.summary.orders} pedido(s) válido(s) no período`} />
+              <FinanceMetric label="Margem estimada" value={formatPriceBRL(intelligence.summary.estimated_margin)} hint={intelligence.summary.estimated_margin_percent === null ? "Cadastre custos para calcular" : `${intelligence.summary.estimated_margin_percent.toFixed(1).replace(".", ",")}% sobre a receita com custo`} />
+              <FinanceMetric label="Cobertura de custos" value={`${intelligence.summary.cost_coverage_percent.toFixed(0)}%`} hint={`${intelligence.summary.configured_cost_products}/${intelligence.summary.products} produto(s) com custo`} />
+              <FinanceMetric label="Sem custo" value={String(intelligence.summary.products_without_cost)} hint={`${intelligence.summary.sold_products_without_cost} deles tiveram venda no período`} />
+            </div>
+
+            {intelligence.summary.sold_products_without_cost > 0 ? (
+              <div className="flex flex-col gap-3 rounded-xl border border-warning/30 bg-warning-soft/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <CircleDollarSign className="mt-0.5 size-5 shrink-0 text-warning" />
+                  <div><p className="text-sm font-bold">A margem ainda está incompleta</p><p className="mt-0.5 text-xs text-muted-foreground">{intelligence.summary.sold_products_without_cost} produto(s) vendido(s) no período ainda não têm custo informado.</p></div>
+                </div>
+                <Button asChild variant="outline" size="sm" className="bg-background"><Link to="/app/loja/cardapio/produtos">Cadastrar custos <ArrowRight className="ml-1 size-3.5" /></Link></Button>
+              </div>
+            ) : null}
+
+            {topProducts.length > 0 ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3"><h3 className="text-sm font-black">Produtos por receita</h3><span className="text-xs text-muted-foreground">Top {topProducts.length}</span></div>
+                <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
+                  {topProducts.map((item) => (
+                    <Link key={item.id} to="/app/loja/cardapio/produtos/$id" params={{ id: item.id }} className="grid gap-2 p-3 transition hover:bg-muted/30 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                      <div className="min-w-0"><p className="truncate text-sm font-bold">{item.name}</p><p className="truncate text-xs text-muted-foreground">{item.category_name ?? "Sem categoria"} · {item.orders} pedido(s)</p></div>
+                      <div className="text-left sm:text-right"><p className="text-xs text-muted-foreground">Receita</p><p className="text-sm font-bold tabular-nums">{formatPriceBRL(item.revenue)}</p></div>
+                      <div className="text-left sm:min-w-28 sm:text-right"><p className="text-xs text-muted-foreground">Margem est.</p><p className={`text-sm font-bold tabular-nums ${item.estimated_margin !== null && item.estimated_margin < 0 ? "text-destructive" : ""}`}>{item.estimated_margin === null ? "Sem custo" : formatPriceBRL(item.estimated_margin)}</p></div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
         <section className="grid gap-4 md:grid-cols-3">
-          <Card><CardHeader><CardTitle>Produtos</CardTitle><CardDescription>Preço, imagem, disponibilidade, variações e adicionais.</CardDescription></CardHeader><CardContent><Button asChild><Link to="/app/loja/cardapio/produtos">Gerenciar produtos <ArrowRight className="ml-1 size-4" /></Link></Button></CardContent></Card>
+          <Card><CardHeader><CardTitle>Produtos</CardTitle><CardDescription>Preço, custo, imagem, disponibilidade, variações e adicionais.</CardDescription></CardHeader><CardContent><Button asChild><Link to="/app/loja/cardapio/produtos">Gerenciar produtos <ArrowRight className="ml-1 size-4" /></Link></Button></CardContent></Card>
           <Card><CardHeader><CardTitle>Categorias</CardTitle><CardDescription>Organize a ordem e as seções que o cliente encontra.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link to="/app/loja/cardapio/categorias">Gerenciar categorias <ArrowRight className="ml-1 size-4" /></Link></Button></CardContent></Card>
           <Card><CardHeader><CardTitle>Opções e adicionais</CardTitle><CardDescription>Sabores, tamanhos, molhos, complementos e escolhas obrigatórias.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link to="/app/loja/cardapio/opcoes">Abrir opções</Link></Button></CardContent></Card>
         </section>
