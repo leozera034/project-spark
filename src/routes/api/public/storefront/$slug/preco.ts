@@ -31,13 +31,14 @@ export const Route = createFileRoute("/api/public/storefront/$slug/preco")({
           return json({ error: "invalid_request" }, 400);
         }
 
-        const mod = await import("@/lib/storefront.server");
+        const storefront = await import("@/lib/storefront.server");
+        const promotions = await import("@/lib/storefront-promotions.server");
         try {
-          const input = mod.priceInputSchema.parse({
+          const input = storefront.priceInputSchema.parse({
             ...(body as Record<string, unknown>),
             slug: params.slug,
           });
-          const result = await mod.computePublicPrice(input);
+          const result = await promotions.computePromotionalPublicPrice(input);
           return json(result, result.ok ? 200 : 422);
         } catch (error) {
           console.error("[api/public/storefront/preco] failed", error);
