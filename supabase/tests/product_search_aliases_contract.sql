@@ -20,11 +20,14 @@ END $$;
 
 DO $$
 BEGIN
-  IF NOT has_function_privilege('authenticated','public.list_catalog_product_search_aliases(uuid)','EXECUTE') THEN
-    RAISE EXCEPTION 'authenticated_missing_search_alias_list_execute';
+  IF to_regprocedure('public.list_catalog_product_search_aliases(uuid)') IS NOT NULL THEN
+    RAISE EXCEPTION 'legacy_full_search_alias_listing_still_exists';
   END IF;
-  IF has_function_privilege('anon','public.list_catalog_product_search_aliases(uuid)','EXECUTE') THEN
-    RAISE EXCEPTION 'anon_search_alias_list_exposed';
+  IF NOT has_function_privilege('authenticated','public.search_catalog_product_search_aliases(uuid,text,integer,integer)','EXECUTE') THEN
+    RAISE EXCEPTION 'authenticated_missing_search_alias_search_execute';
+  END IF;
+  IF has_function_privilege('anon','public.search_catalog_product_search_aliases(uuid,text,integer,integer)','EXECUTE') THEN
+    RAISE EXCEPTION 'anon_search_alias_search_exposed';
   END IF;
   IF NOT has_function_privilege('authenticated','public.update_catalog_product_search_aliases(uuid,uuid,text[])','EXECUTE') THEN
     RAISE EXCEPTION 'authenticated_missing_search_alias_update_execute';
@@ -43,6 +46,7 @@ DECLARE
   slug_value text;
   pid uuid;
   result jsonb;
+  search_page jsonb;
   enrichment jsonb;
   aliases jsonb;
 BEGIN
@@ -69,6 +73,14 @@ BEGIN
   );
   IF result->'search_aliases' <> '["refrigerante", "refri", "coca"]'::jsonb THEN
     RAISE EXCEPTION 'search_alias_normalization_invalid=%',result;
+  END IF;
+
+  search_page:=public.search_catalog_product_search_aliases(sid,'REFRIGERÁNTE',50,0);
+  IF NOT EXISTS(
+    SELECT 1 FROM jsonb_array_elements(search_page->'items') item
+     WHERE item->>'product_id'=pid::text
+  ) THEN
+    RAISE EXCEPTION 'normalized_search_alias_not_found=%',search_page;
   END IF;
 
   RESET ROLE;
