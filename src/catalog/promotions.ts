@@ -44,6 +44,14 @@ export interface CatalogPromotionSimulation {
   items: CatalogPromotionSimulationItem[];
 }
 
+export interface CatalogPromotionActivationResult {
+  id: string;
+  is_active: boolean;
+  updated_at: string;
+  negative_margin_products?: number;
+  margin_risk_acknowledged?: boolean;
+}
+
 // RPCs do catálogo evoluem por migração antes do arquivo de tipos gerado.
 // Mantemos esta borda local explícita até a próxima regeneração integral do schema.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,9 +107,10 @@ export async function createCatalogPromotion(params: {
   startsAt: string | null;
   endsAt: string | null;
   isActive: boolean;
+  acknowledgeNegativeMargin?: boolean;
 }): Promise<CatalogPromotion> {
   return unwrap<CatalogPromotion>(
-    await rpc("create_catalog_promotion", {
+    await rpc("create_catalog_promotion_v2", {
       _store_id: params.storeId,
       _name: params.name,
       _description: params.description,
@@ -113,6 +122,7 @@ export async function createCatalogPromotion(params: {
       _starts_at: params.startsAt,
       _ends_at: params.endsAt,
       _is_active: params.isActive,
+      _acknowledge_negative_margin: params.acknowledgeNegativeMargin ?? false,
     }),
   );
 }
@@ -122,13 +132,15 @@ export async function setCatalogPromotionActive(
   id: string,
   isActive: boolean,
   expectedUpdatedAt: string,
-): Promise<{ id: string; is_active: boolean; updated_at: string }> {
-  return unwrap(
-    await rpc("set_catalog_promotion_active", {
+  acknowledgeNegativeMargin = false,
+): Promise<CatalogPromotionActivationResult> {
+  return unwrap<CatalogPromotionActivationResult>(
+    await rpc("set_catalog_promotion_active_v2", {
       _store_id: storeId,
       _id: id,
       _is_active: isActive,
       _expected_updated_at: expectedUpdatedAt,
+      _acknowledge_negative_margin: acknowledgeNegativeMargin,
     }),
   );
 }
