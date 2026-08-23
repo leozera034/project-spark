@@ -53,7 +53,7 @@ function MenuImplementationServicePage() {
     onSuccess: (result) => {
       window.location.assign(result.checkoutUrl);
     },
-    onError: () => toast.error("Não foi possível abrir o pagamento pela Stripe."),
+    onError: () => toast.error("Não foi possível abrir o pagamento agora."),
   });
 
   const request = useMutation({
@@ -69,12 +69,26 @@ function MenuImplementationServicePage() {
       window.location.assign(result.checkoutUrl);
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "Falha ao solicitar serviço.";
-      if (message.includes("SERVICE_PRICE_NOT_CONFIGURED")) toast.error("O valor deste serviço ainda não foi configurado pelo administrador da plataforma.");
-      else if (message.includes("SERVICE_ORDER_ALREADY_OPEN")) toast.error("Já existe uma solicitação deste serviço em andamento.");
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("SERVICE_ORDER_ALREADY_OPEN")) toast.error("Já existe uma solicitação deste serviço em andamento.");
+      else if (message.includes("SERVICE_PRICE_NOT_CONFIGURED")) toast.error("Este serviço não está disponível para contratação agora.");
       else toast.error("Não foi possível criar a solicitação ou iniciar o pagamento.");
     },
   });
+
+  if (services.isLoading) {
+    return <div className="space-y-4"><PageHeader title="Serviço de cardápio" description="Carregando disponibilidade…" /><div className="h-40 animate-pulse rounded-2xl border border-border bg-muted/35" /></div>;
+  }
+
+  if (services.isError || !service || !service.price_cents) {
+    return (
+      <div className="space-y-5">
+        <PageHeader title="Serviço de cardápio" description="Este serviço opcional não está disponível para contratação no momento." />
+        <Card><CardContent className="p-5 text-sm text-muted-foreground">Você pode continuar montando e editando seu cardápio normalmente pela Comandiva.</CardContent></Card>
+        <Button asChild variant="outline"><Link to="/app/loja/cardapio">Voltar ao cardápio</Link></Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -84,7 +98,7 @@ function MenuImplementationServicePage() {
         <CardHeader>
           <div className="mb-1 grid size-11 place-items-center rounded-xl bg-brand text-brand-foreground"><BriefcaseBusiness className="size-5" /></div>
           <CardTitle>Implantação completa do cardápio</CardTitle>
-          <CardDescription>{service?.description ?? "Nossa equipe organiza a estrutura inicial do seu cardápio para você começar mais rápido."}</CardDescription>
+          <CardDescription>{service.description ?? "Nossa equipe organiza a estrutura inicial do seu cardápio para você começar mais rápido."}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -95,8 +109,8 @@ function MenuImplementationServicePage() {
 
           <div className="rounded-xl border p-4">
             <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Valor do serviço</p>
-            <p className="mt-1 text-2xl font-black">{service?.price_cents ? brl.format(service.price_cents / 100) : "Aguardando configuração"}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Cobrança única pela Stripe. Não é add-on recorrente e não entra na mensalidade do plano.</p>
+            <p className="mt-1 text-2xl font-black">{brl.format(service.price_cents / 100)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Cobrança única. Não é recorrente e não entra na mensalidade do plano.</p>
           </div>
 
           {openOrder ? (
@@ -109,7 +123,7 @@ function MenuImplementationServicePage() {
                   Continuar pagamento
                 </Button>
               ) : openOrder.status === "paid" ? (
-                <p className="text-sm font-medium text-emerald-700">Pagamento confirmado. A solicitação já está na fila de implantação.</p>
+                <p className="text-sm font-medium text-success">Pagamento confirmado. A solicitação já está na fila de implantação.</p>
               ) : openOrder.status === "in_progress" ? (
                 <p className="text-sm font-medium text-brand">Seu cardápio está em implantação pela equipe.</p>
               ) : null}
@@ -121,11 +135,10 @@ function MenuImplementationServicePage() {
                 <p className="text-sm text-muted-foreground">Ex.: quantos produtos tem, se já possui fotos, adicionais, tamanhos ou um arquivo/PDF atual.</p>
               </div>
               <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={5} placeholder="Ex.: Tenho cerca de 45 produtos, 3 tamanhos de pizza e já tenho as fotos prontas..." />
-              <Button disabled={!service?.price_cents || request.isPending} onClick={() => request.mutate()}>
+              <Button disabled={request.isPending} onClick={() => request.mutate()}>
                 {request.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : <CreditCard className="mr-2 size-4" />}
                 Solicitar e pagar
               </Button>
-              {!service?.price_cents ? <p className="text-xs text-amber-700">O botão será liberado assim que o dono do SaaS definir o preço do serviço.</p> : null}
             </div>
           )}
         </CardContent>
