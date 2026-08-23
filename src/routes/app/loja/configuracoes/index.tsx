@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock3, CreditCard, MapPin, Palette, Settings2, Truck, UserRoundCog } from "lucide-react";
+import { Building2, Clock3, CreditCard, KeyRound, MapPin, Palette, Settings2, Truck, UserRoundCog } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -25,10 +25,11 @@ const GROUPS = [
   },
   {
     title: "Entrega e retirada",
-    description: "Modalidades, cobertura, prazos e taxas da operação.",
+    description: "Modalidades, cobertura, prazos, taxas e segurança da operação.",
     items: [
       { to: "/app/loja/configuracoes/atendimento", label: "Modalidades", description: "Ative entrega e retirada e ajuste o tempo de preparo", icon: Settings2 },
       { to: "/app/loja/configuracoes/bairros", label: "Cobertura e taxas", description: "Taxa fixa, por distância ou por bairro", icon: Truck },
+      { to: "/app/loja/configuracoes/entregas", label: "Segurança da entrega", description: "Código de confirmação e prova de entrega", icon: KeyRound },
     ],
   },
   {
