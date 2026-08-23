@@ -25,7 +25,6 @@ function DadosSection() {
     phone: store?.phone ?? "",
     whatsapp: store?.whatsapp ?? "",
     email: store?.email ?? "",
-    timezone: store?.timezone ?? "America/Sao_Paulo",
     description: settings?.description ?? "",
     welcomeMessage: settings?.welcome_message ?? "",
     closedMessage: settings?.closed_message ?? "",
@@ -88,7 +87,7 @@ function DadosSection() {
               phone: form.value.phone,
               whatsapp: form.value.whatsapp,
               email: form.value.email,
-              timezone: form.value.timezone,
+              timezone: store.timezone,
               description: form.value.description,
               welcomeMessage: form.value.welcomeMessage,
               closedMessage: form.value.closedMessage,
@@ -98,107 +97,33 @@ function DadosSection() {
         );
       }}
     >
-      <TextField
-        id="name"
-        label="Nome da loja"
-        value={form.value.name}
-        error={form.dirty ? nameError : null}
-        maxLength={120}
-        onChange={(v) => form.set("name", v)}
-      />
-      <TextField
-        id="legalName"
-        label="Razão social"
-        hint="Opcional. Aparece apenas em documentos internos."
-        value={form.value.legalName}
-        maxLength={160}
-        onChange={(v) => form.set("legalName", v)}
-      />
+      <TextField id="name" label="Nome da loja" value={form.value.name} error={form.dirty ? nameError : null} maxLength={120} onChange={(v) => form.set("name", v)} />
+      <TextField id="legalName" label="Razão social" hint="Opcional. Aparece apenas em documentos internos." value={form.value.legalName} maxLength={160} onChange={(v) => form.set("legalName", v)} />
       <div className="space-y-2">
         <TextField
           id="document"
           label="CNPJ ou CPF"
-          hint="Para CNPJ, o Comandiva pode consultar os dados públicos automaticamente."
+          hint="Para CNPJ, a Comandiva pode consultar os dados públicos automaticamente."
           inputMode="numeric"
           value={form.value.document}
           maxLength={18}
-          onChange={(v) => {
-            form.set("document", v);
-            setCnpjMessage(null);
-          }}
+          onChange={(v) => { form.set("document", v); setCnpjMessage(null); }}
         />
         <div className="flex flex-wrap items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!canLookupCnpj}
-            onClick={() => void handleCnpjLookup()}
-          >
+          <Button type="button" variant="outline" size="sm" disabled={!canLookupCnpj} onClick={() => void handleCnpjLookup()}>
             {cnpjBusy ? "Consultando..." : "Consultar CNPJ"}
           </Button>
           {cnpjMessage ? <p className="text-xs text-muted-foreground">{cnpjMessage}</p> : null}
         </div>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField
-          id="phone"
-          label="Telefone"
-          inputMode="tel"
-          value={form.value.phone}
-          maxLength={20}
-          onChange={(v) => form.set("phone", v)}
-        />
-        <TextField
-          id="whatsapp"
-          label="WhatsApp"
-          inputMode="tel"
-          value={form.value.whatsapp}
-          maxLength={20}
-          onChange={(v) => form.set("whatsapp", v)}
-        />
+        <TextField id="phone" label="Telefone" inputMode="tel" value={form.value.phone} maxLength={20} onChange={(v) => form.set("phone", v)} />
+        <TextField id="whatsapp" label="WhatsApp" inputMode="tel" value={form.value.whatsapp} maxLength={20} onChange={(v) => form.set("whatsapp", v)} />
       </div>
-      <TextField
-        id="email"
-        label="E-mail de contato"
-        inputMode="email"
-        value={form.value.email}
-        maxLength={160}
-        onChange={(v) => form.set("email", v)}
-      />
-      <TextField
-        id="timezone"
-        label="Fuso horário"
-        hint="Usado para abrir e fechar a loja automaticamente."
-        value={form.value.timezone}
-        maxLength={64}
-        onChange={(v) => form.set("timezone", v)}
-      />
-      <TextField
-        id="description"
-        label="Descrição pública"
-        hint="Texto curto exibido no topo do cardápio."
-        multiline
-        value={form.value.description}
-        maxLength={280}
-        onChange={(v) => form.set("description", v)}
-      />
-      <TextField
-        id="welcomeMessage"
-        label="Mensagem de boas-vindas"
-        multiline
-        value={form.value.welcomeMessage}
-        maxLength={280}
-        onChange={(v) => form.set("welcomeMessage", v)}
-      />
-      <TextField
-        id="closedMessage"
-        label="Mensagem com a loja fechada"
-        multiline
-        value={form.value.closedMessage}
-        maxLength={280}
-        onChange={(v) => form.set("closedMessage", v)}
-      />
+      <TextField id="email" label="E-mail de contato" inputMode="email" value={form.value.email} maxLength={160} onChange={(v) => form.set("email", v)} />
+      <TextField id="description" label="Descrição pública" hint="Texto curto exibido no topo do cardápio." multiline value={form.value.description} maxLength={280} onChange={(v) => form.set("description", v)} />
+      <TextField id="welcomeMessage" label="Mensagem de boas-vindas" multiline value={form.value.welcomeMessage} maxLength={280} onChange={(v) => form.set("welcomeMessage", v)} />
+      <TextField id="closedMessage" label="Mensagem com a loja fechada" multiline value={form.value.closedMessage} maxLength={280} onChange={(v) => form.set("closedMessage", v)} />
     </SectionForm>
   );
 }
