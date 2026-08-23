@@ -41,7 +41,8 @@ async function signLogo(path: string | null): Promise<string | null> {
 async function loadDeliveryProof(tokenHash: string): Promise<PublicDeliveryProof | null> {
   try {
     const db = await admin();
-    const { data, error } = await db.rpc("storefront_delivery_proof", { _token_hash: tokenHash });
+    const proofRpc = db.rpc.bind(db) as any;
+    const { data, error } = await proofRpc("storefront_delivery_proof", { _token_hash: tokenHash });
     if (error || !data || typeof data !== "object") return null;
     const candidate = data as { mode?: unknown; code?: unknown };
     if (candidate.mode !== "pin") return { mode: "none", code: null };
