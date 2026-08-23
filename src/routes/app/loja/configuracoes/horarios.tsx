@@ -21,6 +21,8 @@ interface Shift {
 type WeekState = Shift[][];
 
 const EMPTY_WEEK: WeekState = [[], [], [], [], [], [], []];
+const DAY_MINUTES = 24 * 60;
+const WEEK_MINUTES = 7 * DAY_MINUTES;
 
 function toTime(value: string): string {
   return value.slice(0, 5);
@@ -33,25 +35,40 @@ function toMinutes(value: string): number {
 
 function validateWeek(week: WeekState): Record<number, string> {
   const errors: Record<number, string> = {};
+  const intervals: Array<{ weekday: number; start: number; end: number }> = [];
+
   week.forEach((shifts, weekday) => {
-    const ordered = [...shifts].sort((a, b) => toMinutes(a.opens_at) - toMinutes(b.opens_at));
-    for (const shift of ordered) {
+    for (const shift of shifts) {
       if (!shift.opens_at || !shift.closes_at) {
         errors[weekday] = "Preencha abertura e fechamento.";
-        return;
+        continue;
       }
-      if (toMinutes(shift.closes_at) <= toMinutes(shift.opens_at)) {
-        errors[weekday] = "O fechamento precisa ser depois da abertura.";
-        return;
+      const startMinute = toMinutes(shift.opens_at);
+      const closeMinute = toMinutes(shift.closes_at);
+      if (startMinute === closeMinute) {
+        errors[weekday] = "A abertura e o fechamento não podem ser iguais.";
+        continue;
       }
-    }
-    for (let i = 1; i < ordered.length; i += 1) {
-      if (toMinutes(ordered[i].opens_at) < toMinutes(ordered[i - 1].closes_at)) {
-        errors[weekday] = "Os turnos deste dia estão sobrepostos.";
-        return;
-      }
+      const start = weekday * DAY_MINUTES + startMinute;
+      const end = weekday * DAY_MINUTES + closeMinute + (closeMinute <= startMinute ? DAY_MINUTES : 0);
+      intervals.push({ weekday, start, end });
     }
   });
+
+  const expanded = [
+    ...intervals,
+    ...intervals.map((item) => ({ ...item, start: item.start + WEEK_MINUTES, end: item.end + WEEK_MINUTES })),
+  ].sort((a, b) => a.start - b.start);
+
+  for (let index = 1; index < expanded.length; index += 1) {
+    const previous = expanded[index - 1];
+    const current = expanded[index];
+    if (current.start < previous.end && current.start < WEEK_MINUTES * 2) {
+      errors[current.weekday % 7] = "Este turno se sobrepõe a outro horário cadastrado.";
+      errors[previous.weekday % 7] = "Este turno se sobrepõe a outro horário cadastrado.";
+    }
+  }
+
   return errors;
 }
 
@@ -84,7 +101,7 @@ function HorariosSection() {
   return (
     <SectionForm
       title="Horários de funcionamento"
-      description="A loja abre e fecha automaticamente conforme estes turnos."
+      description="A loja abre e fecha automaticamente conforme estes turnos. Horários podem atravessar a meia-noite, como 18:00 até 02:00."
       disabled={!canEdit}
       dirty={dirty}
       saving={isSaving}
@@ -135,54 +152,60 @@ function HorariosSection() {
 
               {open ? (
                 <div className="mt-3 space-y-2">
-                  {shifts.map((shift, index) => (
-                    <div key={index} className="flex flex-wrap items-center gap-2">
-                      <Input
-                        type="time"
-                        aria-label={`${label} — abertura do turno ${index + 1}`}
-                        value={shift.opens_at}
-                        className="h-12 w-32 text-base"
-                        onChange={(event) =>
-                          update(
-                            weekday,
-                            shifts.map((s, i) =>
-                              i === index ? { ...s, opens_at: event.target.value } : s,
-                            ),
-                          )
-                        }
-                      />
-                      <span className="text-sm text-muted-foreground">até</span>
-                      <Input
-                        type="time"
-                        aria-label={`${label} — fechamento do turno ${index + 1}`}
-                        value={shift.closes_at}
-                        className="h-12 w-32 text-base"
-                        onChange={(event) =>
-                          update(
-                            weekday,
-                            shifts.map((s, i) =>
-                              i === index ? { ...s, closes_at: event.target.value } : s,
-                            ),
-                          )
-                        }
-                      />
-                      {shifts.length > 1 ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="min-h-11"
-                          onClick={() =>
-                            update(
-                              weekday,
-                              shifts.filter((_, i) => i !== index),
-                            )
-                          }
-                        >
-                          Remover
-                        </Button>
-                      ) : null}
-                    </div>
-                  ))}
+                  {shifts.map((shift, index) => {
+                    const overnight = Boolean(shift.opens_at && shift.closes_at && toMinutes(shift.closes_at) < toMinutes(shift.opens_at));
+                    return (
+                      <div key={index}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Input
+                            type="time"
+                            aria-label={`${label} — abertura do turno ${index + 1}`}
+                            value={shift.opens_at}
+                            className="h-12 w-32 text-base"
+                            onChange={(event) =>
+                              update(
+                                weekday,
+                                shifts.map((s, i) =>
+                                  i === index ? { ...s, opens_at: event.target.value } : s,
+                                ),
+                              )
+                            }
+                          />
+                          <span className="text-sm text-muted-foreground">até</span>
+                          <Input
+                            type="time"
+                            aria-label={`${label} — fechamento do turno ${index + 1}`}
+                            value={shift.closes_at}
+                            className="h-12 w-32 text-base"
+                            onChange={(event) =>
+                              update(
+                                weekday,
+                                shifts.map((s, i) =>
+                                  i === index ? { ...s, closes_at: event.target.value } : s,
+                                ),
+                              )
+                            }
+                          />
+                          {overnight ? <span className="rounded-full bg-brand-soft px-2 py-1 text-[11px] font-bold text-brand">dia seguinte</span> : null}
+                          {shifts.length > 1 ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="min-h-11"
+                              onClick={() =>
+                                update(
+                                  weekday,
+                                  shifts.filter((_, i) => i !== index),
+                                )
+                              }
+                            >
+                              Remover
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
                   <Button
                     type="button"
                     variant="outline"
