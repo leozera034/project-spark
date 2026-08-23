@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { dbRpc } from "@/lib/rpc-caller";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -122,7 +123,7 @@ export const getMyStorePlanBillingDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ storeId: storeIdSchema }).parse(data))
   .handler(async ({ data, context }) => {
-    const { data: result, error } = await context.supabase.rpc("get_my_store_plan_billing_detail", { _store_id: data.storeId } as never);
+    const { data: result, error } = await dbRpc(context.supabase)("get_my_store_plan_billing_detail", { _store_id: data.storeId });
     if (error) throw error;
     return result as StorePlanBillingDetail;
   });

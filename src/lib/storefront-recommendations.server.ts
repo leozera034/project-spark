@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { slugSchema } from "@/lib/storefront.server";
+import { dbRpc } from "@/lib/rpc-caller";
 
 export const storefrontRecommendationInputSchema = z.object({
   slug: slugSchema,
@@ -22,7 +23,7 @@ export async function loadStorefrontRecommendations(
   });
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.rpc("storefront_product_recommendations", {
+  const { data, error } = await dbRpc(supabaseAdmin)("storefront_product_recommendations", {
     _slug: input.slug,
     _product_ids: input.productIds,
   });

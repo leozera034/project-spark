@@ -3,6 +3,7 @@ import type {
   SubmitOrderReviewInput,
   SubmitOrderReviewResult,
 } from "@/lib/store-reviews.contracts";
+import { dbRpc } from "@/lib/rpc-caller";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -11,7 +12,7 @@ async function admin() {
 
 export async function loadPublicOrderReviewState(token: string): Promise<PublicOrderReviewState> {
   const db = await admin();
-  const { data, error } = await db.rpc("get_public_order_review_state", {
+  const { data, error } = await dbRpc(db)("get_public_order_review_state", {
     _tracking_token: token,
   });
   if (error) {
@@ -23,7 +24,7 @@ export async function loadPublicOrderReviewState(token: string): Promise<PublicO
 
 export async function submitPublicOrderReview(input: SubmitOrderReviewInput): Promise<SubmitOrderReviewResult> {
   const db = await admin();
-  const { data, error } = await db.rpc("submit_store_order_review", {
+  const { data, error } = await dbRpc(db)("submit_store_order_review", {
     _tracking_token: input.token,
     _overall_rating: input.overallRating,
     _food_rating: input.foodRating ?? null,

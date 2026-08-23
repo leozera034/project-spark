@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { storefrontRequestSchema } from "@/lib/storefront-contracts";
+import { dbRpc } from "@/lib/rpc-caller";
 
 export interface PublicStoreReviewSummary {
   total: number;
@@ -12,7 +13,7 @@ export const getPublicStoreReviewSummary = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => storefrontRequestSchema.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: payload, error } = await supabaseAdmin.rpc("storefront_review_summary", {
+    const { data: payload, error } = await dbRpc(supabaseAdmin)("storefront_review_summary", {
       _slug: data.slug,
     });
 
