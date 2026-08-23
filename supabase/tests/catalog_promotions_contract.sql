@@ -69,6 +69,42 @@ BEGIN
   IF anon_can_execute OR authenticated_can_execute THEN
     RAISE EXCEPTION 'storefront_submit_order_v2_exposed_to_browser_roles';
   END IF;
+
+  IF NOT has_function_privilege(
+    'authenticated',
+    'public.create_catalog_promotion_v2(uuid,text,text,text,numeric,numeric,uuid,uuid,timestamp with time zone,timestamp with time zone,boolean,boolean)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'guarded_create_promotion_rpc_not_executable';
+  END IF;
+
+  IF NOT has_function_privilege(
+    'authenticated',
+    'public.set_catalog_promotion_active_v2(uuid,uuid,boolean,timestamp with time zone,boolean)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'guarded_activate_promotion_rpc_not_executable';
+  END IF;
+
+  IF has_function_privilege(
+    'authenticated',
+    'public.create_catalog_promotion(uuid,text,text,public.promotion_type,numeric,numeric,uuid,uuid,timestamp with time zone,timestamp with time zone,boolean)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'legacy_create_promotion_rpc_exposed';
+  END IF;
+
+  IF has_function_privilege(
+    'authenticated',
+    'public.set_catalog_promotion_active(uuid,uuid,boolean,timestamp with time zone)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'legacy_activate_promotion_rpc_exposed';
+  END IF;
+
+  IF has_function_privilege('authenticated','private.catalog_promotion_negative_margin_count(uuid)','EXECUTE') THEN
+    RAISE EXCEPTION 'private_margin_guard_exposed';
+  END IF;
 END $$;
 
 DO $$
