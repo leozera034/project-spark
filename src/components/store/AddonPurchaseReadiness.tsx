@@ -8,8 +8,8 @@ import { useAddonCheckout, useAddonPurchasePreflight } from "@/store/addons/stor
 
 function checkoutErrorMessage(error: unknown): string {
   const code = error instanceof Error ? error.message : "";
-  if (code === "ADDON_PURCHASE_NOT_READY") return "Este recurso deixou de estar disponível para contratação. Atualize a página e tente novamente.";
-  if (code === "PROVIDER_PRICE_REQUIRES_RESYNC") return "O preço deste recurso está sendo atualizado. Tente novamente em alguns instantes.";
+  if (code === "ADDON_PURCHASE_NOT_READY") return "Este recurso não está disponível para contratação agora.";
+  if (code === "PROVIDER_PRICE_REQUIRES_RESYNC") return "O valor deste recurso está sendo atualizado. Tente novamente em alguns instantes.";
   if (code === "STRIPE_NOT_CONFIGURED") return "O pagamento deste recurso ainda não está disponível.";
   if (code === "ACCOUNT_EMAIL_REQUIRED") return "Adicione um e-mail válido à sua conta antes de contratar.";
   if (code === "CHECKOUT_IN_PROGRESS") return "Já existe uma contratação sendo preparada. Aguarde alguns instantes.";
@@ -27,7 +27,9 @@ function subscriptionLabel(status: string) {
 }
 
 export function AddonPurchaseReadiness({ storeId, addon, canViewBilling }: { storeId: string; addon: StoreAddon; canViewBilling: boolean }) {
-  const shouldCheck = canViewBilling && addon.availability_status === "available" && Boolean(addon.monthly_price);
+  const activeSubscription = Boolean(addon.subscription && ["active", "trial", "grace_period", "complimentary"].includes(addon.subscription.status));
+  const purchasable = addon.availability_status === "available" && Boolean(addon.monthly_price);
+  const shouldCheck = canViewBilling && purchasable && !activeSubscription;
   const preflight = useAddonPurchasePreflight(storeId, addon.code, "monthly", shouldCheck);
   const checkout = useAddonCheckout();
 
@@ -40,6 +42,17 @@ export function AddonPurchaseReadiness({ storeId, addon, canViewBilling }: { sto
     }
   }
 
+  if (activeSubscription && addon.subscription) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-xl border border-success/20 bg-success-soft/45 px-3 py-2.5 text-xs">
+        <span className="flex items-center gap-2 font-semibold text-success"><CheckCircle2 className="size-3.5" /> Recurso habilitado</span>
+        <Badge variant="success">{subscriptionLabel(addon.subscription.status)}</Badge>
+      </div>
+    );
+  }
+
+  if (!purchasable) return null;
+
   if (!canViewBilling) {
     return (
       <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">
@@ -49,21 +62,6 @@ export function AddonPurchaseReadiness({ storeId, addon, canViewBilling }: { sto
     );
   }
 
-  if (addon.subscription && ["active", "trial", "grace_period", "complimentary"].includes(addon.subscription.status)) {
-    return (
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-success/20 bg-success-soft/45 px-3 py-2.5 text-xs">
-        <span className="flex items-center gap-2 font-semibold text-success"><CheckCircle2 className="size-3.5" /> Recurso habilitado</span>
-        <Badge variant="success">{subscriptionLabel(addon.subscription.status)}</Badge>
-      </div>
-    );
-  }
-
-  if (addon.availability_status !== "available") {
-    return <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">Este recurso ainda não está disponível para contratação.</div>;
-  }
-  if (!addon.monthly_price) {
-    return <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">O valor deste recurso ainda está sendo preparado.</div>;
-  }
   if (preflight.isLoading) {
     return <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground" role="status"><Loader2 className="size-3.5 animate-spin" /> Conferindo disponibilidade…</div>;
   }
