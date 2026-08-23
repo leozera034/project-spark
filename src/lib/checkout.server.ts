@@ -5,8 +5,8 @@
  * - o visitante nunca toca nas tabelas: tudo passa por RPCs `storefront_*`
  *   concedidas exclusivamente ao servidor;
  * - o `store_id` é resolvido pelo slug dentro do banco e nunca sai daqui;
- * - nenhum preço, taxa, total ou pedido mínimo enviado pelo navegador é aceito:
- *   a RPC `storefront_submit_order` recalcula tudo dentro da transação;
+ * - nenhum preço, desconto, taxa, total ou pedido mínimo enviado pelo navegador é aceito:
+ *   a RPC `storefront_submit_order_v2` recalcula tudo e devolve o pedido persistido;
  * - a criação do pedido é idempotente por (loja, chave); o mesmo conteúdo
  *   devolve o mesmo pedido, conteúdo diferente com a mesma chave é recusado;
  * - erros são normalizados; detalhe técnico fica apenas no log do servidor.
@@ -36,6 +36,7 @@ export type PublicOrderReceipt = {
   trackingToken: string;
   status: string;
   itemsSubtotal: number;
+  discountTotal: number;
   deliveryFee: number;
   total: number;
   etaMinutes: number | null;
@@ -94,15 +95,15 @@ export async function loadPublicPaymentMethods(
 
 /**
  * Envia o pedido. Toda a validação final (loja aberta, modalidade, bairro,
- * disponibilidade, montagem, preços, pedido mínimo, forma de pagamento) é
- * refeita dentro da transação do banco.
+ * disponibilidade, montagem, preços, promoção, pedido mínimo e pagamento) é
+ * refeita dentro da transação do banco. O recibo vem do pedido persistido.
  */
 export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitOrderResult> {
   const parsed = checkoutRequestSchema.parse(input);
   const db = await admin();
   const { slug, ...payload } = parsed;
 
-  const { data, error } = await db.rpc("storefront_submit_order", {
+  const { data, error } = await db.rpc("storefront_submit_order_v2", {
     _slug: slug,
     _payload: payload as unknown as never,
   });
@@ -141,6 +142,7 @@ export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitO
       trackingToken: String(order.trackingToken ?? ""),
       status: String(order.status ?? "aguardando_confirmacao"),
       itemsSubtotal: num(order.itemsSubtotal),
+      discountTotal: num(order.discountTotal),
       deliveryFee: num(order.deliveryFee),
       total: num(order.total),
       etaMinutes:
