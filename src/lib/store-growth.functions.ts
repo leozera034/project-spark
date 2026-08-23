@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { JsonObject } from "@/lib/json";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
@@ -86,7 +87,7 @@ export interface AutomationRule {
   action_code: "sugerir_whatsapp" | "criar_tarefa" | "send_whatsapp_template";
   name: string;
   is_enabled: boolean;
-  config: Record<string, unknown>;
+  config: JsonObject;
   created_at: string;
   updated_at: string;
 }

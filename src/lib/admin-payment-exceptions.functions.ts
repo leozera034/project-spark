@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { JsonObject } from "@/lib/json";
 
 type RpcResult = { data: unknown; error: unknown };
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
@@ -25,7 +26,7 @@ export interface AdminPaymentExceptionItem {
   reviewedAt: string | null;
   resolvedAt: string | null;
   resolutionNote: string | null;
-  metadata: Record<string, unknown>;
+  metadata: JsonObject;
 }
 
 export const listAdminPaymentExceptions = createServerFn({ method: "GET" })

@@ -3,6 +3,7 @@ import { dbRpc } from "@/lib/rpc-caller";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { JsonObject } from "@/lib/json";
 
 const storeIdSchema = z.string().uuid();
 const planCodeSchema = z.enum(["gratis", "essencial", "profissional", "avancado"]);
@@ -17,7 +18,7 @@ export type StorePlanBillingDetail = {
     id: string;
     code: string;
     name: string;
-    features: Record<string, unknown>;
+    features: JsonObject;
     max_orders_month: number | null;
     max_team_members: number | null;
     max_couriers: number | null;
