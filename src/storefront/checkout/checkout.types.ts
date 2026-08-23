@@ -21,7 +21,8 @@ export type PublicOrderReceipt = {
   trackingToken: string;
   status: string;
   itemsSubtotal: number;
-  discountTotal: number;
+  /** Opcional para comprovantes v1 já gravados antes das promoções. */
+  discountTotal?: number;
   deliveryFee: number;
   total: number;
   etaMinutes: number | null;
