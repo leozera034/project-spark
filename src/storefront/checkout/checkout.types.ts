@@ -21,6 +21,7 @@ export type PublicOrderReceipt = {
   trackingToken: string;
   status: string;
   itemsSubtotal: number;
+  discountTotal: number;
   deliveryFee: number;
   total: number;
   etaMinutes: number | null;
