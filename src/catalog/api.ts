@@ -3,6 +3,8 @@ import { toFriendlyMessage as baseFriendlyMessage } from "@/store-config/errors"
 
 import { optimizeCatalogImage } from "./image-optimization";
 import type {
+  CatalogBulkAction,
+  CatalogBulkResult,
   CatalogCategory,
   CatalogMenuIntelligence,
   CatalogOverview,
@@ -21,6 +23,9 @@ const CATALOG_MESSAGES: Record<string, string> = {
   INVALID_PRICE: "Informe um preço válido.",
   INVALID_UNIT_COST: "Informe um custo válido, com no máximo duas casas decimais.",
   INVALID_PERIOD: "Escolha um período entre 7 e 365 dias.",
+  INVALID_BULK_SELECTION: "Selecione entre 1 e 100 produtos para alterar de uma vez.",
+  INVALID_BULK_ACTION: "Esta ação em lote não é permitida.",
+  INVALID_BULK_VALUE: "A ação em lote está incompleta.",
   INVALID_DESCRIPTION: "A descrição contém conteúdo não permitido.",
   INVALID_FILTER: "Não foi possível aplicar este filtro.",
   INVALID_ORDER: "Não foi possível reordenar a lista.",
@@ -290,6 +295,24 @@ export async function updateProductCost(params: {
       _id: params.id,
       _unit_cost: params.unitCost,
       _expected_updated_at: params.expectedUpdatedAt,
+    }),
+  );
+}
+
+export async function bulkUpdateProducts(params: {
+  storeId: string;
+  productIds: string[];
+  action: CatalogBulkAction;
+  value?: boolean | null;
+  categoryId?: string | null;
+}): Promise<CatalogBulkResult> {
+  return unwrap<CatalogBulkResult>(
+    await rpc("bulk_update_catalog_products", {
+      _store_id: params.storeId,
+      _product_ids: params.productIds,
+      _action: params.action,
+      _value: params.value ?? null,
+      _category_id: params.categoryId ?? null,
     }),
   );
 }
