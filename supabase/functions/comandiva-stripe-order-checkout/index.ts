@@ -33,10 +33,11 @@ Deno.serve(async(req:Request)=>{
     if(error||!data)return json(req,{ok:false,error:"order_not_found"},404);
     return json(req,{ok:true,payment:data});
   }
-  const {data:ctx,error}=await a.rpc("backend_get_order_stripe_payment_context",{_order_id:orderId,_tracking_token:trackingToken} as never);
+  const {data:ctx,error}=await a.rpc("backend_get_order_stripe_checkout_context",{_order_id:orderId,_tracking_token:trackingToken} as never);
   if(error||!ctx)return json(req,{ok:false,error:"order_not_found"},404);
   const c=obj(ctx);if(c.ready!==true)return json(req,{ok:false,error:str(c.reason)??"stripe_not_ready"},409);
-  const destination=str(c.stripe_account_id),amount=int(c.amount_cents),platformFee=int(c.platform_fee_cents)??int(c.application_fee_amount)??0,currency=str(c.currency)??"brl",orderNumber=str(c.order_number)??"";
+  if(str(c.charge_pattern)!=="separate")return json(req,{ok:false,error:"unsupported_charge_pattern"},409);
+  const destination=str(c.stripe_account_id),amount=int(c.amount_cents),platformFee=int(c.platform_fee_cents)??0,currency=str(c.currency)??"brl",orderNumber=str(c.order_number)??"";
   if(!destination||!amount||amount<=0)return json(req,{ok:false,error:"payment_context_invalid"},409);
   const slug=encodeURIComponent(str(body?.slug)??"");
   const success=`${APP_ORIGIN}/loja/${slug}/pedido-enviado?payment=success`;
