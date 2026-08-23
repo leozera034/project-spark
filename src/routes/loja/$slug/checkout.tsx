@@ -55,6 +55,7 @@ function CheckoutPage() {
   const [phoneTouched, setPhoneTouched] = useState(false);
 
   const fulfillmentType = context?.type ?? null;
+  const discountTotal = cart.quote?.discountTotal ?? 0;
 
   useEffect(() => {
     if (!fulfillmentType) return;
@@ -329,9 +330,11 @@ function CheckoutPage() {
           <h2 className="text-lg font-extrabold">Resumo</h2>
           <div className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><strong>{brl(cart.subtotal)}</strong></div>
+            {discountTotal > 0 ? <div className="flex justify-between text-emerald-700"><span>Desconto promocional</span><strong>- {brl(discountTotal)}</strong></div> : null}
             <div className="flex justify-between"><span className="text-muted-foreground">{context.type === "entrega" ? "Taxa de entrega" : "Retirada na loja"}</span><strong>{context.type === "entrega" ? (cart.deliveryFee === null ? "A calcular" : brl(cart.deliveryFee)) : "Sem taxa"}</strong></div>
             <div className="mt-3 flex justify-between border-t pt-3 text-lg"><span className="font-extrabold">Total</span><span className="font-black">{brl(cart.total)}</span></div>
           </div>
+          {discountTotal > 0 ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">Você economiza {brl(discountTotal)} neste pedido. O desconto será recalculado e confirmado novamente ao enviar.</p> : null}
         </section>
       </div>
 
