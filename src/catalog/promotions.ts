@@ -134,15 +134,37 @@ export async function setCatalogPromotionActive(
   expectedUpdatedAt: string,
   acknowledgeNegativeMargin = false,
 ): Promise<CatalogPromotionActivationResult> {
-  return unwrap<CatalogPromotionActivationResult>(
-    await rpc("set_catalog_promotion_active_v2", {
-      _store_id: storeId,
-      _id: id,
-      _is_active: isActive,
-      _expected_updated_at: expectedUpdatedAt,
-      _acknowledge_negative_margin: acknowledgeNegativeMargin,
-    }),
-  );
+  const args = {
+    _store_id: storeId,
+    _id: id,
+    _is_active: isActive,
+    _expected_updated_at: expectedUpdatedAt,
+    _acknowledge_negative_margin: acknowledgeNegativeMargin,
+  };
+  const first = await rpc("set_catalog_promotion_active_v2", args) as {
+    data: unknown;
+    error: { message?: string } | null;
+  };
+
+  if (
+    first.error?.message?.includes("PROMOTION_NEGATIVE_MARGIN_ACK_REQUIRED") &&
+    isActive &&
+    !acknowledgeNegativeMargin &&
+    typeof window !== "undefined"
+  ) {
+    const accepted = window.confirm(
+      "Esta promoção deixa pelo menos um produto abaixo do custo cadastrado. Habilitar mesmo assim? Essa decisão reduz margem e pode gerar prejuízo por venda.",
+    );
+    if (!accepted) throw new Error("PROMOTION_MARGIN_RISK_CANCELLED");
+    return unwrap<CatalogPromotionActivationResult>(
+      await rpc("set_catalog_promotion_active_v2", {
+        ...args,
+        _acknowledge_negative_margin: true,
+      }),
+    );
+  }
+
+  return unwrap<CatalogPromotionActivationResult>(first);
 }
 
 export async function archiveCatalogPromotion(
