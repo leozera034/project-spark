@@ -6,17 +6,14 @@ import {
   Bike,
   CheckCircle2,
   ChefHat,
-  CircleDollarSign,
   Clock,
-  Headphones,
   MessageCircle,
   PackageCheck,
   ShoppingBag,
-  Star,
   UtensilsCrossed,
   Users,
   WalletCards,
-  Zap,
+  XCircle,
 } from "lucide-react";
 
 import { useAuth } from "@/auth/useAuth";
@@ -27,10 +24,7 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { useOrderCounts, useOrderQueue, useOrderTransition } from "@/store-orders/useStoreOrders";
 import { ACTION_LABEL, ORDER_QUEUES, STATUS_LABEL, type StoreOrderAction, type StoreOrderListItem, type StoreOrderStatus } from "@/store-orders/types";
 import { orderStatusBadgeVariant } from "@/components/store/order-status";
-import { useStoreFinancialCenter } from "@/store/finance/store-finance.queries";
-import { useStoreReviewCenter } from "@/store/reviews/store-reviews.queries";
 import { useStoreBusinessReportSummary } from "@/store/reports/deliveries/delivery-report.queries";
-import { useStoreSupportCenter } from "@/store/support/store-support.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
 export const Route = createFileRoute("/app/loja/")({
@@ -74,9 +68,6 @@ function StoreHome() {
 
   const countsQuery = useOrderCounts(storeId, enabled);
   const businessQuery = useStoreBusinessReportSummary("today");
-  const reviewsQuery = useStoreReviewCenter(storeId);
-  const supportQuery = useStoreSupportCenter(storeId);
-  const financeQuery = useStoreFinancialCenter(storeId);
   const recentFilters = useMemo(
     () => ({
       statuses: ORDER_QUEUES.flatMap((queue) => queue.statuses).filter(
@@ -114,31 +105,16 @@ function StoreHome() {
     .slice(0, 7);
   const needsAttention = newOrders > 0 || delayedOrders > 0;
 
-  const reviewItems = reviewsQuery.data?.items ?? [];
-  const unansweredReviews = reviewItems.filter((item) => !item.merchantReply).length;
-  const unansweredCriticalReviews = reviewItems.filter((item) => !item.merchantReply && item.overallRating <= 3).length;
-  const waitingSupport = (supportQuery.data?.items ?? []).filter((item) => item.status === "aguardando_loja").length;
-  const activeSupport = supportQuery.data?.summary.active ?? 0;
-  const finance = financeQuery.data;
-  const financeNeedsSetup = Boolean(
-    finance &&
-      (!finance.connection.configured ||
-        !finance.connection.detailsSubmitted ||
-        !finance.connection.payoutsEnabled ||
-        !finance.connection.transfersEnabled),
-  );
-  const managementAttention = unansweredReviews + waitingSupport + (financeNeedsSetup ? 1 : 0);
-
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Central da loja</p>
+          <p className="text-xs font-black uppercase tracking-[.14em] text-brand">Hoje na loja</p>
           <h1 className="mt-1 font-display text-3xl font-black tracking-[-.04em] sm:text-4xl">
             {selectedStore.name}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Olá, {authContext?.full_name?.split(" ")[0] ?? "equipe"}. Aqui está o que importa na operação de hoje.
+            Olá, {authContext?.full_name?.split(" ")[0] ?? "equipe"}. Veja primeiro o que precisa de atenção agora.
           </p>
         </div>
         <Button asChild size="lg" className="sm:min-w-40">
@@ -175,49 +151,10 @@ function StoreHome() {
       </section>
 
       <section aria-label="Resumo de hoje" className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label="Faturamento hoje" value={businessQuery.isLoading ? "—" : brl.format(Number(business?.grossCompleted ?? 0))} icon={WalletCards} />
+        <SummaryCard label="Faturamento concluído" value={businessQuery.isLoading ? "—" : brl.format(Number(business?.grossCompleted ?? 0))} icon={WalletCards} />
         <SummaryCard label="Pedidos hoje" value={businessQuery.isLoading ? "—" : String(business?.totalOrders ?? 0)} icon={ShoppingBag} />
         <SummaryCard label="Ticket médio" value={businessQuery.isLoading ? "—" : brl.format(Number(business?.averageTicket ?? 0))} icon={PackageCheck} />
-        <SummaryCard label="Novos aguardando" value={countsQuery.isLoading ? "—" : String(newOrders)} icon={Zap} attention={newOrders > 0} />
-      </section>
-
-      <section className="mt-5" aria-labelledby="management-priorities-title">
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <div>
-            <h2 id="management-priorities-title" className="font-display text-xl font-black">Pendências da gestão</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Avaliações, suporte e financeiro que precisam de ação fora da fila de pedidos.</p>
-          </div>
-          {managementAttention > 0 ? <Badge variant="warning">{managementAttention} pendência(s)</Badge> : <Badge variant="success">Em dia</Badge>}
-        </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          <ManagementPriorityCard
-            to="/app/loja/avaliacoes"
-            icon={Star}
-            title="Avaliações"
-            value={reviewsQuery.isLoading ? "—" : String(unansweredReviews)}
-            description={unansweredReviews > 0 ? `${unansweredCriticalReviews} crítica(s) de 1–3 estrelas ainda sem resposta.` : "Nenhuma avaliação aguardando resposta."}
-            attention={unansweredReviews > 0}
-            actionLabel={unansweredReviews > 0 ? "Responder avaliações" : "Ver reputação"}
-          />
-          <ManagementPriorityCard
-            to="/app/loja/ajuda"
-            icon={Headphones}
-            title="Suporte"
-            value={supportQuery.isLoading ? "—" : String(waitingSupport)}
-            description={waitingSupport > 0 ? `${waitingSupport} chamado(s) aguardando uma resposta da loja.` : `${activeSupport} chamado(s) ativo(s), sem retorno pendente da loja.`}
-            attention={waitingSupport > 0}
-            actionLabel={waitingSupport > 0 ? "Responder suporte" : "Abrir central"}
-          />
-          <ManagementPriorityCard
-            to="/app/loja/financeiro"
-            icon={CircleDollarSign}
-            title="Financeiro"
-            value={financeQuery.isLoading ? "—" : financeNeedsSetup ? "Configurar" : brl.format((finance?.balances.availableCents ?? 0) / 100)}
-            description={financeNeedsSetup ? "A conta Stripe ainda não está pronta para receber e repassar valores." : "Saldo disponível para gestão; valores pendentes aparecem no Centro Financeiro."}
-            attention={financeNeedsSetup}
-            actionLabel={financeNeedsSetup ? "Concluir configuração" : "Abrir financeiro"}
-          />
-        </div>
+        <SummaryCard label="Cancelados ou recusados" value={businessQuery.isLoading ? "—" : String(business?.cancelledOrders ?? 0)} icon={XCircle} attention={(business?.cancelledOrders ?? 0) > 0} />
       </section>
 
       <section className="mt-5" aria-labelledby="orders-now-title">
@@ -300,52 +237,15 @@ function StoreHome() {
           </section>
 
           <section className="rounded-2xl border border-brand/15 bg-brand-soft/35 p-5">
-            <p className="text-xs font-black uppercase tracking-[.12em] text-brand">Fluxo recomendado</p>
-            <p className="mt-2 text-sm font-bold text-foreground">Pedidos → Cozinha → Entrega</p>
+            <p className="text-xs font-black uppercase tracking-[.12em] text-brand">Fluxo da operação</p>
+            <p className="mt-2 text-sm font-bold text-foreground">Pedidos → Cozinha → Entregas</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              A navegação acompanha a sequência real do pedido. Cardápio, clientes e comunicação ficam separados para não atrapalhar a operação.
+              Cardápio, clientes e comunicação ficam separados para manter a operação rápida e fácil de entender.
             </p>
           </section>
         </div>
       </div>
     </div>
-  );
-}
-
-function ManagementPriorityCard({
-  to,
-  icon: Icon,
-  title,
-  value,
-  description,
-  actionLabel,
-  attention = false,
-}: {
-  to: string;
-  icon: typeof Star;
-  title: string;
-  value: string;
-  description: string;
-  actionLabel: string;
-  attention?: boolean;
-}) {
-  return (
-    <Link
-      to={to as never}
-      className={`panel group flex min-w-0 flex-col p-5 transition hover:-translate-y-0.5 hover:border-brand/25 ${attention ? "border-warning/35 bg-warning-soft/20" : ""}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-[.1em] text-muted-foreground">{title}</p>
-          <p className="mt-2 font-display text-2xl font-black tabular-nums">{value}</p>
-        </div>
-        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${attention ? "bg-warning-soft text-warning" : "bg-brand-soft text-brand"}`}>
-          <Icon className="size-5" />
-        </span>
-      </div>
-      <p className="mt-3 flex-1 text-xs leading-5 text-muted-foreground">{description}</p>
-      <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand">{actionLabel} <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" /></span>
-    </Link>
   );
 }
 
