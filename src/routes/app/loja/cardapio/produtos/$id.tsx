@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, ImagePlus, Loader2, PackageCheck, Settings2 } from "lucide-react";
+import { CalendarClock, CircleDollarSign, ImagePlus, Loader2, PackageCheck, Settings2 } from "lucide-react";
 
 import {
   getProduct,
@@ -9,6 +9,7 @@ import {
   setProductImage,
   updateProduct,
   updateProductAvailability,
+  updateProductCost,
   uploadCatalogImage,
 } from "@/catalog/api";
 import { CatalogImage } from "@/catalog/CatalogImage";
@@ -18,7 +19,7 @@ import { ProductBuilder } from "@/catalog/advanced/ProductBuilder";
 import { ComboSimpleBuilder } from "@/catalog/simple/ComboSimpleBuilder";
 import { PizzaSimpleBuilder } from "@/catalog/simple/PizzaSimpleBuilder";
 import { SimpleOptionsBuilder } from "@/catalog/simple/SimpleOptionsBuilder";
-import { parsePriceInput, type CatalogProduct } from "@/catalog/types";
+import { formatPriceBRL, parsePriceInput, type CatalogProduct } from "@/catalog/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/catalog/PageHeader";
@@ -255,6 +256,106 @@ function AvailabilityEditor({
   );
 }
 
+function CostEditor({
+  product,
+  storeId,
+  canUpdate,
+  busy,
+  save,
+}: {
+  product: CatalogProduct;
+  storeId: string;
+  canUpdate: boolean;
+  busy: boolean;
+  save: (input: Parameters<typeof updateProductCost>[0]) => Promise<unknown>;
+}) {
+  const [cost, setCost] = useState("");
+
+  useEffect(() => {
+    setCost(product.unit_cost === null || product.unit_cost === undefined ? "" : String(product.unit_cost).replace(".", ","));
+  }, [product.id, product.unit_cost]);
+
+  const hasCost = cost.trim().length > 0;
+  const parsedCost = hasCost ? parsePriceInput(cost) : null;
+  const invalid = hasCost && parsedCost === null;
+  const estimatedMargin = parsedCost === null ? null : product.base_price - parsedCost;
+  const estimatedMarginPercent = estimatedMargin === null || product.base_price <= 0
+    ? null
+    : (estimatedMargin / product.base_price) * 100;
+
+  async function submit() {
+    if (!canUpdate || invalid) return;
+    await save({
+      storeId,
+      id: product.id,
+      unitCost: parsedCost,
+      expectedUpdatedAt: product.updated_at,
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <Alert>
+        <CircleDollarSign className="size-4" />
+        <AlertTitle>Margem estimada, não lucro contábil</AlertTitle>
+        <AlertDescription>
+          Nesta primeira versão, a Comandiva considera apenas o custo base informado abaixo. Taxas, impostos, embalagem, ingredientes e custo específico de adicionais ainda não entram neste cálculo.
+        </AlertDescription>
+      </Alert>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Custo do produto</CardTitle>
+          <CardDescription>Informe quanto custa produzir ou comprar uma unidade comercial deste item.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="max-w-sm space-y-1.5">
+            <Label htmlFor="unit-cost">Custo estimado</Label>
+            <Input
+              id="unit-cost"
+              inputMode="decimal"
+              value={cost}
+              disabled={!canUpdate || busy}
+              onChange={(event) => setCost(event.target.value)}
+              placeholder="Ex.: 12,50"
+            />
+            <p className="text-xs text-muted-foreground">Deixe vazio para remover o custo cadastrado.</p>
+            {invalid ? <p className="text-xs font-medium text-destructive">Informe um valor válido.</p> : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-border p-4">
+              <p className="text-xs font-semibold text-muted-foreground">Preço base</p>
+              <p className="mt-1 text-xl font-black tabular-nums">{formatPriceBRL(product.base_price)}</p>
+            </div>
+            <div className="rounded-2xl border border-border p-4">
+              <p className="text-xs font-semibold text-muted-foreground">Custo estimado</p>
+              <p className="mt-1 text-xl font-black tabular-nums">{parsedCost === null ? "—" : formatPriceBRL(parsedCost)}</p>
+            </div>
+            <div className="rounded-2xl border border-border p-4">
+              <p className="text-xs font-semibold text-muted-foreground">Margem bruta estimada</p>
+              <p className={`mt-1 text-xl font-black tabular-nums ${estimatedMargin !== null && estimatedMargin < 0 ? "text-destructive" : ""}`}>
+                {estimatedMargin === null ? "—" : formatPriceBRL(estimatedMargin)}
+              </p>
+              {estimatedMarginPercent !== null ? <p className="mt-1 text-xs text-muted-foreground">{estimatedMarginPercent.toFixed(1).replace(".", ",")}% do preço base</p> : null}
+            </div>
+          </div>
+
+          {product.has_variants ? (
+            <p className="rounded-xl bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+              Este produto possui variações. A prévia acima usa o preço base; o relatório de vendas usa a receita real registrada nos pedidos, mas ainda aplica este mesmo custo base por quantidade vendida.
+            </p>
+          ) : null}
+
+          <Button disabled={!canUpdate || busy || invalid} loading={busy} loadingLabel="Salvando custo" onClick={() => void submit()}>
+            Salvar custo
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function EditarProduto() {
   const { id } = useParams({ from: "/app/loja/cardapio/produtos/$id" });
   const navigate = useNavigate();
@@ -306,12 +407,13 @@ function EditarProduto() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title={product.name} description="Edite informações, foto, disponibilidade e escolhas que o cliente encontra neste produto." />
+      <PageHeader title={product.name} description="Edite informações, foto, custo, disponibilidade e escolhas que o cliente encontra neste produto." />
       {product.is_archived ? <Alert><AlertTitle>Produto arquivado</AlertTitle><AlertDescription>Restaure o produto na lista para voltar a editá-lo.</AlertDescription></Alert> : null}
 
       <Tabs defaultValue="dados">
         <TabsList className="h-auto max-w-full flex-wrap justify-start">
           <TabsTrigger value="dados">Informações</TabsTrigger>
+          <TabsTrigger value="custo">Custo e margem</TabsTrigger>
           <TabsTrigger value="opcoes">Preços e adicionais</TabsTrigger>
           <TabsTrigger value="disponibilidade">Disponibilidade</TabsTrigger>
         </TabsList>
@@ -349,6 +451,22 @@ function EditarProduto() {
             showStatusFields={false}
             submitLabel="Salvar alterações"
           />
+        </TabsContent>
+
+        <TabsContent value="custo" className="mt-4">
+          {storeId ? (
+            <CostEditor
+              product={product}
+              storeId={storeId}
+              canUpdate={canUpdate}
+              busy={isBusy}
+              save={async (input) => {
+                const saved = await run(() => updateProductCost(input), "Custo do produto atualizado.");
+                if (saved) await productQuery.refetch();
+                return saved;
+              }}
+            />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="opcoes" className="mt-4 space-y-4">
