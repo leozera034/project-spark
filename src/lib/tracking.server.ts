@@ -9,7 +9,7 @@
  *   persistida em lugar algum;
  * - erros são normalizados; detalhes ficam no log do servidor.
  */
-import type { PublicOrderTracking, TrackingResponse } from "@/lib/tracking-contracts";
+import type { PublicDeliveryProof, PublicOrderTracking, TrackingResponse } from "@/lib/tracking-contracts";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 
@@ -33,6 +33,20 @@ async function signLogo(path: string | null): Promise<string | null> {
       .from("store-branding")
       .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
     return data?.signedUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadDeliveryProof(tokenHash: string): Promise<PublicDeliveryProof | null> {
+  try {
+    const db = await admin();
+    const { data, error } = await db.rpc("storefront_delivery_proof", { _token_hash: tokenHash });
+    if (error || !data || typeof data !== "object") return null;
+    const candidate = data as { mode?: unknown; code?: unknown };
+    if (candidate.mode !== "pin") return { mode: "none", code: null };
+    const code = typeof candidate.code === "string" && /^\d{6}$/.test(candidate.code) ? candidate.code : null;
+    return { mode: "pin", code };
   } catch {
     return null;
   }
@@ -72,11 +86,27 @@ export async function loadOrderTracking(
     store: { logoPath?: string | null };
   };
 
-  const logoUrl = await signLogo(projection.store?.logoPath ?? null);
+  const [logoUrl, proof] = await Promise.all([
+    signLogo(projection.store?.logoPath ?? null),
+    projection.fulfillment?.type === "entrega" ? loadDeliveryProof(tokenHash) : Promise.resolve(null),
+  ]);
   const { logoPath: _ignored, ...store } = projection.store as Record<string, unknown>;
+
+  const proofMessage = proof?.mode === "pin" && proof.code
+    ? `Código da entrega: ${proof.code}. Informe este código somente quando o entregador estiver com seu pedido no local.`
+    : null;
+  const existingMessage = projection.status.publicMessage?.trim() || null;
 
   return {
     ...projection,
     store: { ...(store as PublicOrderTracking["store"]), logoUrl },
+    status: {
+      ...projection.status,
+      publicMessage: [existingMessage, proofMessage].filter(Boolean).join(" • ") || null,
+    },
+    fulfillment: {
+      ...projection.fulfillment,
+      proof,
+    },
   };
 }
