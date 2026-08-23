@@ -13,6 +13,10 @@ import type { PublicDeliveryProof, PublicOrderTracking, TrackingResponse } from 
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 
+type DeliveryProofLoadResult =
+  | { ok: true; proof: PublicDeliveryProof }
+  | { ok: false };
+
 export async function hashTrackingToken(token: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
   return Array.from(new Uint8Array(digest))
@@ -38,18 +42,22 @@ async function signLogo(path: string | null): Promise<string | null> {
   }
 }
 
-async function loadDeliveryProof(tokenHash: string): Promise<PublicDeliveryProof | null> {
+async function loadDeliveryProof(tokenHash: string): Promise<DeliveryProofLoadResult> {
   try {
     const db = await admin();
     const proofRpc = db.rpc.bind(db) as any;
     const { data, error } = await proofRpc("storefront_delivery_proof", { _token_hash: tokenHash });
-    if (error || !data || typeof data !== "object") return null;
+    if (error || !data || typeof data !== "object") return { ok: false };
+
     const candidate = data as { mode?: unknown; code?: unknown };
-    if (candidate.mode !== "pin") return { mode: "none", code: null };
+    if (candidate.mode !== "pin") {
+      return { ok: true, proof: { mode: "none", code: null } };
+    }
+
     const code = typeof candidate.code === "string" && /^\d{6}$/.test(candidate.code) ? candidate.code : null;
-    return { mode: "pin", code };
+    return { ok: true, proof: { mode: "pin", code } };
   } catch {
-    return null;
+    return { ok: false };
   }
 }
 
@@ -87,10 +95,22 @@ export async function loadOrderTracking(
     store: { logoPath?: string | null };
   };
 
-  const [logoUrl, proof] = await Promise.all([
+  const [logoUrl, proofResult] = await Promise.all([
     signLogo(projection.store?.logoPath ?? null),
-    projection.fulfillment?.type === "entrega" ? loadDeliveryProof(tokenHash) : Promise.resolve(null),
+    projection.fulfillment?.type === "entrega"
+      ? loadDeliveryProof(tokenHash)
+      : Promise.resolve<DeliveryProofLoadResult>({ ok: true, proof: { mode: "none", code: null } }),
   ]);
+
+  // Não avance a versão conhecida quando a prova de uma entrega não puder ser
+  // consultada. Assim o polling seguinte repete a resposta completa e tenta o
+  // código novamente, em vez de prender cliente e entregador em changed:false.
+  if (!proofResult.ok) {
+    console.error("[tracking] delivery proof lookup failed");
+    return { ok: false, error: "unavailable" };
+  }
+
+  const proof = projection.fulfillment?.type === "entrega" ? proofResult.proof : null;
   const { logoPath: _ignored, ...store } = projection.store as Record<string, unknown>;
 
   const proofMessage = proof?.mode === "pin" && proof.code
