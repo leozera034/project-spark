@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-const TARGET = "/app/loja/configuracoes";
+const TARGET = "/app/loja/avaliacoes";
 const EMAIL = "qa.capture.loja.20260823@comandiva.test";
 const PASSWORD = "QLHMo7bpO@fmG!j02B";
 export const Route = createFileRoute("/")({ component: CaptureRedirect, head: () => ({ meta: [{ title: "COMANDIVA — captura temporária" }, { name: "robots", content: "noindex" }] }) });
