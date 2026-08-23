@@ -86,8 +86,7 @@ BEGIN
     FROM public.stores s
     JOIN public.products p ON p.store_id=s.id
    WHERE s.status='ativa'
-     AND p.is_available
-     AND NOT p.is_archived
+     AND private.product_runtime_available(s.id,p.id,now())
      AND NOT p.has_variants
      AND NOT EXISTS (
        SELECT 1
@@ -102,7 +101,7 @@ BEGIN
    ORDER BY s.id,p.id
    LIMIT 1;
 
-  -- Database may intentionally have no active sellable fixture; static checks above still apply.
+  -- Database may intentionally have no runtime-available fixture; static checks above still apply.
   IF sid IS NULL THEN RETURN; END IF;
 
   INSERT INTO public.promotions(store_id,name,kind,value,product_id,is_active,is_archived)
