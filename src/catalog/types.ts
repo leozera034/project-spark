@@ -106,6 +106,14 @@ export interface CatalogMenuIntelligence {
   items: CatalogMenuIntelligenceItem[];
 }
 
+export type CatalogBulkAction = "set_sold_out" | "set_active" | "set_featured" | "move_category";
+
+export interface CatalogBulkResult {
+  updated: number;
+  action: CatalogBulkAction;
+  product_ids: string[];
+}
+
 export type ProductStatusFilter =
   | "todos"
   | "ativos"
