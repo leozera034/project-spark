@@ -31,12 +31,23 @@ export type PromotionalPriceResult = {
 
 type PromotionPreview = { product_id: string; promotion: PublicPromotion };
 
+type RpcResult = { data: unknown; error: { message: string } | null };
+
+async function callPromotionRpc(name: string, args: Record<string, unknown>): Promise<RpcResult> {
+  const db = await admin();
+  // As RPCs promocionais já estão versionadas por migração, mas o arquivo
+  // gigante de tipos gerados é atualizado separadamente. Limitamos o cast a
+  // esta borda server-only em vez de enfraquecer o cliente Supabase inteiro.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rpc = db.rpc.bind(db) as any;
+  return rpc(name, args) as Promise<RpcResult>;
+}
+
 export async function decorateCatalogWithPromotions(
   rawSlug: string,
   catalog: PublicCatalog,
 ): Promise<PublicCatalog> {
-  const db = await admin();
-  const { data, error } = await db.rpc("storefront_active_promotions", { _slug: rawSlug });
+  const { data, error } = await callPromotionRpc("storefront_active_promotions", { _slug: rawSlug });
   if (error || !data) {
     if (error) console.error("[storefront] promotions preview failed", error.message);
     return catalog;
@@ -75,8 +86,7 @@ export async function decorateCatalogWithPromotions(
 
 export async function computePromotionalPublicPrice(input: PriceInput): Promise<PromotionalPriceResult> {
   const parsed = priceInputSchema.parse(input);
-  const db = await admin();
-  const { data, error } = await db.rpc("storefront_price_with_promotions", {
+  const { data, error } = await callPromotionRpc("storefront_price_with_promotions", {
     _slug: parsed.slug,
     _product_id: parsed.product_id,
     _variant_id: parsed.variant_id ?? undefined,
