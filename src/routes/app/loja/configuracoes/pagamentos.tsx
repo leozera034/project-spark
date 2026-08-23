@@ -6,7 +6,6 @@ import {
   CreditCard,
   Landmark,
   Loader2,
-  ShieldCheck,
   Smartphone,
   TriangleAlert,
 } from "lucide-react";
@@ -61,7 +60,6 @@ function PagamentosSection() {
   const onlineReady = setup?.online_ready ?? false;
   const fee = formatPercentFromBps(setup?.application_fee_bps);
 
-  const [onlineAck, setOnlineAck] = useState(false);
   const [startingStripe, setStartingStripe] = useState(false);
   const [pixEnabled, setPixEnabled] = useState(false);
   const [pixKey, setPixKey] = useState("");
@@ -79,14 +77,14 @@ function PagamentosSection() {
     try {
       const result = await beginStripeConnectOnboarding({ data: { storeId } });
       if (result.alreadyReady) {
-        toast.success("Cadastro Stripe pronto. Atualizamos o estado dos recebimentos.");
+        toast.success("Cadastro Stripe pronto. Agora é só ligar o recebimento online.");
         refresh();
         return;
       }
       if (!result.onboardingUrl) throw new Error("onboarding_url_missing");
       window.location.assign(result.onboardingUrl);
     } catch {
-      toast.error("Não foi possível abrir o cadastro Stripe agora.");
+      toast.error("Não foi possível abrir a ativação da Stripe agora.");
     } finally {
       setStartingStripe(false);
     }
@@ -94,11 +92,10 @@ function PagamentosSection() {
 
   async function toggleOnline(enabled: boolean) {
     if (!storeId) return;
-    const ok = await save(
-      () => setStoreOnlinePayments({ storeId, enabled, acknowledgeFees: enabled ? onlineAck : false }),
-      enabled ? "Pagamentos online ativados." : "Pagamentos online pausados.",
+    await save(
+      () => setStoreOnlinePayments({ storeId, enabled, acknowledgeFees: enabled }),
+      enabled ? "Pagamento online ativado no checkout." : "Pagamento online pausado no checkout.",
     );
-    if (ok) setOnlineAck(false);
   }
 
   async function savePix() {
@@ -126,10 +123,10 @@ function PagamentosSection() {
   return (
     <div className="space-y-6 pb-4">
       <div>
-        <p className="text-xs font-black uppercase tracking-[.14em] text-muted-foreground">Recebimentos</p>
+        <p className="text-xs font-black uppercase tracking-[.14em] text-muted-foreground">Pagamentos</p>
         <h1 className="mt-1 font-display text-2xl font-black">Como sua loja quer receber?</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          Você pode aceitar pagamentos online com confirmação automática ou receber diretamente da pessoa cliente. Os dois modelos são independentes e podem ficar ativos ao mesmo tempo.
+          Use pagamento online com confirmação automática ou receba direto na loja por Pix, dinheiro e maquininha. Você pode usar os dois modelos ao mesmo tempo.
         </p>
       </div>
 
@@ -146,74 +143,103 @@ function PagamentosSection() {
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand text-brand-foreground"><Landmark className="size-5" /></span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle>Receber online pela Comandiva</CardTitle>
+                  <CardTitle>Pagamento online</CardTitle>
                   <Badge variant={onlineEnabled ? "success" : onlineReady ? "warning" : "outline"}>
-                    {onlineEnabled ? "Ativo" : onlineReady ? "Pronto para ativar" : setup?.stripe_connected ? "Cadastro em andamento" : "Não configurado"}
+                    {onlineEnabled ? "Ativo no checkout" : onlineReady ? "Pronto para ligar" : setup?.stripe_connected ? "Ativação incompleta" : "Desativado"}
                   </Badge>
                 </div>
                 <CardDescription className="mt-1 max-w-2xl">
-                  Pagamento antes da confirmação do pedido, processado pela Stripe, com conciliação automática no Financeiro.
+                  A pessoa paga antes da confirmação do pedido. Pix e cartão são processados pela Stripe e conciliados automaticamente.
                 </CardDescription>
               </div>
             </div>
-            {onlineEnabled ? <ShieldCheck className="size-7 text-success" /> : null}
           </div>
         </CardHeader>
-        <CardContent className="space-y-5 pt-5">
-          <div className="grid gap-3 md:grid-cols-3">
-            <Benefit icon={<CreditCard className="size-4" />} title="Pix e cartão" text="A Stripe mostra os meios compatíveis com conta, país e moeda." />
-            <Benefit icon={<CheckCircle2 className="size-4" />} title="Confirmação automática" text="A operação recebe o status real do processador, sem conferência manual." />
-            <Benefit icon={<Landmark className="size-4" />} title="Repasse conciliado" text="Saldo liberado aparece no Financeiro antes de entrar no fluxo de repasse." />
-          </div>
 
-          <div className="rounded-2xl border border-border bg-muted/25 p-4 text-sm leading-6">
-            <p className="font-bold">Taxas e repasses</p>
-            <p className="mt-1 text-muted-foreground">
-              Há custos do processador e, quando aplicável, taxa da Comandiva. A taxa do processador pode variar conforme o meio usado; por isso não mostramos um percentual fixo que possa ficar incorreto.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Badge variant="outline">Taxa Comandiva: {fee ?? "conforme contrato"}</Badge>
-              <Badge variant="outline">Taxa Stripe: conforme transação</Badge>
-            </div>
-            <p className="mt-3 text-muted-foreground">
-              O valor só entra como disponível quando o processador liberar o saldo. Isso mantém uma margem operacional para reembolsos e disputas antes do repasse. Veja valores e disponibilidade na <Link to="/app/loja/financeiro" className="font-bold text-brand underline-offset-4 hover:underline">Central Financeira</Link>.
-            </p>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <StatusItem label="Cadastro Stripe" ok={Boolean(setup?.details_submitted)} />
-            <StatusItem label="Cobranças" ok={Boolean(setup?.charges_enabled)} />
-            <StatusItem label="Repasses" ok={Boolean(setup?.payouts_enabled)} />
-            <StatusItem label="Transferências" ok={Boolean(setup?.transfers_enabled)} />
-          </div>
-
+        <CardContent className="space-y-4 pt-5">
           {!onlineReady ? (
-            <div className="rounded-2xl border border-warning/30 bg-warning-soft/40 p-4">
-              <div className="flex items-start gap-2 text-sm">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                <p>Conclua o cadastro seguro da Stripe antes de oferecer pagamento online no checkout.</p>
+            <div className="rounded-2xl border border-brand/20 bg-brand-soft/20 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-brand shadow-sm"><CreditCard className="size-5" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">{setup?.stripe_connected ? "Termine a ativação" : "Ative em poucos passos"}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {setup?.stripe_connected
+                      ? "Seu cadastro já começou. Continue na Stripe até cobranças e transferências ficarem liberadas."
+                      : "Você será levado ao ambiente seguro da Stripe para cadastrar os dados de recebimento. Depois disso, volta aqui e o pagamento online fica pronto para ligar."}
+                  </p>
+                  {canEdit ? (
+                    <Button type="button" className="mt-4 min-h-12 w-full sm:w-auto" disabled={startingStripe} onClick={() => void startStripeOnboarding()}>
+                      {startingStripe ? <Loader2 className="size-4 animate-spin" /> : <Landmark className="size-4" />}
+                      {startingStripe ? "Abrindo Stripe…" : setup?.stripe_connected ? "Continuar ativação" : "Ativar pagamento online"}
+                    </Button>
+                  ) : <p className="mt-3 text-xs text-muted-foreground">Somente quem gerencia pagamentos pode iniciar esta ativação.</p>}
+                </div>
               </div>
-              {canEdit ? (
-                <Button type="button" className="mt-3 min-h-11" disabled={startingStripe} onClick={() => void startStripeOnboarding()}>
-                  {startingStripe ? <Loader2 className="size-4 animate-spin" /> : <Landmark className="size-4" />}
-                  {setup?.stripe_connected ? "Continuar cadastro Stripe" : "Configurar Stripe"}
-                </Button>
-              ) : null}
-            </div>
-          ) : onlineEnabled ? (
-            <div className="flex flex-col gap-3 rounded-2xl border border-success/25 bg-success-soft/35 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div><p className="font-bold">Pagamentos online estão publicados</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Pausar remove o meio online do checkout, mas não desconecta a Stripe nem apaga o histórico financeiro.</p></div>
-              <Button type="button" variant="outline" className="min-h-11 shrink-0" disabled={!canEdit || isSaving} onClick={() => void toggleOnline(false)}>Pausar pagamentos online</Button>
             </div>
           ) : (
-            <div className="rounded-2xl border border-brand/20 bg-brand-soft/20 p-4">
-              <label className="flex min-h-11 cursor-pointer items-start gap-3">
-                <input type="checkbox" checked={onlineAck} onChange={(event) => setOnlineAck(event.target.checked)} disabled={!canEdit || isSaving} className="mt-1 size-5 accent-current" />
-                <span className="text-sm leading-6">Li as informações acima e entendo que pagamentos online possuem taxas e seguem a disponibilidade financeira do processador antes do repasse.</span>
-              </label>
-              <Button type="button" className="mt-3 min-h-12 w-full sm:w-auto" disabled={!canEdit || isSaving || !onlineAck} onClick={() => void toggleOnline(true)}>Ativar pagamentos online</Button>
+            <div className={`rounded-2xl border p-4 sm:p-5 ${onlineEnabled ? "border-success/25 bg-success-soft/35" : "border-border bg-muted/20"}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-bold">Aceitar pagamentos online</p>
+                    {onlineEnabled ? <Badge variant="success">Ligado</Badge> : <Badge variant="outline">Desligado</Badge>}
+                  </div>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {onlineEnabled
+                      ? "O cliente já pode escolher pagamento online no checkout. Para pausar, basta desligar a chave ao lado."
+                      : "Ligue para publicar a opção de pagamento online no checkout. Desligar depois não desconecta sua conta Stripe nem apaga o histórico."}
+                  </p>
+                </div>
+                <Switch
+                  checked={onlineEnabled}
+                  disabled={!canEdit || isSaving}
+                  aria-label="Aceitar pagamentos online"
+                  onCheckedChange={(checked) => void toggleOnline(checked)}
+                />
+              </div>
+              {!onlineEnabled ? (
+                <p className="mt-3 rounded-xl bg-background/75 p-3 text-xs leading-5 text-muted-foreground">
+                  Ao ligar, você confirma que entende que pagamentos online possuem taxas do processador e, quando aplicável, taxa da Comandiva. O saldo só fica disponível para repasse após a liberação financeira da transação.
+                </p>
+              ) : (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm"><Link to="/app/loja/financeiro">Ver saldo e repasses</Link></Button>
+                </div>
+              )}
             </div>
           )}
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Benefit icon={<CreditCard className="size-4" />} title="Pix e cartão" text="Meios compatíveis são exibidos pela Stripe." />
+            <Benefit icon={<CheckCircle2 className="size-4" />} title="Confirmação automática" text="Você não precisa conferir manualmente se caiu." />
+            <Benefit icon={<Landmark className="size-4" />} title="Saldo conciliado" text="Vendas e repasses aparecem no Financeiro." />
+          </div>
+
+          <details className="rounded-2xl border border-border bg-muted/15">
+            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold">Ver taxas e detalhes da ativação</summary>
+            <div className="space-y-4 border-t border-border p-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">Taxa Comandiva: {fee ?? "conforme contrato"}</Badge>
+                <Badge variant="outline">Taxa Stripe: varia por transação</Badge>
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">
+                O valor de cada venda pode ficar temporariamente pendente por processamento, reembolso ou disputa. Quando liberado, aparece como disponível na <Link to="/app/loja/financeiro" className="font-bold text-brand underline-offset-4 hover:underline">Central Financeira</Link>.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <StatusItem label="Cadastro" ok={Boolean(setup?.details_submitted)} />
+                <StatusItem label="Cobranças" ok={Boolean(setup?.charges_enabled)} />
+                <StatusItem label="Repasses" ok={Boolean(setup?.payouts_enabled)} />
+                <StatusItem label="Transferências" ok={Boolean(setup?.transfers_enabled)} />
+              </div>
+              {!onlineReady ? (
+                <div className="flex items-start gap-2 rounded-xl border border-warning/25 bg-warning-soft/35 p-3 text-sm">
+                  <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+                  <p>Enquanto algum item estiver pendente, o pagamento online não é publicado para o cliente.</p>
+                </div>
+              ) : null}
+            </div>
+          </details>
         </CardContent>
       </Card>
 
@@ -262,7 +288,7 @@ function PagamentosSection() {
 }
 
 function Benefit({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
-  return <div className="rounded-2xl border border-border bg-background p-4"><div className="flex items-center gap-2 font-bold">{icon}<span>{title}</span></div><p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{text}</p></div>;
+  return <div className="rounded-xl border border-border bg-background p-3"><div className="flex items-center gap-2 text-sm font-bold">{icon}<span>{title}</span></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p></div>;
 }
 
 function StatusItem({ label, ok }: { label: string; ok: boolean }) {
