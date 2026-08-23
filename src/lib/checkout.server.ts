@@ -103,10 +103,14 @@ export async function submitPublicOrder(input: CheckoutRequest): Promise<SubmitO
   const db = await admin();
   const { slug, ...payload } = parsed;
 
-  const { data, error } = await db.rpc("storefront_submit_order_v2", {
+  // storefront_submit_order_v2 já está no banco, mas o arquivo gerado de tipos
+  // ainda será regenerado em uma etapa separada. O cast fica restrito a esta RPC.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rpc = db.rpc.bind(db) as any;
+  const { data, error } = await rpc("storefront_submit_order_v2", {
     _slug: slug,
-    _payload: payload as unknown as never,
-  });
+    _payload: payload,
+  }) as { data: unknown; error: { message: string } | null };
 
   if (error) {
     if (error.message === "rate_limited") return { ok: false, error: "rate_limited" };
