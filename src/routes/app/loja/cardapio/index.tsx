@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, ArrowRight, BriefcaseBusiness, CheckCircle2, ExternalLink, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, LayoutTemplate, Loader2, PencilLine, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { useCatalog } from "@/catalog/CatalogProvider";
@@ -100,11 +100,10 @@ function CardapioOverview() {
           <Metric label="Destaques" value={counts.products_featured} hint="Chamam atenção no cardápio" />
         </div>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-3">
           <Card><CardHeader><CardTitle>Produtos</CardTitle><CardDescription>Preço, imagem, disponibilidade, variações e adicionais.</CardDescription></CardHeader><CardContent><Button asChild><Link to="/app/loja/cardapio/produtos">Gerenciar produtos <ArrowRight className="ml-1 size-4" /></Link></Button></CardContent></Card>
           <Card><CardHeader><CardTitle>Categorias</CardTitle><CardDescription>Organize a ordem e as seções que o cliente encontra.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link to="/app/loja/cardapio/categorias">Gerenciar categorias <ArrowRight className="ml-1 size-4" /></Link></Button></CardContent></Card>
           <Card><CardHeader><CardTitle>Opções e adicionais</CardTitle><CardDescription>Sabores, tamanhos, molhos, complementos e escolhas obrigatórias.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link to="/app/loja/cardapio/opcoes">Abrir opções</Link></Button></CardContent></Card>
-          <Card><CardHeader><CardTitle>Precisa de ajuda?</CardTitle><CardDescription>A Comandiva pode organizar seu cardápio como serviço opcional.</CardDescription></CardHeader><CardContent><Button asChild variant="ghost"><Link to="/app/loja/cardapio/servico">Ver serviço</Link></Button></CardContent></Card>
         </section>
 
         {counts.products_archived > 0 ? <p className="text-xs text-muted-foreground">{counts.products_archived} produto(s) arquivado(s). Eles ficam fora do cardápio e podem ser restaurados na lista.</p> : null}
@@ -116,10 +115,9 @@ function CardapioOverview() {
     <div className="space-y-6">
       <PageHeader title="Monte seu primeiro cardápio" description="Escolha um modelo pronto ou comece manualmente. Você poderá editar tudo depois." />
 
-      <section className="grid gap-3 lg:grid-cols-3">
+      <section className="grid gap-3 lg:grid-cols-2">
         <Card className="border-brand/25 bg-brand-soft/35"><CardHeader><div className="mb-1 grid size-10 place-items-center rounded-xl bg-brand text-brand-foreground"><LayoutTemplate className="size-5" /></div><CardTitle className="text-lg">Começar com um modelo</CardTitle><CardDescription>Crie uma estrutura inicial adequada ao seu tipo de negócio.</CardDescription></CardHeader><CardContent><Button asChild className="w-full"><a href="#modelos">Ver modelos</a></Button></CardContent></Card>
         <Card><CardHeader><div className="mb-1 grid size-10 place-items-center rounded-xl bg-muted text-foreground"><PencilLine className="size-5" /></div><CardTitle className="text-lg">Montar manualmente</CardTitle><CardDescription>Crie a primeira categoria e vá adicionando seus produtos.</CardDescription></CardHeader><CardContent><Button asChild variant="outline" className="w-full"><Link to="/app/loja/cardapio/categorias">Criar primeira categoria</Link></Button></CardContent></Card>
-        <Card className="border-primary/20"><CardHeader><div className="mb-1 grid size-10 place-items-center rounded-xl bg-highlight-soft text-highlight-soft-foreground"><BriefcaseBusiness className="size-5" /></div><CardTitle className="text-lg">Quero ajuda da Comandiva</CardTitle><CardDescription>Serviço opcional para organizar produtos, adicionais, preços e fotos.</CardDescription></CardHeader><CardContent><Button asChild variant="outline" className="w-full"><Link to="/app/loja/cardapio/servico">Ver serviço</Link></Button></CardContent></Card>
       </section>
 
       <section id="modelos" className="space-y-3 scroll-mt-24">
