@@ -9,6 +9,7 @@ import {
   History,
   MapPin,
   RefreshCcw,
+  RouteIcon,
   Signal,
   WifiOff,
 } from "lucide-react";
@@ -28,7 +29,13 @@ import {
   useSetCourierOnline,
 } from "@/store/couriers/hooks/useCouriers";
 import { useMyCourierDeliveryCounter } from "@/courier/reports/courier-counter.queries";
-import { derivePresence, PRESENCE_LABEL, relativeTime } from "@/store/couriers/courier.formatters";
+import {
+  derivePresence,
+  formatRouteDistance,
+  formatRouteDuration,
+  PRESENCE_LABEL,
+  relativeTime,
+} from "@/store/couriers/courier.formatters";
 import { CourierAlerts } from "@/notifications/courier/CourierAlerts";
 import { PresenceBadge, ConnectivityChip } from "@/components/courier/PresenceBadge";
 import {
@@ -169,6 +176,13 @@ function CourierDashboard() {
           <div className="space-y-4 p-4">
             <div><p className="text-xs font-bold uppercase text-muted-foreground">Coleta</p><p className="mt-1 text-xl font-black">{context?.storeName}</p></div>
             <div className="flex items-center gap-2 rounded-xl bg-background/70 p-3"><MapPin className="size-5 text-brand" /><div><p className="text-[10px] font-bold uppercase text-muted-foreground">Destino</p><p className="font-bold">{offer.neighborhood || "Endereço disponível após aceitar"}</p></div></div>
+            {offer.route ? (
+              <div className="grid grid-cols-2 gap-2 rounded-xl border border-warning/25 bg-background/70 p-3 text-sm">
+                <div><p className="text-[10px] font-bold uppercase text-muted-foreground">Distância</p><p className="mt-1 flex items-center gap-1.5 font-black"><RouteIcon className="size-4" /> {formatRouteDistance(offer.route.distanceMeters)}</p></div>
+                <div><p className="text-[10px] font-bold uppercase text-muted-foreground">Deslocamento</p><p className="mt-1 flex items-center gap-1.5 font-black"><Clock3 className="size-4" /> {formatRouteDuration(offer.route.durationSeconds)}</p></div>
+                {offer.route.isApproximate ? <p className="col-span-2 text-[11px] text-muted-foreground">Estimativa aproximada; o trânsito real pode alterar o tempo.</p> : null}
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-3"><Button variant="outline" className="h-14 font-black" onClick={() => { setDeclineReasonCode("unavailable"); setDeclineNote(""); setDeclineOpen(true); }} disabled={accept.isPending || decline.isPending}>Recusar</Button><Button variant="brand" className="h-14 font-black" onClick={handleAccept} disabled={accept.isPending || decline.isPending}>Aceitar corrida</Button></div>
           </div>
         </section>
