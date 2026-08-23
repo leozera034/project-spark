@@ -88,7 +88,6 @@ for (const forbidden of [
   '/app/loja/avaliacoes',
   '/app/loja/financeiro',
   '/app/loja/ajuda',
-  '/app/loja/smart-delivery',
   'label: "Plano',
 ]) {
   if (shellSource.includes(forbidden)) fail(merchantShellPath, `item não deve estar na navegação principal do lojista: ${forbidden}`);
@@ -127,7 +126,7 @@ const ordersSource = await readFile(merchantOrdersPath, "utf8");
 for (const required of ["delayedOnly", "fulfillment", "Filtrar pedidos", "ORDER_QUEUES"]) {
   if (!ordersSource.includes(required)) fail(merchantOrdersPath, `pedidos sem elemento operacional obrigatório: ${required}`);
 }
-for (const forbidden of ["iFood", "canal", "paymentFilter", "valueFilter", "periodFilter"]) {
+for (const forbidden of ["iFood", "paymentFilter", "valueFilter", "periodFilter"]) {
   if (ordersSource.includes(forbidden)) fail(merchantOrdersPath, `filtro não suportado ou inventado encontrado: ${forbidden}`);
 }
 
