@@ -12,7 +12,6 @@ import {
   Blocks,
   Building2,
   ChefHat,
-  Headphones,
   LayoutGrid,
   LogOut,
   Menu,
@@ -20,11 +19,9 @@ import {
   MoreHorizontal,
   Settings,
   ShoppingBag,
-  Star,
   Truck,
   Users,
   UtensilsCrossed,
-  WalletCards,
   X,
 } from "lucide-react";
 
@@ -70,16 +67,13 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app/loja", label: "Início", icon: LayoutGrid, section: "Operação", mobile: true },
   { to: "/app/loja/pedidos", label: "Pedidos", icon: ShoppingBag, section: "Operação", mobile: true },
   { to: "/app/loja/cozinha", label: "Cozinha", icon: ChefHat, section: "Operação", mobile: true },
+  { to: "/app/loja/cardapio", label: "Cardápio", icon: UtensilsCrossed, section: "Operação", mobile: true },
   { to: "/app/loja/entregas", label: "Entregas", icon: Truck, section: "Operação" },
-  { to: "/app/loja/cardapio", label: "Cardápio", icon: UtensilsCrossed, section: "Gestão", mobile: true },
   { to: "/app/loja/crescimento", label: "Clientes", icon: Users, section: "Gestão" },
-  { to: "/app/loja/avaliacoes", label: "Avaliações", icon: Star, section: "Gestão" },
-  { to: "/app/loja/financeiro", label: "Financeiro", icon: WalletCards, section: "Gestão" },
   { to: "/app/loja/whatsapp", label: "WhatsApp", icon: MessageCircle, section: "Gestão" },
   { to: "/app/loja/relatorios/entregas", label: "Relatórios", icon: BarChart3, section: "Gestão" },
   { to: "/app/loja/modulos", label: "Recursos", icon: Blocks, section: "Conta" },
   { to: "/app/loja/configuracoes", label: "Configurações", icon: Settings, section: "Conta" },
-  { to: "/app/loja/ajuda", label: "Ajuda", icon: Headphones, section: "Conta" },
 ];
 
 const NAV_SECTIONS: NavSection[] = ["Operação", "Gestão", "Conta"];
@@ -231,7 +225,7 @@ function StoreAppLayout() {
       {mobileMoreOpen ? (
         <div className="fixed inset-0 z-50 flex items-end bg-foreground/40 px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-20 backdrop-blur-sm lg:hidden" onClick={() => setMobileMoreOpen(false)} role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
           <div className="max-h-[72dvh] w-full overflow-y-auto rounded-[24px] border border-border bg-card p-3 shadow-e3" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between px-2 py-1"><div><p id="mobile-more-title" className="font-display text-lg font-black">Mais opções</p><p className="text-xs text-muted-foreground">Gestão, comunicação e conta</p></div><Button variant="ghost" size="icon" onClick={() => setMobileMoreOpen(false)} aria-label="Fechar"><X className="size-4" /></Button></div>
+            <div className="mb-3 flex items-center justify-between px-2 py-1"><div><p id="mobile-more-title" className="font-display text-lg font-black">Mais opções</p><p className="text-xs text-muted-foreground">Entregas, clientes, comunicação e conta</p></div><Button variant="ghost" size="icon" onClick={() => setMobileMoreOpen(false)} aria-label="Fechar"><X className="size-4" /></Button></div>
             {NAV_SECTIONS.map((section) => {
               const items = MOBILE_MORE.filter((item) => item.section === section);
               if (items.length === 0) return null;
