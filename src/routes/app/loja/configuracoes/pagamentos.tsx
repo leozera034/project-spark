@@ -71,13 +71,17 @@ function PagamentosSection() {
     setPixKeyType(settings?.manual_pix_key_type ?? "aleatoria");
   }, [pixMethod?.is_active, settings?.manual_pix_key, settings?.manual_pix_key_type, setup?.manual_pix_configured]);
 
+  const storedPixKey = settings?.manual_pix_key ?? "";
+  const storedPixType = settings?.manual_pix_key_type ?? "aleatoria";
+  const pixDirty = pixKey.trim() !== storedPixKey || pixKeyType !== storedPixType;
+
   async function startStripeOnboarding() {
     if (!storeId || startingStripe) return;
     setStartingStripe(true);
     try {
       const result = await beginStripeConnectOnboarding({ data: { storeId } });
       if (result.alreadyReady) {
-        toast.success("Cadastro Stripe pronto. Agora é só ligar o recebimento online.");
+        toast.success("Conta de recebimento pronta. Agora é só ligar o pagamento online.");
         refresh();
         return;
       }
@@ -98,11 +102,34 @@ function PagamentosSection() {
     );
   }
 
+  async function persistPix(enabled: boolean, message: string) {
+    if (!storeId) return null;
+    return save(
+      () => setStoreManualPix({ storeId, enabled, pixKey: pixKey.trim() || null, pixKeyType }),
+      message,
+    );
+  }
+
+  async function togglePix(checked: boolean) {
+    if (!canEdit || isSaving) return;
+    setPixEnabled(checked);
+    if (!checked) {
+      await persistPix(false, "Pix direto para a loja desativado.");
+      return;
+    }
+    if (pixKey.trim().length < 3) {
+      toast.info("Cadastre a chave Pix e toque em “Salvar e ativar Pix”.");
+      return;
+    }
+    await persistPix(true, "Pix direto para a loja ativado.");
+  }
+
   async function savePix() {
     if (!storeId) return;
-    await save(
-      () => setStoreManualPix({ storeId, enabled: pixEnabled, pixKey: pixKey.trim() || null, pixKeyType }),
-      pixEnabled ? "Pix direto para a loja atualizado." : "Pix direto para a loja desativado.",
+    const enabled = pixEnabled;
+    await persistPix(
+      enabled,
+      enabled ? (pixDirty ? "Chave Pix atualizada e mantida ativa." : "Pix direto para a loja ativado.") : "Chave Pix salva.",
     );
   }
 
@@ -123,7 +150,7 @@ function PagamentosSection() {
   return (
     <div className="space-y-6 pb-4">
       <div>
-        <p className="text-xs font-black uppercase tracking-[.14em] text-muted-foreground">Pagamentos</p>
+        <p className="text-xs font-black uppercase tracking-[.14em] text-muted-foreground">Pagamentos e recebimentos</p>
         <h1 className="mt-1 font-display text-2xl font-black">Como sua loja quer receber?</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
           Use pagamento online com confirmação automática ou receba direto na loja por Pix, dinheiro e maquininha. Você pode usar os dois modelos ao mesmo tempo.
@@ -149,7 +176,7 @@ function PagamentosSection() {
                   </Badge>
                 </div>
                 <CardDescription className="mt-1 max-w-2xl">
-                  A pessoa paga antes da confirmação do pedido. Pix e cartão são processados pela Stripe e conciliados automaticamente.
+                  O cliente paga online e a Comandiva concilia a venda automaticamente. O valor líquido fica disponível para repasse à sua loja.
                 </CardDescription>
               </div>
             </div>
@@ -165,8 +192,8 @@ function PagamentosSection() {
                   <p className="font-bold">{setup?.stripe_connected ? "Termine a ativação" : "Ative em poucos passos"}</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     {setup?.stripe_connected
-                      ? "Seu cadastro já começou. Continue na Stripe até cobranças e transferências ficarem liberadas."
-                      : "Você será levado ao ambiente seguro da Stripe para cadastrar os dados de recebimento. Depois disso, volta aqui e o pagamento online fica pronto para ligar."}
+                      ? "Seu cadastro já começou. Continue na Stripe até a conta bancária e as transferências ficarem liberadas."
+                      : "Você será levado ao ambiente seguro da Stripe para cadastrar os dados de recebimento. Ao terminar, volta direto para esta tela."}
                   </p>
                   {canEdit ? (
                     <Button type="button" className="mt-4 min-h-12 w-full sm:w-auto" disabled={startingStripe} onClick={() => void startStripeOnboarding()}>
@@ -188,32 +215,25 @@ function PagamentosSection() {
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     {onlineEnabled
                       ? "O cliente já pode escolher pagamento online no checkout. Para pausar, basta desligar a chave ao lado."
-                      : "Ligue para publicar a opção de pagamento online no checkout. Desligar depois não desconecta sua conta Stripe nem apaga o histórico."}
+                      : "Ligue para publicar o pagamento online. Desligar depois não desconecta a Stripe nem apaga vendas e repasses."}
                   </p>
                 </div>
-                <Switch
-                  checked={onlineEnabled}
-                  disabled={!canEdit || isSaving}
-                  aria-label="Aceitar pagamentos online"
-                  onCheckedChange={(checked) => void toggleOnline(checked)}
-                />
+                <Switch checked={onlineEnabled} disabled={!canEdit || isSaving} aria-label="Aceitar pagamentos online" onCheckedChange={(checked) => void toggleOnline(checked)} />
               </div>
               {!onlineEnabled ? (
                 <p className="mt-3 rounded-xl bg-background/75 p-3 text-xs leading-5 text-muted-foreground">
-                  Ao ligar, você confirma que entende que pagamentos online possuem taxas do processador e, quando aplicável, taxa da Comandiva. O saldo só fica disponível para repasse após a liberação financeira da transação.
+                  Ao ligar, você confirma que entende as taxas exibidas abaixo. O saldo fica disponível para repasse depois da liberação financeira da venda.
                 </p>
               ) : (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button asChild variant="outline" size="sm"><Link to="/app/loja/financeiro">Ver saldo e repasses</Link></Button>
-                </div>
+                <div className="mt-3 flex flex-wrap gap-2"><Button asChild variant="outline" size="sm"><Link to="/app/loja/financeiro">Ver saldo e repasses</Link></Button></div>
               )}
             </div>
           )}
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <Benefit icon={<CreditCard className="size-4" />} title="Pix e cartão" text="Meios compatíveis são exibidos pela Stripe." />
-            <Benefit icon={<CheckCircle2 className="size-4" />} title="Confirmação automática" text="Você não precisa conferir manualmente se caiu." />
-            <Benefit icon={<Landmark className="size-4" />} title="Saldo conciliado" text="Vendas e repasses aparecem no Financeiro." />
+            <Benefit icon={<CreditCard className="size-4" />} title="Pix e cartão" text="A Stripe mostra os meios online compatíveis com a transação." />
+            <Benefit icon={<CheckCircle2 className="size-4" />} title="Confirmação automática" text="Você não precisa conferir manualmente se o pagamento caiu." />
+            <Benefit icon={<Landmark className="size-4" />} title="Repasse organizado" text="Vendas, taxas, saldo e repasses aparecem no Financeiro." />
           </div>
 
           <details className="rounded-2xl border border-border bg-muted/15">
@@ -224,19 +244,15 @@ function PagamentosSection() {
                 <Badge variant="outline">Taxa Stripe: varia por transação</Badge>
               </div>
               <p className="text-sm leading-6 text-muted-foreground">
-                O valor de cada venda pode ficar temporariamente pendente por processamento, reembolso ou disputa. Quando liberado, aparece como disponível na <Link to="/app/loja/financeiro" className="font-bold text-brand underline-offset-4 hover:underline">Central Financeira</Link>.
+                A Comandiva processa a cobrança online e transfere o valor devido à loja. Reembolsos, disputas e processamento podem deixar uma venda temporariamente pendente. Quando liberada, ela aparece na <Link to="/app/loja/financeiro" className="font-bold text-brand underline-offset-4 hover:underline">Central Financeira</Link>.
               </p>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-3">
                 <StatusItem label="Cadastro" ok={Boolean(setup?.details_submitted)} />
-                <StatusItem label="Cobranças" ok={Boolean(setup?.charges_enabled)} />
-                <StatusItem label="Repasses" ok={Boolean(setup?.payouts_enabled)} />
+                <StatusItem label="Conta de recebimento" ok={Boolean(setup?.payouts_enabled)} />
                 <StatusItem label="Transferências" ok={Boolean(setup?.transfers_enabled)} />
               </div>
               {!onlineReady ? (
-                <div className="flex items-start gap-2 rounded-xl border border-warning/25 bg-warning-soft/35 p-3 text-sm">
-                  <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                  <p>Enquanto algum item estiver pendente, o pagamento online não é publicado para o cliente.</p>
-                </div>
+                <div className="flex items-start gap-2 rounded-xl border border-warning/25 bg-warning-soft/35 p-3 text-sm"><TriangleAlert className="mt-0.5 size-4 shrink-0" /><p>Enquanto algum item estiver pendente, o pagamento online não é publicado para o cliente.</p></div>
               ) : null}
             </div>
           </details>
@@ -245,36 +261,31 @@ function PagamentosSection() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-foreground"><Banknote className="size-5" /></span>
-            <div><CardTitle>Receber direto na loja</CardTitle><CardDescription className="mt-1">Sem repasse pela Comandiva. A loja recebe e confere o pagamento por conta própria.</CardDescription></div>
-          </div>
+          <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-foreground"><Banknote className="size-5" /></span><div><CardTitle>Receber direto na loja</CardTitle><CardDescription className="mt-1">Sem repasse pela Comandiva. A loja recebe e confere o pagamento por conta própria.</CardDescription></div></div>
         </CardHeader>
         <CardContent className="space-y-5">
-          <Alert>
-            <AlertDescription>
-              A Comandiva registra a forma escolhida, mas não consegue confirmar se um Pix manual, dinheiro ou pagamento na maquininha realmente caiu. A loja deve conferir antes de tratar o valor como recebido.
-            </AlertDescription>
-          </Alert>
+          <Alert><AlertDescription>A Comandiva registra a forma escolhida, mas não consegue confirmar se um Pix manual, dinheiro ou pagamento na maquininha realmente caiu. A loja deve conferir antes de tratar o valor como recebido.</AlertDescription></Alert>
 
           <div className="rounded-2xl border border-border p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted"><Smartphone className="size-5" /></span><div><p className="font-bold">Pix direto para a loja</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">A chave só é mostrada depois que o pedido é criado, usando o link privado de acompanhamento.</p></div></div>
-              <Switch checked={pixEnabled} disabled={!canEdit || isSaving} aria-label="Pix direto para a loja ativo" onCheckedChange={setPixEnabled} />
+              <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted"><Smartphone className="size-5" /></span><div><p className="font-bold">Pix direto para a loja</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Cadastre a chave uma vez. Depois, ligar ou desligar salva automaticamente.</p></div></div>
+              <Switch checked={pixEnabled} disabled={!canEdit || isSaving} aria-label="Pix direto para a loja ativo" onCheckedChange={(checked) => void togglePix(checked)} />
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-[180px_1fr]">
               <div className="space-y-1.5"><Label htmlFor="pix-key-type">Tipo da chave</Label><select id="pix-key-type" value={pixKeyType} onChange={(event) => setPixKeyType(event.target.value as ManualPixKeyType)} disabled={!canEdit || isSaving} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-base">{PIX_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></div>
               <div className="space-y-1.5"><Label htmlFor="pix-key">Chave Pix</Label><Input id="pix-key" autoComplete="off" value={pixKey} onChange={(event) => setPixKey(event.target.value)} disabled={!canEdit || isSaving} placeholder="Cadastre a chave que receberá o pagamento" className="h-12 text-base" maxLength={180} /></div>
             </div>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-muted-foreground">{setup?.manual_pix_configured ? "Chave configurada. O valor completo fica visível somente no campo de edição acima." : "Nenhuma chave configurada."}</p>
-              <Button type="button" className="min-h-11" disabled={!canEdit || isSaving || (pixEnabled && pixKey.trim().length < 3)} onClick={() => void savePix()}>Salvar Pix</Button>
+              <p className="text-xs text-muted-foreground">{setup?.manual_pix_configured ? "Chave cadastrada. Alterou a chave? Salve para aplicar no checkout." : "Cadastre a chave e ative o Pix."}</p>
+              <Button type="button" className="min-h-11" disabled={!canEdit || isSaving || (pixEnabled && pixKey.trim().length < 3) || (!pixDirty && setup?.manual_pix_configured && pixEnabled === Boolean(pixMethod?.is_active))} onClick={() => void savePix()}>
+                {pixEnabled ? (setup?.manual_pix_configured ? "Salvar alterações" : "Salvar e ativar Pix") : "Salvar chave"}
+              </Button>
             </div>
           </div>
 
           <div>
             <h3 className="font-bold">Dinheiro e maquininha</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Esses meios são presenciais. Edite instruções, disponibilidade e ordem exibida no checkout.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Esses meios são presenciais. Ligue ou desligue rapidamente; abra “Editar” somente quando precisar mudar instruções e disponibilidade.</p>
             <div className="mt-3 space-y-3">
               {manualMethods.length === 0 ? <p className="rounded-xl bg-muted p-4 text-sm text-muted-foreground">Nenhum outro meio manual cadastrado.</p> : manualMethods.map((method, index) => (
                 <MethodRow key={method.id} method={method} canEdit={canEdit} saving={isSaving} isFirst={index === 0} isLast={index === manualMethods.length - 1} onMove={(direction) => moveManual(method.id, direction)} />
@@ -290,10 +301,7 @@ function PagamentosSection() {
 function Benefit({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return <div className="rounded-xl border border-border bg-background p-3"><div className="flex items-center gap-2 text-sm font-bold">{icon}<span>{title}</span></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p></div>;
 }
-
-function StatusItem({ label, ok }: { label: string; ok: boolean }) {
-  return <div className="flex min-h-11 items-center justify-between rounded-xl border border-border px-3 text-sm"><span>{label}</span><span className={ok ? "font-bold text-success" : "text-muted-foreground"}>{ok ? "Pronto" : "Pendente"}</span></div>;
-}
+function StatusItem({ label, ok }: { label: string; ok: boolean }) { return <div className="flex min-h-11 items-center justify-between rounded-xl border border-border px-3 text-sm"><span>{label}</span><span className={ok ? "font-bold text-success" : "text-muted-foreground"}>{ok ? "Pronto" : "Pendente"}</span></div>; }
 
 function MethodRow({ method, canEdit, saving, isFirst, isLast, onMove }: { method: StoreConfigPaymentMethod; canEdit: boolean; saving: boolean; isFirst: boolean; isLast: boolean; onMove: (direction: -1 | 1) => void }) {
   const { storeId, save } = useStoreConfig();
@@ -303,20 +311,8 @@ function MethodRow({ method, canEdit, saving, isFirst, isLast, onMove }: { metho
   const [needsChange, setNeedsChange] = useState(method.needs_change);
   const [delivery, setDelivery] = useState(method.available_for_delivery);
   const [pickup, setPickup] = useState(method.available_for_pickup);
-
-  useEffect(() => {
-    setLabel(method.label);
-    setInstructions(method.instructions ?? "");
-    setNeedsChange(method.needs_change);
-    setDelivery(method.available_for_delivery);
-    setPickup(method.available_for_pickup);
-  }, [method]);
-
-  const persist = (overrides?: Partial<Parameters<typeof updatePaymentMethod>[0]>) => {
-    if (!storeId) return;
-    void save(() => updatePaymentMethod({ storeId, id: method.id, label, instructions, needsChange, isActive: method.is_active, availableForDelivery: delivery, availableForPickup: pickup, ...overrides }), "Forma de pagamento atualizada.");
-  };
-
+  useEffect(() => { setLabel(method.label); setInstructions(method.instructions ?? ""); setNeedsChange(method.needs_change); setDelivery(method.available_for_delivery); setPickup(method.available_for_pickup); }, [method]);
+  const persist = (overrides?: Partial<Parameters<typeof updatePaymentMethod>[0]>) => { if (!storeId) return; void save(() => updatePaymentMethod({ storeId, id: method.id, label, instructions, needsChange, isActive: method.is_active, availableForDelivery: delivery, availableForPickup: pickup, ...overrides }), "Forma de pagamento atualizada."); };
   return (
     <div className="rounded-xl border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
