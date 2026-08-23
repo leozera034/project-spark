@@ -16,7 +16,31 @@ async function hmac(secret:string,value:string){const e=new TextEncoder();const 
 function safeEq(a:string,b:string){if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
 async function validSignature(raw:string,header:string,secret:string){let ts="";const sigs:string[]=[];for(const part of header.split(",")){const i=part.indexOf("=");if(i<0)continue;const k=part.slice(0,i).trim(),v=part.slice(i+1).trim();if(k==="t")ts=v;if(k==="v1")sigs.push(v)}if(!ts||!sigs.length||!/^\d+$/.test(ts))return false;const drift=Math.abs(Date.now()/1000-Number(ts));if(!Number.isFinite(drift)||drift>TOLERANCE_SECONDS)return false;const computed=await hmac(secret,`${ts}.${raw}`);return sigs.some(s=>safeEq(s,computed))}
 
-async function syncConnectedAccount(raw:J){const accountId=str(raw.id);if(!accountId)return false;const metadata=obj(raw.metadata);let storeId=str(metadata.comandiva_store_id);const a=admin();if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}if(!storeId)return false;const requirements=obj(raw.requirements);const {error}=await a.rpc("backend_upsert_stripe_connect_account",{_store_id:storeId,_stripe_account_id:accountId,_country:str(raw.country),_business_type:str(raw.business_type),_details_submitted:raw.details_submitted===true,_charges_enabled:raw.charges_enabled===true,_payouts_enabled:raw.payouts_enabled===true,_requirements_currently_due:Array.isArray(requirements.currently_due)?requirements.currently_due:[],_metadata:{source:"stripe_connect_webhook"}} as never);return !error}
+async function syncConnectedAccount(raw:J){
+  const accountId=str(raw.id);if(!accountId)return false;
+  const metadata=obj(raw.metadata);let storeId=str(metadata.comandiva_store_id);const a=admin();
+  if(!storeId){const lookup=await a.rpc("backend_get_stripe_connect_store_id",{_stripe_account_id:accountId} as never);storeId=str(lookup.data)}
+  if(!storeId)return false;
+  const requirements=obj(raw.requirements);
+  const capabilities=obj(raw.capabilities);
+  const due=Array.isArray(requirements.currently_due)?requirements.currently_due.map((item)=>String(item)):[];
+  const {error}=await a.rpc("backend_upsert_stripe_connect_recipient",{
+    _store_id:storeId,
+    _stripe_account_id:accountId,
+    _country:str(raw.country),
+    _business_type:str(raw.business_type),
+    _details_submitted:raw.details_submitted===true,
+    _charges_enabled:raw.charges_enabled===true,
+    _payouts_enabled:raw.payouts_enabled===true,
+    _transfers_enabled:str(capabilities.transfers)==="active",
+    _requirements_currently_due:due,
+    _dashboard_type:"none",
+    _fees_payer:"application",
+    _losses_payer:"application",
+    _metadata:{source:"stripe_connect_webhook",charge_pattern:"separate"},
+  } as never);
+  return !error;
+}
 async function syncPaymentIntent(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){const metadata=obj(raw.metadata);const orderId=str(metadata.comandiva_order_id),storeId=str(metadata.comandiva_store_id),pi=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);if(!orderId||!storeId||!pi||!status||!amount||!currency||!connectedAccount)return false;const fee=int(raw.application_fee_amount)??0;const {error}=await admin().rpc("backend_record_stripe_payment_intent",{_order_id:orderId,_store_id:storeId,_payment_intent_id:pi,_stripe_account_id:connectedAccount,_amount_cents:amount,_currency:currency,_application_fee_amount:fee,_status:status,_event_id:eventId,_last_error:status==="requires_payment_method"?str(obj(raw.last_payment_error).message):null,_metadata:{source:"stripe_connect_webhook",event_created:eventCreated}} as never);return !error}
 async function syncRefund(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){const pi=str(raw.payment_intent),chargeId=str(raw.id),amountRefunded=int(raw.amount_refunded),currency=str(raw.currency);if(!pi||!chargeId||amountRefunded===null||!currency||!connectedAccount)return false;const {data,error}=await admin().rpc("backend_record_stripe_order_refund",{_payment_intent_id:pi,_stripe_account_id:connectedAccount,_charge_id:chargeId,_amount_refunded_cents:amountRefunded,_currency:currency,_event_id:eventId,_event_created:eventCreated,_metadata:{source:"stripe_connect_webhook"}} as never);return !error&&obj(data).relevant===true}
 async function syncDispute(raw:J,eventId:string,connectedAccount:string|null,eventCreated:number|null){const pi=str(raw.payment_intent),disputeId=str(raw.id),status=str(raw.status),amount=int(raw.amount),currency=str(raw.currency);if(!pi||!disputeId||!status||amount===null||!currency||!connectedAccount)return false;const {data,error}=await admin().rpc("backend_record_stripe_order_dispute",{_payment_intent_id:pi,_stripe_account_id:connectedAccount,_dispute_id:disputeId,_dispute_status:status,_amount_cents:amount,_currency:currency,_event_id:eventId,_event_created:eventCreated,_metadata:{source:"stripe_connect_webhook"}} as never);return !error&&obj(data).relevant===true}
