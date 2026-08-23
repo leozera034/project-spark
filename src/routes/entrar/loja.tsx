@@ -27,9 +27,8 @@ export const Route = createFileRoute("/entrar/loja")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    retorno: typeof search.retorno === "string" ? search.retorno : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { retorno?: string } =>
+    typeof search.retorno === "string" ? { retorno: search.retorno } : {},
   component: () => (
     <PublicOnlyRoute>
       <StoreSignInPage />
