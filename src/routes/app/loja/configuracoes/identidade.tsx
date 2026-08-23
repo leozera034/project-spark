@@ -58,7 +58,7 @@ function SlugCard() {
         {error ? <p role="alert" className="text-xs text-destructive">{error}</p> : null}
         {form.dirty && local.valid && !remoteTaken && !availability.isFetching ? <p className="text-xs text-success">Endereço disponível.</p> : null}
       </div>
-      <Alert><AlertDescription>Ao mudar o link, o endereço antigo deixa de funcionar. Atualize links e materiais que já foram compartilhados.</AlertDescription></Alert>
+      <Alert><AlertDescription>Ao mudar o link, a Comandiva mantém os endereços antigos direcionando para o cardápio atual. Mesmo assim, confira QR Codes e materiais divulgados para usar o endereço mais recente.</AlertDescription></Alert>
     </SectionForm>
   );
 }
