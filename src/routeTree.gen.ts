@@ -20,47 +20,72 @@ import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TrocarSenhaInicialRouteImport } from './routes/trocar-senha-inicial'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminExcecoesFinanceirasRouteImport } from './routes/admin/excecoes-financeiras'
+import { Route as AdminLojasRouteImport } from './routes/admin/lojas'
+import { Route as AdminModelosSolicitadosRouteImport } from './routes/admin/modelos-solicitados'
+import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
+import { Route as AdminObservabilidadeRouteImport } from './routes/admin/observabilidade'
+import { Route as AdminOperacaoRouteImport } from './routes/admin/operacao'
+import { Route as AdminPreviewsRouteImport } from './routes/admin/previews'
+import { Route as AdminServicosRouteImport } from './routes/admin/servicos'
+import { Route as AdminSuporteRouteImport } from './routes/admin/suporte'
 import { Route as AppEntregadorRouteImport } from './routes/app/entregador'
 import { Route as AppLojaRouteImport } from './routes/app/loja'
 import { Route as EntrarAdminRouteImport } from './routes/entrar/admin'
 import { Route as EntrarEntregadorRouteImport } from './routes/entrar/entregador'
 import { Route as EntrarLojaRouteImport } from './routes/entrar/loja'
-import { Route as IntegracaoMercadoPagoRouteImport } from './routes/integracao/mercado-pago'
 import { Route as LojaSlugRouteRouteImport } from './routes/loja/$slug/route'
 import { Route as PedidoSplatRouteImport } from './routes/pedido/$'
 import { Route as AppEntregadorIndexRouteImport } from './routes/app/entregador/index'
 import { Route as AppEntregadorEntregaRouteImport } from './routes/app/entregador/entrega'
 import { Route as AppEntregadorHistoricoRouteImport } from './routes/app/entregador/historico'
 import { Route as AppLojaIndexRouteImport } from './routes/app/loja/index'
+import { Route as AppLojaAjudaRouteImport } from './routes/app/loja/ajuda'
+import { Route as AppLojaAvaliacoesRouteImport } from './routes/app/loja/avaliacoes'
 import { Route as AppLojaCardapioRouteImport } from './routes/app/loja/cardapio'
 import { Route as AppLojaConfiguracoesRouteImport } from './routes/app/loja/configuracoes'
 import { Route as AppLojaCozinhaRouteImport } from './routes/app/loja/cozinha'
 import { Route as AppLojaCrescimentoRouteImport } from './routes/app/loja/crescimento'
+import { Route as AppLojaDevolucoesRouteImport } from './routes/app/loja/devolucoes'
+import { Route as AppLojaEntregasRouteImport } from './routes/app/loja/entregas'
+import { Route as AppLojaFinanceiroRouteImport } from './routes/app/loja/financeiro'
+import { Route as AppLojaModulosRouteImport } from './routes/app/loja/modulos'
 import { Route as AppLojaPedidosRouteImport } from './routes/app/loja/pedidos'
 import { Route as AppLojaPlanoRouteImport } from './routes/app/loja/plano'
+import { Route as AppLojaSmartDeliveryRouteImport } from './routes/app/loja/smart-delivery'
+import { Route as AppLojaWhatsappRouteImport } from './routes/app/loja/whatsapp'
 import { Route as LojaSlugIndexRouteImport } from './routes/loja/$slug/index'
 import { Route as LojaSlugAcompanharRouteImport } from './routes/loja/$slug/acompanhar'
 import { Route as LojaSlugCarrinhoRouteImport } from './routes/loja/$slug/carrinho'
 import { Route as LojaSlugCheckoutRouteImport } from './routes/loja/$slug/checkout'
 import { Route as LojaSlugPedidoEnviadoRouteImport } from './routes/loja/$slug/pedido-enviado'
+import { Route as PreviewCardapioIndexRouteImport } from './routes/preview/cardapio/index'
+import { Route as PreviewCardapioThemeRouteImport } from './routes/preview/cardapio/$theme'
+import { Route as PreviewWizardIndexRouteImport } from './routes/preview/wizard/index'
+import { Route as PreviewWizardThemeRouteImport } from './routes/preview/wizard/$theme'
 import { Route as ApiPublicStorefrontSlugRouteImport } from './routes/api/public/storefront/$slug'
 import { Route as AppLojaCardapioIndexRouteImport } from './routes/app/loja/cardapio/index'
 import { Route as AppLojaCardapioCategoriasRouteImport } from './routes/app/loja/cardapio/categorias'
 import { Route as AppLojaCardapioOpcoesRouteImport } from './routes/app/loja/cardapio/opcoes'
+import { Route as AppLojaCardapioServicoRouteImport } from './routes/app/loja/cardapio/servico'
 import { Route as AppLojaConfiguracoesIndexRouteImport } from './routes/app/loja/configuracoes/index'
 import { Route as AppLojaConfiguracoesAtendimentoRouteImport } from './routes/app/loja/configuracoes/atendimento'
 import { Route as AppLojaConfiguracoesBairrosRouteImport } from './routes/app/loja/configuracoes/bairros'
 import { Route as AppLojaConfiguracoesDadosRouteImport } from './routes/app/loja/configuracoes/dados'
+import { Route as AppLojaConfiguracoesEnderecoRouteImport } from './routes/app/loja/configuracoes/endereco'
 import { Route as AppLojaConfiguracoesHorariosRouteImport } from './routes/app/loja/configuracoes/horarios'
 import { Route as AppLojaConfiguracoesIdentidadeRouteImport } from './routes/app/loja/configuracoes/identidade'
 import { Route as AppLojaConfiguracoesPagamentosRouteImport } from './routes/app/loja/configuracoes/pagamentos'
 import { Route as AppLojaEntregadoresIndexRouteImport } from './routes/app/loja/entregadores/index'
 import { Route as AppLojaEntregadoresCourierIdRouteImport } from './routes/app/loja/entregadores/$courierId'
 import { Route as AppLojaEntregadoresNovoRouteImport } from './routes/app/loja/entregadores/novo'
+import { Route as AppLojaRelatoriosIndexRouteImport } from './routes/app/loja/relatorios/index'
 import { Route as ApiPublicStorefrontSlugAtendimentoRouteImport } from './routes/api/public/storefront/$slug/atendimento'
 import { Route as ApiPublicStorefrontSlugPagamentosRouteImport } from './routes/api/public/storefront/$slug/pagamentos'
 import { Route as ApiPublicStorefrontSlugPedidosRouteImport } from './routes/api/public/storefront/$slug/pedidos'
 import { Route as ApiPublicStorefrontSlugPrecoRouteImport } from './routes/api/public/storefront/$slug/preco'
+import { Route as ApiPublicStorefrontSlugRecomendacoesRouteImport } from './routes/api/public/storefront/$slug/recomendacoes'
+import { Route as ApiPublicStorefrontPedidoAvaliacaoRouteImport } from './routes/api/public/storefront/pedido/avaliacao'
 import { Route as ApiPublicStorefrontPedidoStatusRouteImport } from './routes/api/public/storefront/pedido/status'
 import { Route as AppLojaCardapioProdutosIndexRouteImport } from './routes/app/loja/cardapio/produtos/index'
 import { Route as AppLojaCardapioProdutosIdRouteImport } from './routes/app/loja/cardapio/produtos/$id'
@@ -125,6 +150,52 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExcecoesFinanceirasRoute =
+  AdminExcecoesFinanceirasRouteImport.update({
+    id: '/excecoes-financeiras',
+    path: '/excecoes-financeiras',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminLojasRoute = AdminLojasRouteImport.update({
+  id: '/lojas',
+  path: '/lojas',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminModelosSolicitadosRoute = AdminModelosSolicitadosRouteImport.update({
+  id: '/modelos-solicitados',
+  path: '/modelos-solicitados',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminModulosRoute = AdminModulosRouteImport.update({
+  id: '/modulos',
+  path: '/modulos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminObservabilidadeRoute = AdminObservabilidadeRouteImport.update({
+  id: '/observabilidade',
+  path: '/observabilidade',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOperacaoRoute = AdminOperacaoRouteImport.update({
+  id: '/operacao',
+  path: '/operacao',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPreviewsRoute = AdminPreviewsRouteImport.update({
+  id: '/previews',
+  path: '/previews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminServicosRoute = AdminServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSuporteRoute = AdminSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppEntregadorRoute = AppEntregadorRouteImport.update({
   id: '/app/entregador',
   path: '/app/entregador',
@@ -148,11 +219,6 @@ const EntrarEntregadorRoute = EntrarEntregadorRouteImport.update({
 const EntrarLojaRoute = EntrarLojaRouteImport.update({
   id: '/entrar/loja',
   path: '/entrar/loja',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntegracaoMercadoPagoRoute = IntegracaoMercadoPagoRouteImport.update({
-  id: '/integracao/mercado-pago',
-  path: '/integracao/mercado-pago',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LojaSlugRouteRoute = LojaSlugRouteRouteImport.update({
@@ -185,6 +251,16 @@ const AppLojaIndexRoute = AppLojaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppLojaRoute,
 } as any)
+const AppLojaAjudaRoute = AppLojaAjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaAvaliacoesRoute = AppLojaAvaliacoesRouteImport.update({
+  id: '/avaliacoes',
+  path: '/avaliacoes',
+  getParentRoute: () => AppLojaRoute,
+} as any)
 const AppLojaCardapioRoute = AppLojaCardapioRouteImport.update({
   id: '/cardapio',
   path: '/cardapio',
@@ -205,6 +281,26 @@ const AppLojaCrescimentoRoute = AppLojaCrescimentoRouteImport.update({
   path: '/crescimento',
   getParentRoute: () => AppLojaRoute,
 } as any)
+const AppLojaDevolucoesRoute = AppLojaDevolucoesRouteImport.update({
+  id: '/devolucoes',
+  path: '/devolucoes',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaEntregasRoute = AppLojaEntregasRouteImport.update({
+  id: '/entregas',
+  path: '/entregas',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaFinanceiroRoute = AppLojaFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaModulosRoute = AppLojaModulosRouteImport.update({
+  id: '/modulos',
+  path: '/modulos',
+  getParentRoute: () => AppLojaRoute,
+} as any)
 const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -213,6 +309,16 @@ const AppLojaPedidosRoute = AppLojaPedidosRouteImport.update({
 const AppLojaPlanoRoute = AppLojaPlanoRouteImport.update({
   id: '/plano',
   path: '/plano',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaSmartDeliveryRoute = AppLojaSmartDeliveryRouteImport.update({
+  id: '/smart-delivery',
+  path: '/smart-delivery',
+  getParentRoute: () => AppLojaRoute,
+} as any)
+const AppLojaWhatsappRoute = AppLojaWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
   getParentRoute: () => AppLojaRoute,
 } as any)
 const LojaSlugIndexRoute = LojaSlugIndexRouteImport.update({
@@ -240,6 +346,26 @@ const LojaSlugPedidoEnviadoRoute = LojaSlugPedidoEnviadoRouteImport.update({
   path: '/pedido-enviado',
   getParentRoute: () => LojaSlugRouteRoute,
 } as any)
+const PreviewCardapioIndexRoute = PreviewCardapioIndexRouteImport.update({
+  id: '/preview/cardapio/',
+  path: '/preview/cardapio/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewCardapioThemeRoute = PreviewCardapioThemeRouteImport.update({
+  id: '/preview/cardapio/$theme',
+  path: '/preview/cardapio/$theme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewWizardIndexRoute = PreviewWizardIndexRouteImport.update({
+  id: '/preview/wizard/',
+  path: '/preview/wizard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewWizardThemeRoute = PreviewWizardThemeRouteImport.update({
+  id: '/preview/wizard/$theme',
+  path: '/preview/wizard/$theme',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStorefrontSlugRoute = ApiPublicStorefrontSlugRouteImport.update({
   id: '/api/public/storefront/$slug',
   path: '/api/public/storefront/$slug',
@@ -259,6 +385,11 @@ const AppLojaCardapioCategoriasRoute =
 const AppLojaCardapioOpcoesRoute = AppLojaCardapioOpcoesRouteImport.update({
   id: '/opcoes',
   path: '/opcoes',
+  getParentRoute: () => AppLojaCardapioRoute,
+} as any)
+const AppLojaCardapioServicoRoute = AppLojaCardapioServicoRouteImport.update({
+  id: '/servico',
+  path: '/servico',
   getParentRoute: () => AppLojaCardapioRoute,
 } as any)
 const AppLojaConfiguracoesIndexRoute =
@@ -283,6 +414,12 @@ const AppLojaConfiguracoesDadosRoute =
   AppLojaConfiguracoesDadosRouteImport.update({
     id: '/dados',
     path: '/dados',
+    getParentRoute: () => AppLojaConfiguracoesRoute,
+  } as any)
+const AppLojaConfiguracoesEnderecoRoute =
+  AppLojaConfiguracoesEnderecoRouteImport.update({
+    id: '/endereco',
+    path: '/endereco',
     getParentRoute: () => AppLojaConfiguracoesRoute,
   } as any)
 const AppLojaConfiguracoesHorariosRoute =
@@ -320,6 +457,11 @@ const AppLojaEntregadoresNovoRoute = AppLojaEntregadoresNovoRouteImport.update({
   path: '/entregadores/novo',
   getParentRoute: () => AppLojaRoute,
 } as any)
+const AppLojaRelatoriosIndexRoute = AppLojaRelatoriosIndexRouteImport.update({
+  id: '/relatorios/',
+  path: '/relatorios/',
+  getParentRoute: () => AppLojaRoute,
+} as any)
 const ApiPublicStorefrontSlugAtendimentoRoute =
   ApiPublicStorefrontSlugAtendimentoRouteImport.update({
     id: '/atendimento',
@@ -343,6 +485,18 @@ const ApiPublicStorefrontSlugPrecoRoute =
     id: '/preco',
     path: '/preco',
     getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
+const ApiPublicStorefrontSlugRecomendacoesRoute =
+  ApiPublicStorefrontSlugRecomendacoesRouteImport.update({
+    id: '/recomendacoes',
+    path: '/recomendacoes',
+    getParentRoute: () => ApiPublicStorefrontSlugRoute,
+  } as any)
+const ApiPublicStorefrontPedidoAvaliacaoRoute =
+  ApiPublicStorefrontPedidoAvaliacaoRouteImport.update({
+    id: '/api/public/storefront/pedido/avaliacao',
+    path: '/api/public/storefront/pedido/avaliacao',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicStorefrontPedidoStatusRoute =
   ApiPublicStorefrontPedidoStatusRouteImport.update({
@@ -405,35 +559,57 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/loja/$slug': typeof LojaSlugRouteRouteWithChildren
+  '/admin/excecoes-financeiras': typeof AdminExcecoesFinanceirasRoute
+  '/admin/lojas': typeof AdminLojasRoute
+  '/admin/modelos-solicitados': typeof AdminModelosSolicitadosRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/operacao': typeof AdminOperacaoRoute
+  '/admin/previews': typeof AdminPreviewsRoute
+  '/admin/servicos': typeof AdminServicosRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
   '/admin/': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
+  '/app/loja/ajuda': typeof AppLojaAjudaRoute
+  '/app/loja/avaliacoes': typeof AppLojaAvaliacoesRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
+  '/app/loja/devolucoes': typeof AppLojaDevolucoesRoute
+  '/app/loja/entregas': typeof AppLojaEntregasRoute
+  '/app/loja/financeiro': typeof AppLojaFinanceiroRoute
+  '/app/loja/modulos': typeof AppLojaModulosRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/app/loja/plano': typeof AppLojaPlanoRoute
+  '/app/loja/smart-delivery': typeof AppLojaSmartDeliveryRoute
+  '/app/loja/whatsapp': typeof AppLojaWhatsappRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
+  '/preview/cardapio/$theme': typeof PreviewCardapioThemeRoute
+  '/preview/wizard/$theme': typeof PreviewWizardThemeRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/$slug/': typeof LojaSlugIndexRoute
+  '/preview/cardapio/': typeof PreviewCardapioIndexRoute
+  '/preview/wizard/': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
+  '/app/loja/configuracoes/endereco': typeof AppLojaConfiguracoesEnderecoRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
@@ -442,10 +618,13 @@ export interface FileRoutesByFullPath {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/app/loja/entregadores/': typeof AppLojaEntregadoresIndexRoute
+  '/app/loja/relatorios/': typeof AppLojaRelatoriosIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/$slug/recomendacoes': typeof ApiPublicStorefrontSlugRecomendacoesRoute
+  '/api/public/storefront/pedido/avaliacao': typeof ApiPublicStorefrontPedidoAvaliacaoRoute
   '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -465,31 +644,53 @@ export interface FileRoutesByTo {
   '/sem-acesso': typeof SemAcessoRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
+  '/admin/excecoes-financeiras': typeof AdminExcecoesFinanceirasRoute
+  '/admin/lojas': typeof AdminLojasRoute
+  '/admin/modelos-solicitados': typeof AdminModelosSolicitadosRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/operacao': typeof AdminOperacaoRoute
+  '/admin/previews': typeof AdminPreviewsRoute
+  '/admin/servicos': typeof AdminServicosRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
   '/admin': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
+  '/app/loja/ajuda': typeof AppLojaAjudaRoute
+  '/app/loja/avaliacoes': typeof AppLojaAvaliacoesRoute
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
+  '/app/loja/devolucoes': typeof AppLojaDevolucoesRoute
+  '/app/loja/entregas': typeof AppLojaEntregasRoute
+  '/app/loja/financeiro': typeof AppLojaFinanceiroRoute
+  '/app/loja/modulos': typeof AppLojaModulosRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/app/loja/plano': typeof AppLojaPlanoRoute
+  '/app/loja/smart-delivery': typeof AppLojaSmartDeliveryRoute
+  '/app/loja/whatsapp': typeof AppLojaWhatsappRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
+  '/preview/cardapio/$theme': typeof PreviewCardapioThemeRoute
+  '/preview/wizard/$theme': typeof PreviewWizardThemeRoute
   '/app/entregador': typeof AppEntregadorIndexRoute
   '/app/loja': typeof AppLojaIndexRoute
   '/loja/$slug': typeof LojaSlugIndexRoute
+  '/preview/cardapio': typeof PreviewCardapioIndexRoute
+  '/preview/wizard': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
+  '/app/loja/configuracoes/endereco': typeof AppLojaConfiguracoesEnderecoRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
@@ -498,10 +699,13 @@ export interface FileRoutesByTo {
   '/app/loja/cardapio': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesIndexRoute
   '/app/loja/entregadores': typeof AppLojaEntregadoresIndexRoute
+  '/app/loja/relatorios': typeof AppLojaRelatoriosIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/$slug/recomendacoes': typeof ApiPublicStorefrontSlugRecomendacoesRoute
+  '/api/public/storefront/pedido/avaliacao': typeof ApiPublicStorefrontPedidoAvaliacaoRoute
   '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -524,35 +728,57 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trocar-senha-inicial': typeof TrocarSenhaInicialRoute
   '/loja/$slug': typeof LojaSlugRouteRouteWithChildren
+  '/admin/excecoes-financeiras': typeof AdminExcecoesFinanceirasRoute
+  '/admin/lojas': typeof AdminLojasRoute
+  '/admin/modelos-solicitados': typeof AdminModelosSolicitadosRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/observabilidade': typeof AdminObservabilidadeRoute
+  '/admin/operacao': typeof AdminOperacaoRoute
+  '/admin/previews': typeof AdminPreviewsRoute
+  '/admin/servicos': typeof AdminServicosRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/app/entregador': typeof AppEntregadorRouteWithChildren
   '/app/loja': typeof AppLojaRouteWithChildren
   '/entrar/admin': typeof EntrarAdminRoute
   '/entrar/entregador': typeof EntrarEntregadorRoute
   '/entrar/loja': typeof EntrarLojaRoute
-  '/integracao/mercado-pago': typeof IntegracaoMercadoPagoRoute
   '/pedido/$': typeof PedidoSplatRoute
   '/admin/': typeof AdminIndexRoute
   '/app/entregador/entrega': typeof AppEntregadorEntregaRoute
   '/app/entregador/historico': typeof AppEntregadorHistoricoRoute
+  '/app/loja/ajuda': typeof AppLojaAjudaRoute
+  '/app/loja/avaliacoes': typeof AppLojaAvaliacoesRoute
   '/app/loja/cardapio': typeof AppLojaCardapioRouteWithChildren
   '/app/loja/configuracoes': typeof AppLojaConfiguracoesRouteWithChildren
   '/app/loja/cozinha': typeof AppLojaCozinhaRoute
   '/app/loja/crescimento': typeof AppLojaCrescimentoRoute
+  '/app/loja/devolucoes': typeof AppLojaDevolucoesRoute
+  '/app/loja/entregas': typeof AppLojaEntregasRoute
+  '/app/loja/financeiro': typeof AppLojaFinanceiroRoute
+  '/app/loja/modulos': typeof AppLojaModulosRoute
   '/app/loja/pedidos': typeof AppLojaPedidosRoute
   '/app/loja/plano': typeof AppLojaPlanoRoute
+  '/app/loja/smart-delivery': typeof AppLojaSmartDeliveryRoute
+  '/app/loja/whatsapp': typeof AppLojaWhatsappRoute
   '/loja/$slug/acompanhar': typeof LojaSlugAcompanharRoute
   '/loja/$slug/carrinho': typeof LojaSlugCarrinhoRoute
   '/loja/$slug/checkout': typeof LojaSlugCheckoutRoute
   '/loja/$slug/pedido-enviado': typeof LojaSlugPedidoEnviadoRoute
+  '/preview/cardapio/$theme': typeof PreviewCardapioThemeRoute
+  '/preview/wizard/$theme': typeof PreviewWizardThemeRoute
   '/app/entregador/': typeof AppEntregadorIndexRoute
   '/app/loja/': typeof AppLojaIndexRoute
   '/loja/$slug/': typeof LojaSlugIndexRoute
+  '/preview/cardapio/': typeof PreviewCardapioIndexRoute
+  '/preview/wizard/': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
+  '/app/loja/configuracoes/endereco': typeof AppLojaConfiguracoesEnderecoRoute
   '/app/loja/configuracoes/horarios': typeof AppLojaConfiguracoesHorariosRoute
   '/app/loja/configuracoes/identidade': typeof AppLojaConfiguracoesIdentidadeRoute
   '/app/loja/configuracoes/pagamentos': typeof AppLojaConfiguracoesPagamentosRoute
@@ -561,10 +787,13 @@ export interface FileRoutesById {
   '/app/loja/cardapio/': typeof AppLojaCardapioIndexRoute
   '/app/loja/configuracoes/': typeof AppLojaConfiguracoesIndexRoute
   '/app/loja/entregadores/': typeof AppLojaEntregadoresIndexRoute
+  '/app/loja/relatorios/': typeof AppLojaRelatoriosIndexRoute
   '/api/public/storefront/$slug/atendimento': typeof ApiPublicStorefrontSlugAtendimentoRouteWithChildren
   '/api/public/storefront/$slug/pagamentos': typeof ApiPublicStorefrontSlugPagamentosRoute
   '/api/public/storefront/$slug/pedidos': typeof ApiPublicStorefrontSlugPedidosRoute
   '/api/public/storefront/$slug/preco': typeof ApiPublicStorefrontSlugPrecoRoute
+  '/api/public/storefront/$slug/recomendacoes': typeof ApiPublicStorefrontSlugRecomendacoesRoute
+  '/api/public/storefront/pedido/avaliacao': typeof ApiPublicStorefrontPedidoAvaliacaoRoute
   '/api/public/storefront/pedido/status': typeof ApiPublicStorefrontPedidoStatusRoute
   '/app/loja/cardapio/produtos/$id': typeof AppLojaCardapioProdutosIdRoute
   '/app/loja/cardapio/produtos/novo': typeof AppLojaCardapioProdutosNovoRoute
@@ -588,35 +817,57 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/trocar-senha-inicial'
     | '/loja/$slug'
+    | '/admin/excecoes-financeiras'
+    | '/admin/lojas'
+    | '/admin/modelos-solicitados'
+    | '/admin/modulos'
+    | '/admin/observabilidade'
+    | '/admin/operacao'
+    | '/admin/previews'
+    | '/admin/servicos'
+    | '/admin/suporte'
     | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/integracao/mercado-pago'
     | '/pedido/$'
     | '/admin/'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
+    | '/app/loja/ajuda'
+    | '/app/loja/avaliacoes'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
+    | '/app/loja/devolucoes'
+    | '/app/loja/entregas'
+    | '/app/loja/financeiro'
+    | '/app/loja/modulos'
     | '/app/loja/pedidos'
     | '/app/loja/plano'
+    | '/app/loja/smart-delivery'
+    | '/app/loja/whatsapp'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
+    | '/preview/cardapio/$theme'
+    | '/preview/wizard/$theme'
     | '/app/entregador/'
     | '/app/loja/'
     | '/loja/$slug/'
+    | '/preview/cardapio/'
+    | '/preview/wizard/'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/servico'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
+    | '/app/loja/configuracoes/endereco'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
@@ -625,10 +876,13 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/app/loja/entregadores/'
+    | '/app/loja/relatorios/'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/$slug/recomendacoes'
+    | '/api/public/storefront/pedido/avaliacao'
     | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -648,31 +902,53 @@ export interface FileRouteTypes {
     | '/sem-acesso'
     | '/sitemap.xml'
     | '/trocar-senha-inicial'
+    | '/admin/excecoes-financeiras'
+    | '/admin/lojas'
+    | '/admin/modelos-solicitados'
+    | '/admin/modulos'
+    | '/admin/observabilidade'
+    | '/admin/operacao'
+    | '/admin/previews'
+    | '/admin/servicos'
+    | '/admin/suporte'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/integracao/mercado-pago'
     | '/pedido/$'
     | '/admin'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
+    | '/app/loja/ajuda'
+    | '/app/loja/avaliacoes'
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
+    | '/app/loja/devolucoes'
+    | '/app/loja/entregas'
+    | '/app/loja/financeiro'
+    | '/app/loja/modulos'
     | '/app/loja/pedidos'
     | '/app/loja/plano'
+    | '/app/loja/smart-delivery'
+    | '/app/loja/whatsapp'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
+    | '/preview/cardapio/$theme'
+    | '/preview/wizard/$theme'
     | '/app/entregador'
     | '/app/loja'
     | '/loja/$slug'
+    | '/preview/cardapio'
+    | '/preview/wizard'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/servico'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
+    | '/app/loja/configuracoes/endereco'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
@@ -681,10 +957,13 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/entregadores'
+    | '/app/loja/relatorios'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/$slug/recomendacoes'
+    | '/api/public/storefront/pedido/avaliacao'
     | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -706,35 +985,57 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/trocar-senha-inicial'
     | '/loja/$slug'
+    | '/admin/excecoes-financeiras'
+    | '/admin/lojas'
+    | '/admin/modelos-solicitados'
+    | '/admin/modulos'
+    | '/admin/observabilidade'
+    | '/admin/operacao'
+    | '/admin/previews'
+    | '/admin/servicos'
+    | '/admin/suporte'
     | '/app/entregador'
     | '/app/loja'
     | '/entrar/admin'
     | '/entrar/entregador'
     | '/entrar/loja'
-    | '/integracao/mercado-pago'
     | '/pedido/$'
     | '/admin/'
     | '/app/entregador/entrega'
     | '/app/entregador/historico'
+    | '/app/loja/ajuda'
+    | '/app/loja/avaliacoes'
     | '/app/loja/cardapio'
     | '/app/loja/configuracoes'
     | '/app/loja/cozinha'
     | '/app/loja/crescimento'
+    | '/app/loja/devolucoes'
+    | '/app/loja/entregas'
+    | '/app/loja/financeiro'
+    | '/app/loja/modulos'
     | '/app/loja/pedidos'
     | '/app/loja/plano'
+    | '/app/loja/smart-delivery'
+    | '/app/loja/whatsapp'
     | '/loja/$slug/acompanhar'
     | '/loja/$slug/carrinho'
     | '/loja/$slug/checkout'
     | '/loja/$slug/pedido-enviado'
+    | '/preview/cardapio/$theme'
+    | '/preview/wizard/$theme'
     | '/app/entregador/'
     | '/app/loja/'
     | '/loja/$slug/'
+    | '/preview/cardapio/'
+    | '/preview/wizard/'
     | '/api/public/storefront/$slug'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/servico'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
+    | '/app/loja/configuracoes/endereco'
     | '/app/loja/configuracoes/horarios'
     | '/app/loja/configuracoes/identidade'
     | '/app/loja/configuracoes/pagamentos'
@@ -743,10 +1044,13 @@ export interface FileRouteTypes {
     | '/app/loja/cardapio/'
     | '/app/loja/configuracoes/'
     | '/app/loja/entregadores/'
+    | '/app/loja/relatorios/'
     | '/api/public/storefront/$slug/atendimento'
     | '/api/public/storefront/$slug/pagamentos'
     | '/api/public/storefront/$slug/pedidos'
     | '/api/public/storefront/$slug/preco'
+    | '/api/public/storefront/$slug/recomendacoes'
+    | '/api/public/storefront/pedido/avaliacao'
     | '/api/public/storefront/pedido/status'
     | '/app/loja/cardapio/produtos/$id'
     | '/app/loja/cardapio/produtos/novo'
@@ -773,9 +1077,13 @@ export interface RootRouteChildren {
   EntrarAdminRoute: typeof EntrarAdminRoute
   EntrarEntregadorRoute: typeof EntrarEntregadorRoute
   EntrarLojaRoute: typeof EntrarLojaRoute
-  IntegracaoMercadoPagoRoute: typeof IntegracaoMercadoPagoRoute
   PedidoSplatRoute: typeof PedidoSplatRoute
+  PreviewCardapioThemeRoute: typeof PreviewCardapioThemeRoute
+  PreviewWizardThemeRoute: typeof PreviewWizardThemeRoute
+  PreviewCardapioIndexRoute: typeof PreviewCardapioIndexRoute
+  PreviewWizardIndexRoute: typeof PreviewWizardIndexRoute
   ApiPublicStorefrontSlugRoute: typeof ApiPublicStorefrontSlugRouteWithChildren
+  ApiPublicStorefrontPedidoAvaliacaoRoute: typeof ApiPublicStorefrontPedidoAvaliacaoRoute
   ApiPublicStorefrontPedidoStatusRoute: typeof ApiPublicStorefrontPedidoStatusRoute
 }
 
@@ -858,6 +1166,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/excecoes-financeiras': {
+      id: '/admin/excecoes-financeiras'
+      path: '/excecoes-financeiras'
+      fullPath: '/admin/excecoes-financeiras'
+      preLoaderRoute: typeof AdminExcecoesFinanceirasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/lojas': {
+      id: '/admin/lojas'
+      path: '/lojas'
+      fullPath: '/admin/lojas'
+      preLoaderRoute: typeof AdminLojasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/modelos-solicitados': {
+      id: '/admin/modelos-solicitados'
+      path: '/modelos-solicitados'
+      fullPath: '/admin/modelos-solicitados'
+      preLoaderRoute: typeof AdminModelosSolicitadosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/modulos': {
+      id: '/admin/modulos'
+      path: '/modulos'
+      fullPath: '/admin/modulos'
+      preLoaderRoute: typeof AdminModulosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/observabilidade': {
+      id: '/admin/observabilidade'
+      path: '/observabilidade'
+      fullPath: '/admin/observabilidade'
+      preLoaderRoute: typeof AdminObservabilidadeRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/operacao': {
+      id: '/admin/operacao'
+      path: '/operacao'
+      fullPath: '/admin/operacao'
+      preLoaderRoute: typeof AdminOperacaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/previews': {
+      id: '/admin/previews'
+      path: '/previews'
+      fullPath: '/admin/previews'
+      preLoaderRoute: typeof AdminPreviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/servicos': {
+      id: '/admin/servicos'
+      path: '/servicos'
+      fullPath: '/admin/servicos'
+      preLoaderRoute: typeof AdminServicosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/suporte': {
+      id: '/admin/suporte'
+      path: '/suporte'
+      fullPath: '/admin/suporte'
+      preLoaderRoute: typeof AdminSuporteRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/entregador': {
       id: '/app/entregador'
       path: '/app/entregador'
@@ -891,13 +1262,6 @@ declare module '@tanstack/react-router' {
       path: '/entrar/loja'
       fullPath: '/entrar/loja'
       preLoaderRoute: typeof EntrarLojaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/integracao/mercado-pago': {
-      id: '/integracao/mercado-pago'
-      path: '/integracao/mercado-pago'
-      fullPath: '/integracao/mercado-pago'
-      preLoaderRoute: typeof IntegracaoMercadoPagoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loja/$slug': {
@@ -942,6 +1306,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaIndexRouteImport
       parentRoute: typeof AppLojaRoute
     }
+    '/app/loja/ajuda': {
+      id: '/app/loja/ajuda'
+      path: '/ajuda'
+      fullPath: '/app/loja/ajuda'
+      preLoaderRoute: typeof AppLojaAjudaRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/avaliacoes': {
+      id: '/app/loja/avaliacoes'
+      path: '/avaliacoes'
+      fullPath: '/app/loja/avaliacoes'
+      preLoaderRoute: typeof AppLojaAvaliacoesRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
     '/app/loja/cardapio': {
       id: '/app/loja/cardapio'
       path: '/cardapio'
@@ -970,6 +1348,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCrescimentoRouteImport
       parentRoute: typeof AppLojaRoute
     }
+    '/app/loja/devolucoes': {
+      id: '/app/loja/devolucoes'
+      path: '/devolucoes'
+      fullPath: '/app/loja/devolucoes'
+      preLoaderRoute: typeof AppLojaDevolucoesRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/entregas': {
+      id: '/app/loja/entregas'
+      path: '/entregas'
+      fullPath: '/app/loja/entregas'
+      preLoaderRoute: typeof AppLojaEntregasRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/financeiro': {
+      id: '/app/loja/financeiro'
+      path: '/financeiro'
+      fullPath: '/app/loja/financeiro'
+      preLoaderRoute: typeof AppLojaFinanceiroRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/modulos': {
+      id: '/app/loja/modulos'
+      path: '/modulos'
+      fullPath: '/app/loja/modulos'
+      preLoaderRoute: typeof AppLojaModulosRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
     '/app/loja/pedidos': {
       id: '/app/loja/pedidos'
       path: '/pedidos'
@@ -982,6 +1388,20 @@ declare module '@tanstack/react-router' {
       path: '/plano'
       fullPath: '/app/loja/plano'
       preLoaderRoute: typeof AppLojaPlanoRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/smart-delivery': {
+      id: '/app/loja/smart-delivery'
+      path: '/smart-delivery'
+      fullPath: '/app/loja/smart-delivery'
+      preLoaderRoute: typeof AppLojaSmartDeliveryRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
+    '/app/loja/whatsapp': {
+      id: '/app/loja/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/app/loja/whatsapp'
+      preLoaderRoute: typeof AppLojaWhatsappRouteImport
       parentRoute: typeof AppLojaRoute
     }
     '/loja/$slug/': {
@@ -1019,6 +1439,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaSlugPedidoEnviadoRouteImport
       parentRoute: typeof LojaSlugRouteRoute
     }
+    '/preview/cardapio/': {
+      id: '/preview/cardapio/'
+      path: '/preview/cardapio'
+      fullPath: '/preview/cardapio/'
+      preLoaderRoute: typeof PreviewCardapioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview/cardapio/$theme': {
+      id: '/preview/cardapio/$theme'
+      path: '/preview/cardapio/$theme'
+      fullPath: '/preview/cardapio/$theme'
+      preLoaderRoute: typeof PreviewCardapioThemeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview/wizard/': {
+      id: '/preview/wizard/'
+      path: '/preview/wizard'
+      fullPath: '/preview/wizard/'
+      preLoaderRoute: typeof PreviewWizardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview/wizard/$theme': {
+      id: '/preview/wizard/$theme'
+      path: '/preview/wizard/$theme'
+      fullPath: '/preview/wizard/$theme'
+      preLoaderRoute: typeof PreviewWizardThemeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/storefront/$slug': {
       id: '/api/public/storefront/$slug'
       path: '/api/public/storefront/$slug'
@@ -1047,6 +1495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioOpcoesRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/cardapio/servico': {
+      id: '/app/loja/cardapio/servico'
+      path: '/servico'
+      fullPath: '/app/loja/cardapio/servico'
+      preLoaderRoute: typeof AppLojaCardapioServicoRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
     '/app/loja/configuracoes/': {
       id: '/app/loja/configuracoes/'
       path: '/'
@@ -1073,6 +1528,13 @@ declare module '@tanstack/react-router' {
       path: '/dados'
       fullPath: '/app/loja/configuracoes/dados'
       preLoaderRoute: typeof AppLojaConfiguracoesDadosRouteImport
+      parentRoute: typeof AppLojaConfiguracoesRoute
+    }
+    '/app/loja/configuracoes/endereco': {
+      id: '/app/loja/configuracoes/endereco'
+      path: '/endereco'
+      fullPath: '/app/loja/configuracoes/endereco'
+      preLoaderRoute: typeof AppLojaConfiguracoesEnderecoRouteImport
       parentRoute: typeof AppLojaConfiguracoesRoute
     }
     '/app/loja/configuracoes/horarios': {
@@ -1117,6 +1579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaEntregadoresNovoRouteImport
       parentRoute: typeof AppLojaRoute
     }
+    '/app/loja/relatorios/': {
+      id: '/app/loja/relatorios/'
+      path: '/relatorios'
+      fullPath: '/app/loja/relatorios/'
+      preLoaderRoute: typeof AppLojaRelatoriosIndexRouteImport
+      parentRoute: typeof AppLojaRoute
+    }
     '/api/public/storefront/$slug/atendimento': {
       id: '/api/public/storefront/$slug/atendimento'
       path: '/atendimento'
@@ -1144,6 +1613,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/storefront/$slug/preco'
       preLoaderRoute: typeof ApiPublicStorefrontSlugPrecoRouteImport
       parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
+    '/api/public/storefront/$slug/recomendacoes': {
+      id: '/api/public/storefront/$slug/recomendacoes'
+      path: '/recomendacoes'
+      fullPath: '/api/public/storefront/$slug/recomendacoes'
+      preLoaderRoute: typeof ApiPublicStorefrontSlugRecomendacoesRouteImport
+      parentRoute: typeof ApiPublicStorefrontSlugRoute
+    }
+    '/api/public/storefront/pedido/avaliacao': {
+      id: '/api/public/storefront/pedido/avaliacao'
+      path: '/api/public/storefront/pedido/avaliacao'
+      fullPath: '/api/public/storefront/pedido/avaliacao'
+      preLoaderRoute: typeof ApiPublicStorefrontPedidoAvaliacaoRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/storefront/pedido/status': {
       id: '/api/public/storefront/pedido/status'
@@ -1205,10 +1688,28 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminExcecoesFinanceirasRoute: typeof AdminExcecoesFinanceirasRoute
+  AdminLojasRoute: typeof AdminLojasRoute
+  AdminModelosSolicitadosRoute: typeof AdminModelosSolicitadosRoute
+  AdminModulosRoute: typeof AdminModulosRoute
+  AdminObservabilidadeRoute: typeof AdminObservabilidadeRoute
+  AdminOperacaoRoute: typeof AdminOperacaoRoute
+  AdminPreviewsRoute: typeof AdminPreviewsRoute
+  AdminServicosRoute: typeof AdminServicosRoute
+  AdminSuporteRoute: typeof AdminSuporteRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminExcecoesFinanceirasRoute: AdminExcecoesFinanceirasRoute,
+  AdminLojasRoute: AdminLojasRoute,
+  AdminModelosSolicitadosRoute: AdminModelosSolicitadosRoute,
+  AdminModulosRoute: AdminModulosRoute,
+  AdminObservabilidadeRoute: AdminObservabilidadeRoute,
+  AdminOperacaoRoute: AdminOperacaoRoute,
+  AdminPreviewsRoute: AdminPreviewsRoute,
+  AdminServicosRoute: AdminServicosRoute,
+  AdminSuporteRoute: AdminSuporteRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -1263,6 +1764,7 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
 interface AppLojaCardapioRouteChildren {
   AppLojaCardapioCategoriasRoute: typeof AppLojaCardapioCategoriasRoute
   AppLojaCardapioOpcoesRoute: typeof AppLojaCardapioOpcoesRoute
+  AppLojaCardapioServicoRoute: typeof AppLojaCardapioServicoRoute
   AppLojaCardapioIndexRoute: typeof AppLojaCardapioIndexRoute
   AppLojaCardapioProdutosIdRoute: typeof AppLojaCardapioProdutosIdRoute
   AppLojaCardapioProdutosNovoRoute: typeof AppLojaCardapioProdutosNovoRoute
@@ -1272,6 +1774,7 @@ interface AppLojaCardapioRouteChildren {
 const AppLojaCardapioRouteChildren: AppLojaCardapioRouteChildren = {
   AppLojaCardapioCategoriasRoute: AppLojaCardapioCategoriasRoute,
   AppLojaCardapioOpcoesRoute: AppLojaCardapioOpcoesRoute,
+  AppLojaCardapioServicoRoute: AppLojaCardapioServicoRoute,
   AppLojaCardapioIndexRoute: AppLojaCardapioIndexRoute,
   AppLojaCardapioProdutosIdRoute: AppLojaCardapioProdutosIdRoute,
   AppLojaCardapioProdutosNovoRoute: AppLojaCardapioProdutosNovoRoute,
@@ -1286,6 +1789,7 @@ interface AppLojaConfiguracoesRouteChildren {
   AppLojaConfiguracoesAtendimentoRoute: typeof AppLojaConfiguracoesAtendimentoRoute
   AppLojaConfiguracoesBairrosRoute: typeof AppLojaConfiguracoesBairrosRoute
   AppLojaConfiguracoesDadosRoute: typeof AppLojaConfiguracoesDadosRoute
+  AppLojaConfiguracoesEnderecoRoute: typeof AppLojaConfiguracoesEnderecoRoute
   AppLojaConfiguracoesHorariosRoute: typeof AppLojaConfiguracoesHorariosRoute
   AppLojaConfiguracoesIdentidadeRoute: typeof AppLojaConfiguracoesIdentidadeRoute
   AppLojaConfiguracoesPagamentosRoute: typeof AppLojaConfiguracoesPagamentosRoute
@@ -1296,6 +1800,7 @@ const AppLojaConfiguracoesRouteChildren: AppLojaConfiguracoesRouteChildren = {
   AppLojaConfiguracoesAtendimentoRoute: AppLojaConfiguracoesAtendimentoRoute,
   AppLojaConfiguracoesBairrosRoute: AppLojaConfiguracoesBairrosRoute,
   AppLojaConfiguracoesDadosRoute: AppLojaConfiguracoesDadosRoute,
+  AppLojaConfiguracoesEnderecoRoute: AppLojaConfiguracoesEnderecoRoute,
   AppLojaConfiguracoesHorariosRoute: AppLojaConfiguracoesHorariosRoute,
   AppLojaConfiguracoesIdentidadeRoute: AppLojaConfiguracoesIdentidadeRoute,
   AppLojaConfiguracoesPagamentosRoute: AppLojaConfiguracoesPagamentosRoute,
@@ -1306,30 +1811,48 @@ const AppLojaConfiguracoesRouteWithChildren =
   AppLojaConfiguracoesRoute._addFileChildren(AppLojaConfiguracoesRouteChildren)
 
 interface AppLojaRouteChildren {
+  AppLojaAjudaRoute: typeof AppLojaAjudaRoute
+  AppLojaAvaliacoesRoute: typeof AppLojaAvaliacoesRoute
   AppLojaCardapioRoute: typeof AppLojaCardapioRouteWithChildren
   AppLojaConfiguracoesRoute: typeof AppLojaConfiguracoesRouteWithChildren
   AppLojaCozinhaRoute: typeof AppLojaCozinhaRoute
   AppLojaCrescimentoRoute: typeof AppLojaCrescimentoRoute
+  AppLojaDevolucoesRoute: typeof AppLojaDevolucoesRoute
+  AppLojaEntregasRoute: typeof AppLojaEntregasRoute
+  AppLojaFinanceiroRoute: typeof AppLojaFinanceiroRoute
+  AppLojaModulosRoute: typeof AppLojaModulosRoute
   AppLojaPedidosRoute: typeof AppLojaPedidosRoute
   AppLojaPlanoRoute: typeof AppLojaPlanoRoute
+  AppLojaSmartDeliveryRoute: typeof AppLojaSmartDeliveryRoute
+  AppLojaWhatsappRoute: typeof AppLojaWhatsappRoute
   AppLojaIndexRoute: typeof AppLojaIndexRoute
   AppLojaEntregadoresCourierIdRoute: typeof AppLojaEntregadoresCourierIdRoute
   AppLojaEntregadoresNovoRoute: typeof AppLojaEntregadoresNovoRoute
   AppLojaEntregadoresIndexRoute: typeof AppLojaEntregadoresIndexRoute
+  AppLojaRelatoriosIndexRoute: typeof AppLojaRelatoriosIndexRoute
   AppLojaRelatoriosEntregasIndexRoute: typeof AppLojaRelatoriosEntregasIndexRoute
 }
 
 const AppLojaRouteChildren: AppLojaRouteChildren = {
+  AppLojaAjudaRoute: AppLojaAjudaRoute,
+  AppLojaAvaliacoesRoute: AppLojaAvaliacoesRoute,
   AppLojaCardapioRoute: AppLojaCardapioRouteWithChildren,
   AppLojaConfiguracoesRoute: AppLojaConfiguracoesRouteWithChildren,
   AppLojaCozinhaRoute: AppLojaCozinhaRoute,
   AppLojaCrescimentoRoute: AppLojaCrescimentoRoute,
+  AppLojaDevolucoesRoute: AppLojaDevolucoesRoute,
+  AppLojaEntregasRoute: AppLojaEntregasRoute,
+  AppLojaFinanceiroRoute: AppLojaFinanceiroRoute,
+  AppLojaModulosRoute: AppLojaModulosRoute,
   AppLojaPedidosRoute: AppLojaPedidosRoute,
   AppLojaPlanoRoute: AppLojaPlanoRoute,
+  AppLojaSmartDeliveryRoute: AppLojaSmartDeliveryRoute,
+  AppLojaWhatsappRoute: AppLojaWhatsappRoute,
   AppLojaIndexRoute: AppLojaIndexRoute,
   AppLojaEntregadoresCourierIdRoute: AppLojaEntregadoresCourierIdRoute,
   AppLojaEntregadoresNovoRoute: AppLojaEntregadoresNovoRoute,
   AppLojaEntregadoresIndexRoute: AppLojaEntregadoresIndexRoute,
+  AppLojaRelatoriosIndexRoute: AppLojaRelatoriosIndexRoute,
   AppLojaRelatoriosEntregasIndexRoute: AppLojaRelatoriosEntregasIndexRoute,
 }
 
@@ -1356,6 +1879,7 @@ interface ApiPublicStorefrontSlugRouteChildren {
   ApiPublicStorefrontSlugPagamentosRoute: typeof ApiPublicStorefrontSlugPagamentosRoute
   ApiPublicStorefrontSlugPedidosRoute: typeof ApiPublicStorefrontSlugPedidosRoute
   ApiPublicStorefrontSlugPrecoRoute: typeof ApiPublicStorefrontSlugPrecoRoute
+  ApiPublicStorefrontSlugRecomendacoesRoute: typeof ApiPublicStorefrontSlugRecomendacoesRoute
   ApiPublicStorefrontSlugCarrinhoCotacaoRoute: typeof ApiPublicStorefrontSlugCarrinhoCotacaoRoute
   ApiPublicStorefrontSlugProdutosProductIdRoute: typeof ApiPublicStorefrontSlugProdutosProductIdRoute
 }
@@ -1368,6 +1892,8 @@ const ApiPublicStorefrontSlugRouteChildren: ApiPublicStorefrontSlugRouteChildren
       ApiPublicStorefrontSlugPagamentosRoute,
     ApiPublicStorefrontSlugPedidosRoute: ApiPublicStorefrontSlugPedidosRoute,
     ApiPublicStorefrontSlugPrecoRoute: ApiPublicStorefrontSlugPrecoRoute,
+    ApiPublicStorefrontSlugRecomendacoesRoute:
+      ApiPublicStorefrontSlugRecomendacoesRoute,
     ApiPublicStorefrontSlugCarrinhoCotacaoRoute:
       ApiPublicStorefrontSlugCarrinhoCotacaoRoute,
     ApiPublicStorefrontSlugProdutosProductIdRoute:
@@ -1395,9 +1921,14 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarAdminRoute: EntrarAdminRoute,
   EntrarEntregadorRoute: EntrarEntregadorRoute,
   EntrarLojaRoute: EntrarLojaRoute,
-  IntegracaoMercadoPagoRoute: IntegracaoMercadoPagoRoute,
   PedidoSplatRoute: PedidoSplatRoute,
+  PreviewCardapioThemeRoute: PreviewCardapioThemeRoute,
+  PreviewWizardThemeRoute: PreviewWizardThemeRoute,
+  PreviewCardapioIndexRoute: PreviewCardapioIndexRoute,
+  PreviewWizardIndexRoute: PreviewWizardIndexRoute,
   ApiPublicStorefrontSlugRoute: ApiPublicStorefrontSlugRouteWithChildren,
+  ApiPublicStorefrontPedidoAvaliacaoRoute:
+    ApiPublicStorefrontPedidoAvaliacaoRoute,
   ApiPublicStorefrontPedidoStatusRoute: ApiPublicStorefrontPedidoStatusRoute,
 }
 export const routeTree = rootRouteImport

@@ -50,7 +50,7 @@ export const getStripeConnectStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const rpc = context.supabase.rpc as RpcCaller;
+    const rpc = context.supabase.rpc as unknown as RpcCaller;
     const result = await rpc("get_my_store_stripe_connect_status", { _store_id: data.storeId });
     if (result.error) throw result.error;
     return result.data as StripeConnectStatus;
@@ -59,7 +59,7 @@ export const getStripeConnectStatus = createServerFn({ method: "GET" })
 export const getStripeRuntimeReadiness = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const rpc = context.supabase.rpc as RpcCaller;
+    const rpc = context.supabase.rpc as unknown as RpcCaller;
     const result = await rpc("get_stripe_runtime_readiness");
     if (result.error) throw result.error;
     return result.data as StripeRuntimeReadiness;

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { JsonObject } from "@/lib/json";
 
 /**
  * Planos comerciais reais, lidos exclusivamente da fundação externa.
@@ -20,7 +21,7 @@ export type PublicPlan = {
   max_orders_month: number | null;
   max_team_members: number | null;
   max_couriers: number | null;
-  features: Record<string, unknown>;
+  features: JsonObject;
   prices: PublicPlanPrice[];
 };
 
@@ -32,7 +33,7 @@ type PublicPlanRow = {
   max_orders_month: number | null;
   max_team_members: number | null;
   max_couriers: number | null;
-  features?: Record<string, unknown> | null;
+  features?: JsonObject | null;
   prices?: Array<{
     billing_interval: "monthly" | "annual";
     amount_cents: number | string;

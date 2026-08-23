@@ -8,7 +8,7 @@ type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<RpcResu
 type FunctionError = { context?: Response; message?: string };
 
 function rpcCaller(client: { rpc: unknown }): RpcCaller {
-  return client.rpc as RpcCaller;
+  return client.rpc as unknown as RpcCaller;
 }
 
 export interface StoreWhatsAppReadiness {

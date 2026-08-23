@@ -119,7 +119,9 @@ function CartPage() {
     const byId = new Map(catalog.products.map((product) => [product.id, product] as const));
     const fromServer = recommendedIds
       .map((id) => byId.get(id))
-      .filter((product): product is PublicCatalog["products"][number] => Boolean(product) && !product.is_sold_out && !inCart.has(product.id));
+      .filter((product): product is PublicCatalog["products"][number] =>
+        Boolean(product) && !product!.is_sold_out && !inCart.has(product!.id),
+      );
 
     if (fromServer.length > 0) return fromServer.slice(0, 6);
 
