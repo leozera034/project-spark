@@ -39,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
@@ -55,6 +56,16 @@ const STATUS_COPY: Record<string, { title: string; next: string }> = {
   concluida: { title: "Entrega concluída", next: "Você já pode receber uma nova corrida." },
 };
 
+const DECLINE_REASONS = [
+  { value: "unavailable", label: "Não estou disponível agora" },
+  { value: "vehicle_problem", label: "Problema com o veículo" },
+  { value: "cannot_reach_store", label: "Não consigo chegar à loja" },
+  { value: "personal_issue", label: "Questão pessoal" },
+  { value: "other", label: "Outro motivo" },
+] as const;
+
+type DeclineReasonCode = (typeof DECLINE_REASONS)[number]["value"];
+
 function CourierDashboard() {
   const connected = useOnlineStatus();
   const { data: context, isLoading, isError, refetch, isRefetching } = useMyCourierOperationalContext();
@@ -65,7 +76,8 @@ function CourierDashboard() {
   const decline = useDeclineDeliveryAssignment();
   const counter = useMyCourierDeliveryCounter();
   const [declineOpen, setDeclineOpen] = useState(false);
-  const [declineReason, setDeclineReason] = useState("");
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("unavailable");
+  const [declineNote, setDeclineNote] = useState("");
 
   useEffect(() => {
     if (!context?.onlineIntent || !connected) return;
@@ -97,9 +109,17 @@ function CourierDashboard() {
 
   async function confirmDecline() {
     if (!offer) return;
+    const note = declineNote.trim();
     try {
-      await decline.mutateAsync({ deliveryId: offer.deliveryId, expectedVersion: offer.version, reasonCode: "other", idempotencyKey: crypto.randomUUID() });
+      await decline.mutateAsync({
+        deliveryId: offer.deliveryId,
+        expectedVersion: offer.version,
+        reasonCode: declineReasonCode,
+        note: note || undefined,
+        idempotencyKey: crypto.randomUUID(),
+      });
       setDeclineOpen(false);
+      setDeclineNote("");
     } catch {
       // O hook centraliza a mensagem de erro.
     }
@@ -149,7 +169,7 @@ function CourierDashboard() {
           <div className="space-y-4 p-4">
             <div><p className="text-xs font-bold uppercase text-muted-foreground">Coleta</p><p className="mt-1 text-xl font-black">{context?.storeName}</p></div>
             <div className="flex items-center gap-2 rounded-xl bg-background/70 p-3"><MapPin className="size-5 text-brand" /><div><p className="text-[10px] font-bold uppercase text-muted-foreground">Destino</p><p className="font-bold">{offer.neighborhood || "Endereço disponível após aceitar"}</p></div></div>
-            <div className="grid grid-cols-2 gap-3"><Button variant="outline" className="h-14 font-black" onClick={() => { setDeclineReason(""); setDeclineOpen(true); }} disabled={accept.isPending || decline.isPending}>Recusar</Button><Button variant="brand" className="h-14 font-black" onClick={handleAccept} disabled={accept.isPending || decline.isPending}>Aceitar corrida</Button></div>
+            <div className="grid grid-cols-2 gap-3"><Button variant="outline" className="h-14 font-black" onClick={() => { setDeclineReasonCode("unavailable"); setDeclineNote(""); setDeclineOpen(true); }} disabled={accept.isPending || decline.isPending}>Recusar</Button><Button variant="brand" className="h-14 font-black" onClick={handleAccept} disabled={accept.isPending || decline.isPending}>Aceitar corrida</Button></div>
           </div>
         </section>
       ) : null}
@@ -177,7 +197,31 @@ function CourierDashboard() {
       <p className="text-center text-xs text-muted-foreground">Atualização automática · {PRESENCE_LABEL[presence]}</p>
 
       <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
-        <DialogContent className="max-w-[92vw] rounded-2xl"><DialogHeader><DialogTitle>Recusar esta corrida?</DialogTitle><DialogDescription>A entrega volta para a fila. Informe o motivo se quiser.</DialogDescription></DialogHeader><div className="space-y-2 py-2"><Label htmlFor="decline-reason">Motivo</Label><Textarea id="decline-reason" placeholder="Ex.: distância, veículo, indisponibilidade..." value={declineReason} onChange={(event) => setDeclineReason(event.target.value)} /></div><DialogFooter><Button variant="ghost" onClick={() => setDeclineOpen(false)}>Voltar</Button><Button variant="destructive" onClick={confirmDecline} disabled={decline.isPending}>Confirmar recusa</Button></DialogFooter></DialogContent>
+        <DialogContent className="max-w-[92vw] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Recusar esta corrida?</DialogTitle>
+            <DialogDescription>A entrega volta para a fila. Escolha o motivo para a loja entender o que aconteceu.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+            <div className="space-y-3">
+              <Label>Motivo principal</Label>
+              <RadioGroup value={declineReasonCode} onValueChange={(value) => setDeclineReasonCode(value as DeclineReasonCode)} className="space-y-2">
+                {DECLINE_REASONS.map((reason) => (
+                  <label key={reason.value} htmlFor={`decline-${reason.value}`} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm font-medium hover:bg-muted/40">
+                    <RadioGroupItem id={`decline-${reason.value}`} value={reason.value} />
+                    <span>{reason.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="decline-note">Observação opcional</Label>
+              <Textarea id="decline-note" maxLength={300} placeholder="Ex.: pneu furou, estou longe da loja..." value={declineNote} onChange={(event) => setDeclineNote(event.target.value)} />
+              <p className="text-right text-[11px] text-muted-foreground">{declineNote.length}/300</p>
+            </div>
+          </div>
+          <DialogFooter><Button variant="ghost" onClick={() => setDeclineOpen(false)}>Voltar</Button><Button variant="destructive" onClick={confirmDecline} disabled={decline.isPending}>{decline.isPending ? "Recusando..." : "Confirmar recusa"}</Button></DialogFooter>
+        </DialogContent>
       </Dialog>
     </main>
   );
