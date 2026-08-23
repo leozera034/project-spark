@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Tags } from "lucide-react";
 
 import {
-  listCatalogProductSearchAliases,
+  searchCatalogProductSearchAliases,
   updateCatalogProductSearchAliases,
   type CatalogProductSearchAliases,
 } from "@/catalog/search-aliases";
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const MAX_ALIASES = 12;
 const MAX_ALIAS_LENGTH = 40;
+const PAGE_SIZE = 50;
 
 export const Route = createFileRoute("/app/loja/cardapio/busca")({
   component: CatalogSearchAliasesPage,
@@ -50,26 +51,28 @@ function parseAliases(value: string) {
 function CatalogSearchAliasesPage() {
   const { storeId, overview, run, isBusy } = useCatalog();
   const [term, setTerm] = useState("");
+  const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearch(term.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [term]);
+
   const aliasesQuery = useQuery({
-    queryKey: ["catalog", "search-aliases", storeId],
-    queryFn: () => listCatalogProductSearchAliases(storeId!),
+    queryKey: ["catalog", "search-aliases", storeId, search],
+    queryFn: () => searchCatalogProductSearchAliases({
+      storeId: storeId!,
+      search,
+      limit: PAGE_SIZE,
+      offset: 0,
+    }),
     enabled: Boolean(storeId),
     retry: false,
   });
 
-  const items = aliasesQuery.data ?? [];
-  const filtered = useMemo(() => {
-    const needle = fold(term);
-    if (!needle) return items;
-    return items.filter((item) =>
-      [item.name, item.category_name ?? "", ...item.search_aliases]
-        .some((value) => fold(value).includes(needle)),
-    );
-  }, [items, term]);
-
+  const items = aliasesQuery.data?.items ?? [];
   const parsedDraft = useMemo(() => parseAliases(draft), [draft]);
   const draftTooMany = parsedDraft.length > MAX_ALIASES;
   const draftTooLong = parsedDraft.some((alias) => alias.length > MAX_ALIAS_LENGTH);
@@ -140,7 +143,7 @@ function CatalogSearchAliasesPage() {
           <AlertTitle>Não foi possível carregar os termos</AlertTitle>
           <AlertDescription>Tente novamente. Nenhum produto foi alterado.</AlertDescription>
         </Alert>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center">
             <p className="font-semibold">Nenhum produto encontrado.</p>
@@ -149,7 +152,7 @@ function CatalogSearchAliasesPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filtered.map((item) => {
+          {items.map((item) => {
             const editing = editingId === item.product_id;
             return (
               <Card key={item.product_id}>
@@ -226,9 +229,15 @@ function CatalogSearchAliasesPage() {
         </div>
       )}
 
-      <p className="rounded-xl bg-muted/35 p-3 text-xs leading-relaxed text-muted-foreground">
-        Os termos são normalizados pela Comandiva antes de salvar: diferenças de maiúsculas, acentos e espaços não criam duplicatas.
-      </p>
+      {aliasesQuery.data?.has_more ? (
+        <p className="rounded-xl bg-muted/35 p-3 text-xs leading-relaxed text-muted-foreground">
+          Existem mais de {PAGE_SIZE} produtos para esta busca. Digite parte do nome, categoria ou termo para localizar o item rapidamente.
+        </p>
+      ) : (
+        <p className="rounded-xl bg-muted/35 p-3 text-xs leading-relaxed text-muted-foreground">
+          Os termos são normalizados pela Comandiva antes de salvar: diferenças de maiúsculas, acentos e espaços não criam duplicatas.
+        </p>
+      )}
     </div>
   );
 }
