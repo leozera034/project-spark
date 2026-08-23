@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock3, CreditCard, MapPin, Palette, Settings2, Truck, UserRoundCog, WalletCards } from "lucide-react";
+import { Building2, Clock3, CreditCard, MapPin, Palette, Settings2, Truck, UserRoundCog } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,17 +20,29 @@ const GROUPS = [
     description: "Como e quando sua loja recebe pedidos.",
     items: [
       { to: "/app/loja/configuracoes/horarios", label: "Horários", description: "Dias e turnos de funcionamento", icon: Clock3 },
-      { to: "/app/loja/configuracoes/atendimento", label: "Atendimento", description: "Entrega, retirada, pedido mínimo e preparo", icon: Settings2 },
-      { to: "/app/loja/configuracoes/bairros", label: "Entrega e taxas", description: "Taxa fixa, por distância ou por bairro", icon: Truck },
+      { to: "/app/loja/configuracoes/atendimento", label: "Atendimento", description: "Pedido mínimo, preparo, abertura e alertas", icon: Settings2 },
     ],
   },
   {
-    title: "Pagamentos e conta",
-    description: "Como receber pedidos, acompanhar repasses e administrar a assinatura.",
+    title: "Entrega e retirada",
+    description: "Modalidades, cobertura, prazos e taxas da operação.",
     items: [
-      { to: "/app/loja/configuracoes/pagamentos", label: "Pagamentos e recebimentos", description: "Ative pagamento online ou receba por Pix, dinheiro e maquininha", icon: CreditCard },
-      { to: "/app/loja/financeiro", label: "Financeiro e repasses", description: "Saldo, taxas, valores a receber e repasses", icon: WalletCards },
-      { to: "/app/loja/plano", label: "Conta e plano", description: "Assinatura, cobrança e gestão do plano", icon: UserRoundCog },
+      { to: "/app/loja/configuracoes/atendimento", label: "Modalidades", description: "Ative entrega e retirada e ajuste o tempo de preparo", icon: Settings2 },
+      { to: "/app/loja/configuracoes/bairros", label: "Cobertura e taxas", description: "Taxa fixa, por distância ou por bairro", icon: Truck },
+    ],
+  },
+  {
+    title: "Pagamentos",
+    description: "Formas de pagamento aceitas nos pedidos da loja.",
+    items: [
+      { to: "/app/loja/configuracoes/pagamentos", label: "Pagamentos e recebimentos", description: "Pagamento online, Pix, dinheiro e maquininha", icon: CreditCard },
+    ],
+  },
+  {
+    title: "Conta e plano",
+    description: "Assinatura, cobrança e administração da conta Comandiva.",
+    items: [
+      { to: "/app/loja/plano", label: "Conta e plano", description: "Plano atual, cobrança, renovação e histórico", icon: UserRoundCog },
     ],
   },
 ] as const;
@@ -48,7 +60,7 @@ function SettingsHome() {
             {group.items.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.to} to={item.to as never} className="group block">
+                <Link key={`${group.title}-${item.to}-${item.label}`} to={item.to as never} className="group block">
                   <Card className="h-full transition hover:border-brand/25 hover:bg-brand-soft/25">
                     <CardHeader className="pb-3">
                       <span className="mb-2 grid size-10 place-items-center rounded-xl bg-brand-soft text-brand"><Icon className="size-5" /></span>
