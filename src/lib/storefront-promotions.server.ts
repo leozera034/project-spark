@@ -35,9 +35,8 @@ type RpcResult = { data: unknown; error: { message: string } | null };
 
 async function callPromotionRpc(name: string, args: Record<string, unknown>): Promise<RpcResult> {
   const db = await admin();
-  // As RPCs promocionais já estão versionadas por migração, mas o arquivo
-  // gigante de tipos gerados é atualizado separadamente. Limitamos o cast a
-  // esta borda server-only em vez de enfraquecer o cliente Supabase inteiro.
+  // As RPCs promocionais já estão versionadas por migração antes do arquivo
+  // gerado de tipos. O cast fica exclusivamente nesta borda server-only.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rpc = db.rpc.bind(db) as any;
   return rpc(name, args) as Promise<RpcResult>;
@@ -73,10 +72,18 @@ export async function decorateCatalogWithPromotions(
         : Number(product.base_price);
       const promotionalReference = Math.max(0, currentReference - discount);
 
-      // Sobrescrevemos apenas o preço de vitrine. O cálculo final continua
-      // acontecendo no servidor com storefront_price_with_promotions.
+      // O card recebe um preview de merchandising, mas o cálculo final continua
+      // exclusivamente no servidor via storefront_price_with_promotions.
       return {
         ...product,
+        original_base_price: Number(product.base_price),
+        original_from_price: product.from_price === null ? null : Number(product.from_price),
+        promotion_id: promotion.id,
+        promotion_name: promotion.name,
+        promotion_kind: promotion.kind,
+        promotion_value: Number(promotion.value),
+        promotion_discount_total: discount,
+        promotion_scope: promotion.scope,
         base_price: product.has_variants ? product.base_price : promotionalReference,
         from_price: product.has_variants ? promotionalReference : product.from_price,
       };
