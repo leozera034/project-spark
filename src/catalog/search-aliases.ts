@@ -9,6 +9,14 @@ export type CatalogProductSearchAliases = {
   updated_at: string;
 };
 
+export type CatalogProductSearchAliasPage = {
+  items: CatalogProductSearchAliases[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+};
+
 // As RPCs de aliases são versionadas por migração antes dos tipos gerados.
 // O cast fica restrito a esta borda do catálogo.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,11 +28,19 @@ function unwrap<T>(result: { data: unknown; error: { message?: string } | null }
   return result.data as T;
 }
 
-export async function listCatalogProductSearchAliases(
-  storeId: string,
-): Promise<CatalogProductSearchAliases[]> {
-  return unwrap<CatalogProductSearchAliases[]>(
-    await rpc("list_catalog_product_search_aliases", { _store_id: storeId }),
+export async function searchCatalogProductSearchAliases(params: {
+  storeId: string;
+  search: string;
+  limit?: number;
+  offset?: number;
+}): Promise<CatalogProductSearchAliasPage> {
+  return unwrap<CatalogProductSearchAliasPage>(
+    await rpc("search_catalog_product_search_aliases", {
+      _store_id: params.storeId,
+      _search: params.search,
+      _limit: params.limit ?? 50,
+      _offset: params.offset ?? 0,
+    }),
   );
 }
 
