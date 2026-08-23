@@ -23,9 +23,14 @@ const checks = [
   },
   {
     name: "EXECUTE privilegiado para anon",
-    pattern: /GRANT\s+EXECUTE\s+ON\s+(?:FUNCTION|PROCEDURE)[\s\S]{0,320}?\bTO\s+(?:ROLE\s+)?anon\b/gi,
+    // O escopo do match não atravessa `;` para não confundir grants distintos
+    // (um GRANT dinâmico para authenticated seguido, mais abaixo, de um grant
+    // anônimo deliberado é ruído, não achado).
+    pattern: /GRANT\s+EXECUTE\s+ON\s+(?:FUNCTION|PROCEDURE)[^;]{0,320}?\bTO\s+(?:ROLE\s+)?anon\b/gi,
     advice: "RPCs anônimas exigem revisão explícita. Prefira função pública mínima e allowlist deliberada.",
-    allow: /^GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.check_public_store_slug\s*\(\s*text\s*\)\s+TO\s+anon\s*,/i,
+    // Allowlist deliberada: superfícies públicas mínimas do cardápio, sem PII
+    // e sem escrita, necessárias antes de qualquer identificação do cliente.
+    allow: /^GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.(?:check_public_store_slug\s*\(\s*text\s*\)|storefront_delivery_quote\s*\([^)]*\))\s+TO\s+anon\b/i,
   },
   {
     name: "service role/secret literal",
