@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Crown, MessageCircle, RefreshCw, Search, TrendingUp, Users, WalletCards } from "lucide-react";
+import { ArrowRight, Crown, MessageCircle, RefreshCw, Search, TrendingUp, Users, WalletCards } from "lucide-react";
 
-import { WhatsAppAutomationBuilder } from "@/components/store/WhatsAppAutomationBuilder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -144,9 +143,9 @@ function CustomersCenter() {
         </Card>
       </section>
 
-      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
+      <section className="grid min-w-0 gap-6 lg:grid-cols-[1.35fr_.65fr]">
         <Card className="min-w-0">
-          <CardHeader><CardTitle className="flex items-center gap-2"><MessageCircle className="size-5 text-brand" /> Rascunhos de campanha</CardTitle><p className="text-sm text-muted-foreground">Organize uma mensagem e um público. Salvar aqui não dispara mensagens automaticamente.</p></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><MessageCircle className="size-5 text-brand" /> Rascunhos de campanha</CardTitle><p className="text-sm text-muted-foreground">Organize uma mensagem e um público. Salvar aqui não envia nada automaticamente.</p></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Nome</Label><Input value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="Ex.: Volta dos clientes inativos" /></div>
@@ -158,7 +157,13 @@ function CustomersCenter() {
           </CardContent>
         </Card>
 
-        <WhatsAppAutomationBuilder storeId={storeId} />
+        <Card className="min-w-0 border-brand/20 bg-brand-soft/20">
+          <CardHeader><CardTitle className="flex items-center gap-2"><MessageCircle className="size-5 text-brand" /> Comunicação</CardTitle><p className="text-sm text-muted-foreground">Conexão, mensagens automáticas, templates e histórico ficam em um único lugar.</p></CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-6 text-muted-foreground">Clientes é o seu CRM. Configurações de automação não aparecem aqui para evitar duplicidade e confusão.</p>
+            <Button asChild className="w-full"><Link to="/app/loja/whatsapp">Abrir WhatsApp <ArrowRight className="size-4" /></Link></Button>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
