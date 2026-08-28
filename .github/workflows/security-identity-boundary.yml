@@ -1,0 +1,30 @@
+name: Security Identity Boundary
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  identity-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.SPARK_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require database contract connection
+        if: env.DATABASE_URL == ''
+        run: |
+          echo "::error::SPARK_DATABASE_URL is required for the identity-boundary security contract."
+          exit 1
+      - name: Install PostgreSQL client
+        if: env.DATABASE_URL != ''
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Reject client-callable SECURITY DEFINER identity parameters
+        if: env.DATABASE_URL != ''
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/security_definer_identity_boundary_contract.sql

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { reopenAnalyticsPreferences } from "@/lib/analytics";
 
 /** Rodapé institucional da Comandiva. */
 export function SiteFooter() {
@@ -29,6 +30,8 @@ export function SiteFooter() {
             items={[
               { label: "Para lojas", href: "#segmentos" },
               { label: "Criar minha loja", to: "/criar-loja" },
+              { label: "Política de Privacidade", to: "/privacidade" },
+              { label: "Termos de Uso", to: "/termos" },
             ]}
           />
           <FooterColumn
@@ -44,9 +47,21 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-carbon-foreground/15 pt-6 text-xs text-carbon-foreground/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Comandiva. Todos os direitos reservados.</p>
-          <p>
-            Termos de uso e política de privacidade são apresentados durante a contratação da loja.
-          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <Link to="/privacidade" className="transition-colors hover:text-carbon-foreground">
+              Privacidade
+            </Link>
+            <Link to="/termos" className="transition-colors hover:text-carbon-foreground">
+              Termos de Uso
+            </Link>
+            <button
+              type="button"
+              onClick={reopenAnalyticsPreferences}
+              className="transition-colors hover:text-carbon-foreground"
+            >
+              Preferências de cookies
+            </button>
+          </div>
         </div>
       </div>
     </footer>

@@ -10,6 +10,9 @@ DO $$
 DECLARE
   _record_payment regprocedure := 'private.record_addon_provider_payment(uuid,text,text,text,text,text,integer,text,timestamptz,timestamptz,text,jsonb)'::regprocedure;
   _addons_rpc regprocedure := 'public.get_my_store_addons(uuid)'::regprocedure;
+  _begin_checkout regprocedure := 'public.billing_begin_addon_checkout(uuid,uuid,text,text,text,text)'::regprocedure;
+  _complete_provider regprocedure := 'public.billing_complete_addon_checkout_provider_create(uuid,uuid,text,text,text,text)'::regprocedure;
+  _complete_session regprocedure := 'public.billing_complete_addon_checkout_session_create(uuid,uuid,text,text,text,text)'::regprocedure;
   _deployed boolean;
 BEGIN
   SELECT EXISTS (
@@ -50,6 +53,18 @@ BEGIN
      OR has_function_privilege('authenticated',_record_payment,'EXECUTE')
      OR NOT has_function_privilege('service_role',_record_payment,'EXECUTE') THEN
     RAISE EXCEPTION 'Add-on payment recorder must remain service-role-only';
+  END IF;
+
+  IF has_function_privilege('anon',_begin_checkout,'EXECUTE')
+     OR has_function_privilege('authenticated',_begin_checkout,'EXECUTE')
+     OR NOT has_function_privilege('service_role',_begin_checkout,'EXECUTE')
+     OR has_function_privilege('anon',_complete_provider,'EXECUTE')
+     OR has_function_privilege('authenticated',_complete_provider,'EXECUTE')
+     OR NOT has_function_privilege('service_role',_complete_provider,'EXECUTE')
+     OR has_function_privilege('anon',_complete_session,'EXECUTE')
+     OR has_function_privilege('authenticated',_complete_session,'EXECUTE')
+     OR NOT has_function_privilege('service_role',_complete_session,'EXECUTE') THEN
+    RAISE EXCEPTION 'Add-on checkout mutation RPCs must remain service-role-only';
   END IF;
 
   IF pg_get_functiondef(_addons_rpc) NOT ILIKE '%subscription.view%'

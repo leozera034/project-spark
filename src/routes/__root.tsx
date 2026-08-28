@@ -20,6 +20,7 @@ import {
 } from "@/components/feedback/AppErrorScreen";
 import { NotFoundPage } from "@/components/feedback/NotFoundPage";
 import { RouteProgress } from "@/components/feedback/RouteProgress";
+import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeInitScript, useTheme } from "@/lib/theme";
 import {
@@ -224,6 +225,7 @@ function RootComponent() {
           <div id="conteudo">
             <Outlet />
           </div>
+          <AnalyticsConsent />
           <ThemedToaster />
         </AuthProvider>
       </ThemeProvider>
