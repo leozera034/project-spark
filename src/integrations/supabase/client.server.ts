@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
+const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 const BACKEND_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-backend-api`;
 const STORE_SIGNUP_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/comandiva-store-signup`;
 const EDGE_REQUEST_TIMEOUT_MS = 15_000;
@@ -14,9 +15,9 @@ const EDGE_RPC_ALLOWLIST = new Set([
 ]);
 
 function publishableKey(): string {
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-  if (!key) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
-  return key;
+  return process.env.SUPABASE_PUBLISHABLE_KEY?.trim()
+    || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
+    || EXTERNAL_SUPABASE_PUBLISHABLE_KEY;
 }
 
 export class PediuBackendApiError extends Error {
