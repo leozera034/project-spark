@@ -53,37 +53,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mounted.current = true;
 
-    // Única assinatura de onAuthStateChange em toda a aplicação.
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (!mounted.current) return;
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
+    let unsubscribe = () => undefined;
 
-      if (event === "PASSWORD_RECOVERY") setIsRecoverySession(true);
-      if (event === "SIGNED_OUT") {
-        setSelectedStoreId(null);
-        setAuthContext(null);
-        setIsRecoverySession(false);
-        return;
-      }
-      if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION") {
-        // Trabalho assíncrono fora do callback para não bloquear o SDK.
-        if (nextSession) queueMicrotask(() => void refreshAuthContext());
-      }
-    });
+    try {
+      // Única assinatura de onAuthStateChange em toda a aplicação.
+      const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
+        if (!mounted.current) return;
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
 
-    void (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted.current) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      if (data.session) await refreshAuthContext();
-      if (mounted.current) setIsInitializing(false);
-    })();
+        if (event === "PASSWORD_RECOVERY") setIsRecoverySession(true);
+        if (event === "SIGNED_OUT") {
+          setSelectedStoreId(null);
+          setAuthContext(null);
+          setIsRecoverySession(false);
+          return;
+        }
+        if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION") {
+          // Trabalho assíncrono fora do callback para não bloquear o SDK.
+          if (nextSession) queueMicrotask(() => void refreshAuthContext());
+        }
+      });
+      unsubscribe = () => subscription.subscription.unsubscribe();
+
+      void (async () => {
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (!mounted.current) return;
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          if (data.session) await refreshAuthContext();
+        } catch (error) {
+          console.error("[auth] sessão inicial indisponível", error);
+        } finally {
+          if (mounted.current) setIsInitializing(false);
+        }
+      })();
+    } catch (error) {
+      // Uma configuração ausente não pode derrubar páginas públicas.
+      console.error("[auth] cliente de autenticação indisponível", error);
+      setIsInitializing(false);
+    }
 
     return () => {
       mounted.current = false;
-      subscription.subscription.unsubscribe();
+      unsubscribe();
     };
   }, [refreshAuthContext]);
 
