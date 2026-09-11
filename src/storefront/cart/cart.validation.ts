@@ -94,8 +94,7 @@ export function lineSignature(input: {
 }
 
 export function newLineId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return `l_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  return crypto.randomUUID();
 }
 
 /** Ajusta a quantidade aos limites do produto, sem confiar no que veio da UI. */
