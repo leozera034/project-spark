@@ -1,7 +1,5 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouterState } from "@tanstack/react-router";
-
-import { installStorefrontPublicApiBridgeForApp } from "@/storefront/public-edge";
 
 /**
  * Barra fina no topo enquanto o roteador carrega dados de uma rota.
@@ -18,10 +16,6 @@ export function RouteProgress() {
   );
   const pending = useRouterState({ select: (state) => state.status === "pending" });
   const isLoading = hydrated && pending;
-
-  useEffect(() => {
-    void installStorefrontPublicApiBridgeForApp();
-  }, []);
 
   return (
     <div
