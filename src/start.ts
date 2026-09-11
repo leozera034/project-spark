@@ -1,20 +1,6 @@
-import {
-  createClientOnlyFn,
-  createCsrfMiddleware,
-  createMiddleware,
-  createStart,
-} from "@tanstack/react-start";
+import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-
-const installStorefrontBridgeInBrowser = createClientOnlyFn(async () => {
-  const { installStorefrontPublicApiBridge } = await import(
-    "@/storefront/public-api-bridge.client"
-  );
-  installStorefrontPublicApiBridge();
-});
-
-void installStorefrontBridgeInBrowser();
 
 // Function client middleware also runs while route loaders are rendered on the
 // server. Only inspect the persisted browser session after hydration; otherwise
