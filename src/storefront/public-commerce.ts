@@ -33,3 +33,10 @@ export const submitOrderForBrowser = createClientOnlyFn(
     return submitPublicOrderFromBrowser(slug, body);
   },
 );
+
+export const orderTrackingForBrowser = createClientOnlyFn(
+  async ({ token, knownVersion }: { token: string; knownVersion: string | null }) => {
+    const { loadOrderTrackingFromBrowser } = await import("./public-commerce.client");
+    return loadOrderTrackingFromBrowser(token, knownVersion);
+  },
+);
