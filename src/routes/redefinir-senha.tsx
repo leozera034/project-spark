@@ -24,6 +24,18 @@ export const Route = createFileRoute("/redefinir-senha")({
   component: ResetPasswordPage,
 });
 
+function constantTimeEqual(left: string, right: string): boolean {
+  const encoder = new TextEncoder();
+  const leftBytes = encoder.encode(left);
+  const rightBytes = encoder.encode(right);
+  const size = Math.max(leftBytes.length, rightBytes.length);
+  let difference = leftBytes.length ^ rightBytes.length;
+  for (let index = 0; index < size; index += 1) {
+    difference |= (leftBytes[index] ?? 0) ^ (rightBytes[index] ?? 0);
+  }
+  return difference === 0;
+}
+
 function ResetPasswordPage() {
   const { updatePassword, authContext, isAuthenticated, isInitializing, refreshAuthContext } = useAuth();
   const navigate = useNavigate();
@@ -40,7 +52,7 @@ function ResetPasswordPage() {
       setError(check.message);
       return;
     }
-    if (password !== confirmation) {
+    if (!constantTimeEqual(password, confirmation)) {
       setError(AUTH_MESSAGES.passwordsDiffer);
       return;
     }
