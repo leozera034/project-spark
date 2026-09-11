@@ -60,8 +60,12 @@ function CheckoutPage() {
   useEffect(() => {
     if (!fulfillmentType) return;
     let active = true;
-    setMethods(null);
-    setMethodId(null);
+    queueMicrotask(() => {
+      if (active) {
+        setMethods(null);
+        setMethodId(null);
+      }
+    });
     fetchPaymentMethods(slug, fulfillmentType)
       .then((list) => {
         if (!active) return;

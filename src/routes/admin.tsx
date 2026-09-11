@@ -47,23 +47,26 @@ const NAV = [
   { href: "/admin/observabilidade", label: "Observabilidade", icon: ShieldCheck },
 ] as const;
 
-function AdminLayout() {
-  const { signOut, authContext } = useAuth();
-  const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const logout = () => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.adminSignIn as never }));
-  const Nav = ({ mobile = false }: { mobile?: boolean }) => (
+function AdminNav({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate: () => void }) {
+  return (
     <nav className="space-y-1" aria-label="Administração SaaS">
       {NAV.map((item) => {
         const Icon = item.icon;
         return (
-          <a key={item.href} href={item.href} onClick={() => mobile && setMobileOpen(false)} className="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white">
+          <a key={item.href} href={item.href} onClick={() => mobile && onNavigate()} className="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white">
             <span className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/[.05] transition group-hover:border-[#FF6A4D]/30 group-hover:bg-white/10"><Icon className="size-4 text-[#FFB4A2]" /></span>{item.label}
           </a>
         );
       })}
     </nav>
   );
+}
+
+function AdminLayout() {
+  const { signOut, authContext } = useAuth();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const logout = () => void signOut("local").then(() => navigate({ to: AUTH_ROUTES.adminSignIn as never }));
 
   return (
     <div className="app-premium-shell min-h-dvh text-foreground lg:flex">
@@ -71,12 +74,12 @@ function AdminLayout() {
         <div className="flex h-20 items-center border-b border-white/10 px-5"><BrandLogo tone="white" className="h-10 w-auto" /></div>
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-5 rounded-2xl border border-white/10 bg-white/[.06] p-3"><div className="flex items-center gap-2"><span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-40" /><span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" /></span><span className="text-xs font-extrabold uppercase tracking-[.14em] text-white/75">SaaS Control</span></div><p className="mt-2 text-xs leading-5 text-white/48">Operação, receita e saúde da plataforma em páginas separadas.</p></div>
-          <Nav />
+          <AdminNav onNavigate={() => setMobileOpen(false)} />
         </div>
         <div className="border-t border-white/10 p-4"><div className="mb-3 flex items-center gap-3 rounded-xl px-2 py-2"><BrandSymbol tone="white" className="size-9" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-white">{authContext?.full_name ?? "Administrador"}</p><p className="text-[11px] text-white/45">Administração da plataforma</p></div></div><Button variant="outline" className="w-full justify-start border-white/15 bg-white/[.05] text-white hover:bg-white/10 hover:text-white" onClick={logout}><LogOut className="size-4" /> Sair</Button></div>
       </aside>
 
-      {mobileOpen ? <div className="fixed inset-0 z-50 lg:hidden"><button className="absolute inset-0 bg-black/55 backdrop-blur-sm" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} /><aside className="app-premium-sidebar absolute inset-y-0 left-0 flex w-[82vw] max-w-80 flex-col border-r p-4 pt-[max(1rem,env(safe-area-inset-top))]"><div className="mb-5 flex items-center justify-between"><BrandLogo tone="white" className="h-10 w-auto" /><Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X className="size-5" /></Button></div><Nav mobile /></aside></div> : null}
+      {mobileOpen ? <div className="fixed inset-0 z-50 lg:hidden"><button className="absolute inset-0 bg-black/55 backdrop-blur-sm" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} /><aside className="app-premium-sidebar absolute inset-y-0 left-0 flex w-[82vw] max-w-80 flex-col border-r p-4 pt-[max(1rem,env(safe-area-inset-top))]"><div className="mb-5 flex items-center justify-between"><BrandLogo tone="white" className="h-10 w-auto" /><Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X className="size-5" /></Button></div><AdminNav mobile onNavigate={() => setMobileOpen(false)} /></aside></div> : null}
 
       <div className="min-w-0 flex-1">
         <header className="app-premium-topbar sticky top-0 z-40 flex min-h-16 items-center justify-between border-b px-4 sm:px-6 lg:px-8"><div className="flex items-center gap-3"><Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></Button><div><div className="flex items-center gap-2"><span className="text-sm font-extrabold text-[#4B1D6D]">Comandiva</span><span className="rounded-full border border-[#4B1D6D]/10 bg-[#4B1D6D]/[.07] px-2 py-0.5 text-[10px] font-black uppercase tracking-[.12em] text-[#4B1D6D]">Admin SaaS</span></div><p className="hidden text-xs text-[#6F6376] sm:block">Centro de controle da plataforma</p></div></div><div className="flex items-center gap-2"><ThemeToggle /><Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={logout}><LogOut className="size-4" /> Sair</Button></div></header>

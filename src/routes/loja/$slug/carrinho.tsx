@@ -75,8 +75,10 @@ function CartPage() {
 
   useEffect(() => {
     if (!cart.hydrated || cartProductIds.length === 0) {
-      setRecommendedIds([]);
-      setRecommendationSource("local_fallback");
+      queueMicrotask(() => {
+        setRecommendedIds([]);
+        setRecommendationSource("local_fallback");
+      });
       return;
     }
 

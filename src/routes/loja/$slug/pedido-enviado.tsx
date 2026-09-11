@@ -58,9 +58,11 @@ function OrderSentPage() {
   const [pixKeyCopied, setPixKeyCopied] = useState(false);
 
   useEffect(() => {
-    setReceipt(readReceipt(slug));
-    setReorderDraft(readReorderDraft(slug));
-    setHydrated(true);
+    queueMicrotask(() => {
+      setReceipt(readReceipt(slug));
+      setReorderDraft(readReorderDraft(slug));
+      setHydrated(true);
+    });
   }, [slug]);
 
   const isStripe = Boolean(

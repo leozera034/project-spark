@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle2,
   Loader2,
@@ -75,10 +75,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   const connection = useStoreEvolutionWhatsAppConnection(storeId);
   const addons = useStoreAddons(storeId);
   const actions = useStoreEvolutionWhatsAppActions();
-  const statusMutateAsyncRef = useRef(actions.status.mutateAsync);
-  const refreshQrMutateAsyncRef = useRef(actions.refreshQr.mutateAsync);
   const statusCheckInFlightRef = useRef(false);
-  const reconcileLiveStatusRef = useRef<() => Promise<void>>(async () => undefined);
   const reconciledStoreRef = useRef<string | null>(null);
   const [qr, setQr] = useState<QrState>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -86,13 +83,11 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
 
-  statusMutateAsyncRef.current = actions.status.mutateAsync;
-  refreshQrMutateAsyncRef.current = actions.refreshQr.mutateAsync;
-  reconcileLiveStatusRef.current = async () => {
+  const reconcileLiveStatus = useCallback(async () => {
     if (statusCheckInFlightRef.current) return;
     statusCheckInFlightRef.current = true;
     try {
-      const result = await statusMutateAsyncRef.current(storeId);
+      const result = await actions.status.mutateAsync(storeId);
       if (result.connected) {
         setQr(null);
         setUiError(null);
@@ -100,7 +95,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
         return;
       }
       if (result.repairRequired) {
-        const repaired = await refreshQrMutateAsyncRef.current(storeId);
+        const repaired = await actions.refreshQr.mutateAsync(storeId);
         setQr(repaired);
         setUiError(null);
         setNotice("A conexão anterior encerrou. Escaneie o novo QR Code para reconectar.");
@@ -110,7 +105,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
     } finally {
       statusCheckInFlightRef.current = false;
     }
-  };
+  }, [actions.refreshQr, actions.status, storeId]);
 
   const manualAddon = useMemo(
     () => addons.data?.items.find((addon) => addon.code === "whatsapp_manual") ?? null,
@@ -150,19 +145,21 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
   useEffect(() => {
     if (!connection.isSuccess || reconciledStoreRef.current === storeId) return;
     reconciledStoreRef.current = storeId;
-    void reconcileLiveStatusRef.current();
-  }, [connection.isSuccess, storeId]);
+    void reconcileLiveStatus();
+  }, [connection.isSuccess, reconcileLiveStatus, storeId]);
 
   useEffect(() => {
     if (!pending || connected) return;
-    const timer = window.setInterval(() => void reconcileLiveStatusRef.current(), 3_000);
+    const timer = window.setInterval(() => void reconcileLiveStatus(), 3_000);
     return () => window.clearInterval(timer);
-  }, [connected, pending, storeId]);
+  }, [connected, pending, reconcileLiveStatus, storeId]);
 
   useEffect(() => {
     if (!connected) return;
-    setQr(null);
-    setUiError(null);
+    queueMicrotask(() => {
+      setQr(null);
+      setUiError(null);
+    });
   }, [connected]);
 
   async function startConnection() {

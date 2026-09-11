@@ -316,11 +316,11 @@ function StorefrontPage() {
 
   useEffect(() => {
     if (grouped.length === 0) {
-      setActiveCategory(null);
+      queueMicrotask(() => setActiveCategory(null));
       return;
     }
     if (!activeCategory || !grouped.some(({ category }) => category.id === activeCategory)) {
-      setActiveCategory(grouped[0].category.id);
+      queueMicrotask(() => setActiveCategory(grouped[0].category.id));
     }
   }, [activeCategory, grouped]);
 

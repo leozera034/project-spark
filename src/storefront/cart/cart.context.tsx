@@ -101,9 +101,11 @@ export function CartProvider({ slug, children }: { slug: string; children: React
 
   // Hidratação apenas no cliente: SSR nunca conhece o carrinho.
   useEffect(() => {
-    setStorageAvailable(isCartStorageAvailable());
-    setCart(readCart(slug));
-    setHydrated(true);
+    queueMicrotask(() => {
+      setStorageAvailable(isCartStorageAvailable());
+      setCart(readCart(slug));
+      setHydrated(true);
+    });
   }, [slug]);
 
   const persist = useCallback(
