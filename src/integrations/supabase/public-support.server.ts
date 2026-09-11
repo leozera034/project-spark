@@ -1,13 +1,13 @@
 const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
-const configuredPublishableKey =
-  process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-if (!configuredPublishableKey) {
-  throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
-}
-const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey;
 const SUPPORT_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-public-support`;
 
 type SupportEnvelope<T> = { ok: true; data: T } | { ok: false; error?: string };
+
+function publishableKey(): string {
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!key) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
+  return key;
+}
 
 export class PediuPublicSupportError extends Error {
   constructor(
@@ -26,7 +26,7 @@ export async function invokePediuPublicSupport<T>(
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      apikey: EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
+      apikey: publishableKey(),
     },
     body: JSON.stringify(payload),
   });
