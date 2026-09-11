@@ -1,0 +1,325 @@
+/*
+ * Comandiva + Taste Skill v2
+ *
+ * Design read: B2B/local-commerce SaaS for busy merchants.
+ * Direction: trustworthy, warm, product-led and operationally clear.
+ * Dials: DESIGN_VARIANCE 6 / MOTION_INTENSITY 4 / VISUAL_DENSITY 5.
+ *
+ * This layer intentionally sits after comandiva-theme.css. It does not replace
+ * product semantics, routes or the existing component system. It tightens the
+ * visual grammar across marketing, storefront and authenticated surfaces.
+ */
+
+:root {
+  --taste-radius-xs: 0.625rem;
+  --taste-radius-sm: 0.875rem;
+  --taste-radius-md: 1.125rem;
+  --taste-radius-lg: 1.5rem;
+  --taste-radius-xl: 1.875rem;
+  --taste-shadow-1: 0 1px 2px rgba(53, 17, 79, 0.04), 0 10px 28px rgba(53, 17, 79, 0.06);
+  --taste-shadow-2: 0 2px 5px rgba(53, 17, 79, 0.05), 0 20px 48px rgba(53, 17, 79, 0.1);
+  --taste-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --taste-fast: 160ms;
+  --taste-base: 240ms;
+  --taste-header-height: 4.5rem;
+}
+
+html {
+  scroll-padding-top: calc(var(--taste-header-height) + 1rem);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-image: none;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+main > section[id] {
+  scroll-margin-top: calc(var(--taste-header-height) + 1rem);
+}
+
+/* Interaction contract */
+a,
+button,
+[role="button"],
+input,
+textarea,
+select,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+a[href] {
+  touch-action: manipulation;
+}
+
+:where(a, button, [role="button"], input, textarea, select, summary):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ring) 72%, white 28%);
+  outline-offset: 3px;
+  box-shadow: var(--elevation-focus);
+}
+
+:where(button, [role="button"], a[href]) {
+  transition:
+    color var(--taste-fast) ease,
+    background-color var(--taste-fast) ease,
+    border-color var(--taste-fast) ease,
+    box-shadow var(--taste-base) var(--taste-ease),
+    transform var(--taste-base) var(--taste-ease),
+    opacity var(--taste-fast) ease;
+}
+
+:where(button, [role="button"], a[href]):active {
+  transform: translateY(1px) scale(0.995);
+}
+
+:where(button, [role="button"]):disabled,
+:where(button, [role="button"])[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+/* One shape system for the shared primitives. */
+[data-slot="button"],
+[data-slot="input"],
+[data-slot="select-trigger"],
+[data-slot="textarea"],
+[role="combobox"] {
+  border-radius: var(--taste-radius-sm);
+}
+
+[data-slot="card"],
+.panel {
+  border-radius: var(--taste-radius-lg);
+  border-color: color-mix(in srgb, var(--brand) 9%, var(--border));
+  box-shadow: var(--taste-shadow-1);
+}
+
+[data-slot="card"]:has(a[href], button, [role="button"]),
+.panel:has(a[href], button, [role="button"]) {
+  transition:
+    border-color var(--taste-fast) ease,
+    box-shadow var(--taste-base) var(--taste-ease),
+    transform var(--taste-base) var(--taste-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-slot="card"]:has(a[href], button, [role="button"]):hover,
+  .panel:has(a[href], button, [role="button"]):hover {
+    border-color: color-mix(in srgb, var(--brand) 18%, var(--border));
+    box-shadow: var(--taste-shadow-2);
+    transform: translateY(-2px);
+  }
+}
+
+/* Inputs stay calm and legible instead of looking like isolated templates. */
+:where(input, textarea, select, [role="combobox"]) {
+  transition:
+    border-color var(--taste-fast) ease,
+    box-shadow var(--taste-fast) ease,
+    background-color var(--taste-fast) ease;
+}
+
+:where(input, textarea, select, [role="combobox"]):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand) 22%, var(--input));
+}
+
+:where(input, textarea, select, [role="combobox"]):focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 14%, transparent);
+}
+
+/* Navigation remains one line on desktop and keeps the product compact. */
+.app-premium-topbar,
+.glass-bar,
+header.sticky {
+  min-height: var(--taste-header-height);
+}
+
+.app-premium-topbar,
+.glass-bar {
+  border-color: color-mix(in srgb, var(--brand) 8%, var(--border));
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--brand) 5%, transparent);
+}
+
+.app-premium-sidebar,
+.bg-sidebar {
+  box-shadow: inset -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.app-premium-sidebar a,
+.bg-sidebar a {
+  border-radius: var(--taste-radius-sm);
+}
+
+.app-premium-sidebar a[aria-current="page"] {
+  box-shadow: inset 3px 0 var(--primary);
+}
+
+.app-premium-bottom-nav {
+  padding-bottom: max(0.45rem, env(safe-area-inset-bottom));
+}
+
+/* Tables: operational density without the spreadsheet feel. */
+table {
+  border-radius: var(--taste-radius-md);
+}
+
+thead th {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  transition: background-color var(--taste-fast) ease;
+}
+
+tbody tr:hover {
+  background: color-mix(in srgb, var(--brand) 3.5%, transparent);
+}
+
+/* Dialogs and popovers share the same depth language. */
+[role="dialog"],
+[data-radix-dialog-content],
+[data-radix-popper-content-wrapper] > * {
+  border-radius: var(--taste-radius-lg);
+  box-shadow: var(--taste-shadow-2);
+}
+
+/* Storefront and product surfaces: clearer hierarchy, less decoration. */
+main h1 {
+  text-wrap: balance;
+  letter-spacing: -0.035em;
+}
+
+main h2,
+main h3 {
+  text-wrap: balance;
+}
+
+main p {
+  text-wrap: pretty;
+}
+
+/* Homepage hero: reuse the existing real brand asset instead of exposing a dev placeholder. */
+#produto {
+  background:
+    radial-gradient(circle at 87% 16%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 22rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 98%, white 2%), var(--background));
+}
+
+#produto h1 {
+  max-width: 15ch;
+  line-height: 1.02;
+}
+
+#produto .border-dashed {
+  position: relative;
+  overflow: hidden;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-color: color-mix(in srgb, var(--brand) 12%, var(--border)) !important;
+  background:
+    linear-gradient(180deg, rgba(28, 28, 30, 0.02), rgba(28, 28, 30, 0.18)),
+    url("./assets/home-hero.jpg") center / cover no-repeat !important;
+  box-shadow: var(--taste-shadow-2);
+}
+
+#produto .border-dashed > * {
+  display: none;
+}
+
+/* Marketing cards should not all read as identical template tiles. */
+#recursos article:nth-child(4n + 1),
+#recursos article:nth-child(4n + 4) {
+  background: color-mix(in srgb, var(--brand-soft) 42%, white);
+}
+
+#recursos article:nth-child(4n + 2),
+#recursos article:nth-child(4n + 3) {
+  background: var(--surface);
+}
+
+/* Prevent excessive pill language. Real status chips remain compact. */
+:where([data-slot="badge"], [role="status"]) {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Motion stays restrained and only uses compositor-friendly properties. */
+.reveal {
+  transition-timing-function: var(--taste-ease) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .reveal,
+  .reveal[data-revealed="true"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-bar,
+  .app-premium-topbar {
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --taste-header-height: 4rem;
+  }
+
+  [role="dialog"],
+  [data-radix-dialog-content] {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    border-radius: var(--taste-radius-lg);
+  }
+
+  .app-premium-bottom-nav a,
+  .app-premium-bottom-nav button {
+    min-height: 2.75rem;
+  }
+
+  table {
+    font-size: 0.875rem;
+  }
+
+  #produto h1 {
+    max-width: 12.5ch;
+    line-height: 1.04;
+  }
+}
