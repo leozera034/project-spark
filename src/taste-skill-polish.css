@@ -284,6 +284,232 @@ main p {
   font-weight: 700;
 }
 
+/* Uiverse-inspired layer: physical feedback, light sweeps and soft depth. */
+[data-slot="button"][data-variant="default"],
+[data-slot="button"][data-variant="brand"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+[data-slot="button"][data-variant="default"]::before,
+[data-slot="button"][data-variant="brand"]::before {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -55%;
+  z-index: -1;
+  width: 42%;
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    left 520ms var(--taste-ease),
+    opacity var(--taste-fast) ease;
+}
+
+[data-slot="button"][data-variant="default"] {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.32) inset,
+    0 12px 30px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+[data-slot="button"][data-variant="brand"] {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 12px 30px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--background) 98%, white 2%),
+    color-mix(in srgb, var(--background) 94%, var(--brand) 6%)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 1px 2px color-mix(in srgb, var(--brand) 6%, transparent);
+}
+
+[data-slot="input"]:focus,
+[data-slot="textarea"]:focus,
+[data-slot="select-trigger"]:focus {
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--input));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ring) 14%, transparent),
+    0 10px 24px color-mix(in srgb, var(--brand) 8%, transparent);
+}
+
+[data-slot="select-content"] {
+  border-color: color-mix(in srgb, var(--brand) 12%, var(--border));
+  box-shadow: var(--taste-shadow-2);
+}
+
+[data-slot="select-item"] {
+  border-radius: var(--taste-radius-xs);
+  transition:
+    background-color var(--taste-fast) ease,
+    color var(--taste-fast) ease;
+}
+
+[data-slot="card"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+[data-slot="card"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    28rem circle at 8% -15%,
+    color-mix(in srgb, var(--brand) 8%, transparent),
+    transparent 42%
+  );
+  opacity: 0.36;
+  pointer-events: none;
+  transition: opacity var(--taste-base) var(--taste-ease);
+}
+
+/* Marketing gets richer interaction without changing copy or product semantics. */
+#produto::before,
+#produto::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+#produto::before {
+  top: 4.5rem;
+  right: -8rem;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
+  background: color-mix(in srgb, var(--brand) 3%, transparent);
+}
+
+#produto::after {
+  bottom: -7rem;
+  left: 34%;
+  width: 14rem;
+  height: 14rem;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+#produto > div {
+  position: relative;
+  z-index: 1;
+}
+
+#produto .border-dashed {
+  transition:
+    transform 420ms var(--taste-ease),
+    box-shadow 420ms var(--taste-ease),
+    border-color var(--taste-fast) ease;
+}
+
+#produto + section article,
+#como-funciona article,
+#recursos article,
+#automacoes article {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform var(--taste-base) var(--taste-ease),
+    box-shadow var(--taste-base) var(--taste-ease),
+    border-color var(--taste-fast) ease;
+}
+
+#produto + section article::after,
+#recursos article::after,
+#automacoes article::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(125deg, transparent 20%, rgba(255, 255, 255, 0.58) 48%, transparent 72%);
+  transform: translateX(-120%);
+  opacity: 0;
+  transition:
+    transform 620ms var(--taste-ease),
+    opacity var(--taste-fast) ease;
+}
+
+#como-funciona article::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -55% 15%;
+  height: 7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  filter: blur(26px);
+  pointer-events: none;
+  transition: transform var(--taste-base) var(--taste-ease);
+}
+
+#duvidas details {
+  transition:
+    background-color var(--taste-fast) ease,
+    box-shadow var(--taste-base) var(--taste-ease);
+}
+
+#duvidas details[open] {
+  background: color-mix(in srgb, var(--brand-soft) 28%, white);
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--primary) 75%, transparent);
+}
+
+#planos [data-slot="card"] {
+  transition:
+    transform var(--taste-base) var(--taste-ease),
+    box-shadow var(--taste-base) var(--taste-ease),
+    border-color var(--taste-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-slot="button"][data-variant="default"]:hover::before,
+  [data-slot="button"][data-variant="brand"]:hover::before {
+    left: 115%;
+    opacity: 1;
+  }
+
+  [data-slot="card"]:hover::before {
+    opacity: 0.8;
+  }
+
+  #produto .border-dashed:hover {
+    transform: translateY(-5px) rotate(0.25deg);
+    border-color: color-mix(in srgb, var(--brand) 22%, var(--border)) !important;
+    box-shadow: 0 28px 70px rgba(53, 17, 79, 0.16);
+  }
+
+  #produto + section article:hover,
+  #como-funciona article:hover,
+  #recursos article:hover,
+  #automacoes article:hover,
+  #planos [data-slot="card"]:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--brand) 20%, var(--border));
+    box-shadow: var(--taste-shadow-2);
+  }
+
+  #produto + section article:hover::after,
+  #recursos article:hover::after,
+  #automacoes article:hover::after {
+    transform: translateX(120%);
+    opacity: 0.72;
+  }
+
+  #como-funciona article:hover::after {
+    transform: translateY(-0.75rem) scale(1.08);
+  }
+}
+
 /* Motion stays restrained and only uses compositor-friendly properties. */
 .reveal {
   transition-timing-function: var(--taste-ease) !important;
@@ -346,5 +572,14 @@ main p {
     max-width: none;
     font-size: clamp(2.15rem, 9.5vw, 2.45rem);
     line-height: 1.04;
+  }
+
+  #produto::before {
+    top: 6rem;
+    right: -12rem;
+  }
+
+  #produto::after {
+    display: none;
   }
 }

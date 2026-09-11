@@ -61,15 +61,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
+    const resolvedVariant = variant ?? "default";
+    const resolvedSize = size ?? "default";
+
     if (asChild) {
       return (
-        <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props}>
+        <Comp
+          data-slot="button"
+          data-variant={resolvedVariant}
+          data-size={resolvedSize}
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
           {children}
         </Comp>
       );
     }
     return (
       <Comp
+        data-slot="button"
+        data-variant={resolvedVariant}
+        data-size={resolvedSize}
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         aria-busy={loading || undefined}
