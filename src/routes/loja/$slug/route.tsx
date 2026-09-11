@@ -12,10 +12,7 @@ import {
 } from "@/storefront/customer/customer-wizard.context";
 import { CartProvider } from "@/storefront/cart/cart.context";
 import { getDefaultStoreBanner } from "@/storefront/default-banners";
-import {
-  loadStorefrontFromBrowser,
-  PublicStorefrontClientError,
-} from "@/storefront/public-edge.client";
+import { loadStorefrontForRoute } from "@/storefront/public-edge";
 import { OG_IMAGE_PATH, absoluteUrl } from "@/lib/site.functions";
 
 const searchSchema = z.object({
@@ -30,7 +27,7 @@ export const Route = createFileRoute("/loja/$slug")({
   validateSearch: searchSchema,
   loader: async ({ params }) => {
     try {
-      const storefront = await loadStorefrontFromBrowser(params.slug);
+      const storefront = await loadStorefrontForRoute(params.slug);
       const origin = typeof window !== "undefined" ? window.location.origin : "";
 
       const settings = storefront.store.settings;
@@ -40,9 +37,12 @@ export const Route = createFileRoute("/loja/$slug")({
 
       return { ...storefront, origin };
     } catch (error) {
-      if (error instanceof PublicStorefrontClientError && error.code === "not_found") {
-        throw notFound();
-      }
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code?: unknown }).code ?? "")
+          : "";
+      const message = error instanceof Error ? error.message : String(error);
+      if (code === "not_found" || message.includes("not_found")) throw notFound();
       throw error;
     }
   },
