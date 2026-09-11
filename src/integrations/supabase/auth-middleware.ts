@@ -8,10 +8,12 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 const SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co'
-const configuredPublishableKey =
-  process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
-if (!configuredPublishableKey) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured')
-const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey
+
+function publishableKey(): string {
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
+  if (!key) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured')
+  return key
+}
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
@@ -51,9 +53,10 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: Invalid token')
     }
 
-    const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    const key = publishableKey()
+    const supabase = createClient<Database>(SUPABASE_URL, key, {
       global: {
-        fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+        fetch: createSupabaseFetch(key),
         headers: {
           Authorization: `Bearer ${token}`,
         },
