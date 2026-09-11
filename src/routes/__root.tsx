@@ -10,6 +10,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import comandivaCss from "../comandiva-theme.css?url";
+import tasteSkillCss from "../taste-skill-polish.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
@@ -106,6 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "canonical", href: canonicalUrl },
         { rel: "stylesheet", href: appCss },
         { rel: "stylesheet", href: comandivaCss },
+        { rel: "stylesheet", href: tasteSkillCss },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
