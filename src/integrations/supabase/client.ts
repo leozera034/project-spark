@@ -3,12 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
-// Browser-safe project configuration. These values are intentionally public:
-// Supabase publishable keys are designed to ship to browsers and remain
-// protected by RLS.
 const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
 const FALLBACK_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
 
 function isOpaquePublishableKey(value: string): boolean {
   return value.startsWith('sb_publishable_');
@@ -65,25 +61,20 @@ function createSupabaseClient() {
   const runtimePublishableKey =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
-  const useRuntimeConfig =
-    isExpectedSupabaseUrl(runtimeUrl) && isBrowserSafeSupabaseKey(runtimePublishableKey);
-
   if (runtimeUrl && !isExpectedSupabaseUrl(runtimeUrl)) {
     console.error(
       `[Supabase] Ignoring runtime URL for unexpected project. Expected ${EXPECTED_SUPABASE_PROJECT_REF}.`,
     );
   }
 
-  if (runtimePublishableKey && !isBrowserSafeSupabaseKey(runtimePublishableKey)) {
-    console.error(
-      '[Supabase] Ignoring unsafe or invalid browser key. Only publishable or legacy anon keys are accepted.',
+  if (!isBrowserSafeSupabaseKey(runtimePublishableKey)) {
+    throw new Error(
+      '[Supabase] VITE_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY must contain a publishable/anon key.',
     );
   }
 
-  const supabaseUrl = useRuntimeConfig ? runtimeUrl! : FALLBACK_SUPABASE_URL;
-  const supabasePublishableKey = useRuntimeConfig
-    ? runtimePublishableKey!
-    : FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = isExpectedSupabaseUrl(runtimeUrl) ? runtimeUrl : FALLBACK_SUPABASE_URL;
+  const supabasePublishableKey = runtimePublishableKey.trim();
 
   return createClient<Database>(supabaseUrl, supabasePublishableKey, {
     global: {
