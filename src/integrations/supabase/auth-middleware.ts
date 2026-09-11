@@ -8,7 +8,10 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 const SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co'
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG'
+const configuredPublishableKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
+if (!configuredPublishableKey) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured')
+const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
