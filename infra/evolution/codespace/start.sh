@@ -26,6 +26,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
   if command -v openssl >/dev/null 2>&1; then
     EVOLUTION_API_KEY="$(openssl rand -hex 32)"
     POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+    CADDY_BASIC_AUTH_PASSWORD="$(openssl rand -hex 24)"
   else
     EVOLUTION_API_KEY="$(python3 - <<'PY'
 import secrets
@@ -37,11 +38,17 @@ import secrets
 print(secrets.token_hex(24))
 PY
 )"
+    CADDY_BASIC_AUTH_PASSWORD="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(24))
+PY
+)"
   fi
 
   cat >"$ENV_FILE" <<EOF
 EVOLUTION_API_KEY=$EVOLUTION_API_KEY
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+CADDY_BASIC_AUTH_PASSWORD=$CADDY_BASIC_AUTH_PASSWORD
 EOF
   chmod 600 "$ENV_FILE"
 fi
@@ -49,6 +56,20 @@ fi
 set -a
 source "$ENV_FILE"
 set +a
+
+if [[ -z "${CADDY_BASIC_AUTH_PASSWORD:-}" ]]; then
+  if command -v openssl >/dev/null 2>&1; then
+    CADDY_BASIC_AUTH_PASSWORD="$(openssl rand -hex 24)"
+  else
+    CADDY_BASIC_AUTH_PASSWORD="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(24))
+PY
+)"
+  fi
+  printf '\nCADDY_BASIC_AUTH_PASSWORD=%s\n' "$CADDY_BASIC_AUTH_PASSWORD" >>"$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+fi
 
 if [[ ! "$EVOLUTION_API_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
   echo "[Comandiva] ERRO: chave local da Evolution inválida."
@@ -64,11 +85,19 @@ fi
 
 export EVOLUTION_API_KEY
 export POSTGRES_PASSWORD
+export CADDY_BASIC_AUTH_PASSWORD
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[Comandiva] ERRO: Docker indisponível neste container."
   exit 1
 fi
+
+CADDY_BASIC_AUTH_HASH="$(docker run --rm caddy:2.10-alpine caddy hash-password --plaintext "$CADDY_BASIC_AUTH_PASSWORD")"
+if [[ -z "$CADDY_BASIC_AUTH_HASH" ]]; then
+  echo "[Comandiva] ERRO: falha ao gerar hash do gateway."
+  exit 1
+fi
+export CADDY_BASIC_AUTH_HASH
 
 if [[ -f "$CONFIG_PID_FILE" ]]; then
   OLD_CONFIG_PID="$(cat "$CONFIG_PID_FILE" 2>/dev/null || true)"
