@@ -1,0 +1,436 @@
+/*
+ * Merchant Uiverse polish
+ *
+ * A focused interaction layer for the authenticated merchant experience.
+ * Inspired by Uiverse patterns (glass surfaces, directional hover feedback,
+ * light sweeps and tactile controls) without changing business semantics.
+ */
+
+.app-premium-shell {
+  --merchant-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --merchant-fast: 160ms;
+  --merchant-base: 260ms;
+  --merchant-shadow-soft: 0 1px 2px color-mix(in srgb, var(--brand) 6%, transparent),
+    0 14px 34px color-mix(in srgb, var(--brand) 7%, transparent);
+  --merchant-shadow-lift: 0 2px 5px color-mix(in srgb, var(--brand) 7%, transparent),
+    0 24px 54px color-mix(in srgb, var(--brand) 13%, transparent);
+}
+
+/* Store shell: make navigation feel like a product, not a generic sidebar. */
+.app-premium-sidebar {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    radial-gradient(circle at 50% -8%, color-mix(in srgb, var(--sidebar-primary) 18%, transparent), transparent 19rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 97%, white 3%), var(--sidebar));
+}
+
+.app-premium-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -1;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--sidebar-primary) 34%, transparent), transparent);
+  pointer-events: none;
+}
+
+.app-premium-sidebar nav a {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    color var(--merchant-fast) ease,
+    background-color var(--merchant-fast) ease,
+    box-shadow var(--merchant-base) var(--merchant-ease),
+    transform var(--merchant-base) var(--merchant-ease);
+}
+
+.app-premium-sidebar nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 12%, rgba(255, 255, 255, 0.08) 48%, transparent 78%);
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 560ms var(--merchant-ease),
+    opacity var(--merchant-fast) ease;
+}
+
+.app-premium-sidebar nav a[aria-current="page"] {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--sidebar-accent) 90%, var(--sidebar-primary) 10%),
+    color-mix(in srgb, var(--sidebar-accent) 72%, transparent)
+  );
+  box-shadow:
+    inset 3px 0 var(--sidebar-primary),
+    inset 0 1px rgba(255, 255, 255, 0.06),
+    0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+.app-premium-bottom-nav {
+  border-color: color-mix(in srgb, var(--brand) 10%, var(--border));
+  background: color-mix(in srgb, var(--background) 91%, transparent);
+  box-shadow: 0 -12px 36px color-mix(in srgb, var(--brand) 8%, transparent);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.app-premium-bottom-nav a,
+.app-premium-bottom-nav button {
+  position: relative;
+  overflow: hidden;
+}
+
+.app-premium-bottom-nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  right: 25%;
+  bottom: 0.15rem;
+  left: 25%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+/* Shared merchant surfaces. */
+.app-premium-shell :is(.panel, [data-slot="card"]) {
+  transition:
+    border-color var(--merchant-fast) ease,
+    box-shadow var(--merchant-base) var(--merchant-ease),
+    transform var(--merchant-base) var(--merchant-ease),
+    background-color var(--merchant-fast) ease;
+}
+
+.app-premium-shell :is(.panel, [data-slot="card"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 36%);
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+/* Dashboard: emphasize the action hierarchy and today's operating state. */
+.app-premium-shell :is(div, main):has(> section[aria-label="Prioridade da operação"]) {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-premium-shell :is(div, main):has(> section[aria-label="Prioridade da operação"])::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 4%;
+  z-index: -1;
+  width: min(38rem, 72vw);
+  height: 19rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 9%, transparent), transparent 68%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.app-premium-shell section[aria-label="Prioridade da operação"] {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell section[aria-label="Prioridade da operação"]::after {
+  content: "";
+  position: absolute;
+  top: -5rem;
+  right: -4rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.app-premium-shell section[aria-label="Resumo de hoje"] > * {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--taste-radius-lg);
+}
+
+.app-premium-shell section[aria-labelledby="orders-now-title"] .panel {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.app-premium-shell section[aria-labelledby="orders-now-title"] .panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 18%, color-mix(in srgb, var(--brand) 6%, transparent) 48%, transparent 76%);
+  transform: translateX(-110%);
+  opacity: 0;
+  transition:
+    transform 620ms var(--merchant-ease),
+    opacity var(--merchant-fast) ease;
+}
+
+.app-premium-shell section[aria-label="Fila de prioridade"] {
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell section[aria-label="Fila de prioridade"] li {
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color var(--merchant-fast) ease,
+    box-shadow var(--merchant-base) var(--merchant-ease),
+    transform var(--merchant-base) var(--merchant-ease),
+    background-color var(--merchant-fast) ease;
+}
+
+/* Orders: segmented queue controls + tactile order cards. */
+.app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) > nav[aria-label="Filas de pedidos"] {
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: var(--taste-radius-md);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), var(--merchant-shadow-soft);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.app-premium-shell nav[aria-label="Filas de pedidos"] [data-slot="button"] {
+  min-height: 2.5rem;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.app-premium-shell nav[aria-label="Filas de pedidos"] [data-slot="button"][data-variant="default"] {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.2),
+    0 8px 22px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) > div:has([data-slot="input"]) {
+  padding: 0.4rem;
+  border-radius: var(--taste-radius-md);
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
+}
+
+.app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) ul > li.panel {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) ul > li.panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--brand) 48%, transparent), transparent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Catalog: turn the section navigation into a compact app rail. */
+.app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) > header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: var(--taste-radius-lg);
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 15rem),
+    color-mix(in srgb, var(--surface) 91%, transparent);
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] ul {
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: var(--taste-radius-md);
+  background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] a {
+  position: relative;
+  overflow: hidden;
+  transition:
+    color var(--merchant-fast) ease,
+    background-color var(--merchant-fast) ease,
+    box-shadow var(--merchant-base) var(--merchant-ease),
+    transform var(--merchant-base) var(--merchant-ease);
+}
+
+.app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] a[class*="bg-brand-soft"] {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.2),
+    0 8px 20px color-mix(in srgb, var(--brand) 10%, transparent);
+}
+
+/* Customers: keep CRM dense, but add depth and scanning feedback. */
+.app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) > section:first-of-type [data-slot="card"] {
+  min-height: 8.25rem;
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) [data-slot="card"] [data-slot="card-content"] > div.flex.min-w-0.flex-col {
+  transition: background-color var(--merchant-fast) ease;
+}
+
+.app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) a[href^="https://wa.me/"] {
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--success) 10%, transparent);
+  transition:
+    box-shadow var(--merchant-base) var(--merchant-ease),
+    transform var(--merchant-base) var(--merchant-ease),
+    border-color var(--merchant-fast) ease;
+}
+
+.app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) [aria-label="Gráfico de receita diária"] > div > div {
+  transform-origin: bottom;
+  transition:
+    opacity var(--merchant-fast) ease,
+    transform var(--merchant-base) var(--merchant-ease),
+    filter var(--merchant-base) var(--merchant-ease);
+}
+
+/* Settings: make categories feel navigable instead of a wall of cards. */
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) > header,
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) > div > header {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--taste-radius-lg);
+}
+
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) a:has(> [data-slot="card"]) [data-slot="card"] {
+  height: 100%;
+  box-shadow: var(--merchant-shadow-soft);
+}
+
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) a:has(> [data-slot="card"]) [data-slot="card-content"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) a:has(> [data-slot="card"]) [data-slot="card-content"]::after {
+  content: "→";
+  transition: transform var(--merchant-base) var(--merchant-ease);
+}
+
+/* Forms inside catalog/settings get one consistent tactile frame. */
+.app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) form,
+.app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) form {
+  border-radius: var(--taste-radius-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-premium-sidebar nav a:hover {
+    transform: translateX(2px);
+  }
+
+  .app-premium-sidebar nav a:hover::before {
+    transform: translateX(120%);
+    opacity: 1;
+  }
+
+  .app-premium-shell section[aria-label="Resumo de hoje"] > *:hover,
+  .app-premium-shell section[aria-label="Fila de prioridade"] li:hover,
+  .app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) ul > li.panel:hover,
+  .app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) > section:first-of-type [data-slot="card"]:hover,
+  .app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) a:has(> [data-slot="card"]):hover [data-slot="card"] {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--brand) 21%, var(--border));
+    box-shadow: var(--merchant-shadow-lift);
+  }
+
+  .app-premium-shell section[aria-labelledby="orders-now-title"] .panel:hover::before {
+    transform: translateX(110%);
+    opacity: 0.8;
+  }
+
+  .app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] a:hover {
+    transform: translateY(-1px);
+  }
+
+  .app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) [data-slot="card"] [data-slot="card-content"] > div.flex.min-w-0.flex-col:hover {
+    background: color-mix(in srgb, var(--brand-soft) 30%, transparent);
+  }
+
+  .app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) a[href^="https://wa.me/"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--success) 16%, transparent);
+  }
+
+  .app-premium-shell :is(div, main):has(a[href^="https://wa.me/"]) [aria-label="Gráfico de receita diária"] > div:hover > div {
+    transform: scaleY(1.035);
+    filter: saturate(1.08);
+  }
+
+  .app-premium-shell main:has(a[href="/app/loja/configuracoes/dados"]) a:has(> [data-slot="card"]):hover [data-slot="card-content"]::after {
+    transform: translateX(0.2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-premium-shell *,
+  .app-premium-shell *::before,
+  .app-premium-shell *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .app-premium-shell :is(.panel, [data-slot="card"], a, button):hover {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-premium-bottom-nav,
+  .app-premium-shell nav[aria-label="Filas de pedidos"],
+  .app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] ul {
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-premium-shell {
+    --merchant-shadow-soft: 0 8px 22px color-mix(in srgb, var(--brand) 6%, transparent);
+    --merchant-shadow-lift: var(--merchant-shadow-soft);
+  }
+
+  .app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) > nav[aria-label="Filas de pedidos"] {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .app-premium-shell main:has(nav[aria-label="Seções do cardápio"]) nav[aria-label="Seções do cardápio"] ul {
+    border-radius: var(--taste-radius-sm);
+  }
+
+  .app-premium-shell section[aria-label="Resumo de hoje"] > *:hover,
+  .app-premium-shell section[aria-label="Fila de prioridade"] li:hover,
+  .app-premium-shell :is(div, main):has(> nav[aria-label="Filas de pedidos"]) ul > li.panel:hover,
+  .app-premium-shell [data-slot="card"]:hover {
+    transform: none;
+  }
+}
