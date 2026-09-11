@@ -1,7 +1,9 @@
 /**
- * Acesso do navegador ao endpoint de cotação do carrinho.
- * Timeout, abort e proteção contra resposta fora de ordem.
+ * Acesso do navegador à cotação canônica do carrinho.
+ * Em produção o fluxo público fala com o Edge do Supabase externo, evitando o
+ * runtime server-side do Lovable, que não alcança esse backend de forma confiável.
  */
+import { quoteCartForBrowser } from "@/storefront/public-commerce";
 import type { CartQuote } from "./cart.types";
 
 const TIMEOUT_MS = 12_000;
@@ -35,29 +37,31 @@ export async function postCartQuote(
   }
 
   const controller = new AbortController();
+  const externalAbort = () => controller.abort();
+  signal?.addEventListener("abort", externalAbort, { once: true });
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  const onAbort = () => controller.abort();
-  signal?.addEventListener("abort", onAbort);
 
   try {
-    const response = await fetch(`/api/public/storefront/${slug}/carrinho/cotacao`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
+    const aborted = new Promise<never>((_resolve, reject) => {
+      controller.signal.addEventListener(
+        "abort",
+        () => reject(new CartQuoteError("failed")),
+        { once: true },
+      );
     });
 
-    if (response.status === 429) throw new CartQuoteError("rate_limited");
-    if (!response.ok) throw new CartQuoteError("failed");
-
-    const payload = (await response.json()) as CartQuote & { error?: string };
-    if (payload.error) throw new CartQuoteError("failed");
-    return payload;
+    return await Promise.race([
+      quoteCartForBrowser({ slug, body }),
+      aborted,
+    ]);
   } catch (error) {
     if (error instanceof CartQuoteError) throw error;
+    if (error instanceof Error && error.message === "rate_limited") {
+      throw new CartQuoteError("rate_limited");
+    }
     throw new CartQuoteError("failed");
   } finally {
     clearTimeout(timer);
-    signal?.removeEventListener("abort", onAbort);
+    signal?.removeEventListener("abort", externalAbort);
   }
 }
