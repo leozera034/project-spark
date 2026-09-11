@@ -79,12 +79,12 @@ function CourierDetailPage() {
 
   useEffect(() => {
     if (!courier) return;
-    setEditData({
+    queueMicrotask(() => setEditData({
       fullName: courier.displayName,
       phone: courier.phone || "",
       vehicle: courier.vehicle === "nao_informado" ? "" : courier.vehicle,
       canAcceptDeliveries: courier.canAcceptDeliveries,
-    });
+    }));
   }, [courier]);
 
   if (isLoading) {

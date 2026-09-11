@@ -1,5 +1,5 @@
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useSyncExternalStore, type CSSProperties } from "react";
 
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -18,10 +18,11 @@ type ThemeToggleProps = {
  */
 export function ThemeToggle({ className, style, variant = "icon" }: ThemeToggleProps) {
   const { theme, preference, setPreference, toggleTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // evita divergencia entre SSR e cliente: o icone so aparece apos hidratar
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   if (variant === "segmented") {
     const options = [

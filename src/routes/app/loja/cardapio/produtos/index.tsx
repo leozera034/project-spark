@@ -71,10 +71,12 @@ function ProdutosPage() {
     const timer = setTimeout(() => setDebounced(search.trim()), 300);
     return () => clearTimeout(timer);
   }, [search]);
-  useEffect(() => setPage(0), [debounced, categoryId, status]);
+  useEffect(() => queueMicrotask(() => setPage(0)), [debounced, categoryId, status]);
   useEffect(() => {
-    setSelectedIds([]);
-    setBulkCategoryId("");
+    queueMicrotask(() => {
+      setSelectedIds([]);
+      setBulkCategoryId("");
+    });
   }, [debounced, categoryId, status, page, storeId]);
 
   const can = overview?.can ?? { view: true, create: false, update: false, archive: false };

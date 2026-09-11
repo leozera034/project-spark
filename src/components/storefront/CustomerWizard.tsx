@@ -116,7 +116,7 @@ export function CustomerWizard() {
   const [nameValue, setNameValue] = useState("");
   const [areaTerm, setAreaTerm] = useState("");
 
-  useEffect(() => { setError(null); }, [step]);
+  useEffect(() => { queueMicrotask(() => setError(null)); }, [step]);
   const areas = configuration?.deliveryAreas ?? [];
   const filteredAreas = useMemo(() => {
     const needle = areaTerm.trim().toLocaleLowerCase("pt-BR");

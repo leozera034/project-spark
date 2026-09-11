@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
 /**
@@ -9,13 +9,13 @@ import { useRouterState } from "@tanstack/react-router";
  * a rota está sempre pendente e isso causaria divergência de marcação.
  */
 export function RouteProgress() {
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const pending = useRouterState({ select: (state) => state.status === "pending" });
   const isLoading = hydrated && pending;
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
 
   return (
     <div

@@ -29,7 +29,7 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(options?: {
     if (!node) return;
 
     if (prefersReducedMotion() || typeof IntersectionObserver === "undefined") {
-      setRevealed(true);
+      queueMicrotask(() => setRevealed(true));
       return;
     }
 

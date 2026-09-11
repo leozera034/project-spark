@@ -121,15 +121,15 @@ export function PizzaSimpleBuilder({ productId }: { productId: string }) {
     if (!query.data?.isPizza) return;
     const next: Record<string, number> = {};
     for (const variant of query.data.variants) next[variant.id] = Math.max(1, Math.min(4, Number(variant.max_flavors ?? 1)));
-    setLimits(next);
-    if (flavorGroup?.pricing_strategy === "average_price") setPricingMode("average_price");
-    else setPricingMode("highest_price");
-
     const prices: Record<string, string> = {};
     for (const row of query.data.variantOptionPrices) {
       prices[priceKey(row.variant_id, row.item_id)] = formatMoneyInput(Number(row.price));
     }
-    setPriceMatrix(prices);
+    queueMicrotask(() => {
+      setLimits(next);
+      setPricingMode(flavorGroup?.pricing_strategy === "average_price" ? "average_price" : "highest_price");
+      setPriceMatrix(prices);
+    });
   }, [query.data, flavorGroup?.pricing_strategy]);
 
   const maxConfigured = useMemo(() => {

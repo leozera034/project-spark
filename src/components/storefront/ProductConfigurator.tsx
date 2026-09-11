@@ -75,25 +75,25 @@ export function ProductConfigurator({
       ? (cart.lines.find((line) => line.lineId === editLineId) ?? null)
       : null;
 
-    if (editing && editing.productId === data.product.id) {
-      setVariantId(editing.variantId);
-      setSelections(
-        editing.selections.map((s) => ({
+    queueMicrotask(() => {
+      if (editing && editing.productId === data.product.id) {
+        setVariantId(editing.variantId);
+        setSelections(editing.selections.map((s) => ({
           option_group_id: s.option_group_id,
           option_item_id: s.option_item_id,
           quantity: s.quantity,
-        })),
-      );
-      setQuantity(editing.quantity);
-      setNotes(editing.notes ?? "");
-      return;
-    }
+        })));
+        setQuantity(editing.quantity);
+        setNotes(editing.notes ?? "");
+        return;
+      }
 
-    const fallback = data.variants.find((v) => v.is_default) ?? data.variants[0] ?? null;
-    setVariantId(fallback?.id ?? null);
-    setSelections([]);
-    setQuantity(Math.max(data.product.minimum_quantity, data.product.quantity_step));
-    setNotes("");
+      const fallback = data.variants.find((v) => v.is_default) ?? data.variants[0] ?? null;
+      setVariantId(fallback?.id ?? null);
+      setSelections([]);
+      setQuantity(Math.max(data.product.minimum_quantity, data.product.quantity_step));
+      setNotes("");
+    });
     // `cart.lines` só é lido na abertura; mudanças posteriores não resetam a tela.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, editLineId]);
@@ -104,7 +104,7 @@ export function ProductConfigurator({
   }, [data?.product.id, preferences.rememberViewed]);
 
   useEffect(() => {
-    setCartError(null);
+    queueMicrotask(() => setCartError(null));
   }, [variantId, selections, quantity, notes]);
 
   const groups = data?.option_groups ?? [];

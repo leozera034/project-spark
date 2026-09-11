@@ -42,7 +42,7 @@ export function VariantPricesCard({
     for (const price of builder.variant_option_prices) {
       next[`${price.variant_id}:${price.item_id}`] = String(price.price).replace(".", ",");
     }
-    setDraft(next);
+    queueMicrotask(() => setDraft(next));
   }, [builder.variant_option_prices]);
 
   if (variants.length === 0 || rows.length === 0) {
