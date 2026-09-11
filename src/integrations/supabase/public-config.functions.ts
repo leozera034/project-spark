@@ -41,7 +41,6 @@ function configuredCandidates(): string[] {
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     ...parsePublishableKeys(process.env.SUPABASE_PUBLISHABLE_KEYS),
     process.env.SUPABASE_ANON_KEY,
-    EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
   ]
     .filter(isBrowserSafeSupabaseKey)
     .map((value) => value.trim())
@@ -77,10 +76,13 @@ async function resolvePublicConfig(): Promise<PublicSupabaseBrowserConfig> {
     }
   }
 
-  console.error(
-    `[Supabase] No browser-safe publishable key for ${EXPECTED_SUPABASE_PROJECT_REF} is available in the server runtime.`,
-  );
-  return { url: EXPECTED_SUPABASE_URL, publishableKey: null };
+  // Lovable production can omit public env vars or block server-side validation
+  // calls. This key is intentionally browser-public, belongs to the fixed external
+  // COMANDIVA project and was validated independently before being retained here.
+  return {
+    url: EXPECTED_SUPABASE_URL,
+    publishableKey: EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
+  };
 }
 
 export const getPublicSupabaseBrowserConfig = createServerFn({ method: "GET" }).handler(
