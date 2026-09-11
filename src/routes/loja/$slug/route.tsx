@@ -12,8 +12,8 @@ import {
 } from "@/storefront/customer/customer-wizard.context";
 import { CartProvider } from "@/storefront/cart/cart.context";
 import { getDefaultStoreBanner } from "@/storefront/default-banners";
-import { fetchStorefront } from "@/lib/storefront.functions";
-import { OG_IMAGE_PATH, absoluteUrl, getSiteOrigin } from "@/lib/site.functions";
+import { loadStorefrontForRoute } from "@/storefront/public-edge";
+import { OG_IMAGE_PATH, absoluteUrl } from "@/lib/site.functions";
 
 const searchSchema = z.object({
   /** Produto aberto na folha de montagem. */
@@ -23,13 +23,12 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/loja/$slug")({
+  ssr: false,
   validateSearch: searchSchema,
   loader: async ({ params }) => {
     try {
-      const [storefront, origin] = await Promise.all([
-        fetchStorefront({ data: { slug: params.slug } }),
-        getSiteOrigin(),
-      ]);
+      const storefront = await loadStorefrontForRoute(params.slug);
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
 
       const settings = storefront.store.settings;
       if (!settings.cover_url) {
@@ -38,8 +37,12 @@ export const Route = createFileRoute("/loja/$slug")({
 
       return { ...storefront, origin };
     } catch (error) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code?: unknown }).code ?? "")
+          : "";
       const message = error instanceof Error ? error.message : String(error);
-      if (message.includes("not_found")) throw notFound();
+      if (code === "not_found" || message.includes("not_found")) throw notFound();
       throw error;
     }
   },
