@@ -223,7 +223,8 @@ main p {
 }
 
 #produto h1 {
-  max-width: 15ch;
+  max-width: 18ch;
+  font-size: clamp(2.5rem, 4.6vw, 3.75rem);
   line-height: 1.02;
 }
 
@@ -241,6 +242,29 @@ main p {
 
 #produto .border-dashed > * {
   display: none;
+}
+
+/* Do not ship developer placeholders as marketing content. Keep the narrative
+ * until authentic product captures are available, and collapse the empty media
+ * column rather than inventing fake dashboard UI. */
+#demonstracao .reveal:has(.border-dashed),
+#demonstracao + section .reveal:has(.border-dashed) {
+  display: none;
+}
+
+#demonstracao .grid.items-center,
+#demonstracao + section > div {
+  grid-template-columns: minmax(0, 50rem) !important;
+  justify-content: center;
+}
+
+/* Numbered eyebrow labels are decorative noise in this explanatory flow. */
+#como-funciona article > span:first-child {
+  display: none;
+}
+
+#como-funciona article h3 {
+  margin-top: 0;
 }
 
 /* Marketing cards should not all read as identical template tiles. */
@@ -319,7 +343,8 @@ main p {
   }
 
   #produto h1 {
-    max-width: 12.5ch;
+    max-width: none;
+    font-size: clamp(2.15rem, 9.5vw, 2.45rem);
     line-height: 1.04;
   }
 }
