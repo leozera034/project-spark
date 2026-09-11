@@ -1,5 +1,10 @@
 const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
-const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG';
+const configuredPublishableKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+if (!configuredPublishableKey) {
+  throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
+}
+const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey;
 const SUPPORT_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-public-support`;
 
 type SupportEnvelope<T> = { ok: true; data: T } | { ok: false; error?: string };
