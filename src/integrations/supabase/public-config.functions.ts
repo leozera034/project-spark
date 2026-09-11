@@ -5,6 +5,11 @@ const EXPECTED_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase
 const AUTH_SETTINGS_URL = `${EXPECTED_SUPABASE_URL}/auth/v1/settings`;
 const VALIDATION_TIMEOUT_MS = 3_000;
 
+// Browser-safe Supabase publishable key for the external COMANDIVA project.
+// Publishable keys are intentionally public and are protected by RLS; privileged
+// sb_secret_* material is never accepted or exposed by this bootstrap.
+const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG";
+
 export type PublicSupabaseBrowserConfig = {
   url: string;
   publishableKey: string | null;
@@ -36,6 +41,7 @@ function configuredCandidates(): string[] {
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     ...parsePublishableKeys(process.env.SUPABASE_PUBLISHABLE_KEYS),
     process.env.SUPABASE_ANON_KEY,
+    EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
   ]
     .filter(isBrowserSafeSupabaseKey)
     .map((value) => value.trim())
