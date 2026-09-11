@@ -24,13 +24,16 @@ async function activeStorePaths(): Promise<SitemapEntry[]> {
   }
 }
 
+const XML_ENTITIES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&apos;",
+};
+
 function escapeXml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
+  return value.replace(/[&<>"']/g, (character) => XML_ENTITIES[character]);
 }
 
 async function requestOrigin() {
