@@ -1,29 +1,16 @@
 import { createClientOnlyFn } from "@tanstack/react-start";
 
-import type { PriceInput } from "@/lib/storefront.server";
-
 /**
- * Route-safe bridge for the public storefront. The implementation that imports
- * the browser Supabase client is tree-shaken out of the server bundle.
+ * Route-safe bridge for the public storefront. The browser-only imports are
+ * tree-shaken out of the server bundle and only execute for `/loja/:slug`.
  */
 export const loadStorefrontForRoute = createClientOnlyFn(async (slug: string) => {
-  const { loadStorefrontFromBrowser } = await import("./public-edge.client");
-  return loadStorefrontFromBrowser(slug);
-});
+  const [{ loadStorefrontFromBrowser }, { installStorefrontPublicApiBridge }] =
+    await Promise.all([
+      import("./public-edge.client"),
+      import("./public-api-bridge.client"),
+    ]);
 
-export const loadProductForConfigurator = createClientOnlyFn(
-  async ({ slug, productId }: { slug: string; productId: string }) => {
-    const { loadPublicProductFromBrowser } = await import("./public-edge.client");
-    return loadPublicProductFromBrowser(slug, productId);
-  },
-);
-
-export const computePriceForConfigurator = createClientOnlyFn(async (input: PriceInput) => {
-  const { computePublicPriceFromBrowser } = await import("./public-edge.client");
-  return computePublicPriceFromBrowser(input);
-});
-
-export const installStorefrontPublicApiBridgeForApp = createClientOnlyFn(async () => {
-  const { installStorefrontPublicApiBridge } = await import("./public-api-bridge.client");
   installStorefrontPublicApiBridge();
+  return loadStorefrontFromBrowser(slug);
 });
