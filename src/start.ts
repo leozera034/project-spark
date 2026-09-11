@@ -10,12 +10,17 @@ const attachSupabaseAuthInBrowser = createMiddleware({ type: "function" }).clien
   async ({ next }) => {
     if (typeof window === "undefined") return next();
 
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-    return next({
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      return next({
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch (error) {
+      console.error("[auth] sessão indisponível no middleware", error);
+      return next();
+    }
   },
 );
 
