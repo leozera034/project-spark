@@ -6,6 +6,17 @@ import { brokeredPreviewStorage } from './previewAuthStorage';
 const EXPECTED_SUPABASE_PROJECT_REF = 'ypgteuxzgqmkkkpvibhi';
 const FALLBACK_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 
+type BrowserSupabaseBootstrap = {
+  url?: unknown;
+  publishableKey?: unknown;
+};
+
+declare global {
+  interface Window {
+    __COMANDIVA_SUPABASE__?: BrowserSupabaseBootstrap;
+  }
+}
+
 function isOpaquePublishableKey(value: string): boolean {
   return value.startsWith('sb_publishable_');
 }
@@ -30,6 +41,16 @@ function isExpectedSupabaseUrl(value: string | undefined): value is string {
   } catch {
     return false;
   }
+}
+
+function browserBootstrap(): { url?: string; publishableKey?: string } {
+  if (typeof window === 'undefined') return {};
+  const config = window.__COMANDIVA_SUPABASE__;
+  return {
+    url: typeof config?.url === 'string' ? config.url : undefined,
+    publishableKey:
+      typeof config?.publishableKey === 'string' ? config.publishableKey : undefined,
+  };
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -57,9 +78,13 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseClient() {
-  const runtimeUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const bootstrap = browserBootstrap();
+  const runtimeUrl =
+    bootstrap.url || import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const runtimePublishableKey =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+    bootstrap.publishableKey ||
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY;
 
   if (runtimeUrl && !isExpectedSupabaseUrl(runtimeUrl)) {
     console.error(
@@ -69,7 +94,7 @@ function createSupabaseClient() {
 
   if (!isBrowserSafeSupabaseKey(runtimePublishableKey)) {
     throw new Error(
-      '[Supabase] VITE_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY must contain a publishable/anon key.',
+      '[Supabase] A browser-safe publishable/anon key for the production project is not configured.',
     );
   }
 

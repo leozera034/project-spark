@@ -23,6 +23,10 @@ import {
 import { NotFoundPage } from "@/components/feedback/NotFoundPage";
 import { RouteProgress } from "@/components/feedback/RouteProgress";
 import { Toaster } from "@/components/ui/sonner";
+import {
+  getPublicSupabaseBrowserConfig,
+  type PublicSupabaseBrowserConfig,
+} from "@/integrations/supabase/public-config.functions";
 import { ThemeProvider, themeInitScript, useTheme } from "@/lib/theme";
 import {
   OG_IMAGE_PATH,
@@ -35,6 +39,16 @@ import {
 
 const defaultDescription =
   "Cardápio digital, pedidos, cozinha, entregas e gestão em uma plataforma completa para restaurantes, lanchonetes, pizzarias e comércio local.";
+
+const unavailableSupabaseConfig: PublicSupabaseBrowserConfig = {
+  url: "https://ypgteuxzgqmkkkpvibhi.supabase.co",
+  publishableKey: null,
+};
+
+function serializeSupabaseBootstrap(config: PublicSupabaseBrowserConfig) {
+  const serialized = JSON.stringify(config).replace(/</g, "\\u003c");
+  return `window.__COMANDIVA_SUPABASE__=${serialized};`;
+}
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
@@ -62,9 +76,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: () => getCanonicalUrl(),
+  loader: async () => {
+    const [canonicalUrl, supabaseConfig] = await Promise.all([
+      getCanonicalUrl(),
+      getPublicSupabaseBrowserConfig().catch((error) => {
+        console.error("[Supabase] public browser bootstrap unavailable", error);
+        return unavailableSupabaseConfig;
+      }),
+    ]);
+    return { canonicalUrl, supabaseConfig };
+  },
   head: ({ loaderData }) => {
-    const canonicalUrl = loaderData || `${PUBLIC_SITE_ORIGIN}/`;
+    const canonicalUrl = loaderData?.canonicalUrl || `${PUBLIC_SITE_ORIGIN}/`;
     let siteOrigin = PUBLIC_SITE_ORIGIN;
     try {
       siteOrigin = new URL(canonicalUrl).origin;
@@ -210,6 +233,7 @@ function ThemedToaster() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { supabaseConfig } = Route.useLoaderData();
 
   useEffect(() => {
     function onRejection(event: PromiseRejectionEvent) {
@@ -221,6 +245,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <script
+        id="comandiva-supabase-public-config"
+        dangerouslySetInnerHTML={{ __html: serializeSupabaseBootstrap(supabaseConfig) }}
+      />
       <ThemeProvider>
         <AuthProvider>
           <SkipToContent />
