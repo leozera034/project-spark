@@ -44,7 +44,7 @@ function NewCourierPage() {
       toast.error("Escolha Moto ou Carro para o entregador.");
       return;
     }
-    const idempotencyKey = `create-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const idempotencyKey = `create-${crypto.randomUUID()}`;
     try {
       const data = await createCourier.mutateAsync({
         data: {
