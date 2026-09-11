@@ -256,7 +256,7 @@ function StorePlanPage() {
         clearIntentUrl();
         return;
       }
-      void selectPlan(query.purchase.planCode, query.purchase.interval);
+      queueMicrotask(() => void selectPlan(query.purchase.planCode, query.purchase.interval));
     }
   }, [storeId, detail, query.payment, query.purchase, loadDetail, billingQuery, selectPlan]);
 

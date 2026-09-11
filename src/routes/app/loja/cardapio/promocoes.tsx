@@ -66,7 +66,7 @@ function PromotionsPage() {
   const [simulation, setSimulation] = useState<CatalogPromotionSimulation | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [simulating, setSimulating] = useState(false);
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
 
   const canUpdate = Boolean(overview?.can.update && storeId);
   const promotionsQuery = useQuery({
