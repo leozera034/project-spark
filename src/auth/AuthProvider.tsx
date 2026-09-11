@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mounted.current = true;
 
-    let unsubscribe = () => undefined;
+    let unsubscribe: () => void = () => undefined;
 
     try {
       // Única assinatura de onAuthStateChange em toda a aplicação.
