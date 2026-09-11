@@ -250,13 +250,14 @@ function StorePlanPage() {
     }
 
     if (query.purchase) {
-      const same = detail.plan.code === query.purchase.planCode && ["active", "trialing"].includes(detail.subscription.provider_status ?? "");
+      const purchase = query.purchase;
+      const same = detail.plan.code === purchase.planCode && ["active", "trialing"].includes(detail.subscription.provider_status ?? "");
       if (same) {
         queueMicrotask(() => setNotice("Esse plano já está ativo nesta loja."));
         clearIntentUrl();
         return;
       }
-      queueMicrotask(() => void selectPlan(query.purchase.planCode, query.purchase.interval));
+      queueMicrotask(() => void selectPlan(purchase.planCode, purchase.interval));
     }
   }, [storeId, detail, query.payment, query.purchase, loadDetail, billingQuery, selectPlan]);
 

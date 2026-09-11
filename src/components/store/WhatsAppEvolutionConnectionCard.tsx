@@ -263,7 +263,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void reconcileLiveStatusRef.current()}
+            onClick={() => void reconcileLiveStatus()}
             disabled={busy || resolving}
             className="w-full shrink-0 sm:w-auto"
           >
@@ -407,7 +407,7 @@ export function WhatsAppEvolutionConnectionCard({ storeId }: { storeId: string }
                 <Button variant="outline" onClick={() => void refreshQr()} disabled={busy}>
                   <RefreshCw className="size-4" /> Gerar outro QR
                 </Button>
-                <Button variant="ghost" onClick={() => void reconcileLiveStatusRef.current()} disabled={actions.status.isPending || actions.refreshQr.isPending}>
+                <Button variant="ghost" onClick={() => void reconcileLiveStatus()} disabled={actions.status.isPending || actions.refreshQr.isPending}>
                   {actions.status.isPending || actions.refreshQr.isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
                   Verificar agora
                 </Button>
