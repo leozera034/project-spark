@@ -31,9 +31,11 @@ Comandiva · Evolution QA
 
 EVOLUTION_API_BASE_URL=$EVOLUTION_PUBLIC_URL
 EVOLUTION_API_KEY=$EVOLUTION_API_KEY
+CADDY_BASIC_AUTH_USER=comandiva
+CADDY_BASIC_AUTH_PASSWORD=${CADDY_BASIC_AUTH_PASSWORD:-indisponivel}
 
 1. Confirme 8080 PUBLIC e 8081 PRIVATE.
-2. Cadastre os dois valores nos Edge Function secrets do Supabase quando necessário.
-3. Não envie a EVOLUTION_API_KEY por chat nem salve no repositório.
+2. Cadastre os dois valores da Evolution nos Edge Function secrets do Supabase quando necessário.
+3. Não envie a EVOLUTION_API_KEY nem a senha do gateway por chat e não salve nenhuma delas no repositório.
 
 EOF
