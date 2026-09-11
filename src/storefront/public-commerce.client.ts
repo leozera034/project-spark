@@ -1,9 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { PublicOrderTracking, TrackingResponse } from "@/lib/tracking-contracts";
 import type { CartQuote, CartQuoteLine } from "@/storefront/cart/cart.types";
 import type { CheckoutSubmitResult, PublicPaymentMethod } from "@/storefront/checkout/checkout.types";
 import type { BrowserCartQuoteBody } from "./public-commerce";
 
 type EdgeEnvelope<T> = { ok: true; data: T } | { ok: false; error?: string };
+type SignedEntry = { path: string; signedUrl: string | null };
 
 type CatalogProduct = {
   id: string;
@@ -223,4 +225,68 @@ export async function submitPublicOrderFromBrowser(
     throw new PublicCommerceClientError("unavailable");
   }
   return payload as CheckoutSubmitResult;
+}
+
+async function hashTrackingToken(token: string) {
+  const normalized = token.trim();
+  if (!/^[0-9a-fA-F]{32,128}$/.test(normalized)) return null;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(normalized));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function signedBrandLogo(path: unknown): Promise<string | null> {
+  if (typeof path !== "string" || !path) return null;
+  try {
+    const signed = await invokeBackend<SignedEntry[]>({
+      action: "sign_paths",
+      bucket: "store-branding",
+      paths: [path],
+      ttlSeconds: 10 * 60,
+    });
+    return signed.find((entry) => entry.path === path)?.signedUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadOrderTrackingFromBrowser(
+  token: string,
+  knownVersion: string | null,
+): Promise<TrackingResponse> {
+  const tokenHash = await hashTrackingToken(token);
+  if (!tokenHash) return { ok: false, error: "invalid_request" };
+
+  let payload: Record<string, unknown> | null;
+  try {
+    payload = await rpc<Record<string, unknown> | null>("storefront_order_tracking", {
+      _token_hash: tokenHash,
+      _known_version: knownVersion ?? undefined,
+    });
+  } catch (error) {
+    if (error instanceof PublicCommerceClientError && error.code === "rate_limited") {
+      return { ok: false, error: "rate_limited" };
+    }
+    return { ok: false, error: "unavailable" };
+  }
+
+  if (!payload || payload.ok !== true) return { ok: false, error: "not_found" };
+  if (payload.changed !== true) {
+    return { ok: true, changed: false, statusVersion: String(payload.statusVersion ?? "") };
+  }
+
+  const rawStore = payload.store && typeof payload.store === "object"
+    ? payload.store as Record<string, unknown>
+    : {};
+  const logoUrl = await signedBrandLogo(rawStore.logoPath);
+  const { logoPath: _logoPath, ...store } = rawStore;
+
+  return {
+    ...(payload as unknown as PublicOrderTracking),
+    store: {
+      ...(store as PublicOrderTracking["store"]),
+      logoUrl,
+    },
+  };
 }
