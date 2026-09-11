@@ -22,3 +22,8 @@ export const computePriceForConfigurator = createClientOnlyFn(async (input: Pric
   const { computePublicPriceFromBrowser } = await import("./public-edge.client");
   return computePublicPriceFromBrowser(input);
 });
+
+export const installStorefrontPublicApiBridgeForApp = createClientOnlyFn(async () => {
+  const { installStorefrontPublicApiBridge } = await import("./public-api-bridge.client");
+  installStorefrontPublicApiBridge();
+});
