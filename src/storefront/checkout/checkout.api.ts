@@ -1,8 +1,13 @@
 /**
- * Acesso do navegador aos endpoints públicos de checkout.
- * Timeout, abort e normalização de erro.
+ * Acesso do navegador ao checkout público.
+ * As leituras e a criação do pedido usam diretamente o Edge do Supabase externo;
+ * o Stripe já possui Edge próprio no mesmo projeto.
  */
 import { clearCart } from "@/storefront/cart/cart.storage";
+import {
+  paymentMethodsForBrowser,
+  submitOrderForBrowser,
+} from "@/storefront/public-commerce";
 import { rotateIdempotencyKey, saveReceipt } from "./checkout.storage";
 import type { CheckoutSubmitResult, PublicPaymentMethod } from "./checkout.types";
 
@@ -18,12 +23,26 @@ export class CheckoutError extends Error {
 
 async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new CheckoutError("failed"));
+    }, TIMEOUT_MS);
+  });
   try {
-    return await run(controller.signal);
+    return await Promise.race([run(controller.signal), timeout]);
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
   }
+}
+
+function normalizeCommerceError(error: unknown): CheckoutError {
+  if (error instanceof CheckoutError) return error;
+  if (error instanceof Error && error.message === "rate_limited") {
+    return new CheckoutError("rate_limited");
+  }
+  return new CheckoutError("failed");
 }
 
 export async function fetchPaymentMethods(
@@ -33,14 +52,12 @@ export async function fetchPaymentMethods(
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     throw new CheckoutError("offline");
   }
-  return withTimeout(async (signal) => {
-    const response = await fetch(
-      `/api/public/storefront/${slug}/pagamentos?modalidade=${fulfillmentType}`,
-      { signal, headers: { accept: "application/json" } },
-    );
-    if (!response.ok) throw new CheckoutError("failed");
-    const payload = (await response.json()) as { methods?: PublicPaymentMethod[] };
-    return payload.methods ?? [];
+  return withTimeout(async () => {
+    try {
+      return await paymentMethodsForBrowser({ slug, fulfillmentType });
+    } catch (error) {
+      throw normalizeCommerceError(error);
+    }
   });
 }
 
@@ -83,26 +100,12 @@ export async function postOrder(
     throw new CheckoutError("offline");
   }
 
-  return withTimeout(async (signal) => {
-    let response: Response;
-    try {
-      response = await fetch(`/api/public/storefront/${slug}/pedidos`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-        signal,
-      });
-    } catch {
-      throw new CheckoutError("failed");
-    }
-
-    if (response.status === 429) throw new CheckoutError("rate_limited");
-
+  return withTimeout(async () => {
     let payload: CheckoutSubmitResult;
     try {
-      payload = (await response.json()) as CheckoutSubmitResult;
-    } catch {
-      throw new CheckoutError("failed");
+      payload = await submitOrderForBrowser({ slug, body });
+    } catch (error) {
+      throw normalizeCommerceError(error);
     }
 
     if (!payload || typeof payload !== "object" || !("ok" in payload)) {
