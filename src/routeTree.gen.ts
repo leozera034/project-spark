@@ -65,9 +65,12 @@ import { Route as PreviewWizardIndexRouteImport } from './routes/preview/wizard/
 import { Route as PreviewWizardThemeRouteImport } from './routes/preview/wizard/$theme'
 import { Route as ApiPublicStorefrontSlugRouteImport } from './routes/api/public/storefront/$slug'
 import { Route as AppLojaCardapioIndexRouteImport } from './routes/app/loja/cardapio/index'
+import { Route as AppLojaCardapioBuscaRouteImport } from './routes/app/loja/cardapio/busca'
 import { Route as AppLojaCardapioCategoriasRouteImport } from './routes/app/loja/cardapio/categorias'
 import { Route as AppLojaCardapioOpcoesRouteImport } from './routes/app/loja/cardapio/opcoes'
+import { Route as AppLojaCardapioPromocoesRouteImport } from './routes/app/loja/cardapio/promocoes'
 import { Route as AppLojaCardapioServicoRouteImport } from './routes/app/loja/cardapio/servico'
+import { Route as AppLojaCardapioVitrinesRouteImport } from './routes/app/loja/cardapio/vitrines'
 import { Route as AppLojaConfiguracoesIndexRouteImport } from './routes/app/loja/configuracoes/index'
 import { Route as AppLojaConfiguracoesAtendimentoRouteImport } from './routes/app/loja/configuracoes/atendimento'
 import { Route as AppLojaConfiguracoesBairrosRouteImport } from './routes/app/loja/configuracoes/bairros'
@@ -376,6 +379,11 @@ const AppLojaCardapioIndexRoute = AppLojaCardapioIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppLojaCardapioRoute,
 } as any)
+const AppLojaCardapioBuscaRoute = AppLojaCardapioBuscaRouteImport.update({
+  id: '/busca',
+  path: '/busca',
+  getParentRoute: () => AppLojaCardapioRoute,
+} as any)
 const AppLojaCardapioCategoriasRoute =
   AppLojaCardapioCategoriasRouteImport.update({
     id: '/categorias',
@@ -387,9 +395,20 @@ const AppLojaCardapioOpcoesRoute = AppLojaCardapioOpcoesRouteImport.update({
   path: '/opcoes',
   getParentRoute: () => AppLojaCardapioRoute,
 } as any)
+const AppLojaCardapioPromocoesRoute =
+  AppLojaCardapioPromocoesRouteImport.update({
+    id: '/promocoes',
+    path: '/promocoes',
+    getParentRoute: () => AppLojaCardapioRoute,
+  } as any)
 const AppLojaCardapioServicoRoute = AppLojaCardapioServicoRouteImport.update({
   id: '/servico',
   path: '/servico',
+  getParentRoute: () => AppLojaCardapioRoute,
+} as any)
+const AppLojaCardapioVitrinesRoute = AppLojaCardapioVitrinesRouteImport.update({
+  id: '/vitrines',
+  path: '/vitrines',
   getParentRoute: () => AppLojaCardapioRoute,
 } as any)
 const AppLojaConfiguracoesIndexRoute =
@@ -603,9 +622,12 @@ export interface FileRoutesByFullPath {
   '/preview/cardapio/': typeof PreviewCardapioIndexRoute
   '/preview/wizard/': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
+  '/app/loja/cardapio/busca': typeof AppLojaCardapioBuscaRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/promocoes': typeof AppLojaCardapioPromocoesRoute
   '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
+  '/app/loja/cardapio/vitrines': typeof AppLojaCardapioVitrinesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -684,9 +706,12 @@ export interface FileRoutesByTo {
   '/preview/cardapio': typeof PreviewCardapioIndexRoute
   '/preview/wizard': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
+  '/app/loja/cardapio/busca': typeof AppLojaCardapioBuscaRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/promocoes': typeof AppLojaCardapioPromocoesRoute
   '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
+  '/app/loja/cardapio/vitrines': typeof AppLojaCardapioVitrinesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -772,9 +797,12 @@ export interface FileRoutesById {
   '/preview/cardapio/': typeof PreviewCardapioIndexRoute
   '/preview/wizard/': typeof PreviewWizardIndexRoute
   '/api/public/storefront/$slug': typeof ApiPublicStorefrontSlugRouteWithChildren
+  '/app/loja/cardapio/busca': typeof AppLojaCardapioBuscaRoute
   '/app/loja/cardapio/categorias': typeof AppLojaCardapioCategoriasRoute
   '/app/loja/cardapio/opcoes': typeof AppLojaCardapioOpcoesRoute
+  '/app/loja/cardapio/promocoes': typeof AppLojaCardapioPromocoesRoute
   '/app/loja/cardapio/servico': typeof AppLojaCardapioServicoRoute
+  '/app/loja/cardapio/vitrines': typeof AppLojaCardapioVitrinesRoute
   '/app/loja/configuracoes/atendimento': typeof AppLojaConfiguracoesAtendimentoRoute
   '/app/loja/configuracoes/bairros': typeof AppLojaConfiguracoesBairrosRoute
   '/app/loja/configuracoes/dados': typeof AppLojaConfiguracoesDadosRoute
@@ -861,9 +889,12 @@ export interface FileRouteTypes {
     | '/preview/cardapio/'
     | '/preview/wizard/'
     | '/api/public/storefront/$slug'
+    | '/app/loja/cardapio/busca'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/promocoes'
     | '/app/loja/cardapio/servico'
+    | '/app/loja/cardapio/vitrines'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -942,9 +973,12 @@ export interface FileRouteTypes {
     | '/preview/cardapio'
     | '/preview/wizard'
     | '/api/public/storefront/$slug'
+    | '/app/loja/cardapio/busca'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/promocoes'
     | '/app/loja/cardapio/servico'
+    | '/app/loja/cardapio/vitrines'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -1029,9 +1063,12 @@ export interface FileRouteTypes {
     | '/preview/cardapio/'
     | '/preview/wizard/'
     | '/api/public/storefront/$slug'
+    | '/app/loja/cardapio/busca'
     | '/app/loja/cardapio/categorias'
     | '/app/loja/cardapio/opcoes'
+    | '/app/loja/cardapio/promocoes'
     | '/app/loja/cardapio/servico'
+    | '/app/loja/cardapio/vitrines'
     | '/app/loja/configuracoes/atendimento'
     | '/app/loja/configuracoes/bairros'
     | '/app/loja/configuracoes/dados'
@@ -1481,6 +1518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioIndexRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/cardapio/busca': {
+      id: '/app/loja/cardapio/busca'
+      path: '/busca'
+      fullPath: '/app/loja/cardapio/busca'
+      preLoaderRoute: typeof AppLojaCardapioBuscaRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
     '/app/loja/cardapio/categorias': {
       id: '/app/loja/cardapio/categorias'
       path: '/categorias'
@@ -1495,11 +1539,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLojaCardapioOpcoesRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
+    '/app/loja/cardapio/promocoes': {
+      id: '/app/loja/cardapio/promocoes'
+      path: '/promocoes'
+      fullPath: '/app/loja/cardapio/promocoes'
+      preLoaderRoute: typeof AppLojaCardapioPromocoesRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
     '/app/loja/cardapio/servico': {
       id: '/app/loja/cardapio/servico'
       path: '/servico'
       fullPath: '/app/loja/cardapio/servico'
       preLoaderRoute: typeof AppLojaCardapioServicoRouteImport
+      parentRoute: typeof AppLojaCardapioRoute
+    }
+    '/app/loja/cardapio/vitrines': {
+      id: '/app/loja/cardapio/vitrines'
+      path: '/vitrines'
+      fullPath: '/app/loja/cardapio/vitrines'
+      preLoaderRoute: typeof AppLojaCardapioVitrinesRouteImport
       parentRoute: typeof AppLojaCardapioRoute
     }
     '/app/loja/configuracoes/': {
@@ -1762,9 +1820,12 @@ const AppEntregadorRouteWithChildren = AppEntregadorRoute._addFileChildren(
 )
 
 interface AppLojaCardapioRouteChildren {
+  AppLojaCardapioBuscaRoute: typeof AppLojaCardapioBuscaRoute
   AppLojaCardapioCategoriasRoute: typeof AppLojaCardapioCategoriasRoute
   AppLojaCardapioOpcoesRoute: typeof AppLojaCardapioOpcoesRoute
+  AppLojaCardapioPromocoesRoute: typeof AppLojaCardapioPromocoesRoute
   AppLojaCardapioServicoRoute: typeof AppLojaCardapioServicoRoute
+  AppLojaCardapioVitrinesRoute: typeof AppLojaCardapioVitrinesRoute
   AppLojaCardapioIndexRoute: typeof AppLojaCardapioIndexRoute
   AppLojaCardapioProdutosIdRoute: typeof AppLojaCardapioProdutosIdRoute
   AppLojaCardapioProdutosNovoRoute: typeof AppLojaCardapioProdutosNovoRoute
@@ -1772,9 +1833,12 @@ interface AppLojaCardapioRouteChildren {
 }
 
 const AppLojaCardapioRouteChildren: AppLojaCardapioRouteChildren = {
+  AppLojaCardapioBuscaRoute: AppLojaCardapioBuscaRoute,
   AppLojaCardapioCategoriasRoute: AppLojaCardapioCategoriasRoute,
   AppLojaCardapioOpcoesRoute: AppLojaCardapioOpcoesRoute,
+  AppLojaCardapioPromocoesRoute: AppLojaCardapioPromocoesRoute,
   AppLojaCardapioServicoRoute: AppLojaCardapioServicoRoute,
+  AppLojaCardapioVitrinesRoute: AppLojaCardapioVitrinesRoute,
   AppLojaCardapioIndexRoute: AppLojaCardapioIndexRoute,
   AppLojaCardapioProdutosIdRoute: AppLojaCardapioProdutosIdRoute,
   AppLojaCardapioProdutosNovoRoute: AppLojaCardapioProdutosNovoRoute,
