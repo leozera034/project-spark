@@ -48,8 +48,10 @@ function useTokenFromFragment(slug: string): { token: string | null; ready: bool
     const raw = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
     const parsed = trackingTokenSchema.safeParse(decodeURIComponent(raw));
     if (raw) window.history.replaceState(window.history.state, "", `/loja/${slug}/acompanhar`);
-    if (parsed.success) setToken(parsed.data.toLowerCase());
-    setReady(true);
+    queueMicrotask(() => {
+      if (parsed.success) setToken(parsed.data.toLowerCase());
+      setReady(true);
+    });
   }, [slug]);
 
   return { token, ready };

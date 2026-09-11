@@ -66,6 +66,7 @@ function PromotionsPage() {
   const [simulation, setSimulation] = useState<CatalogPromotionSimulation | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [simulating, setSimulating] = useState(false);
+  const [now] = useState(() => Date.now());
 
   const canUpdate = Boolean(overview?.can.update && storeId);
   const promotionsQuery = useQuery({
@@ -91,7 +92,7 @@ function PromotionsPage() {
   const promotions = promotionsQuery.data ?? [];
   const activeCount = promotions.filter((promotion) => promotion.runtime_active).length;
   const scheduledCount = promotions.filter(
-    (promotion) => promotion.is_active && !promotion.runtime_active && promotion.starts_at && new Date(promotion.starts_at).getTime() > Date.now(),
+    (promotion) => promotion.is_active && !promotion.runtime_active && promotion.starts_at && new Date(promotion.starts_at).getTime() > now,
   ).length;
   const products = productsQuery.data?.items ?? [];
   const cleanCategories = useMemo(() => categories.filter((category) => !category.is_archived), [categories]);
@@ -321,7 +322,7 @@ function PromotionsPage() {
         {promotionsQuery.isLoading ? <Card><CardContent className="flex items-center gap-2 p-5 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Carregando promoções…</CardContent></Card> : promotions.length === 0 ? <Card><CardContent className="p-6 text-center"><Tag className="mx-auto size-7 text-muted-foreground" /><p className="mt-2 font-bold">Nenhuma promoção criada</p><p className="mt-1 text-sm text-muted-foreground">Use o formulário acima para planejar a primeira campanha.</p></CardContent></Card> : promotions.map((promotion) => {
           const scopeLabel = promotion.product_name ? `Produto: ${promotion.product_name}` : promotion.category_name ? `Categoria: ${promotion.category_name}` : "Loja inteira";
           const discountLabel = promotion.kind === "percentual" ? `${Number(promotion.value)}%` : formatPriceBRL(Number(promotion.value));
-          const scheduled = promotion.is_active && !promotion.runtime_active && promotion.starts_at && new Date(promotion.starts_at).getTime() > Date.now();
+          const scheduled = promotion.is_active && !promotion.runtime_active && promotion.starts_at && new Date(promotion.starts_at).getTime() > now;
           return <Card key={promotion.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-black">{promotion.name}</p><Badge variant={promotion.runtime_active ? "success" : scheduled ? "outline" : "secondary"}>{promotion.runtime_active ? "Ativa" : scheduled ? "Programada" : promotion.is_active ? "Fora da janela" : "Pausada"}</Badge><Badge variant="outline">-{discountLabel}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{scopeLabel}{promotion.max_discount_amount ? ` · teto ${formatPriceBRL(Number(promotion.max_discount_amount))}` : ""}</p>{promotion.starts_at || promotion.ends_at ? <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><CalendarClock className="size-3.5" /> {promotion.starts_at ? new Date(promotion.starts_at).toLocaleString("pt-BR") : "agora"} → {promotion.ends_at ? new Date(promotion.ends_at).toLocaleString("pt-BR") : "sem fim"}</p> : null}</div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" disabled={isBusy} onClick={() => storeId && void run(() => setCatalogPromotionActive(storeId, promotion.id, !promotion.is_active, promotion.updated_at), promotion.is_active ? "Promoção pausada." : "Promoção habilitada.").then(() => promotionsQuery.refetch())}>{promotion.is_active ? <Pause className="size-4" /> : <Play className="size-4" />}{promotion.is_active ? "Pausar" : "Habilitar"}</Button><Button type="button" variant="ghost" size="sm" disabled={isBusy} onClick={() => { if (!storeId) return; if (!window.confirm(`Arquivar a promoção “${promotion.name}”? Ela deixará de poder ser ativada novamente.`)) return; void run(() => archiveCatalogPromotion(storeId, promotion.id, promotion.updated_at), "Promoção arquivada.").then(() => promotionsQuery.refetch()); }}><Trash2 className="size-4" /> Arquivar</Button></div></CardContent></Card>;
         })}
       </section>

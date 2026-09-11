@@ -68,7 +68,7 @@ function CardapioOverview() {
   const intelligence = intelligenceQuery.data ?? null;
   const topProducts = intelligence?.items.filter((item) => item.revenue > 0).slice(0, 5) ?? [];
 
-  async function useModel(model: MenuModel) {
+  async function applyModel(model: MenuModel) {
     if (!storeId || !can.create || isBusy) return;
     if (model.code === "outros" && otherBusinessType.trim().length < 2) return;
     const key = `starter:${model.code}`;
@@ -201,7 +201,7 @@ function CardapioOverview() {
                 <CardContent className="space-y-3">
                   <div className="flex gap-2 rounded-lg bg-muted/50 p-3 text-xs leading-5 text-muted-foreground"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand" /><span>{model.creates}</span></div>
                   {model.code === "outros" ? <div className="space-y-1.5"><Label htmlFor="other-business-type">Qual é o seu tipo de negócio?</Label><Input id="other-business-type" value={otherBusinessType} onChange={(event) => setOtherBusinessType(event.target.value)} maxLength={80} placeholder="Ex.: loja de bolos, empório, rotisserie…" /></div> : null}
-                  <Button type="button" variant="ghost" className="h-auto px-0 text-brand hover:bg-transparent hover:text-brand" disabled={!can.create || isBusy || !storeId || otherInvalid} onClick={() => void useModel(model)}>
+                  <Button type="button" variant="ghost" className="h-auto px-0 text-brand hover:bg-transparent hover:text-brand" disabled={!can.create || isBusy || !storeId || otherInvalid} onClick={() => void applyModel(model)}>
                     {loading ? <><Loader2 className="mr-1 size-4 animate-spin" /> Criando…</> : <>Usar como base <ArrowRight className="ml-1 size-4" /></>}
                   </Button>
                 </CardContent>

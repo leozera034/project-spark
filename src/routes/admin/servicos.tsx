@@ -80,7 +80,7 @@ function ProfessionalServicesAdminPage() {
 function ServiceEditor({ service, onSaved }: { service: Service; onSaved: () => Promise<unknown> }) {
   const [price, setPrice] = useState(service.price_cents ? (service.price_cents / 100).toFixed(2).replace(".", ",") : "");
   const [active, setActive] = useState(service.is_active);
-  useEffect(() => { setPrice(service.price_cents ? (service.price_cents / 100).toFixed(2).replace(".", ",") : ""); setActive(service.is_active); }, [service.price_cents, service.is_active]);
+  useEffect(() => { queueMicrotask(() => { setPrice(service.price_cents ? (service.price_cents / 100).toFixed(2).replace(".", ",") : ""); setActive(service.is_active); }); }, [service.price_cents, service.is_active]);
 
   const save = useMutation({
     mutationFn: async () => {

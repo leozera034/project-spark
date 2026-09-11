@@ -24,7 +24,9 @@ export function OrderReviewCard({
 
   useEffect(() => {
     let alive = true;
-    setLoading(true);
+    queueMicrotask(() => {
+      if (alive) setLoading(true);
+    });
     void fetchOrderReviewState(token)
       .then((result) => {
         if (!alive) return;

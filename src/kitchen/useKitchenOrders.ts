@@ -6,7 +6,7 @@
  * RPC autorizada. Sem conexão, a última projeção fica em memória e as ações
  * são bloqueadas — nada é enfileirado para depois.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -41,20 +41,15 @@ export function useOnlineStatus() {
 
 /** Relógio local ancorado no horário do servidor, sem requisição por segundo. */
 export function useServerClock(serverNow: string | undefined) {
-  const offsetRef = useRef(0);
   const [tick, setTick] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (!serverNow) return;
-    offsetRef.current = new Date(serverNow).getTime() - Date.now();
-  }, [serverNow]);
+  const offset = serverNow ? new Date(serverNow).getTime() - tick : 0;
 
   useEffect(() => {
     const id = window.setInterval(() => setTick(Date.now()), 15_000);
     return () => window.clearInterval(id);
   }, []);
 
-  return useMemo(() => tick + offsetRef.current, [tick]);
+  return tick + offset;
 }
 
 export function useKitchenQueue(storeId: string | null, live: boolean, online: boolean) {
@@ -78,7 +73,7 @@ export function useKitchenRealtime(storeId: string | null) {
 
   useEffect(() => {
     if (!storeId) {
-      setLive(false);
+      queueMicrotask(() => setLive(false));
       return;
     }
     const channel = supabase

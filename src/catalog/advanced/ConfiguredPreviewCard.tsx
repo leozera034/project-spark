@@ -46,7 +46,7 @@ export function ConfiguredPreviewCard({ builder }: { builder: AdvancedBuilder })
 
   useEffect(() => {
     const preferred = variants.find((v) => v.is_default) ?? variants[0] ?? null;
-    setVariantId(preferred ? preferred.id : null);
+    queueMicrotask(() => setVariantId(preferred ? preferred.id : null));
   }, [builder.product.id, builder.variants.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selections = useMemo<PreviewSelection[]>(

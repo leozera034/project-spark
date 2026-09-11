@@ -54,7 +54,7 @@ export function useOrderQueue(storeId: string | null, filters: QueueFilters, ena
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   useEffect(() => {
-    setCursor(null);
+    queueMicrotask(() => setCursor(null));
   }, [filterKey, storeId]);
 
   const listFilters: OrderListFilters = {

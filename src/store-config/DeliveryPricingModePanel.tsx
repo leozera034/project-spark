@@ -37,11 +37,13 @@ export function DeliveryPricingModePanel({ storeId, canEdit }: { storeId: string
 
   useEffect(() => {
     if (!config) return;
-    setMode(config.mode);
-    setFixedFee(Number(config.fixed_fee ?? 0).toFixed(2).replace(".", ","));
-    setFixedMin(config.fixed_min_order_amount == null ? "" : Number(config.fixed_min_order_amount).toFixed(2).replace(".", ","));
-    setFixedEta(String(config.fixed_eta_minutes ?? 40));
-    setBands(config.radius_bands ?? []);
+    queueMicrotask(() => {
+      setMode(config.mode);
+      setFixedFee(Number(config.fixed_fee ?? 0).toFixed(2).replace(".", ","));
+      setFixedMin(config.fixed_min_order_amount == null ? "" : Number(config.fixed_min_order_amount).toFixed(2).replace(".", ","));
+      setFixedEta(String(config.fixed_eta_minutes ?? 40));
+      setBands(config.radius_bands ?? []);
+    });
   }, [config]);
 
   const sortedBands = useMemo(() => [...bands].sort((a, b) => Number(a.max_distance_km) - Number(b.max_distance_km)), [bands]);

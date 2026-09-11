@@ -94,7 +94,7 @@ export function useStorefrontPreferences(slug: string) {
   const [document, setDocument] = useState<PreferenceDocument>(() => emptyDocument(slug));
 
   useEffect(() => {
-    setDocument(readDocument(slug));
+    queueMicrotask(() => setDocument(readDocument(slug)));
 
     const refresh = (event?: Event) => {
       if (event instanceof CustomEvent && event.detail?.slug && event.detail.slug !== slug) return;

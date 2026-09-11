@@ -66,9 +66,11 @@ function PagamentosSection() {
   const [pixKeyType, setPixKeyType] = useState<ManualPixKeyType>("aleatoria");
 
   useEffect(() => {
-    setPixEnabled(Boolean(pixMethod?.is_active && setup?.manual_pix_configured));
-    setPixKey(settings?.manual_pix_key ?? "");
-    setPixKeyType(settings?.manual_pix_key_type ?? "aleatoria");
+    queueMicrotask(() => {
+      setPixEnabled(Boolean(pixMethod?.is_active && setup?.manual_pix_configured));
+      setPixKey(settings?.manual_pix_key ?? "");
+      setPixKeyType(settings?.manual_pix_key_type ?? "aleatoria");
+    });
   }, [pixMethod?.is_active, settings?.manual_pix_key, settings?.manual_pix_key_type, setup?.manual_pix_configured]);
 
   const storedPixKey = settings?.manual_pix_key ?? "";
@@ -311,7 +313,7 @@ function MethodRow({ method, canEdit, saving, isFirst, isLast, onMove }: { metho
   const [needsChange, setNeedsChange] = useState(method.needs_change);
   const [delivery, setDelivery] = useState(method.available_for_delivery);
   const [pickup, setPickup] = useState(method.available_for_pickup);
-  useEffect(() => { setLabel(method.label); setInstructions(method.instructions ?? ""); setNeedsChange(method.needs_change); setDelivery(method.available_for_delivery); setPickup(method.available_for_pickup); }, [method]);
+  useEffect(() => { queueMicrotask(() => { setLabel(method.label); setInstructions(method.instructions ?? ""); setNeedsChange(method.needs_change); setDelivery(method.available_for_delivery); setPickup(method.available_for_pickup); }); }, [method]);
   const persist = (overrides?: Partial<Parameters<typeof updatePaymentMethod>[0]>) => { if (!storeId) return; void save(() => updatePaymentMethod({ storeId, id: method.id, label, instructions, needsChange, isActive: method.is_active, availableForDelivery: delivery, availableForPickup: pickup, ...overrides }), "Forma de pagamento atualizada."); };
   return (
     <div className="rounded-xl border border-border p-4">

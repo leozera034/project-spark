@@ -73,8 +73,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // hidratacao: le a preferencia salva e o sistema apenas no cliente
   useEffect(() => {
     const stored = readStoredPreference();
-    setPreferenceState(stored);
-    setResolved(stored === "system" ? systemTheme() : stored);
+    queueMicrotask(() => {
+      setPreferenceState(stored);
+      setResolved(stored === "system" ? systemTheme() : stored);
+    });
   }, []);
 
   // acompanha mudancas do sistema quando a preferencia e "system"

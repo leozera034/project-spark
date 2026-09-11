@@ -8,7 +8,9 @@ export function useSignedCatalogImage(path: string | null): string | null {
 
   useEffect(() => {
     let active = true;
-    setUrl(null);
+    queueMicrotask(() => {
+      if (active) setUrl(null);
+    });
     void signCatalogUrl(path).then((value) => {
       if (active) setUrl(value);
     });

@@ -116,8 +116,10 @@ function StoreAppLayout() {
   const newOrders = countsQuery.data?.byStatus?.aguardando_confirmacao ?? 0;
 
   useEffect(() => {
-    setMobileNavOpen(false);
-    setMobileMoreOpen(false);
+    queueMicrotask(() => {
+      setMobileNavOpen(false);
+      setMobileMoreOpen(false);
+    });
   }, [pathname]);
 
   useEffect(() => {

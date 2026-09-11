@@ -92,7 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // Uma configuração ausente não pode derrubar páginas públicas.
       console.error("[auth] cliente de autenticação indisponível", error);
-      setIsInitializing(false);
+      queueMicrotask(() => {
+        if (mounted.current) setIsInitializing(false);
+      });
     }
 
     return () => {

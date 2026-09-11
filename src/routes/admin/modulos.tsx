@@ -53,7 +53,7 @@ function AddonCard({ offer, actions }: { offer: PlatformAddonOffer; actions: Ret
 function PriceEditor({ offer, interval, price, actions }: { offer:PlatformAddonOffer; interval:AddonBillingInterval; price:PlatformAddonPrice|null; actions:ReturnType<typeof usePlatformAddonPricingActions> }) {
   const [amount,setAmount]=useState(price ? (price.amount_cents/100).toFixed(2).replace(".",",") : "");
   const [trial,setTrial]=useState(String(price?.trial_days ?? 0));
-  useEffect(()=>{setAmount(price ? (price.amount_cents/100).toFixed(2).replace(".",",") : "");setTrial(String(price?.trial_days ?? 0));},[price?.amount_cents,price?.trial_days]);
+  useEffect(()=>{queueMicrotask(()=>{setAmount(price ? (price.amount_cents/100).toFixed(2).replace(".",",") : "");setTrial(String(price?.trial_days ?? 0));});},[price?.amount_cents,price?.trial_days]);
   const cents=Math.round(Number(amount.replace(",","."))*100);
   async function save(){if(!Number.isFinite(cents)||cents<0)return toast.error("Valor inválido");try{await actions.upsertPrice.mutateAsync({addonId:offer.id,billingInterval:interval,amountCents:cents,trialDays:Number(trial)||0,isActive:true});toast.success("Preço salvo") }catch{toast.error("Falha ao salvar preço")}}
   async function sync(){if(!price?.id)return toast.error("Salve o preço antes de sincronizar");try{await actions.syncProvider.mutateAsync({addonPriceId:price.id});toast.success("Preço sincronizado com a Stripe") }catch{toast.error("Falha ao sincronizar com a Stripe")}}

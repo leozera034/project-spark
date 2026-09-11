@@ -89,7 +89,7 @@ function HorariosSection() {
   }, [configuration?.hours]);
 
   const [week, setWeek] = useState<WeekState>(baseline);
-  useEffect(() => setWeek(baseline), [baseline]);
+  useEffect(() => queueMicrotask(() => setWeek(baseline)), [baseline]);
 
   const dirty = JSON.stringify(week) !== JSON.stringify(baseline);
   const errors = validateWeek(week);

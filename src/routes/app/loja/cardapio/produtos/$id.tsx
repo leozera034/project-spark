@@ -78,14 +78,16 @@ function AvailabilityEditor({
 
   useEffect(() => {
     const configuredDays = product.available_weekdays ?? DAYS.map((day) => day.value);
-    setScheduleEnabled(Boolean(product.available_weekdays || product.available_from || product.available_to));
-    setDays(configuredDays);
-    setFrom(dbTime(product.available_from));
-    setTo(dbTime(product.available_to));
-    setStockEnabled(product.stock_quantity !== null && product.stock_quantity !== undefined);
-    setStock(product.stock_quantity === null || product.stock_quantity === undefined ? "" : String(product.stock_quantity));
-    setLowStock(String(product.low_stock_threshold ?? 5));
-    setMaxPerOrder(product.max_quantity === null || product.max_quantity === undefined ? "" : String(product.max_quantity));
+    queueMicrotask(() => {
+      setScheduleEnabled(Boolean(product.available_weekdays || product.available_from || product.available_to));
+      setDays(configuredDays);
+      setFrom(dbTime(product.available_from));
+      setTo(dbTime(product.available_to));
+      setStockEnabled(product.stock_quantity !== null && product.stock_quantity !== undefined);
+      setStock(product.stock_quantity === null || product.stock_quantity === undefined ? "" : String(product.stock_quantity));
+      setLowStock(String(product.low_stock_threshold ?? 5));
+      setMaxPerOrder(product.max_quantity === null || product.max_quantity === undefined ? "" : String(product.max_quantity));
+    });
   }, [product.id, product.updated_at]);
 
   const stockNumber = numericOrNull(stock);
@@ -213,7 +215,7 @@ function CostEditor({
   const [cost, setCost] = useState("");
 
   useEffect(() => {
-    setCost(costInfo.unit_cost === null ? "" : String(costInfo.unit_cost).replace(".", ","));
+    queueMicrotask(() => setCost(costInfo.unit_cost === null ? "" : String(costInfo.unit_cost).replace(".", ",")));
   }, [costInfo.id, costInfo.unit_cost]);
 
   const hasCost = cost.trim().length > 0;
@@ -273,7 +275,7 @@ function EditarProduto() {
   const costQuery = useQuery({ queryKey: ["catalog", "product-cost", storeId, id], queryFn: () => getProductCost(storeId!, id), enabled: Boolean(storeId && canAccessCost), retry: false });
   const product = productQuery.data ?? null;
 
-  useEffect(() => { if (product) setValues(initialProductValues(product)); }, [product]);
+  useEffect(() => { if (product) queueMicrotask(() => setValues(initialProductValues(product))); }, [product]);
 
   if (productQuery.isLoading || !values) return <Skeleton className="h-64 w-full" />;
   if (productQuery.error || !product) return <Alert variant="destructive"><AlertTitle>Produto indisponível</AlertTitle><AlertDescription>Este produto não existe mais ou não pertence à loja selecionada.</AlertDescription></Alert>;

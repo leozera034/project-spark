@@ -152,7 +152,7 @@ function CreateStorePage() {
   const { signInStore, isAuthenticated, isInitializing, authContext } = useAuth();
   const checkSlug = useServerFn(checkStoreSlug);
   const createStore = useServerFn(createStoreAccount);
-  const selected = useMemo(intent, []);
+  const selected = useMemo(() => intent(), []);
 
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);

@@ -43,10 +43,12 @@ export function SaleModeCard({
   const [step, setStep] = useState(String(product.quantity_step ?? 1));
 
   useEffect(() => {
-    setMode(product.sale_mode);
-    setUnit(product.measurement_unit === "unit" ? "kg" : product.measurement_unit);
-    setMinimum(String(product.minimum_quantity ?? 1));
-    setStep(String(product.quantity_step ?? 1));
+    queueMicrotask(() => {
+      setMode(product.sale_mode);
+      setUnit(product.measurement_unit === "unit" ? "kg" : product.measurement_unit);
+      setMinimum(String(product.minimum_quantity ?? 1));
+      setStep(String(product.quantity_step ?? 1));
+    });
   }, [product.sale_mode, product.measurement_unit, product.minimum_quantity, product.quantity_step]);
 
   async function save() {

@@ -22,7 +22,6 @@ import type { StoreBillingAccess, StoreBillingStage } from "@/lib/store-billing.
 import { useStoreBillingAccess } from "@/store/billing/store-billing.queries";
 import { useStoreScope } from "@/store-scope/StoreScopeProvider";
 
-// @ts-ignore -- TanStack route tree is regenerated during build.
 export const Route = createFileRoute("/app/loja/plano")({
   loader: () => listPublicPlans(),
   head: () => ({ meta: [{ title: "Conta e plano | Comandiva" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -135,7 +134,7 @@ function StorePlanPage() {
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const query = useMemo(queryIntent, []);
+  const query = useMemo(() => queryIntent(), []);
   const handledIntent = useRef(false);
 
   const loadDetail = useCallback(async () => {
@@ -154,7 +153,7 @@ function StorePlanPage() {
     }
   }, [getDetail, storeId]);
 
-  useEffect(() => { void loadDetail(); }, [loadDetail]);
+  useEffect(() => { queueMicrotask(() => void loadDetail()); }, [loadDetail]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([loadDetail(), billingQuery.refetch()]);
@@ -218,13 +217,13 @@ function StorePlanPage() {
     handledIntent.current = true;
 
     if (query.payment === "cancelled") {
-      setNotice("Pagamento cancelado. Nenhum plano pago foi ativado.");
+      queueMicrotask(() => setNotice("Pagamento cancelado. Nenhum plano pago foi ativado."));
       clearIntentUrl();
       return;
     }
 
     if (query.payment === "success") {
-      setConfirming(true);
+      queueMicrotask(() => setConfirming(true));
       let stopped = false;
       let tries = 0;
       const run = async () => {
@@ -251,13 +250,14 @@ function StorePlanPage() {
     }
 
     if (query.purchase) {
-      const same = detail.plan.code === query.purchase.planCode && ["active", "trialing"].includes(detail.subscription.provider_status ?? "");
+      const purchase = query.purchase;
+      const same = detail.plan.code === purchase.planCode && ["active", "trialing"].includes(detail.subscription.provider_status ?? "");
       if (same) {
-        setNotice("Esse plano já está ativo nesta loja.");
+        queueMicrotask(() => setNotice("Esse plano já está ativo nesta loja."));
         clearIntentUrl();
         return;
       }
-      void selectPlan(query.purchase.planCode, query.purchase.interval);
+      queueMicrotask(() => void selectPlan(purchase.planCode, purchase.interval));
     }
   }, [storeId, detail, query.payment, query.purchase, loadDetail, billingQuery, selectPlan]);
 
