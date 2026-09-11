@@ -41,11 +41,7 @@ function safeRemove(key: string) {
 }
 
 function randomKey(): string {
-  try {
-    return crypto.randomUUID();
-  } catch {
-    return `k-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
-  }
+  return crypto.randomUUID();
 }
 
 /**
