@@ -1,7 +1,23 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+
+// Function client middleware also runs while route loaders are rendered on the
+// server. Only inspect the persisted browser session after hydration; otherwise
+// public SSR routes would try to initialize the browser client without browser
+// runtime credentials and fail before their loaders can use their own fallback.
+const attachSupabaseAuthInBrowser = createMiddleware({ type: "function" }).client(
+  async ({ next }) => {
+    if (typeof window === "undefined") return next();
+
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    return next({
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+);
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -26,6 +42,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [attachSupabaseAuthInBrowser],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));
