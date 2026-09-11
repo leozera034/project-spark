@@ -4,10 +4,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const EXTERNAL_SUPABASE_URL = 'https://ypgteuxzgqmkkkpvibhi.supabase.co';
-const configuredPublishableKey =
-  process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-if (!configuredPublishableKey) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
-const EXTERNAL_SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey;
 const BACKEND_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/pediu-backend-api`;
 const STORE_SIGNUP_EDGE_URL = `${EXTERNAL_SUPABASE_URL}/functions/v1/comandiva-store-signup`;
 const EDGE_REQUEST_TIMEOUT_MS = 15_000;
@@ -17,6 +13,12 @@ const EDGE_RPC_ALLOWLIST = new Set([
   'storefront_fulfillment','storefront_validate_fulfillment','storefront_payment_methods','storefront_submit_order','storefront_order_tracking',
 ]);
 
+function publishableKey(): string {
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!key) throw new Error('SUPABASE_PUBLISHABLE_KEY is not configured');
+  return key;
+}
+
 export class PediuBackendApiError extends Error {
   constructor(public readonly code:string,public readonly status:number){super(code);this.name='PediuBackendApiError'}
 }
@@ -24,7 +26,7 @@ type EdgeEnvelope<T>={ok:true;data:T}|{ok:false;error?:string};
 type BackendActionOptions={accessToken?:string};
 
 async function invokeEdgeEnvelope<T>(url:string,payload:Record<string,unknown>,options:BackendActionOptions={}):Promise<T>{
-  const headers=new Headers({'content-type':'application/json',apikey:EXTERNAL_SUPABASE_PUBLISHABLE_KEY});
+  const headers=new Headers({'content-type':'application/json',apikey:publishableKey()});
   if(options.accessToken)headers.set('authorization',`Bearer ${options.accessToken}`);
 
   const controller=new AbortController();
