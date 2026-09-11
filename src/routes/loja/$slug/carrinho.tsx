@@ -222,7 +222,7 @@ function CartPage() {
                         {line.notes ? <p className="mt-1 break-words text-sm italic text-muted-foreground">“{line.notes}”</p> : null}
                       </div>
                       <div className="shrink-0 text-right">
-                        {hasPromotion && quote?.originalTotal !== null ? <p className="text-xs text-muted-foreground line-through tabular-nums">{brl(quote.originalTotal)}</p> : null}
+                        {hasPromotion && quote && quote.originalTotal !== null ? <p className="text-xs text-muted-foreground line-through tabular-nums">{brl(quote.originalTotal)}</p> : null}
                         {total !== null ? <p className={`font-black tabular-nums ${hasPromotion ? "text-emerald-700" : ""}`}>{brl(total)}</p> : loading ? <Loader2 className="ml-auto size-4 animate-spin" /> : <p className="text-sm text-muted-foreground tabular-nums">{brl(line.lastKnownTotal)}</p>}
                         {unitPrice !== null && line.quantity !== 1 ? <p className="text-xs text-muted-foreground tabular-nums">{brl(unitPrice)} / {measured ? unit : "un"}</p> : null}
                       </div>
