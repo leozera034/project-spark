@@ -21,7 +21,7 @@
   @auth_diag path /__comandiva_auth
   handle @auth_diag {
     basic_auth {
-      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
+      comandiva {$CADDY_BASIC_AUTH_HASH}
     }
     respond "authorized" 200
   }
@@ -29,7 +29,7 @@
   @upstream_diag path /__comandiva_upstream
   handle @upstream_diag {
     basic_auth {
-      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
+      comandiva {$CADDY_BASIC_AUTH_HASH}
     }
     rewrite * /instance/connectionState/comandiva_security_probe
     reverse_proxy evolution:8080 {
@@ -39,7 +39,7 @@
 
   handle {
     basic_auth {
-      comandiva $2a$10$mXkhifC3m9Y5S.PZP6zf6elZy4pTemc8b2ittHDEukDQPq/WzhcSW
+      comandiva {$CADDY_BASIC_AUTH_HASH}
     }
 
     reverse_proxy evolution:8080 {
