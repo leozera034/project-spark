@@ -26,7 +26,57 @@ insert into public.couriers (id, store_id, user_id, full_name, phone, vehicle, p
   ('00000000-0000-4000-8000-0000000c0002','00000000-0000-4000-8000-000000000205','d8b6d153-1420-4c37-8ef4-aa67e1b885a2','Bia Entregadora','(62) 90000-0008','Bicicleta',null,'ativo',false,true)
 on conflict (id, store_id) do nothing;
 
-insert into public.courier_auth_identities (store_id, courier_id, auth_user_id, login_identifier, synthetic_email, requires_password_change, is_login_enabled) values
-  ('00000000-0000-4000-8000-000000000205','00000000-0000-4000-8000-0000000c0001','45f228bf-e077-4323-a523-342b63a036b3','carlos.aurora','45a254b483e0fba8c7acd66234102c34@courier.pediuaqui.internal', false, true),
-  ('00000000-0000-4000-8000-000000000205','00000000-0000-4000-8000-0000000c0002','d8b6d153-1420-4c37-8ef4-aa67e1b885a2','bia.aurora','07984d4510598c79e0a5867931fa38d1@courier.pediuaqui.internal', true, true)
+-- Vinculos com Auth sao opcionais em rebuilds locais/CI. As contas de Auth
+-- reais sao provisionadas fora das migrations; nunca fabricamos auth.users ou
+-- credenciais em SQL apenas para satisfazer a fixture de QA. Se os UUIDs ja
+-- existirem em auth.users (por exemplo em um ambiente de desenvolvimento que
+-- provisionou essas contas), o vinculo e recriado normalmente.
+insert into public.courier_auth_identities (
+  store_id,
+  courier_id,
+  auth_user_id,
+  login_identifier,
+  synthetic_email,
+  requires_password_change,
+  is_login_enabled
+)
+select
+  v.store_id,
+  v.courier_id,
+  v.auth_user_id,
+  v.login_identifier,
+  v.synthetic_email,
+  v.requires_password_change,
+  v.is_login_enabled
+from (values
+  (
+    '00000000-0000-4000-8000-000000000205'::uuid,
+    '00000000-0000-4000-8000-0000000c0001'::uuid,
+    '45f228bf-e077-4323-a523-342b63a036b3'::uuid,
+    'carlos.aurora'::text,
+    '45a254b483e0fba8c7acd66234102c34@courier.pediuaqui.internal'::text,
+    false,
+    true
+  ),
+  (
+    '00000000-0000-4000-8000-000000000205'::uuid,
+    '00000000-0000-4000-8000-0000000c0002'::uuid,
+    'd8b6d153-1420-4c37-8ef4-aa67e1b885a2'::uuid,
+    'bia.aurora'::text,
+    '07984d4510598c79e0a5867931fa38d1@courier.pediuaqui.internal'::text,
+    true,
+    true
+  )
+) as v(
+  store_id,
+  courier_id,
+  auth_user_id,
+  login_identifier,
+  synthetic_email,
+  requires_password_change,
+  is_login_enabled
+)
+where exists (
+  select 1 from auth.users u where u.id = v.auth_user_id
+)
 on conflict do nothing;
