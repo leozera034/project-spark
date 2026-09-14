@@ -1,0 +1,77 @@
+name: Tenant isolation DB tests
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-tenant-isolation.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-tenant-isolation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tenant-db-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tenant-isolation:
+    name: RLS and cross-store attacks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.101.0
+          github-token: ${{ github.token }}
+
+      - name: Build isolated authorization workdir
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ci/tenant-db
+          mkdir -p .ci/tenant-db/supabase/migrations
+          mkdir -p .ci/tenant-db/supabase/tests/database
+
+          cp supabase/config.toml .ci/tenant-db/supabase/config.toml
+
+          # The complete July chain contains foundation, RLS, authorization,
+          # storefront checkout fixtures and the real order-panel RPCs. Later
+          # August billing/QA migration-history debt is tracked separately in #4.
+          find supabase/migrations -maxdepth 1 -type f -name '20260731*.sql' -print0 \
+            | sort -z \
+            | xargs -0 -I{} cp "{}" .ci/tenant-db/supabase/migrations/
+
+          cp \
+            supabase/tests/database/tenant_isolation.test.sql \
+            .ci/tenant-db/supabase/tests/database/
+
+          test -f .ci/tenant-db/supabase/migrations/20260731023055_f7ba888e-f1ec-4f42-877d-0fa105a827fc.sql
+          test -f .ci/tenant-db/supabase/migrations/20260731030426_20e709d5-2ea4-4ca0-ad13-1b16e93eed7f.sql
+          test -f .ci/tenant-db/supabase/migrations/20260731070453_8a9d9dd6-f88d-454a-b975-166df32882b6.sql
+
+          echo "Authorization migration count: $(find .ci/tenant-db/supabase/migrations -type f -name '*.sql' | wc -l)"
+
+      - name: Start isolated authorization database
+        run: |
+          supabase --workdir .ci/tenant-db start \
+            -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Run tenant isolation pgTAP suite
+        run: |
+          supabase --workdir .ci/tenant-db test db \
+            supabase/tests/database/tenant_isolation.test.sql
+
+      - name: Stop isolated Supabase database
+        if: ${{ always() }}
+        run: supabase --workdir .ci/tenant-db stop --no-backup
