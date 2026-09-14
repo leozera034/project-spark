@@ -43,6 +43,11 @@ export type PublicDeliveryRoute = {
   estimatedAt: string | null;
 };
 
+export type PublicDeliveryProof = {
+  mode: "none" | "pin";
+  code: string | null;
+};
+
 export type PublicOrderTracking = {
   ok: true;
   changed: true;
@@ -68,6 +73,7 @@ export type PublicOrderTracking = {
     neighborhoodName: string | null;
     estimatedMinutes: number | null;
     route?: PublicDeliveryRoute | null;
+    proof?: PublicDeliveryProof | null;
   };
   items: {
     productName: string;

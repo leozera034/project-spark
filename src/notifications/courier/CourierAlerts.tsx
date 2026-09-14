@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Volume2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ type CourierAlerts = { new_assignments?: { entity_id: string }[] };
 
 /** Alerta de nova atribuição para o entregador, consultado direto no navegador. */
 export function CourierAlerts() {
+  const queryClient = useQueryClient();
   const { isUnlocked, unlock } = useAudioUnlock();
   const { data: alerts } = useQuery<CourierAlerts>({
     queryKey: ["courier-alerts"],
@@ -28,17 +29,28 @@ export function CourierAlerts() {
     staleTime: 5000,
   });
 
-  const newAssignments = alerts?.new_assignments?.length ?? 0;
+  const assignmentIds = (alerts?.new_assignments ?? [])
+    .map((assignment) => assignment.entity_id)
+    .filter(Boolean)
+    .sort();
+  const assignmentKey = assignmentIds.join("|");
+  const newAssignments = assignmentIds.length;
 
   useEffect(() => {
-    if (newAssignments > 0 && tabCoordinator.getIsLeader()) {
+    if (!assignmentKey) return;
+
+    // O alerta e a oferta operacional vêm de RPCs diferentes. Ao detectar uma
+    // nova atribuição, força a atualização da tela para evitar "toast sem corrida".
+    void queryClient.invalidateQueries({ queryKey: ["courier", "operational-context"] });
+
+    if (tabCoordinator.getIsLeader()) {
       audioManager.play("assignment");
       toast.info("Nova entrega atribuída!", {
         description: "Você tem uma nova entrega aguardando aceite.",
         duration: 10000,
       });
     }
-  }, [newAssignments]);
+  }, [assignmentKey, queryClient]);
 
   if (!isUnlocked && newAssignments > 0) {
     return (
