@@ -1,0 +1,169 @@
+name: PR Marketing Capture
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_URL: https://shark-cardapio.lovable.app
+      SUPABASE_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co
+      EDGE_URL: https://ypgteuxzgqmkkkpvibhi.supabase.co/functions/v1/pediu-backend-api
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_r2VeXySDe1VMkFkeubZ7ww_usGb6kSG
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Generate screenshots
+        run: |
+          mkdir -p marketing/captures/generated
+          cat > /tmp/capture.mjs <<'NODE'
+          import { chromium } from 'playwright'
+          import { createHash, randomBytes } from 'node:crypto'
+
+          const APP = process.env.APP_URL
+          const SUPA = process.env.SUPABASE_URL
+          const EDGE = process.env.EDGE_URL
+          const KEY = process.env.SUPABASE_PUBLISHABLE_KEY
+          const out = 'marketing/captures/generated'
+          const stamp = Date.now()
+          const slug = `comandiva-captura-${stamp.toString(36)}`
+          const email = `qa.capture.${stamp}@example.com`
+          const password = `Qa!${randomBytes(12).toString('hex')}7a`
+          const courierIdentifier = `comandiva.capture.${String(stamp).slice(-8)}`
+          const courierNewPassword = `Courier!${randomBytes(10).toString('hex')}7a`
+
+          async function jf(url, options = {}) {
+            const r = await fetch(url, options)
+            const t = await r.text()
+            let data = {}
+            try { data = t ? JSON.parse(t) : {} } catch { data = { raw: t } }
+            if (!r.ok) throw new Error(`${r.status} ${url}: ${t.slice(0,400)}`)
+            return data
+          }
+
+          const edgeHeaders = { 'content-type': 'application/json', apikey: KEY }
+          const created = await jf(EDGE, {
+            method: 'POST', headers: edgeHeaders,
+            body: JSON.stringify({ action: 'create_store_account', input: {
+              storeName: 'COMANDIVA Demo Burger', slug, segment: 'Hamburgueria',
+              city: 'São Paulo', state: 'SP', phone: '11999990000',
+              ownerName: 'Equipe COMANDIVA Demo', email, password, planCode: 'avancado'
+            }})
+          })
+          const storeId = created.data.storeId
+
+          const ownerAuth = await jf(`${SUPA}/auth/v1/token?grant_type=password`, {
+            method: 'POST', headers: { 'content-type': 'application/json', apikey: KEY },
+            body: JSON.stringify({ email, password })
+          })
+          const ownerToken = ownerAuth.access_token
+          const restHeaders = { 'content-type': 'application/json', apikey: KEY, authorization: `Bearer ${ownerToken}`, prefer: 'return=representation' }
+
+          try {
+            await jf(`${SUPA}/rest/v1/store_settings?store_id=eq.${storeId}`, {
+              method: 'PATCH', headers: restHeaders,
+              body: JSON.stringify({ description: 'Hambúrgueres artesanais, combos e bebidas com pedido online.', welcome_message: 'Peça fácil. Acompanhe em tempo real.', brand_primary: '#55207A', brand_accent: '#FF681F', manual_override_open: true, min_order_amount: 15, default_prep_minutes: 25 })
+            })
+            const cats = await jf(`${SUPA}/rest/v1/categories`, {
+              method: 'POST', headers: restHeaders,
+              body: JSON.stringify([
+                { store_id: storeId, name: 'Mais pedidos', description: 'Os favoritos da casa', sort_order: 1 },
+                { store_id: storeId, name: 'Combos', description: 'Combinações completas', sort_order: 2 },
+                { store_id: storeId, name: 'Bebidas', description: 'Geladas para acompanhar', sort_order: 3 }
+              ])
+            })
+            const ids = Object.fromEntries(cats.map(c => [c.name, c.id]))
+            await jf(`${SUPA}/rest/v1/products`, {
+              method: 'POST', headers: restHeaders,
+              body: JSON.stringify([
+                { store_id: storeId, category_id: ids['Mais pedidos'], name: 'COMANDIVA Burger', description: 'Pão brioche, carne 160g, cheddar e molho especial.', base_price: 29.9, is_featured: true, sort_order: 1 },
+                { store_id: storeId, category_id: ids['Mais pedidos'], name: 'Duplo Bacon', description: 'Duas carnes, bacon crocante, queijo e cebola caramelizada.', base_price: 36.9, is_featured: true, sort_order: 2 },
+                { store_id: storeId, category_id: ids['Combos'], name: 'Combo Burger + Fritas', description: 'Burger artesanal, fritas crocantes e bebida.', base_price: 42.9, is_featured: true, sort_order: 1 },
+                { store_id: storeId, category_id: ids['Bebidas'], name: 'Refrigerante lata', description: '350 ml gelado.', base_price: 7, sort_order: 1 }
+              ])
+            })
+          } catch (e) { console.warn('seed warning', e.message) }
+
+          const courier = await jf(EDGE, {
+            method: 'POST', headers: { ...edgeHeaders, authorization: `Bearer ${ownerToken}` },
+            body: JSON.stringify({ action: 'create_courier', input: {
+              fullName: 'Entregador COMANDIVA Demo', phone: '11988880000', loginIdentifier: courierIdentifier,
+              vehicle: 'moto', canAcceptDeliveries: true, isActive: true, idempotencyKey: `capture-${stamp}`
+            }})
+          })
+          const temp = courier.data.temporaryPassword
+          const syntheticEmail = `${createHash('sha256').update(`pediu-aqui:courier:${courierIdentifier}`).digest('hex').slice(0,32)}@courier.pediuaqui.internal`
+          const ca = await jf(`${SUPA}/auth/v1/token?grant_type=password`, {
+            method: 'POST', headers: { 'content-type': 'application/json', apikey: KEY },
+            body: JSON.stringify({ email: syntheticEmail, password: temp })
+          })
+          await jf(`${SUPA}/auth/v1/user`, {
+            method: 'PUT', headers: { 'content-type': 'application/json', apikey: KEY, authorization: `Bearer ${ca.access_token}` },
+            body: JSON.stringify({ password: courierNewPassword })
+          })
+          await jf(`${SUPA}/rest/v1/rpc/complete_my_initial_password_change`, {
+            method: 'POST', headers: { 'content-type': 'application/json', apikey: KEY, authorization: `Bearer ${ca.access_token}` }, body: '{}'
+          })
+
+          const browser = await chromium.launch({ headless: true })
+          const settle = async p => { await p.waitForLoadState('domcontentloaded'); await p.waitForTimeout(2500) }
+          const snap = async (p, name) => { await settle(p); await p.screenshot({ path: `${out}/${name}.png`, fullPage: true }) }
+
+          const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } })
+          const m = await mobile.newPage()
+          await m.goto(`${APP}/loja/${slug}`, { timeout: 60000 })
+          await snap(m, 'cliente_01_cardapio_mobile')
+          await mobile.close()
+
+          const desktop = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+          const p = await desktop.newPage()
+          await p.goto(`${APP}/loja/${slug}`, { timeout: 60000 })
+          await snap(p, 'cliente_02_cardapio_desktop')
+          await p.goto(`${APP}/entrar/loja`, { timeout: 60000 })
+          await p.fill('#email', email)
+          await p.locator('input[type="password"]').fill(password)
+          await p.locator('button[type="submit"]').click()
+          await p.waitForTimeout(3500)
+          await snap(p, 'lojista_01_dashboard_desktop')
+          const storeRoutes = ['cardapio','entregas','financeiro','crescimento','cozinha','configuracoes','avaliacoes','ajuda']
+          let n = 2
+          for (const r of storeRoutes) {
+            try { await p.goto(`${APP}/app/loja/${r}`, { timeout: 60000 }); await snap(p, `lojista_${String(n++).padStart(2,'0')}_${r}_desktop`) } catch (e) { console.warn(r, e.message) }
+          }
+          await desktop.close()
+
+          const courierCtx = await browser.newContext({ viewport: { width: 390, height: 844 } })
+          const c = await courierCtx.newPage()
+          await c.goto(`${APP}/entrar/entregador`, { timeout: 60000 })
+          await c.fill('#identificador', courierIdentifier)
+          await c.locator('input[type="password"]').fill(courierNewPassword)
+          await c.locator('button[type="submit"]').click()
+          await c.waitForTimeout(3500)
+          await snap(c, 'entregador_01_dashboard_mobile')
+          const links = await c.locator('a[href^="/app/entregador"]').evaluateAll(els => [...new Set(els.map(a => a.getAttribute('href')).filter(Boolean))])
+          let cn = 2
+          for (const r of links.slice(0,6)) {
+            try { await c.goto(`${APP}${r}`, { timeout: 60000 }); const label = r.split('/').filter(Boolean).pop() || 'home'; await snap(c, `entregador_${String(cn++).padStart(2,'0')}_${label}_mobile`) } catch (e) { console.warn(r, e.message) }
+          }
+          await courierCtx.close()
+          await browser.close()
+          NODE
+          node /tmp/capture.mjs
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: comandiva-marketing-captures
+          path: marketing/captures/generated/*.png
+          if-no-files-found: error
+          retention-days: 14
