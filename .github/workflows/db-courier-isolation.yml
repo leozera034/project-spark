@@ -1,0 +1,79 @@
+name: Courier isolation DB tests
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-courier-isolation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db-courier-isolation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: courier-isolation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  courier-isolation:
+    name: Cross-courier isolation and idempotency
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.113.0
+          github-token: ${{ github.token }}
+
+      - name: Build isolated courier workdir
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ci/courier-isolation
+          mkdir -p .ci/courier-isolation/supabase/migrations .ci/courier-isolation/supabase/tests/database
+          cp supabase/config.toml .ci/courier-isolation/supabase/config.toml
+
+          find supabase/migrations -maxdepth 1 -type f -name '20260731*.sql' -print0 \
+            | sort -z \
+            | xargs -0 -I{} cp "{}" .ci/courier-isolation/supabase/migrations/
+
+          cp supabase/migrations/20260802183724_6762713c-1cd7-425d-99d0-b4f53fa8228e.sql .ci/courier-isolation/supabase/migrations/
+          cp supabase/migrations/20260802183933_d16e989c-5140-491b-bd2a-447b71254d8f.sql .ci/courier-isolation/supabase/migrations/
+          cp supabase/migrations/20260802184111_8b66408a-944c-49da-9b37-1d91652904c0.sql .ci/courier-isolation/supabase/migrations/
+          cp supabase/migrations/20260803115434_f7fcbebc-f5c0-4daf-893d-61ad31bf81ab.sql .ci/courier-isolation/supabase/migrations/
+          cp supabase/migrations/20260808130500_bind_courier_idempotency_request.sql .ci/courier-isolation/supabase/migrations/
+
+          cp supabase/tests/database/courier_isolation.test.sql .ci/courier-isolation/supabase/tests/database/
+          echo "Courier isolation migration count: $(find .ci/courier-isolation/supabase/migrations -type f -name '*.sql' | wc -l)"
+
+      - name: Start isolated courier database
+        run: |
+          supabase --workdir .ci/courier-isolation start \
+            -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Run courier isolation pgTAP suite
+        run: supabase --workdir .ci/courier-isolation test db supabase/tests/database/courier_isolation.test.sql
+
+      - name: Capture PostgreSQL diagnostics
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          set +e
+          docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+          for container in $(docker ps -a --format '{{.Names}}' | grep -E '^supabase_db_' || true); do
+            echo "=== PostgreSQL logs: ${container} ==="
+            docker logs --tail 500 "${container}" 2>&1 || true
+          done
+
+      - name: Stop isolated Supabase database
+        if: ${{ always() }}
+        run: supabase --workdir .ci/courier-isolation stop --no-backup
